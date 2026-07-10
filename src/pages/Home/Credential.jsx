@@ -29,6 +29,7 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 import { H2 } from '@/components/Shared/Heading';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
+import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
 import { BookCheck, QrCode } from 'lucide-react';
 import { DEV_MODE } from '@/config';
 
@@ -95,16 +96,27 @@ const Credential = () => {
 		setShowDeletePopup(false);
 	};
 
-	const generateQR = async () => {
-		setMdocQRStatus(0);
-		setMdocQRContent(await generateEngagementQR(vcEntity));
-		setShowMdocQR(true);
+	const connectClient = async () => {
 		const client = await startClient();
 		if (!client) {
 			setMdocQRStatus(-1);
 		} else {
 			setMdocQRStatus(1);
 		}
+	};
+
+	const generateQR = async () => {
+		setMdocQRStatus(0);
+		setMdocQRContent(await generateEngagementQR(vcEntity));
+		setShowMdocQR(true);
+		if (bluetoothConnectRequiresUserGesture()) {
+			// Web Bluetooth: connecting opens the browser's device-chooser dialog,
+			// which would cover the QR before the verifier has scanned it (and no
+			// device advertises the engagement UUID until then). Wait for the user
+			// to confirm the scan before connecting.
+			return;
+		}
+		await connectClient();
 	};
 
 	const handleMdocRequest = useCallback(async () => {
@@ -140,7 +152,7 @@ const Credential = () => {
 
 	useEffect(() => {
 		async function shareEligible(vcEntity) {
-			if (!window.nativeWrapper) {
+			if (!isBluetoothTransportAvailable()) {
 				setShareWithQr(false);
 				return;
 			}
@@ -230,7 +242,15 @@ const Credential = () => {
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
 							{mdocQRStatus === -1 && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
-							{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
+							{mdocQRStatus === 0 && <div className='flex flex-col items-center justify-center'>
+								<QRCode value={mdocQRContent} />
+								{bluetoothConnectRequiresUserGesture() && (
+									<>
+										<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-4 mb-2 text-center">{t('qrShareMdoc.scanPrompt')}</p>
+										<Button variant='primary' onClick={connectClient}>{t('qrShareMdoc.scannedContinue')}</Button>
+									</>
+								)}
+							</div>}
 							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
 							{mdocQRStatus === 2 && <span className='pb-16'>
 								<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">

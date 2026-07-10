@@ -9,10 +9,14 @@ import { toBase64 } from "@/util";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { VerifiableCredentialFormat } from "wallet-common";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
+import { createBluetoothTransport, IBluetoothTransport } from "./bluetooth";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
 	let ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
-	const uuid = uuidv4();
+	// BLE service UUID of the current engagement. Generated per QR code and
+	// kept in a ref so that startClient() connects to the same UUID that the
+	// verifier learned from the QR, even across re-renders
+	let serviceUuidRef = useRef<string | null>(null);
 	let deviceEngagementBytesRef = useRef<any>(null);
 	let credentialRef = useRef<any>(null);
 	let sessionDataEncodedRef = useRef<Uint8Array | null>(null);
@@ -21,7 +25,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	let requestedNamespaceRef = useRef<string | null>(null);
 	let sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
 	let skDeviceRef = useRef<CryptoKey>(null);
-	const assumedChunkSize = 512;
+	let transportRef = useRef<IBluetoothTransport | null>(null);
 
 	const { keystore, api } = useContext(SessionContext);
 	const { updatePrivateData } = api;
@@ -66,7 +70,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		const publicKeyJWK = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
 
-		// const uuid =  '00179c7a-eec6-4f88-8646-045fda9ac4d8'
+		const uuid = uuidv4();
+		serviceUuidRef.current = uuid;
 
 		const deviceEngagement = getDeviceEngagement(uuid, publicKeyJWK);
 		const cbor = cborEncode(deviceEngagement);
@@ -75,48 +80,34 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		credentialRef.current = vcEntity;
 
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
-	}, [uuid]);
+	}, []);
 
 	const startClient = useCallback(async (): Promise<boolean> => {
-		/* @ts-ignore */
-		if (window.nativeWrapper) {
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothTerminate(); // Terminate any pending ble connections
-			try {
-				/* @ts-ignore */
-				const client = await window.nativeWrapper.bluetoothCreateClient(uuid);
-				return client;
-			} catch (e) {
-				console.log(e);
-				/* @ts-ignore */
-				console.log(await nativeWrapper.bluetoothStatus());
-				console.log("Could not initialize BLE client");
-				return false;
-			}
+		if (!serviceUuidRef.current) {
+			console.log("No device engagement generated yet");
+			return false;
 		}
-		return false;
-	}, [uuid]);
+		const transport = createBluetoothTransport();
+		if (!transport) {
+			console.log("No Bluetooth backend available");
+			return false;
+		}
+		transportRef.current = transport;
+		return transport.connect(serviceUuidRef.current);
+	}, []);
 
 	const getMdocRequest = useCallback(async (): Promise<string[]> => {
-		let aggregatedData = [];
-		/* @ts-ignore */
-		if (window.nativeWrapper) {
+		let receivedMessage: Uint8Array = new Uint8Array([]);
+		if (transportRef.current) {
 			console.log("Created BLE client");
 			try {
-				let dataReceived = [1];
-				while (dataReceived[0] === 1) {
-					/* @ts-ignore */
-					dataReceived = JSON.parse(await window.nativeWrapper.bluetoothReceiveFromServer());
-					// this.assumedChunkSize = Math.max(this.assumedChunkSize, dataReceived.length);
-					aggregatedData = [...aggregatedData, ...dataReceived.slice(1)];
-				}
+				receivedMessage = await transportRef.current.receiveMessage();
 			} catch (e) {
 				console.log("Error receiving");
 				console.log(e);
 			}
 		}
-		console.log('Assumed chunk size: ', assumedChunkSize);
-		const sessionMessage = uint8ArraytoHexString(new Uint8Array(aggregatedData));
+		const sessionMessage = uint8ArraytoHexString(receivedMessage);
 		const decoded = cborDecode<Map<string, any>>(hexToUint8Array(sessionMessage));
 		const readerKey = decoded.get('eReaderKey');
 		const verifierData = decoded.get('data');
@@ -231,15 +222,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		sessionDataEncodedRef.current = cborEncode(sessionData);
 
 		if (sessionDataEncodedRef.current) {
-			let toSendBytes = Array.from(sessionDataEncodedRef.current);
-			while (toSendBytes.length > (assumedChunkSize - 1)) {
-				const chunk = [1, ...toSendBytes.slice(0, (assumedChunkSize - 1))]
-				/* @ts-ignore */
-				await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
-				toSendBytes = toSendBytes.slice((assumedChunkSize - 1));
-			}
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
+			await transportRef.current.sendMessage(sessionDataEncodedRef.current);
 
 			const presentationSubmission = {
 				id: generateRandomIdentifier(8),
@@ -257,24 +240,24 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			await storeVerifiablePresentation(presentations, presentationSubmission, credentialRef.current.credentialId, "Proximity Mode");
 		}
 
-		/* @ts-ignore */
-		await nativeWrapper.bluetoothTerminate();
+		await transportRef.current.terminate();
 		return;
 	}, [generateDeviceResponseWithProximity, storeVerifiablePresentation]);
 
 	const terminateSession = useCallback(
 		async (): Promise<void> => {
+			if (!transportRef.current) {
+				return;
+			}
 			const sessionData = {
 				data: new Uint8Array([]),
 				status: 20
 			}
 
 			const sessionDataEncoded = cborEncode(sessionData);
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+			await transportRef.current.sendMessage(sessionDataEncoded);
 
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothTerminate();
+			await transportRef.current.terminate();
 		},
 		[],
 	);
