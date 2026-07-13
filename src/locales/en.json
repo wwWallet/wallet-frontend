@@ -365,6 +365,10 @@
 		"nicknamePlaceholder": "Credential nickname",
 		"passkeyCreated": "Your passkey has been created."
 	},
+	"resyncNotification": {
+		"action": "Sync",
+		"description": "You're back online. Would you like to resync your wallet?"
+	},
 	"selectCredentialPopup": {
 		"allClaimsRequested": "The verifier has requested all claims of the credential.",
 		"baseTitle": "Send Credentials",
@@ -385,10 +389,6 @@
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary",
 		"transactionDataExample": "Accept example transaction data terms & conditions"
-	},
-	"resyncNotification": {
-		"action": "Sync",
-		"description": "You're back online. Would you like to resync your wallet?"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
