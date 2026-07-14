@@ -41,7 +41,7 @@ const Register = () => {
 		setWebauthnError('');
 		checkForUpdates();
 		updateOnlineStatus();
-		navigate('/login');
+		navigate('/login', { state: { skipCachedAccounts: true } });
 	}
 
 	return (

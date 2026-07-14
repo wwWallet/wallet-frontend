@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -26,13 +26,23 @@ const Login = () => {
 	const [isAwaitingRedirect, setIsAwaitingRedirect] = useState(false);
 
 	const navigate = useNavigate();
+	const location = useLocation();
+	const [skipCachedAccounts] = useState(
+		() => Boolean((location.state as { skipCachedAccounts?: boolean } | null)?.skipCachedAccounts)
+	);
 
 	const { getCachedUsers } = keystore;
-	const [isLoginCache, setIsLoginCache] = useState(getCachedUsers().length > 0);
+	const [isLoginCache, setIsLoginCache] = useState(!skipCachedAccounts && getCachedUsers().length > 0);
 
 	useEffect(() => {
-		setIsLoginCache(getCachedUsers().length > 0);
-	}, [getCachedUsers, setIsLoginCache]);
+		setIsLoginCache(!skipCachedAccounts && getCachedUsers().length > 0);
+	}, [getCachedUsers, setIsLoginCache, skipCachedAccounts]);
+
+	useEffect(() => {
+		if (skipCachedAccounts) {
+			navigate(location.pathname, { replace: true });
+		}
+	}, [skipCachedAccounts, navigate, location.pathname]);
 
 	useEffect(() => {
 		if (isLoggedIn) {
