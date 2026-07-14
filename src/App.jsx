@@ -8,6 +8,7 @@ import Spinner from './components/Shared/Spinner';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
+import Register from './pages/Auth/Register';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
@@ -33,7 +34,6 @@ const VerificationResult = React.lazy(() => import('./pages/VerificationResult/V
 
 const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
 const Login = lazyWithDelay(() => import('./pages/Auth/Login'), 200);
-const Register = lazyWithDelay(() => import('./pages/Auth/Register'), window.location.pathname === '/register' ? 400 : 0);
 const LoginState = lazyWithDelay(() => import('./pages/Auth/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
