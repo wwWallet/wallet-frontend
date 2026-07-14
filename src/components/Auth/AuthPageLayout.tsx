@@ -4,6 +4,7 @@ import Logo from '../Logo/Logo';
 import PWAInstallPrompt from '../PWAInstall/PWAInstallPrompt';
 import useScreenType from '@/hooks/useScreenType';
 import PoweredBy from '../Shared/PoweredBy';
+import LanguageSelector from '../LanguageSelector/LanguageSelector';
 
 export default function AuthPageLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
 	const screenType = useScreenType();
@@ -38,7 +39,8 @@ export default function AuthPageLayout({ children, heading }: { children: React.
 				)}
 			</div>
 
-			<footer className="py-4">
+			<footer className="py-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+				<LanguageSelector className='[field-sizing:content] pr-7 text-sm text-lm-gray-800 dark:text-dm-gray-200 cursor-pointer bg-lm-gray-100 dark:bg-dm-gray-900 appearance-none' showName />
 				<PoweredBy
 					className="text-sm text-lm-gray-800 dark:text-dm-gray-200 text-center"
 					linkClassName="underline font-semibold text-lm-gray-800 dark:text-dm-gray-300"
