@@ -444,6 +444,7 @@ const WebauthnSignupLogin = ({
 										size="lg"
 										textSize="md"
 										additionalClassName={`items-center justify-center relative passkey-button-${hint}`}
+										disabled={!isLogin && !isOnline}
 										title={!isLogin && !isOnline && t("common.offlineTitle")}
 										value={hint}
 									>
