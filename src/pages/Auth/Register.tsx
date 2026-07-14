@@ -9,8 +9,8 @@ import Button from '../../components/Buttons/Button';
 
 import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
-import AuthLayout from './AuthLayout';
-import WebauthnSignupLogin from './WebauthnSignupLogin';
+import AuthCard from '../../components/Auth/AuthCard';
+import WebauthnSignupLogin from '../../components/Auth/WebauthnSignupLogin';
 
 const Register = () => {
 	const { updateOnlineStatus } = useContext(StatusContext);
@@ -41,7 +41,7 @@ const Register = () => {
 	}
 
 	return (
-		<AuthLayout heading={t('loginSignup.signUp')}>
+		<AuthCard heading={t('loginSignup.signUp')}>
 			<WebauthnSignupLogin
 				isLogin={false}
 				isSubmitting={isSubmitting}
@@ -61,7 +61,7 @@ const Register = () => {
 					{t('loginSignup.signIn')}
 				</Button>
 			</p>
-		</AuthLayout>
+		</AuthCard>
 	);
 };
 

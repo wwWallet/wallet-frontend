@@ -5,7 +5,7 @@ import PWAInstallPrompt from '../PWAInstall/PWAInstallPrompt';
 import useScreenType from '@/hooks/useScreenType';
 import PoweredBy from '../Shared/PoweredBy';
 
-export default function LoginLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
+export default function AuthPageLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
 	const screenType = useScreenType();
 
 	return (

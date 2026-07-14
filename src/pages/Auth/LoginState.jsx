@@ -5,7 +5,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import SessionContext from '@/context/SessionContext';
 
 import Button from '../../components/Buttons/Button';
-import AuthLayout from './AuthLayout';
+import AuthCard from '../../components/Auth/AuthCard';
 import checkForUpdates from '../../offlineUpdateSW';
 import { UserLock } from 'lucide-react';
 
@@ -133,7 +133,7 @@ const LoginState = () => {
 	}
 
 	return (
-		<AuthLayout
+		<AuthCard
 			appHeading={
 				<Trans
 					i18nKey="loginState.welcomeBackMessage"
@@ -155,7 +155,7 @@ const LoginState = () => {
 			<WebauthnLogin
 				filteredUser={filteredUser}
 			/>
-		</AuthLayout>
+		</AuthCard>
 	);
 };
 

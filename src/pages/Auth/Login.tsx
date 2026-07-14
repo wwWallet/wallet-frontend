@@ -9,8 +9,8 @@ import Button from '../../components/Buttons/Button';
 
 import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
-import AuthLayout from './AuthLayout';
-import WebauthnSignupLogin from './WebauthnSignupLogin';
+import AuthCard from '../../components/Auth/AuthCard';
+import WebauthnSignupLogin from '../../components/Auth/WebauthnSignupLogin';
 
 const Login = () => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
@@ -64,7 +64,7 @@ const Login = () => {
 	}
 
 	return (
-		<AuthLayout
+		<AuthCard
 			heading={isLoginCache ? t('loginSignup.loginCache') : t('loginSignup.signIn')}
 			showPasskeyInfoPopup={!isLoginCache}
 		>
@@ -101,7 +101,7 @@ const Login = () => {
 					</Button>
 				</p>
 			)}
-		</AuthLayout>
+		</AuthCard>
 	);
 };
 

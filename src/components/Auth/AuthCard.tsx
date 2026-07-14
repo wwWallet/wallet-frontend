@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 
-import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import LoginLayout from '../../components/Auth/LoginLayout';
+import LanguageSelector from '../LanguageSelector/LanguageSelector';
+import AuthPageLayout from './AuthPageLayout';
 import PasskeyInfoPopup from '@/components/Popups/PasskeyInfoPopup';
 
 import { Info } from 'lucide-react';
 
-const AuthLayout = ({
+const AuthCard = ({
 	heading,
 	appHeading,
 	showPasskeyInfoPopup = true,
@@ -24,7 +24,7 @@ const AuthLayout = ({
 	const { t } = useTranslation();
 
 	return (
-		<LoginLayout heading={
+		<AuthPageLayout heading={
 			appHeading ?? <span className="text-primary dark:text-brand-light"> {t('common.walletName')}</span>
 		}>
 			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600">
@@ -46,8 +46,8 @@ const AuthLayout = ({
 				{children}
 			</div>
 			{showPasskeyInfoPopup && <PasskeyInfoPopup />}
-		</LoginLayout>
+		</AuthPageLayout>
 	);
 };
 
-export default AuthLayout;
+export default AuthCard;
