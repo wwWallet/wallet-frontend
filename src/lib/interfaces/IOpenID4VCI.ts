@@ -1,15 +1,9 @@
-import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata } from "wallet-common";
-
-export type TxCodeInputMetadata = {
-	input_mode?: 'numeric' | 'text';
-	length?: number;
-	description?: string;
-};
+import type { CredentialConfigurationSupported, Grant, OpenidCredentialIssuerMetadata } from "wallet-common";
 
 export interface IOpenID4VCI {
-	handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: TxCodeInputMetadata; preAuthorizedCode?: string; }>;
+	handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; grant: Grant }>;
 	getAvailableCredentialConfigurations(credentialIssuerIdentifier: string): Promise<Record<string, CredentialConfigurationSupported>>;
-	generateAuthorizationRequest(credentialIssuerIdentifier: string, credentialConfigurationId: string, issuer_state?: string): Promise<{ url?: string; issuerMetadata?: OpenidCredentialIssuerMetadata; credentialConfigurationId?: string }>;
+	generateAuthorizationRequest(credentialIssuerIdentifier: string, credentialConfigurationId: string, grant?: Grant ): Promise<{ url?: string; issuerMetadata?: OpenidCredentialIssuerMetadata; credentialConfigurationId?: string }>;
 	handleAuthorizationResponse(url: string, dpopNonceHeader?: string): Promise<void>;
-	requestCredentialsWithPreAuthorization(credentialIssuer: string, selectedCredentialConfigurationId: string, preAuthorizedCode: string, txCodeInput?: string): Promise<{ url?: string; issuerMetadata?: OpenidCredentialIssuerMetadata; credentialConfigurationId?: string; }>;
+	requestCredentialsWithPreAuthorization(credentialIssuer: string, selectedCredentialConfigurationId: string, preAuthorizedCode: string, txCodeInput?: string, grant?: Grant): Promise<{ url?: string; issuerMetadata?: OpenidCredentialIssuerMetadata; credentialConfigurationId?: string; }>;
 }

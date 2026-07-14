@@ -1,5 +1,5 @@
 import * as oauth4webapi from "oauth4webapi";
-import { GrantType } from "./OAuth/TokenRequest";
+import { GrantType } from "wallet-common";
 import { generateDPoP } from "@/lib/utils/dpop";
 import { JWK, KeyLike } from "jose";
 

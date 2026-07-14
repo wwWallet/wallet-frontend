@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import type { OpenidCredentialIssuerMetadata } from "wallet-common";
+import { GrantType, TxCode, type OpenidCredentialIssuerMetadata } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -16,7 +16,6 @@ import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey";
 import { getAuthorizationResponseErrorMessageKey } from "@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey";
-import type { TxCodeInputMetadata } from "@/lib/interfaces/IOpenID4VCI";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -45,7 +44,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const txCodeResolverRef = useRef<((value: string | null) => void) | null>(null);
-	const [txCodeInputOptions, setTxCodeInputOptions] = useState<TxCodeInputMetadata | null>(null);
+	const [txCodeInputOptions, setTxCodeInputOptions] = useState<TxCode | null>(null);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
 	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
@@ -169,7 +168,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		});
 	}, []);
 
-	const requestTxCodeInput = useCallback((txCode: TxCodeInputMetadata) => {
+	const requestTxCodeInput = useCallback((txCode: TxCode) => {
 		return new Promise<string | null>((resolve) => {
 			setTxCodeInputOptions(txCode ?? null);
 			txCodeResolverRef.current = resolve;
@@ -245,14 +244,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			setUrl('');
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
+				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, grant }) => {
 					const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer);
 					if (!metadataResult?.metadata) {
 						throw new Error('Could not resolve issuer metadata for credential offer');
 					}
 
 					console.log("Generating authorization request...");
-					if (!preAuthorizedCode) {
+
+					if (!grant[GrantType.PRE_AUTHORIZED_CODE]) {
 						const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
 						const userApproved = await requestRedirectConsent({
 							title: popupContent.title,
@@ -261,8 +261,13 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						if (!userApproved) {
 							return null;
 						}
-						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
-					} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
+						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, grant);
+					}
+
+					const preAuthorizedCode = grant[GrantType.PRE_AUTHORIZED_CODE]['pre-authorized_code'];
+					const txCode = grant[GrantType.PRE_AUTHORIZED_CODE].tx_code;
+
+					if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
 						console.log("Already used pre-authorized code");
 						return null;
 					}
@@ -277,7 +282,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						userInput = pin;
 					}
 					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
-					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
+					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput, grant);
 				}).then((res) => {
 					if (!res) {
 						return;

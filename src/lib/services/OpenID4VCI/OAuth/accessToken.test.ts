@@ -1,6 +1,6 @@
 import { assert, describe, it, vi } from "vitest";
 import { accessTokenIsValid, refreshAccessToken } from "./accessToken";
-import { GrantType } from "./TokenRequest";
+import { GrantType } from "wallet-common";
 
 const tokenRequestBuilder = () => ({
 	setTokenEndpoint: vi.fn(),

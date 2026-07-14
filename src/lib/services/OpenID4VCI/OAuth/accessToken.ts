@@ -1,6 +1,7 @@
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '@/lib/utils/generateRandomIdentifier';
-import { GrantType, TokenRequestBuilder } from './TokenRequest';
+import { TokenRequestBuilder } from './TokenRequest';
+import { GrantType } from 'wallet-common';
 
 export type OAuthTokenState = {
 	access_token: string;
