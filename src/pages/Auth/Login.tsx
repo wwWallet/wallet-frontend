@@ -56,12 +56,6 @@ const Login = () => {
 		return <Spinner />;
 	}
 
-	const goToRegister = () => {
-		if (isOnline) {
-			navigate('/register');
-		}
-	}
-
 	const useOtherAccount = () => {
 		setIsLoginCache(false);
 		setWebauthnError('');
@@ -86,15 +80,14 @@ const Login = () => {
 			{!isLoginCache ? (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
 					{t('loginSignup.newHereQuestion')}
-					<Button
+					<a
 						id="signUp-switch-loginsignup"
-						variant="link"
-						onClick={goToRegister}
-						disabled={!isOnline}
+						href="/register"
 						title={!isOnline && t('common.offlineTitle')}
+						className='underline'
 					>
 						{t('loginSignup.signUp')}
-					</Button>
+					</a>
 				</p>
 			) : (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
