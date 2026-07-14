@@ -32,8 +32,8 @@ const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
-const Login = lazyWithDelay(() => import('./pages/Auth/Login'), 400);
-const Register = lazyWithDelay(() => import('./pages/Auth/Register'), 400);
+const Login = lazyWithDelay(() => import('./pages/Auth/Login'), 200);
+const Register = lazyWithDelay(() => import('./pages/Auth/Register'), window.location.pathname === '/register' ? 400 : 0);
 const LoginState = lazyWithDelay(() => import('./pages/Auth/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 

@@ -23,6 +23,12 @@ const Login = () => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
+
+	// Preload registration so navigating from Login does not incur the lazy-load delay.
+	useEffect(() => {
+		void import('./Register');
+	}, []);
+
 	const [skipCachedAccounts] = useState(
 		() => Boolean((location.state as { skipCachedAccounts?: boolean } | null)?.skipCachedAccounts)
 	);
