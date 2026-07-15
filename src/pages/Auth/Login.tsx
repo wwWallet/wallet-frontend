@@ -7,19 +7,19 @@ import SessionContext from '@/context/SessionContext';
 
 import Link from '../../components/Links/Link';
 
-import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
 import AuthCard from '../../components/Auth/AuthCard';
 import WebauthnSignupLogin from '../../components/Auth/WebauthnSignupLogin';
 
 const Login = () => {
-	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const { isOnline } = useContext(StatusContext);
+	const { isLoggedIn } = useContext(SessionContext);
 	const { t } = useTranslation();
 
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isAwaitingRedirect, setIsAwaitingRedirect] = useState(false);
+	const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -27,13 +27,6 @@ const Login = () => {
 	const [skipCachedAccounts] = useState(
 		() => Boolean((location.state as { skipCachedAccounts?: boolean } | null)?.skipCachedAccounts)
 	);
-
-	const { getCachedUsers } = keystore;
-	const [isLoginCache, setIsLoginCache] = useState(!skipCachedAccounts && getCachedUsers().length > 0);
-
-	useEffect(() => {
-		setIsLoginCache(!skipCachedAccounts && getCachedUsers().length > 0);
-	}, [getCachedUsers, setIsLoginCache, skipCachedAccounts]);
 
 	useEffect(() => {
 		if (skipCachedAccounts) {
@@ -51,28 +44,23 @@ const Login = () => {
 		return <Spinner />;
 	}
 
-	const useOtherAccount = () => {
-		setIsLoginCache(false);
-		setWebauthnError('');
-		checkForUpdates();
-		updateOnlineStatus();
-	}
-
 	return (
 		<AuthCard
-			heading={isLoginCache ? t('loginSignup.loginCache') : t('loginSignup.signIn')}
-			showPasskeyInfoPopup={!isLoginCache}
+			heading={isAccountSwitcherOpen ? null : t('loginSignup.signIn')}
+			showPasskeyInfoPopup={!isAccountSwitcherOpen}
 		>
 			<WebauthnSignupLogin
 				isLogin={true}
 				isSubmitting={isSubmitting}
 				setIsSubmitting={setIsSubmitting}
-				isLoginCache={isLoginCache}
 				error={webauthnError}
 				setError={setWebauthnError}
 				setIsAwaitingRedirect={setIsAwaitingRedirect}
+				showCachedAccounts={!skipCachedAccounts}
+				isAccountSwitcherOpen={isAccountSwitcherOpen}
+				setIsAccountSwitcherOpen={setIsAccountSwitcherOpen}
 			/>
-			{!isLoginCache ? (
+			{!isAccountSwitcherOpen && (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
 					{t('loginSignup.newHereQuestion')}
 					<Link
@@ -82,15 +70,6 @@ const Login = () => {
 						title={!isOnline ? t('common.offlineTitle') : undefined}
 					>
 						{t('loginSignup.signUp')}
-					</Link>
-				</p>
-			) : (
-				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
-					<Link
-						id="useOtherAccount-switch-loginsignup"
-						onClick={useOtherAccount}
-					>
-						{t('loginSignup.useOtherAccount')}
 					</Link>
 				</p>
 			)}

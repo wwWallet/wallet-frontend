@@ -8,10 +8,12 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
 import Button, { Variant } from '../../components/Buttons/Button';
+import CachedUsersList from './CachedUsersList';
+import SeparatorLine from '../Shared/SeparatorLine';
 
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { KeyRoundIcon, Wallet, X } from 'lucide-react';
+import { Check, ChevronLeft, KeyRoundIcon, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
@@ -71,18 +73,22 @@ const WebauthnSignupLogin = ({
 	isLogin,
 	isSubmitting,
 	setIsSubmitting,
-	isLoginCache,
 	error,
 	setError,
 	setIsAwaitingRedirect,
+	showCachedAccounts = true,
+	isAccountSwitcherOpen = false,
+	setIsAccountSwitcherOpen = () => undefined,
 }: {
 	isLogin: boolean,
 	isSubmitting: boolean,
 	setIsSubmitting: (isSubmitting: boolean) => void,
-	isLoginCache: boolean,
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 	setIsAwaitingRedirect: (isAwaitingRedirect: boolean) => void,
+	showCachedAccounts?: boolean,
+	isAccountSwitcherOpen?: boolean,
+	setIsAccountSwitcherOpen?: (isOpen: boolean) => void,
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -98,6 +104,13 @@ const WebauthnSignupLogin = ({
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
+	const loginableCachedUsers = showCachedAccounts
+		? cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0)
+		: [];
+	const [selectedCachedUser, setSelectedCachedUser] = useState<CachedUser | null>(null);
+	const activeCachedUser = loginableCachedUsers.find(
+		(cachedUser) => cachedUser.userHandleB64u === selectedCachedUser?.userHandleB64u
+	) ?? loginableCachedUsers[0] ?? null;
 
 	useEffect(
 		() => {
@@ -105,6 +118,12 @@ const WebauthnSignupLogin = ({
 		},
 		[isLogin, setError],
 	);
+
+	useEffect(() => {
+		if (isAccountSwitcherOpen && loginableCachedUsers.length === 0) {
+			setIsAccountSwitcherOpen(false);
+		}
+	}, [isAccountSwitcherOpen, loginableCachedUsers.length, setIsAccountSwitcherOpen]);
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
 		setNeedPrfRetry(true);
@@ -262,8 +281,74 @@ const WebauthnSignupLogin = ({
 	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
 
 	return (
-		<form className='mb-6' onSubmit={onSubmit}>
-			{inProgress || retrySignupFrom
+		<form className={isAccountSwitcherOpen ? '' : 'mb-6'} onSubmit={onSubmit}>
+			{isAccountSwitcherOpen ? (
+				<div>
+					<button
+						id="back-switch-account-loginsignup"
+						type="button"
+						onClick={() => setIsAccountSwitcherOpen(false)}
+						className="mb-3 -ml-2 flex items-center gap-1 pl-2 pr-3 py-1.5 rounded-lg text-sm font-medium text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+					>
+						<ChevronLeft size={18} />
+						{t('common.back')}
+					</button>
+					<p className="mb-4 text-sm text-lm-gray-900 dark:text-dm-gray-100">
+						{t('loginSignup.switchAccountDescription')}
+					</p>
+					<div className="relative">
+						<ul
+							aria-label={t('loginSignup.switchAccountDescription')}
+							className="flex flex-col gap-2 max-h-[40dvh] overflow-y-auto overflow-x-hidden overscroll-contain pr-2 pb-4 [scrollbar-gutter:stable]"
+						>
+							{loginableCachedUsers.map((cachedUser, index) => {
+								const isActive = cachedUser.userHandleB64u === activeCachedUser?.userHandleB64u;
+								return (
+									<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-2">
+									<button
+										id={`switch-select-cached-user-${index}-loginsignup`}
+										type="button"
+										onClick={() => {
+											setSelectedCachedUser(cachedUser);
+											setIsAccountSwitcherOpen(false);
+										}}
+										disabled={isSubmitting}
+										aria-label={t('loginSignup.selectUser', { name: cachedUser.displayName })}
+										title={t('loginSignup.selectUser', { name: cachedUser.displayName })}
+										className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isActive ? 'border-primary dark:border-white' : 'border-lm-gray-400 dark:border-dm-gray-600'} bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
+									>
+										<div aria-hidden="true" className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shrink-0 select-none">
+											<User size={20} />
+										</div>
+										<span className="flex-1 min-w-0 text-sm font-semibold text-lm-gray-900 dark:text-white truncate">
+											{cachedUser.displayName}
+										</span>
+										{isActive && <Check size={18} aria-hidden="true" className="shrink-0 text-primary dark:text-white" />}
+									</button>
+									<button
+										id={`switch-forget-cached-user-${index}-loginsignup`}
+										type="button"
+										onClick={() => onForgetCachedUser(cachedUser)}
+										disabled={isSubmitting}
+										aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+										title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+										className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
+									>
+										<X size={18} />
+									</button>
+									</li>
+								);
+							})}
+						</ul>
+						{loginableCachedUsers.length > 3 && (
+							<div
+								aria-hidden="true"
+								className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white/80 to-transparent dark:from-dm-gray-900/80"
+							/>
+						)}
+					</div>
+				</div>
+			) : inProgress || retrySignupFrom
 				? (
 					needPrfRetry
 						? (
@@ -387,53 +472,23 @@ const WebauthnSignupLogin = ({
 								)}
 							</>)}
 
-						{isLoginCache && (
-							<ul className="overflow-y-auto overflow-x-hidden max-h-32 px-2 custom-scrollbar flex flex-col gap-2">
-								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser, index) => (
-									<li
-										key={cachedUser.userHandleB64u}
-										className="w-full flex flex-row items-center gap-2"
-									>
-										<div className="flex flex-1 min-w-0">
-											<Button
-												id={`login-cached-user-${index}-loginsignup`}
-												onClick={() => onLoginCachedUser(cachedUser)}
-												size="xl"
-												variant="primary"
-												disabled={isSubmitting}
-												additionalClassName="w-full"
-												ariaLabel={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-												title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-											>
-												<span className="truncate">
-													{isSubmitting
-														? t('loginSignup.submitting')
-														: cachedUser.displayName
-													}
-												</span>
-											</Button>
-										</div>
-										<div>
-											<Button
-												id={`forget-cached-user-${index}-loginsignup`}
-												onClick={() => onForgetCachedUser(cachedUser)}
-												square={true}
-												size="xl"
-												disabled={isSubmitting}
-												ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-												title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-											>
-												<X size={20} className="text-xl" />
-											</Button>
-										</div>
-									</li>
-								))}
-							</ul>
+						{isLogin && activeCachedUser && (
+							<>
+								<CachedUsersList
+									account={activeCachedUser}
+									onSelect={onLoginCachedUser}
+									onSwitchAccount={() => setIsAccountSwitcherOpen(true)}
+									disabled={isSubmitting}
+								/>
+								<div className="my-4">
+									<SeparatorLine>{t('common.or')}</SeparatorLine>
+								</div>
+							</>
 						)}
 
-						{!isLoginCache && (
+						{(
 							[
-								{ btnLabel: isLogin ? t('loginSignup.loginWithPasskey') : t('loginSignup.signUpWithPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>("primary") },
+								{ btnLabel: isLogin ? t('loginSignup.loginWithPasskey') : t('loginSignup.signUpWithPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>(isLogin && activeCachedUser ? "outline" : "primary") },
 								{ btnLabel: isLogin ? t('loginSignup.loginWithSecurityKey') : t('loginSignup.signUpWithSecurityKey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), hint: "security-key", },
 							].map(({ Icon, btnLabel, variant, hint }) => (
 								<div key={btnLabel} className='mt-2 relative w-full flex flex-col justify-center'>

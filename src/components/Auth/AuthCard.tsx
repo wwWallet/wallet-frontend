@@ -27,9 +27,11 @@ const AuthCard = ({
 			appHeading ?? <span className="text-primary dark:text-brand-light"> {t('common.walletName')}</span>
 		}>
 			<div className="p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600">
-				<h1 className="text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
-					{heading}
-				</h1>
+				{heading && (
+					<h1 className="text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
+						{heading}
+					</h1>
+				)}
 
 				{isOnline === false && (
 					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 italic mb-2">

@@ -46,7 +46,6 @@ const Register = () => {
 				isLogin={false}
 				isSubmitting={isSubmitting}
 				setIsSubmitting={setIsSubmitting}
-				isLoginCache={false}
 				error={webauthnError}
 				setError={setWebauthnError}
 				setIsAwaitingRedirect={setIsAwaitingRedirect}
