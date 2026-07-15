@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
-import Button from '../../components/Buttons/Button';
+import Link from '../../components/Links/Link';
 
 import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
@@ -23,11 +23,6 @@ const Login = () => {
 
 	const navigate = useNavigate();
 	const location = useLocation();
-
-	// Preload registration so navigating from Login does not incur the lazy-load delay.
-	useEffect(() => {
-		void import('./Register');
-	}, []);
 
 	const [skipCachedAccounts] = useState(
 		() => Boolean((location.state as { skipCachedAccounts?: boolean } | null)?.skipCachedAccounts)
@@ -56,12 +51,6 @@ const Login = () => {
 		return <Spinner />;
 	}
 
-	const goToRegister = () => {
-		if (isOnline) {
-			navigate('/register');
-		}
-	}
-
 	const useOtherAccount = () => {
 		setIsLoginCache(false);
 		setWebauthnError('');
@@ -86,25 +75,23 @@ const Login = () => {
 			{!isLoginCache ? (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
 					{t('loginSignup.newHereQuestion')}
-					<Button
+					<Link
 						id="signUp-switch-loginsignup"
-						variant="link"
-						onClick={goToRegister}
+						href="/register"
 						disabled={!isOnline}
-						title={!isOnline && t('common.offlineTitle')}
+						title={!isOnline ? t('common.offlineTitle') : undefined}
 					>
 						{t('loginSignup.signUp')}
-					</Button>
+					</Link>
 				</p>
 			) : (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
-					<Button
+					<Link
 						id="useOtherAccount-switch-loginsignup"
-						variant="link"
 						onClick={useOtherAccount}
 					>
 						{t('loginSignup.useOtherAccount')}
-					</Button>
+					</Link>
 				</p>
 			)}
 		</AuthCard>

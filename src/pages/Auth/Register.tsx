@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
-import Button from '../../components/Buttons/Button';
+import Link from '../../components/Links/Link';
 
 import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
@@ -53,13 +53,12 @@ const Register = () => {
 			/>
 			<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
 				{t('loginSignup.alreadyHaveAccountQuestion')}
-				<Button
+				<Link
 					id="signIn-switch-loginsignup"
-					variant="link"
 					onClick={goToSignIn}
 				>
 					{t('loginSignup.signIn')}
-				</Button>
+				</Link>
 			</p>
 		</AuthCard>
 	);
