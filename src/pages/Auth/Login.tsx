@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
-import Button from '../../components/Buttons/Button';
+import Link from '../../components/Links/Link';
 
 import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
@@ -75,24 +75,23 @@ const Login = () => {
 			{!isLoginCache ? (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
 					{t('loginSignup.newHereQuestion')}
-					<a
+					<Link
 						id="signUp-switch-loginsignup"
 						href="/register"
-						title={!isOnline && t('common.offlineTitle')}
-						className='underline'
+						disabled={!isOnline}
+						title={!isOnline ? t('common.offlineTitle') : undefined}
 					>
 						{t('loginSignup.signUp')}
-					</a>
+					</Link>
 				</p>
 			) : (
 				<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
-					<Button
+					<Link
 						id="useOtherAccount-switch-loginsignup"
-						variant="link"
 						onClick={useOtherAccount}
 					>
 						{t('loginSignup.useOtherAccount')}
-					</Button>
+					</Link>
 				</p>
 			)}
 		</AuthCard>
