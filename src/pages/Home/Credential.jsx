@@ -30,7 +30,7 @@ import { H2 } from '@/components/Shared/Heading';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
-import { BookCheck, QrCode } from 'lucide-react';
+import { CircleCheckBig, QrCode } from 'lucide-react';
 import { DEV_MODE } from '@/config';
 
 const Credential = () => {
@@ -232,8 +232,8 @@ const Credential = () => {
 					)}
 				</div>
 				<div className='px-2 w-full'>
-					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
-					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
+					{shareWithQr && (<Button variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
+					<PopupLayout fullScreen={screenType !== 'desktop'} isOpen={showMdocQR}>
 						<div className="flex items-start justify-between mb-2">
 							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 								{t('qrShareMdoc.shareUsingQR')}
@@ -243,7 +243,9 @@ const Credential = () => {
 						<span>
 							{mdocQRStatus === -1 && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
 							{mdocQRStatus === 0 && <div className='flex flex-col items-center justify-center'>
-								<QRCode value={mdocQRContent} />
+								<div className="p-4 bg-white rounded-lg">
+									<QRCode value={mdocQRContent} size={200} style={{ height: 'auto', maxWidth: '100%', width: '200px' }} />
+								</div>
 								{bluetoothConnectRequiresUserGesture() && (
 									<>
 										<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-4 mb-2 text-center">{t('qrShareMdoc.scanPrompt')}</p>
@@ -252,7 +254,7 @@ const Credential = () => {
 								)}
 							</div>}
 							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
-							{mdocQRStatus === 2 && <span className='pb-16'>
+							{mdocQRStatus === 2 && <span className={screenType !== 'desktop' ? 'pb-16' : ''}>
 								<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">
 									{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
 									<strong>
@@ -271,14 +273,14 @@ const Credential = () => {
 								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
 									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
 								</div>
-								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
+								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button onClick={cancelShare}>{t('common.cancel')}</Button>
 									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
 								</div>
 							</span>}
-							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BookCheck color='green' size={100} /></span>}
+							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><CircleCheckBig color='green' size={100} /></span>}
 							{![1, 2].includes(mdocQRStatus) &&
-								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
+								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
 								</div>}
 						</span>
