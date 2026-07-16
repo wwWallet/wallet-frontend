@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -22,17 +22,6 @@ const Login = () => {
 	const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
 
 	const navigate = useNavigate();
-	const location = useLocation();
-
-	const [skipCachedAccounts] = useState(
-		() => Boolean((location.state as { skipCachedAccounts?: boolean } | null)?.skipCachedAccounts)
-	);
-
-	useEffect(() => {
-		if (skipCachedAccounts) {
-			navigate(location.pathname, { replace: true });
-		}
-	}, [skipCachedAccounts, navigate, location.pathname]);
 
 	useEffect(() => {
 		if (isLoggedIn) {
@@ -56,7 +45,6 @@ const Login = () => {
 				error={webauthnError}
 				setError={setWebauthnError}
 				setIsAwaitingRedirect={setIsAwaitingRedirect}
-				showCachedAccounts={!skipCachedAccounts}
 				isAccountSwitcherOpen={isAccountSwitcherOpen}
 				setIsAccountSwitcherOpen={setIsAccountSwitcherOpen}
 			/>

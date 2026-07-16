@@ -76,7 +76,6 @@ const WebauthnSignupLogin = ({
 	error,
 	setError,
 	setIsAwaitingRedirect,
-	showCachedAccounts = true,
 	isAccountSwitcherOpen = false,
 	setIsAccountSwitcherOpen = () => undefined,
 }: {
@@ -86,7 +85,6 @@ const WebauthnSignupLogin = ({
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 	setIsAwaitingRedirect: (isAwaitingRedirect: boolean) => void,
-	showCachedAccounts?: boolean,
 	isAccountSwitcherOpen?: boolean,
 	setIsAccountSwitcherOpen?: (isOpen: boolean) => void,
 }) => {
@@ -104,9 +102,7 @@ const WebauthnSignupLogin = ({
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
-	const loginableCachedUsers = showCachedAccounts
-		? cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0)
-		: [];
+	const loginableCachedUsers = cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0);
 	const [selectedCachedUser, setSelectedCachedUser] = useState<CachedUser | null>(null);
 	const activeCachedUser = loginableCachedUsers.find(
 		(cachedUser) => cachedUser.userHandleB64u === selectedCachedUser?.userHandleB64u
