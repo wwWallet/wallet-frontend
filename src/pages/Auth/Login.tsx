@@ -36,7 +36,7 @@ const Login = () => {
 	return (
 		<AuthCard
 			heading={isAccountSwitcherOpen ? null : t('loginSignup.signIn')}
-			showPasskeyInfoPopup={!isAccountSwitcherOpen}
+			showPasskeyInfoPopup={false}
 		>
 			<WebauthnSignupLogin
 				isLogin={true}
