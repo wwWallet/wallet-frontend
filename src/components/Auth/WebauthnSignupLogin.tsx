@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import Modal from 'react-modal';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import useScreenType from '@/hooks/useScreenType';
 
 import Button, { Variant } from '../../components/Buttons/Button';
 import CachedUsersList from './CachedUsersList';
@@ -69,6 +71,37 @@ const FormInputField = ({
 	);
 };
 
+const AccountSwitcherList = ({
+	variant,
+	ariaLabel,
+	items,
+	showFade,
+}: {
+	variant: 'desktop' | 'mobile',
+	ariaLabel: string,
+	items: React.ReactNode,
+	showFade: boolean,
+}) => (
+	<div className={`relative ${variant === 'mobile' ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
+		<ul
+			aria-label={ariaLabel}
+			className={
+				variant === 'mobile'
+					? 'flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+					: 'flex flex-col gap-2 max-h-[40dvh] overflow-y-auto overflow-x-hidden overscroll-contain pr-2 pb-4 [scrollbar-gutter:stable]'
+			}
+		>
+			{items}
+		</ul>
+		{showFade && (
+			<div
+				aria-hidden="true"
+				className={`pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t ${variant === 'mobile' ? 'from-lm-gray-100/80' : 'from-white/80'} to-transparent dark:from-dm-gray-900/80`}
+			/>
+		)}
+	</div>
+);
+
 const WebauthnSignupLogin = ({
 	isLogin,
 	isSubmitting,
@@ -90,6 +123,7 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
@@ -276,77 +310,110 @@ const WebauthnSignupLogin = ({
 	const nameByteLimitReached = nameByteLength > nameByteLimit;
 	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
 
+	const accountListItems = loginableCachedUsers.map((cachedUser, index) => {
+		const isActive = cachedUser.userHandleB64u === activeCachedUser?.userHandleB64u;
+		return (
+			<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-4">
+			<button
+				id={`switch-select-cached-user-${index}-loginsignup`}
+				type="button"
+				onClick={() => {
+					setSelectedCachedUser(cachedUser);
+					setIsAccountSwitcherOpen(false);
+				}}
+				disabled={isSubmitting}
+				aria-label={t('loginSignup.selectUser', { name: cachedUser.displayName })}
+				title={t('loginSignup.selectUser', { name: cachedUser.displayName })}
+				className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isActive ? 'border-primary dark:border-white' : 'border-lm-gray-400 dark:border-dm-gray-600'} bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
+			>
+				<div aria-hidden="true" className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shrink-0 select-none">
+					<User size={20} />
+				</div>
+				<span className="flex-1 min-w-0 text-sm font-semibold text-lm-gray-900 dark:text-white truncate">
+					{cachedUser.displayName}
+				</span>
+				{isActive && <Check size={18} aria-hidden="true" className="shrink-0 text-primary dark:text-white" />}
+			</button>
+			<button
+				id={`switch-forget-cached-user-${index}-loginsignup`}
+				type="button"
+				onClick={() => onForgetCachedUser(cachedUser)}
+				disabled={isSubmitting}
+				aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+				title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+				className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
+			>
+				<X size={18} />
+			</button>
+			</li>
+		);
+	});
+
+	const closeSwitcher = () => setIsAccountSwitcherOpen(false);
+
+	const renderSwitcherHeader = (showBackButton: boolean) => (
+		<>
+			{showBackButton && (
+				<button
+					id="back-switch-account-loginsignup"
+					type="button"
+					onClick={closeSwitcher}
+					className="mb-3 -ml-2 flex items-center gap-1 pl-2 pr-3 py-1.5 rounded-lg text-sm font-medium text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+				>
+					<ChevronLeft size={18} />
+					{t('common.back')}
+				</button>
+			)}
+			<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
+				{t('loginSignup.switchAccount')}
+			</h2>
+			<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
+				{t('loginSignup.switchAccountDescription')}
+			</p>
+		</>
+	);
+
 	return (
 		<form onSubmit={onSubmit}>
 			{isAccountSwitcherOpen ? (
-				<div>
-					<button
-						id="back-switch-account-loginsignup"
-						type="button"
-						onClick={() => setIsAccountSwitcherOpen(false)}
-						className="mb-3 -ml-2 flex items-center gap-1 pl-2 pr-3 py-1.5 rounded-lg text-sm font-medium text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
-					>
-						<ChevronLeft size={18} />
-						{t('common.back')}
-					</button>
-					<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
-						{t('loginSignup.switchAccount')}
-					</h2>
-					<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
-						{t('loginSignup.switchAccountDescription')}
-					</p>
-					<div className="relative">
-						<ul
-							aria-label={t('loginSignup.switchAccountDescription')}
-							className="flex flex-col gap-2 max-h-[40dvh] overflow-y-auto overflow-x-hidden overscroll-contain pr-2 pb-4 [scrollbar-gutter:stable]"
-						>
-							{loginableCachedUsers.map((cachedUser, index) => {
-								const isActive = cachedUser.userHandleB64u === activeCachedUser?.userHandleB64u;
-								return (
-									<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-4">
-									<button
-										id={`switch-select-cached-user-${index}-loginsignup`}
-										type="button"
-										onClick={() => {
-											setSelectedCachedUser(cachedUser);
-											setIsAccountSwitcherOpen(false);
-										}}
-										disabled={isSubmitting}
-										aria-label={t('loginSignup.selectUser', { name: cachedUser.displayName })}
-										title={t('loginSignup.selectUser', { name: cachedUser.displayName })}
-										className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isActive ? 'border-primary dark:border-white' : 'border-lm-gray-400 dark:border-dm-gray-600'} bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
-									>
-										<div aria-hidden="true" className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shrink-0 select-none">
-											<User size={20} />
-										</div>
-										<span className="flex-1 min-w-0 text-sm font-semibold text-lm-gray-900 dark:text-white truncate">
-											{cachedUser.displayName}
-										</span>
-										{isActive && <Check size={18} aria-hidden="true" className="shrink-0 text-primary dark:text-white" />}
-									</button>
-									<button
-										id={`switch-forget-cached-user-${index}-loginsignup`}
-										type="button"
-										onClick={() => onForgetCachedUser(cachedUser)}
-										disabled={isSubmitting}
-										aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-										title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-										className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
-									>
-										<X size={18} />
-									</button>
-									</li>
-								);
-							})}
-						</ul>
-						{loginableCachedUsers.length > 3 && (
-							<div
-								aria-hidden="true"
-								className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white/80 to-transparent dark:from-dm-gray-900/80"
-							/>
-						)}
+				screenType === 'desktop' ? (
+					<div>
+						{renderSwitcherHeader(true)}
+						<AccountSwitcherList
+							variant="desktop"
+							ariaLabel={t('loginSignup.switchAccountDescription')}
+							items={accountListItems}
+							showFade={loginableCachedUsers.length > 3}
+						/>
 					</div>
-				</div>
+				) : (
+					<Modal
+						isOpen={true}
+						onRequestClose={closeSwitcher}
+						shouldCloseOnOverlayClick={false}
+						contentLabel={t('loginSignup.switchAccount')}
+						className="w-full h-full flex flex-col bg-lm-gray-100 dark:bg-dm-gray-900 p-6 pt-8 outline-none"
+						overlayClassName="fixed inset-0 z-50 bg-lm-gray-100 dark:bg-dm-gray-900"
+						bodyOpenClassName="overflow-hidden"
+					>
+						{renderSwitcherHeader(false)}
+						<AccountSwitcherList
+							variant="mobile"
+							ariaLabel={t('loginSignup.switchAccountDescription')}
+							items={accountListItems}
+							showFade={loginableCachedUsers.length > 3}
+						/>
+						<Button
+							id="back-switch-account-bottom-loginsignup"
+							onClick={closeSwitcher}
+							variant="outline"
+							additionalClassName="w-full mt-4 shrink-0"
+						>
+							<ChevronLeft size={18} className="inline mr-1" />
+							{t('common.back')}
+						</Button>
+					</Modal>
+				)
 			) : inProgress || retrySignupFrom
 				? (
 					needPrfRetry
