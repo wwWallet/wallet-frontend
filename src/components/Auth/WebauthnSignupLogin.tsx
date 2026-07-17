@@ -277,7 +277,7 @@ const WebauthnSignupLogin = ({
 	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
 
 	return (
-		<form className={isAccountSwitcherOpen ? '' : 'mb-6'} onSubmit={onSubmit}>
+		<form onSubmit={onSubmit}>
 			{isAccountSwitcherOpen ? (
 				<div>
 					<button
@@ -487,14 +487,14 @@ const WebauthnSignupLogin = ({
 								{ btnLabel: isLogin ? t('loginSignup.loginWithPasskey') : t('loginSignup.signUpWithPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>(isLogin && activeCachedUser ? "outline" : "primary") },
 								{ btnLabel: isLogin ? t('loginSignup.loginWithSecurityKey') : t('loginSignup.signUpWithSecurityKey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), hint: "security-key", },
 							].map(({ Icon, btnLabel, variant, hint }) => (
-								<div key={btnLabel} className='mt-2 relative w-full flex flex-col justify-center'>
+								<div key={btnLabel} className={`mt-2 relative w-full flex flex-col justify-center passkey-button-${hint}`}>
 									<Button
 										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
 										type="submit"
 										variant={variant}
 										size="lg"
 										textSize="md"
-										additionalClassName={`items-center justify-center relative passkey-button-${hint}`}
+										additionalClassName="items-center justify-center relative"
 										disabled={!isLogin && !isOnline}
 										title={!isLogin && !isOnline && t("common.offlineTitle")}
 										value={hint}
