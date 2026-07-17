@@ -289,7 +289,10 @@ const WebauthnSignupLogin = ({
 						<ChevronLeft size={18} />
 						{t('common.back')}
 					</button>
-					<p className="mb-4 text-sm text-lm-gray-900 dark:text-dm-gray-100">
+					<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
+						{t('loginSignup.switchAccount')}
+					</h2>
+					<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
 						{t('loginSignup.switchAccountDescription')}
 					</p>
 					<div className="relative">
@@ -300,7 +303,7 @@ const WebauthnSignupLogin = ({
 							{loginableCachedUsers.map((cachedUser, index) => {
 								const isActive = cachedUser.userHandleB64u === activeCachedUser?.userHandleB64u;
 								return (
-									<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-2">
+									<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-4">
 									<button
 										id={`switch-select-cached-user-${index}-loginsignup`}
 										type="button"
@@ -495,8 +498,8 @@ const WebauthnSignupLogin = ({
 										size="lg"
 										textSize="md"
 										additionalClassName="items-center justify-center relative"
-										disabled={!isLogin && !isOnline}
-										title={!isLogin && !isOnline && t("common.offlineTitle")}
+										disabled={!isLogin && (!isOnline || nameByteLimitReached)}
+										title={!isLogin && (!isOnline ? t("common.offlineTitle") : nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : undefined)}
 										value={hint}
 									>
 										<div className="flex flex-col">
@@ -514,7 +517,7 @@ const WebauthnSignupLogin = ({
 							))
 						)}
 
-						{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
+						{error && <div role="alert" className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 					</>
 				)
 			}

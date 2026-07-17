@@ -37,7 +37,7 @@ const PasskeyInfoPopup = () => {
 	return (
 		<>
 			<button
-				className="relative mt-4 p-6 sm:px-12 w-full flex justify-center cursor-pointer font-semibold rounded-lg hover:bg-lm-gray-200 hover:dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 hover:border-lm-gray-600 dark:hover:border-dm-gray-400"
+				className="relative mt-4 p-6 sm:px-12 w-full flex justify-center cursor-pointer font-semibold rounded-lg hover:bg-lm-gray-200 hover:dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 hover:border-lm-gray-600 dark:hover:border-dm-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2"
 				onClick={handleOpen}
 			>
 				{t('passkeyInfoPopup.triggerButton')}
@@ -51,7 +51,7 @@ const PasskeyInfoPopup = () => {
 						<button
 							id="dismiss-passkey-info-popup"
 							type="button"
-							className="md:absolute top-6 right-6 text-lm-gray-900 dark:text-dm-gray-100 bg-transparent hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600 transition-all rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center"
+							className="md:absolute top-6 right-6 text-lm-gray-900 dark:text-dm-gray-100 bg-transparent hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600 transition-all rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center focus-visible:outline-2 focus-visible:outline-offset-2"
 							onClick={handleClose}
 							aria-label={t('passkeyInfoPopup.closeAriaLabel')}
 						>
