@@ -5,7 +5,6 @@ import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSec
 import { base64url } from "jose";
 import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
-import { toBase64 } from "@/util";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { VerifiableCredentialFormat } from "wallet-common";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
@@ -36,8 +35,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			try {
 				const transactionId = WalletStateUtils.getRandomUint32();
 				const [, newPrivateData, keystoreCommit] = await addPresentations([presentation].map((vpData, _index) => {
-					console.log("Presentation: ")
-
 					return {
 						transactionId: transactionId,
 						data: vpData,
@@ -236,7 +233,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				],
 			};
 
-			const presentations = "b64:" + toBase64(new TextEncoder().encode(base64url.encode((deviceResponseMDoc.encode()))));
+			const presentations = base64url.encode(deviceResponseMDoc.encode());
 			await storeVerifiablePresentation(presentations, presentationSubmission, credentialRef.current.credentialId, "Proximity Mode");
 		}
 
