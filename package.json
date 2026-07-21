@@ -44,7 +44,7 @@
     "typescript": "^5.1.6",
     "uuid": "^9.0.0",
     "vite-plugin-pwa": "^0.21.1",
-    "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#2f50827283f70668ed326b69e62046857258128a",
+    "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#9df178665980ea7e7cbe2a441a3e6dbcec9dff6c",
     "web-vitals": "^2.1.4",
     "workbox-core": "^7.3.0",
     "workbox-expiration": "^7.3.0",
