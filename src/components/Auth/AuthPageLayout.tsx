@@ -30,7 +30,7 @@ export default function AuthPageLayout({ children, heading }: { children: React.
 					)}
 				</div>
 
-				<div className="relative w-full sm:max-w-md xl:p-0">
+				<div className="relative w-full sm:max-w-md">
 					{children}
 				</div>
 

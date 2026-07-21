@@ -90,7 +90,7 @@ const WebauthnLogin = ({
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
+			{error && <div role="alert" className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };

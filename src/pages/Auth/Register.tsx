@@ -37,7 +37,7 @@ const Register = () => {
 		setWebauthnError('');
 		checkForUpdates();
 		updateOnlineStatus();
-		navigate('/login', { state: { skipCachedAccounts: true } });
+		navigate('/login');
 	}
 
 	return (
@@ -46,12 +46,11 @@ const Register = () => {
 				isLogin={false}
 				isSubmitting={isSubmitting}
 				setIsSubmitting={setIsSubmitting}
-				isLoginCache={false}
 				error={webauthnError}
 				setError={setWebauthnError}
 				setIsAwaitingRedirect={setIsAwaitingRedirect}
 			/>
-			<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
+			<p className="text-sm text-center font-light text-lm-gray-900 dark:text-dm-gray-100">
 				{t('loginSignup.alreadyHaveAccountQuestion')}
 				<Link
 					id="signIn-switch-loginsignup"
