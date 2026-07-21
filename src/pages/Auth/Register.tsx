@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -22,6 +22,7 @@ const Register = () => {
 	const [isAwaitingRedirect, setIsAwaitingRedirect] = useState(false);
 
 	const navigate = useNavigate();
+	const { search } = useLocation();
 
 	useEffect(() => {
 		if (isLoggedIn) {
@@ -37,7 +38,7 @@ const Register = () => {
 		setWebauthnError('');
 		checkForUpdates();
 		updateOnlineStatus();
-		navigate('/login');
+		navigate(`/login${search}`);
 	}
 
 	return (

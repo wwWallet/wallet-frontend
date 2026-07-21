@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -22,6 +22,7 @@ const Login = () => {
 	const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
 
 	const navigate = useNavigate();
+	const { search } = useLocation();
 
 	useEffect(() => {
 		if (isLoggedIn) {
@@ -53,7 +54,7 @@ const Login = () => {
 					{t('loginSignup.newHereQuestion')}
 					<Link
 						id="signUp-switch-loginsignup"
-						href="/register"
+						href={`/register${search}`}
 						disabled={!isOnline}
 						title={!isOnline ? t('common.offlineTitle') : undefined}
 					>
