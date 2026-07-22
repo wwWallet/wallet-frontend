@@ -6,7 +6,6 @@ export type Variant = (
 	| 'delete'
 	| 'invisible'
 	| 'outline'
-	| 'link'
 	| 'custom'
 	| 'default'
 );
@@ -38,7 +37,6 @@ export type Props = {
 	disabled?: boolean,
 	ariaLabel?: string,
 	title?: string,
-	linkClassName?: string,
 	value?: string;
 };
 
@@ -55,7 +53,6 @@ const Button = ({
 	disabled = false,
 	ariaLabel,
 	title,
-	linkClassName = 'text-lm-gray-900 dark:text-dm-gray-100',
 	value,
 }: Props) => {
 
@@ -98,8 +95,6 @@ const Button = ({
 				return `${commonClasses} ${sizeClasses} text-inherit bg-inherit border-none ${!disabled ? 'hover:bg-brand-lighter dark:hover:bg-brand-darker' : ''}`;
 			case 'outline':
 				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400`;
-			case 'link':
-				return `${linkClassName} underline ${disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:decoration-2 transition'}`;
 			default:
 				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-brand-lighter dark:bg-brand-darker border-lm-gray-600 dark:border-dm-gray-400`;
 		}

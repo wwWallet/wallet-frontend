@@ -79,15 +79,15 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 
 	(function injectSocialMetaTags() {
 		const tags: Tag[] = [
-			{ tag: 'title', textContent: config.STATIC_NAME, props: {} },
-			{ tag: 'meta', props: { name: 'description', content: `${config.STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{ tag: 'title', textContent: config.WALLET_NAME, props: {} },
+			{ tag: 'meta', props: { name: 'description', content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
 			{ tag: 'meta', props: { name: 'keywords', content: 'wwWallet, web wallet, wallet, secure storage, verifiable credentials, digital credentials, credentials management' } },
-			{ tag: 'meta', props: { property: 'og:title', content: `${config.STATIC_NAME}: Secure Storage and Management of Verifiable Credentials` } },
-			{ tag: 'meta', props: { property: 'og:description', content: `${config.STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{ tag: 'meta', props: { property: 'og:title', content: `${config.WALLET_NAME}: Secure Storage and Management of Verifiable Credentials` } },
+			{ tag: 'meta', props: { property: 'og:description', content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
 			{ tag: 'meta', props: { property: 'og:url', content: config.STATIC_PUBLIC_URL || '' } },
 			{ tag: 'meta', props: { property: 'og:type', content: 'website' } },
-			{ tag: 'meta', props: { name: 'twitter:title', content: `${config.STATIC_NAME}: Secure Storage and Management of Verifiable Credentials` } },
-			{ tag: 'meta', props: { name: 'twitter:description', content: `${config.STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{ tag: 'meta', props: { name: 'twitter:title', content: `${config.WALLET_NAME}: Secure Storage and Management of Verifiable Credentials` } },
+			{ tag: 'meta', props: { name: 'twitter:description', content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
 			{ tag: 'meta', props: { name: 'twitter:card', content: 'summary_large_image' } },
 		];
 
