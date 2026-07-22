@@ -2,20 +2,12 @@ import React from 'react';
 
 function SeparatorLine({ children }) {
 	return (
-		<div className="dark:text-white flex flex-row flex-nowrap items-stretch justify-between">
-			<div className="flex flex-col flex-nowrap grow shrink items-stretch justify-between">
-				<div className="grow shrink border-t border-t-solid border-t-gray-300" />
-				<div className="grow shrink" />
-			</div>
+		<div className="flex items-center gap-4 text-sm font-medium text-lm-gray-600 dark:text-dm-gray-400">
+			<div aria-hidden="true" className="h-px flex-1 bg-lm-gray-400 dark:bg-dm-gray-600" />
 			{children && (
 				<>
-					<div className="grow-0 shrink-0 ml-4 mr-4">
-						{children}
-					</div>
-					<div className="flex flex-col flex-nowrap grow shrink items-stretch justify-between">
-						<div className="grow shrink border-t border-t-solid border-t-gray-300" />
-						<div className="grow shrink" />
-					</div>
+					<span className="shrink-0">{children}</span>
+					<div aria-hidden="true" className="h-px flex-1 bg-lm-gray-400 dark:bg-dm-gray-600" />
 				</>
 			)}
 		</div>
