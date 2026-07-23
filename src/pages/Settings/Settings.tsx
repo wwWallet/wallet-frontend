@@ -16,6 +16,7 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
+import LoadError from '../../components/Shared/LoadError';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION } from '@/config';
@@ -49,6 +50,7 @@ const Settings = () => {
 	const { api, logout, keystore } = useContext(SessionContext);
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
+	const [loadError, setLoadError] = useState(false);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
 	const [unlockInProgress, setUnlockInProgress] = useState(false);
@@ -138,11 +140,12 @@ const Settings = () => {
 					...response.data,
 					settings: s.settings,
 				};
-				console.log(userData);
 				setUserData(userData);
+				setLoadError(false);
 				dispatchEvent(new CustomEvent("settingsChanged"));
 			} catch (error) {
 				console.error('Failed to fetch data', error);
+				setLoadError(true);
 			}
 		},
 		[
@@ -302,7 +305,7 @@ const Settings = () => {
 	return (
 		<>
 			<div className="px-6 sm:px-12 w-full">
-				{userData && (
+				{userData ? (
 					<>
 						<H1 heading={t('common.navItemSettings')} />
 						<PageDescription description={t('pageSettings.description')} />
@@ -479,6 +482,8 @@ const Settings = () => {
 							</div>
 						</div>
 					</>
+				) : loadError && (
+					<LoadError message={t('pageSettings.loadError')} onRetry={refreshData} />
 				)}
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
