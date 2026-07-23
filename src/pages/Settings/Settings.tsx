@@ -305,11 +305,10 @@ const Settings = () => {
 	return (
 		<>
 			<div className="px-6 sm:px-12 w-full">
+				<H1 heading={t('common.navItemSettings')} />
+				<PageDescription description={t('pageSettings.description')} />
 				{userData ? (
 					<>
-						<H1 heading={t('common.navItemSettings')} />
-						<PageDescription description={t('pageSettings.description')} />
-
 						<div className="mt-4">
 							<SettingsTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
