@@ -592,7 +592,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		retryFrom?: SignupWebauthnRetryParams
 	): Promise<Result<void, SignupWebauthnError>> => {
 		try {
-			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', {})).data;
+			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', { displayName: name })).data;
 			console.log("begin", beginData);
 
 			try {

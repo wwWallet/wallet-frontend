@@ -26,7 +26,7 @@ import SettingsRow from './components/SettingsRow';
 import SettingsSelect from './components/SettingsSelect';
 import SettingsTabs, { SettingsTab } from './components/SettingsTabs';
 import WebauthnRegistration from './components/WebauthnRegistration';
-import WebauthnCredentialItem, { useWebauthnCredentialNickname } from './components/WebauthnCredentialItem';
+import WebauthnCredentialItem, { useWebauthnCredentialName } from './components/WebauthnCredentialItem';
 
 type UpgradePrfState = (
 	null
@@ -65,7 +65,7 @@ const Settings = () => {
 		setUnlocked(false);
 	};
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
-	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
+	const upgradePrfPasskeyLabel = useWebauthnCredentialName(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
 	const [activeTab, setActiveTab] = useState('general');
@@ -182,9 +182,9 @@ const Settings = () => {
 		}
 	};
 
-	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
+	const onRenameWebauthnCredential = async (credential: WebauthnCredential, name: string): Promise<boolean> => {
 		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
-			nickname,
+			name,
 		});
 		refreshData();
 		if (deleteResp.status === 204) {

@@ -27,7 +27,7 @@ const WebauthnRegistration = ({
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
-	const [nickname, setNickname] = useState("");
+	const [name, setName] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
@@ -47,7 +47,7 @@ const WebauthnRegistration = ({
 		return () => document.removeEventListener('mousedown', handler);
 	}, [menuOpen]);
 
-	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
+	const stateChooseName = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
 		async (webauthnHint) => {
@@ -128,7 +128,7 @@ const WebauthnRegistration = ({
 				setIsSubmitting(true);
 				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
-					nickname,
+					name,
 					credential: {
 						type: pendingCredential.type,
 						id: pendingCredential.id,
@@ -144,7 +144,7 @@ const WebauthnRegistration = ({
 					privateData: serializePrivateData(newPrivateData),
 				}));
 				onSuccess();
-				setNickname("");
+				setName("");
 				await keystoreCommit();
 
 			} catch (e) {
@@ -207,7 +207,7 @@ const WebauthnRegistration = ({
 			)}
 
 			<Dialog
-				open={stateChooseNickname}
+				open={stateChooseName}
 				onCancel={onCancel}
 			>
 				<form onSubmit={onFinish}>
@@ -219,16 +219,16 @@ const WebauthnRegistration = ({
 									hr={false}
 									flexJustifyContent='center'
 								/>
-								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveNickname')}</p>
+								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveName')}</p>
 								<input
 									type="text"
 									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-									aria-label={t('registerPasskey.nicknameAriaLabel')}
+									aria-label={t('registerPasskey.nameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
-									onChange={(event) => setNickname(event.target.value)}
-									placeholder={t('registerPasskey.nicknamePlaceholder')}
-									value={nickname}
+									onChange={(event) => setName(event.target.value)}
+									placeholder={t('registerPasskey.namePlaceholder')}
+									value={name}
 								/>
 							</>
 						)
