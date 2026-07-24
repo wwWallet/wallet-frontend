@@ -86,6 +86,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 
 			// Signal "Start" to the reader
 			await this.stateCharacteristic.writeValueWithoutResponse(new Uint8Array([STATE_START]));
+			await new Promise((resolve) => setTimeout(resolve, 10));
 			return true;
 		} catch (e) {
 			console.log(e);
@@ -154,12 +155,14 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			chunk[0] = 1; // more chunks follow
 			chunk.set(payload.subarray(offset, offset + maxPayloadPerChunk), 1);
 			await this.client2ServerCharacteristic.writeValueWithoutResponse(chunk);
+			await new Promise((resolve) => setTimeout(resolve, 10));
 			offset += maxPayloadPerChunk;
 		}
 		const lastChunk = new Uint8Array(1 + payload.length - offset);
 		lastChunk[0] = 0; // final chunk
 		lastChunk.set(payload.subarray(offset), 1);
 		await this.client2ServerCharacteristic.writeValueWithoutResponse(lastChunk);
+		await new Promise((resolve) => setTimeout(resolve, 10));
 	}
 
 	async terminate(): Promise<void> {
@@ -167,6 +170,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			if (this.stateCharacteristic && this.server?.connected) {
 				// Signal "End" to the reader
 				await this.stateCharacteristic.writeValueWithoutResponse(new Uint8Array([STATE_END]));
+				await new Promise((resolve) => setTimeout(resolve, 10));
 			}
 		} catch (e) {
 			console.log("Failed to signal session end", e);
