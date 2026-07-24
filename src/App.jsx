@@ -8,6 +8,7 @@ import Spinner from './components/Shared/Spinner';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
+import Register from './pages/Auth/Register';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
@@ -32,8 +33,8 @@ const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
-const Login = lazyWithDelay(() => import('./pages/Login/Login'), 400);
-const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
+const Login = lazyWithDelay(() => import('./pages/Auth/Login'), 200);
+const LoginState = lazyWithDelay(() => import('./pages/Auth/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
@@ -75,6 +76,7 @@ function App() {
 						</FadeInContentTransition>
 					}>
 						<Route path="/login" element={<Login />} />
+						<Route path="/register" element={<Register />} />
 						<Route path="/login-state" element={<LoginState />} />
 						<Route path="*" element={<NotFound />} />
 					</Route>

@@ -291,7 +291,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -330,8 +330,8 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -370,9 +370,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
   </tbody>
 </table>
