@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import Modal from 'react-modal';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize, coerce } from '../../util';
@@ -12,6 +11,7 @@ import useScreenType from '@/hooks/useScreenType';
 import Button, { Variant } from '../../components/Buttons/Button';
 import CachedUsersList from './CachedUsersList';
 import SeparatorLine from '../Shared/SeparatorLine';
+import BottomSheet from '../Popups/BottomSheet';
 
 import checkForUpdates from '../../offlineUpdateSW';
 
@@ -82,12 +82,12 @@ const AccountSwitcherList = ({
 	items: React.ReactNode,
 	showFade: boolean,
 }) => (
-	<div className={`relative ${variant === 'mobile' ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
+	<div className="relative">
 		<ul
 			aria-label={ariaLabel}
 			className={
 				variant === 'mobile'
-					? 'flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+					? 'flex flex-col gap-2 max-h-[50dvh] overflow-y-auto overflow-x-hidden overscroll-contain pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
 					: 'flex flex-col gap-2 max-h-[40dvh] overflow-y-auto overflow-x-hidden overscroll-contain pr-2 pb-4 [scrollbar-gutter:stable]'
 			}
 		>
@@ -375,45 +375,16 @@ const WebauthnSignupLogin = ({
 
 	return (
 		<form onSubmit={onSubmit}>
-			{isAccountSwitcherOpen ? (
-				screenType === 'desktop' ? (
-					<div>
-						{renderSwitcherHeader(true)}
-						<AccountSwitcherList
-							variant="desktop"
-							ariaLabel={t('loginSignup.switchAccountDescription')}
-							items={accountListItems}
-							showFade={loginableCachedUsers.length > 3}
-						/>
-					</div>
-				) : (
-					<Modal
-						isOpen={true}
-						onRequestClose={closeSwitcher}
-						shouldCloseOnOverlayClick={false}
-						contentLabel={t('loginSignup.switchAccount')}
-						className="w-full h-full flex flex-col bg-lm-gray-100 dark:bg-dm-gray-900 p-6 pt-8 outline-none"
-						overlayClassName="fixed inset-0 z-50 bg-lm-gray-100 dark:bg-dm-gray-900"
-						bodyOpenClassName="overflow-hidden"
-					>
-						{renderSwitcherHeader(false)}
-						<AccountSwitcherList
-							variant="mobile"
-							ariaLabel={t('loginSignup.switchAccountDescription')}
-							items={accountListItems}
-							showFade={loginableCachedUsers.length > 3}
-						/>
-						<Button
-							id="back-switch-account-bottom-loginsignup"
-							onClick={closeSwitcher}
-							variant="outline"
-							additionalClassName="w-full mt-4 shrink-0"
-						>
-							<ChevronLeft size={18} className="inline mr-1" />
-							{t('common.back')}
-						</Button>
-					</Modal>
-				)
+			{isAccountSwitcherOpen && screenType === 'desktop' ? (
+				<div>
+					{renderSwitcherHeader(true)}
+					<AccountSwitcherList
+						variant="desktop"
+						ariaLabel={t('loginSignup.switchAccountDescription')}
+						items={accountListItems}
+						showFade={loginableCachedUsers.length > 3}
+					/>
+				</div>
 			) : inProgress || retrySignupFrom
 				? (
 					needPrfRetry
@@ -588,6 +559,31 @@ const WebauthnSignupLogin = ({
 					</>
 				)
 			}
+
+			{isAccountSwitcherOpen && screenType !== 'desktop' && (
+				<BottomSheet
+					isOpen={true}
+					onClose={closeSwitcher}
+					contentLabel={t('loginSignup.switchAccount')}
+				>
+					{renderSwitcherHeader(false)}
+					<AccountSwitcherList
+						variant="mobile"
+						ariaLabel={t('loginSignup.switchAccountDescription')}
+						items={accountListItems}
+						showFade={loginableCachedUsers.length > 3}
+					/>
+					<Button
+						id="back-switch-account-bottom-loginsignup"
+						onClick={closeSwitcher}
+						variant="outline"
+						additionalClassName="w-full mt-4 shrink-0"
+					>
+						<ChevronLeft size={18} className="inline" />
+						{t('common.back')}
+					</Button>
+				</BottomSheet>
+			)}
 		</form>
 	);
 };

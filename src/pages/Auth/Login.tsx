@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import useScreenType from '@/hooks/useScreenType';
 
 import Link from '../../components/Links/Link';
 
@@ -20,6 +21,8 @@ const Login = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isAwaitingRedirect, setIsAwaitingRedirect] = useState(false);
 	const [isAccountSwitcherOpen, setIsAccountSwitcherOpen] = useState(false);
+	const screenType = useScreenType();
+	const isDesktopSwitcherOpen = isAccountSwitcherOpen && screenType === 'desktop';
 
 	const navigate = useNavigate();
 	const { search } = useLocation();
@@ -36,7 +39,7 @@ const Login = () => {
 
 	return (
 		<AuthCard
-			heading={isAccountSwitcherOpen ? null : t('loginSignup.signIn')}
+			heading={isDesktopSwitcherOpen ? null : t('loginSignup.signIn')}
 			showPasskeyInfoPopup={false}
 		>
 			<WebauthnSignupLogin
@@ -49,7 +52,7 @@ const Login = () => {
 				isAccountSwitcherOpen={isAccountSwitcherOpen}
 				setIsAccountSwitcherOpen={setIsAccountSwitcherOpen}
 			/>
-			{!isAccountSwitcherOpen && (
+			{!isDesktopSwitcherOpen && (
 				<p className="text-sm text-center font-light text-lm-gray-900 dark:text-dm-gray-100">
 					{t('loginSignup.newHereQuestion')}
 					<Link
