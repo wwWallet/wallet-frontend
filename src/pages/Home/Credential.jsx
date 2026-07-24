@@ -1,5 +1,5 @@
 // External libraries
-import React, { useState, useContext, useEffect, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import QRCode from "react-qr-code";
@@ -43,6 +43,7 @@ const Credential = () => {
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
+	const handledMdocStatusRef = useRef(null);
 	const [shareWithQr, setShareWithQr] = useState(false);
 	const [mdocQRContent, setMdocQRContent] = useState("");
 	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
@@ -141,6 +142,11 @@ const Credential = () => {
 	}
 
 	useEffect(() => {
+		if (handledMdocStatusRef.current === mdocQRStatus) {
+			// prevent refiring without an actual status change
+			return;
+		}
+		handledMdocStatusRef.current = mdocQRStatus;
 		if (mdocQRStatus === 1) {
 			// Got client
 			handleMdocRequest();
