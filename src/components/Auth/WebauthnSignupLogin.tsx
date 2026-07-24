@@ -560,9 +560,9 @@ const WebauthnSignupLogin = ({
 				)
 			}
 
-			{isAccountSwitcherOpen && screenType !== 'desktop' && (
+			{screenType !== 'desktop' && (
 				<BottomSheet
-					isOpen={true}
+					isOpen={isAccountSwitcherOpen}
 					onClose={closeSwitcher}
 					contentLabel={t('loginSignup.switchAccount')}
 				>
