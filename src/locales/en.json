@@ -246,6 +246,7 @@
 		"language": {
 			"description": "Choose the language used throughout the app."
 		},
+		"loadError": "Couldn't load your settings. Please try again.",
 		"oblivious": {
 			"description": "Select a private gateway to use Oblivious HTTP",
 			"disabled": "Do not use Oblivious HTTP",
