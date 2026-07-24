@@ -24,6 +24,7 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/send$/,                          // Send credentials
 	/^\/verification\/result$/,          // Verification result
 	/^\/login$/,                         // Login
+	/^\/register$/,                      // Register
 	/^\/login-state$/,                   // Login state
 	/^\/cb(\/.*)?$/,                     // Callback routes
 	/^\/credential\/[^/]+$/,             // Credential
