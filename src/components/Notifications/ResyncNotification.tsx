@@ -4,13 +4,13 @@ import { useTranslation, Trans } from 'react-i18next';
 
 import SyncNotificationContext from '@/context/SyncNotificationContext';
 import Button from '../Buttons/Button';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 function ResyncNotification(): React.ReactElement | null {
 	useTranslation(); // This ensures reactivity to language changes
 	const { t } = useTranslation();
 
-	const { showSyncNotification, openAuthPopup, dismissSyncNotification } = useContext(SyncNotificationContext);
+	const { showSyncNotification, openAuthPopup } = useContext(SyncNotificationContext);
 
 	return (
 		showSyncNotification
@@ -36,13 +36,6 @@ function ResyncNotification(): React.ReactElement | null {
 						>
 							{t('resyncNotification.action')}
 						</Button>
-						<button
-							id="close-resync-notification"
-							className="ml-2"
-							onClick={dismissSyncNotification}
-						>
-							<X size={20} />
-						</button>
 					</div>
 				</div>
 			)
