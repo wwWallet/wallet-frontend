@@ -359,7 +359,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	return (
 		<>
 			<StatusContext.Provider value={{ ...statusContext, isOnline: isOnline && !pendingResync }}>
-				<SyncNotificationContext.Provider value={{ showSyncNotification, openAuthPopup, dismissSyncNotification }}>
+				<SyncNotificationContext.Provider value={{ pendingResync, showSyncNotification, openAuthPopup, dismissSyncNotification }}>
 					{children}
 				</SyncNotificationContext.Provider>
 			</StatusContext.Provider>

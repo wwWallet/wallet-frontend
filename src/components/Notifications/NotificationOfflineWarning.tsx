@@ -14,14 +14,14 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 
-	const { showSyncNotification } = useContext(SyncNotificationContext);
+	const { pendingResync, showSyncNotification } = useContext(SyncNotificationContext);
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
 
 	const handleCloseMessageOffline = () => {
 		setIsMessageOfflineVisible(true);
 	};
 
-	const show = isOnline === false && !showSyncNotification && isMessageOfflineVisible === false;
+	const show = isOnline === false && !pendingResync && !showSyncNotification && isMessageOfflineVisible === false;
 	// if (!show) return null;
 
 	return (
