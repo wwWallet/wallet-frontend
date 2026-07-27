@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { BackendApi } from '@/api';
 import type { CachedUser, LocalStorageKeystore } from '@/services/LocalStorageKeystore';
@@ -17,11 +17,9 @@ type UseReconnectSyncArgs = {
 
 /**
  * Detects an offline->online reconnect while logged in and drives the
- * resulting resync UI: a dismissible notification banner for a fresh,
- * live reconnect, escalating to the auth popup once the user asks to
- * resync (or a reload finds the reconnect still unresolved). Any other
- * cause of a sync failure (e.g. a genuine cross-device mismatch) falls
- * back to the original sync popup instead.
+ * resulting resync UI: a notification banner that opens the auth popup
+ * once the user asks to resync. Any other cause of a sync failure (e.g.
+ * a genuine cross-device mismatch) falls back to the original sync popup.
  */
 export function useReconnectSync({
 	isOnline,
@@ -37,9 +35,6 @@ export function useReconnectSync({
 
 	// Persisted so a reload while unresolved still reads as "pending", not fresh.
 	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(useSessionStorage('reconnectDetected', null));
-	// True if pending before this page load and cleared while offline.
-	const wasReconnectDetectedAtMountRef = useRef(reconnectDetected === true);
-	const wasReconnectDetectedAtMount = wasReconnectDetectedAtMountRef.current;
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	// Which popup to show, if any -- both render the same component, they only
@@ -53,7 +48,6 @@ export function useReconnectSync({
 			setSynced(false);
 		} else if (isOnline === false) {
 			setReconnectDetected(false);
-			wasReconnectDetectedAtMountRef.current = false;
 		}
 		setLatestIsOnlineStatus(isLoggedIn ? isOnline : null);
 	}, [isLoggedIn, isOnline, latestIsOnlineStatus, setLatestIsOnlineStatus, cachedUser, setSynced, setReconnectDetected]);
@@ -93,19 +87,16 @@ export function useReconnectSync({
 			setShowSyncNotification(false);
 			return;
 		}
-		if (reconnectDetected === true && wasReconnectDetectedAtMount) {
-			// Reload while pending: show the popup and notification together.
-			setPopupDescriptionKey('authPopup.description');
-			setShowSyncNotification(true);
-		} else if (reconnectDetected === true) {
-			// Fresh reconnect: show the notification first, not the popup.
+		if (reconnectDetected === true) {
+			// Reconnects always show the notification first, not the popup.
+			setPopupDescriptionKey(null);
 			setShowSyncNotification(true);
 		} else {
 			// Not a reconnect (e.g. cross-device mismatch): fall back to the original popup.
 			setPopupDescriptionKey('syncPopup.description');
 			setShowSyncNotification(false);
 		}
-	}, [location, synced, setSynced, reconnectDetected, wasReconnectDetectedAtMount, isOnline]);
+	}, [location, synced, setSynced, reconnectDetected, isOnline]);
 
 	const openAuthPopup = useCallback(() => {
 		setPopupDescriptionKey('authPopup.description');
