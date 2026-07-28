@@ -185,18 +185,28 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			}
 		}
 		// Online case
-		const respBackend = await axios.get(
-			`${walletBackendUrl}${path}`,
-			{
-				headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
-				validateStatus: status => (status >= 200 && status < 300) || status === 304,
-				transformResponse,
-			},
-		);
-		if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
-			await addItem(path, dbKey, respBackend.data);
+		try {
+			const respBackend = await axios.get(
+				`${walletBackendUrl}${path}`,
+				{
+					headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
+					validateStatus: status => (status >= 200 && status < 300) || status === 304,
+					transformResponse,
+				},
+			);
+			if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
+				await addItem(path, dbKey, respBackend.data);
+			}
+			return respBackend;
+		} catch (err) {
+			if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
+				const data = await getItem(path, dbKey);
+				if (data) {
+					return { data } as AxiosResponse;
+				}
+			}
+			throw err;
 		}
-		return respBackend;
 	}, [buildGetHeaders, isOnline]);
 
 	const get = useCallback(async (
@@ -279,6 +289,21 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		}
 	}, [buildMutationHeaders]);
 
+	const markSyncFailed = useCallback((cachedUser: CachedUser | undefined) => {
+		// No user handle to route the sync-fail flow to.
+		if (!cachedUser) {
+			return;
+		}
+		const queryParams = new URLSearchParams(window.location.search);
+		queryParams.delete('user');
+		queryParams.delete('sync');
+
+		queryParams.append('user', cachedUser.userHandleB64u);
+		queryParams.append('sync', 'fail');
+
+		navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+	}, [navigate]);
+
 	const syncPrivateData = useCallback(async (
 		cachedUser: CachedUser | undefined
 	): Promise<Result<void,
@@ -298,24 +323,19 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			if (getPrivateDataResponse.status === 304) {
 				return Ok.EMPTY; // already synced
 			}
-			const queryParams = new URLSearchParams(window.location.search);
-			queryParams.delete('user');
-			queryParams.delete('sync');
-
-			queryParams.append('user', cachedUser.userHandleB64u);
-			queryParams.append('sync', 'fail');
-
-			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+			markSyncFailed(cachedUser);
 			return Err('syncFailed');
 			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
 			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		}
 		catch (err) {
+			// e.g. for an offline-authenticated session with no real appToken.
 			console.error(err);
+			markSyncFailed(cachedUser);
 			return Err('syncFailed');
 		}
 
-	}, [getPrivateDataEtag, get, navigate, isOnline]);
+	}, [getPrivateDataEtag, get, markSyncFailed, isOnline]);
 
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
