@@ -121,9 +121,9 @@ const Credential = () => {
 	};
 
 	const handleMdocRequest = useCallback(async () => {
-		const fields = await getMdocRequest();
+		const { fields, credentialMatchesRequest } = await getMdocRequest();
 		setShareWithQrFilter(fields);
-		setMdocQRStatus(2);
+		setMdocQRStatus(credentialMatchesRequest ? 2 : 5);
 	}, [getMdocRequest]);
 
 	const handleMdocResponse = useCallback(async () => {
@@ -285,6 +285,9 @@ const Credential = () => {
 								</div>
 							</span>}
 							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><CircleCheckBig color='green' size={100} /></span>}
+							{mdocQRStatus === 5 && <p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">
+								{t('qrShareMdoc.credentialMismatch')}
+							</p>}
 							{![1, 2].includes(mdocQRStatus) &&
 								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>

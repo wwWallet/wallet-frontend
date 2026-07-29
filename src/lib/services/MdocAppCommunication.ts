@@ -1,5 +1,5 @@
 import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
-import { cborDecode, cborEncode, DataItem, IssuerSigned } from "@owf/mdoc";
+import { cborDecode, cborEncode, DataItem, DeviceResponse, IssuerSigned } from "@owf/mdoc";
 import { v4 as uuidv4 } from 'uuid';
 import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
@@ -75,6 +75,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		deviceEngagementBytesRef.current = DataItem.fromData(deviceEngagement);
 		credentialRef.current = vcEntity;
+		requestedDcqlClaimsRef.current = [];
+		requestedDocTypeRef.current = null;
+		requestedNamespaceRef.current = null;
 
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
 	}, []);
@@ -93,7 +96,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return transport.connect(serviceUuidRef.current);
 	}, []);
 
-	const getMdocRequest = useCallback(async (): Promise<string[]> => {
+	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean }> => {
 		let receivedMessage: Uint8Array = new Uint8Array([]);
 		if (transportRef.current) {
 			console.log("Created BLE client");
@@ -146,12 +149,38 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const firstNamespaceEntry = nameSpaces?.entries?.().next?.().value as [string, Map<string, boolean>] | undefined;
 			const namespace = firstNamespaceEntry?.[0];
 			const fields = firstNamespaceEntry?.[1];
+			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
+			requestedNamespaceRef.current = namespace ?? null;
+
+			const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
+			const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
+			if (requestedDocTypeRef.current && requestedDocTypeRef.current !== credentialDocType) {
+				const emptyDeviceResponse = DeviceResponse.createSimple({ status: 0 });
+				const ivEncryption = new Uint8Array([
+					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+					0x00, 0x00, 0x00, 0x01
+				]);
+				const { ciphertext } = await encryptUint8Array(
+					skDeviceRef.current,
+					emptyDeviceResponse.encode(),
+					ivEncryption
+				);
+				const sessionData = cborEncode({
+					data: new Uint8Array(ciphertext),
+					status: 20
+				});
+				try {
+					await transportRef.current?.sendMessage(sessionData);
+				} finally {
+					await transportRef.current?.terminate();
+				}
+				return { fields: fieldKeys, credentialMatchesRequest: false };
+			}
+
 			if (!fields || !namespace) {
 				requestedDcqlClaimsRef.current = [];
-				return fieldKeys;
+				return { fields: fieldKeys, credentialMatchesRequest: true };
 			}
-			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
-			requestedNamespaceRef.current = namespace;
 
 			const requestedDcqlClaims = [];
 			fields.forEach((value, key) => {
@@ -165,7 +194,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedDcqlClaimsRef.current = requestedDcqlClaims;
 		}
 
-		return fieldKeys;
+		return { fields: fieldKeys, credentialMatchesRequest: true };
 	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {

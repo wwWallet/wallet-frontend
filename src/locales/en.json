@@ -341,12 +341,13 @@
 	},
 	"qrShareMdoc": {
 		"communicating": "Communicating with verifier...",
+		"credentialMismatch": "This credential is not what the verifier requested. Nothing was shared.",
 		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
 		"nearbyVerifierRequested": "A nearby verifier requested the following fields:",
 		"scanPrompt": "Scan this QR code with the verifier device, then continue.",
 		"scannedContinue": "I scanned, continue",
 		"send": "Send",
-		"shareUsingQR": "Share using QRCode"
+		"shareUsingQR": "Share using QR Code"
 	},
 	"queryableList": {
 		"all": "All",
