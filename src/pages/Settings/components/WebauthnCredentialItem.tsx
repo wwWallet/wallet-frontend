@@ -198,6 +198,10 @@ const WebauthnCredentialItem = ({
 							{credential.backupEligibility === true && credential.backupState === true ? t("pageSettings.passkeyItem.syncableYes"): credential.backupEligibility === true && credential.backupState === false ? t("pageSettings.passkeyItem.syncableAvailable"): t("pageSettings.passkeyItem.syncableNo")}
 						</p>
 					</div>
+					<div>
+                        <p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">Authenticator Model</p>
+                        <p className="text-lm-gray-900 dark:text-white">{credential.authenticatorName || "Unknown Authenticator"}</p>
+              </div>
 				</div>
 
 				{needsPrfUpgrade && (
