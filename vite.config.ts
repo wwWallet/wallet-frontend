@@ -69,6 +69,8 @@ export default defineConfig(async ({ mode }) => {
 			checker({
 				eslint: {
 					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
+					useFlatConfig: true,
+					watchPath: './src',
 				}
 			}),
 			VitePWA({
