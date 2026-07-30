@@ -1,3 +1,5 @@
+export type BluetoothConnectionResult = "connected" | "cancelled" | "failed";
+
 /**
  * Transport abstraction for the ISO 18013-5 proximity presentation flow.
  *
@@ -12,9 +14,8 @@
 export interface IBluetoothTransport {
 	/**
 	 * Connect to the reader advertising the given BLE service UUID.
-	 * Returns true if the connection was established.
 	 */
-	connect(serviceUuid: string): Promise<boolean>;
+	connect(serviceUuid: string): Promise<BluetoothConnectionResult>;
 
 	/** Receive one complete session message (chunks reassembled, framing bytes stripped). */
 	receiveMessage(): Promise<Uint8Array>;

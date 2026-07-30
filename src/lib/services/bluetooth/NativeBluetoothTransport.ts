@@ -1,4 +1,4 @@
-import { IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
+import { BluetoothConnectionResult, IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
 
 /**
  * Bluetooth transport backed by the native wrapper (Android app) injected
@@ -13,15 +13,15 @@ export class NativeBluetoothTransport implements IBluetoothTransport {
 		return typeof window !== "undefined" && !!window.nativeWrapper?.bluetoothCreateClient;
 	}
 
-	async connect(serviceUuid: string): Promise<boolean> {
+	async connect(serviceUuid: string): Promise<BluetoothConnectionResult> {
 		await window.nativeWrapper.bluetoothTerminate(); // Terminate any pending ble connections
 		try {
-			return await window.nativeWrapper.bluetoothCreateClient(serviceUuid);
+			return await window.nativeWrapper.bluetoothCreateClient(serviceUuid) ? "connected" : "failed";
 		} catch (e) {
 			console.log(e);
 			console.log(await window.nativeWrapper.bluetoothStatus());
 			console.log("Could not initialize BLE client");
-			return false;
+			return "failed";
 		}
 	}
 

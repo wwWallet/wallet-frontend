@@ -47,6 +47,7 @@ const Credential = () => {
 	const [shareWithQr, setShareWithQr] = useState(false);
 	const [mdocQRContent, setMdocQRContent] = useState("");
 	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
+	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
@@ -98,8 +99,12 @@ const Credential = () => {
 	};
 
 	const connectClient = async () => {
-		const client = await startClient();
-		if (!client) {
+		setBluetoothPairingCancelled(false);
+		const connectionResult = await startClient();
+		if (connectionResult === "cancelled") {
+			setMdocQRStatus(0);
+			setBluetoothPairingCancelled(true);
+		} else if (connectionResult === "failed") {
 			setMdocQRStatus(-1);
 		} else {
 			setMdocQRStatus(1);
@@ -108,6 +113,7 @@ const Credential = () => {
 
 	const generateQR = async () => {
 		setMdocQRStatus(0);
+		setBluetoothPairingCancelled(false);
 		setMdocQRContent(await generateEngagementQR(vcEntity));
 		setShowMdocQR(true);
 		if (bluetoothConnectRequiresUserGesture()) {
@@ -127,8 +133,13 @@ const Credential = () => {
 	}, [getMdocRequest]);
 
 	const handleMdocResponse = useCallback(async () => {
-		await sendMdocResponse();
-		setMdocQRStatus(4);
+		try {
+			await sendMdocResponse();
+			setMdocQRStatus(4);
+		} catch (error) {
+			console.error("Failed to send mdoc response", error);
+			setMdocQRStatus(6);
+		}
 	}, [sendMdocResponse]);
 
 	const consentToShare = () => {
@@ -247,7 +258,7 @@ const Credential = () => {
 						</div>
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
-							{mdocQRStatus === -1 && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
+							{mdocQRStatus === -1 && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.connectionFailed')}</span>}
 							{mdocQRStatus === 0 && <div className='flex flex-col items-center justify-center'>
 								<div className="p-4 bg-white rounded-lg">
 									<QRCode value={mdocQRContent} size={200} style={{ height: 'auto', maxWidth: '100%', width: '200px' }} />
@@ -255,6 +266,11 @@ const Credential = () => {
 								{bluetoothConnectRequiresUserGesture() && (
 									<>
 										<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-4 mb-2 text-center">{t('qrShareMdoc.scanPrompt')}</p>
+										{bluetoothPairingCancelled && (
+											<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mb-2 text-center">
+												{t('qrShareMdoc.pairingCancelled')}
+											</p>
+										)}
 										<Button variant='primary' onClick={connectClient}>{t('qrShareMdoc.scannedContinue')}</Button>
 									</>
 								)}
@@ -287,6 +303,9 @@ const Credential = () => {
 							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><CircleCheckBig color='green' size={100} /></span>}
 							{mdocQRStatus === 5 && <p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">
 								{t('qrShareMdoc.credentialMismatch')}
+							</p>}
+							{mdocQRStatus === 6 && <p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">
+								{t('qrShareMdoc.connectionLost')}
 							</p>}
 							{![1, 2].includes(mdocQRStatus) &&
 								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
