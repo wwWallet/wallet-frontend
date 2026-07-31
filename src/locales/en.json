@@ -16,6 +16,9 @@
 		"inputPlaceholder": "PIN",
 		"title": "Enter the PIN"
 	},
+	"authPopup": {
+		"description": "Please <strong>authenticate</strong> to continue."
+	},
 	"common": {
 		"and": "and",
 		"back": "Back",
@@ -367,6 +370,10 @@
 		"nicknameAriaLabel": "Nickname for new credential",
 		"nicknamePlaceholder": "Credential nickname",
 		"passkeyCreated": "Your passkey has been created."
+	},
+	"resyncNotification": {
+		"action": "Sync",
+		"description": "You're back online. Would you like to resync your wallet?"
 	},
 	"selectCredentialPopup": {
 		"allClaimsRequested": "The verifier has requested all claims of the credential.",

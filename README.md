@@ -148,9 +148,9 @@ Once the development server is running, you can access the app by visiting http:
 
 ## ⚙️Local Vite Config
 
-For local development, you can create an optional `vite.config.local.ts` file in the project root. This file is ignored by git and is merged into the main Vite config when present.
+For local development or downstream builds, you can create an optional `vite.config.local.ts` file in the project root. This file is ignored by git and is merged into the main Vite config when present.
 
-This is useful for machine-specific settings, such as custom dev server proxy rules, without editing the committed `vite.config.ts`.
+This is useful for machine-specific settings, such as custom dev server proxy rules or navigation paths served by another application, without editing the committed `vite.config.ts`.
 
 Example:
 
@@ -165,6 +165,14 @@ export const localViteConfig: Partial<UserConfig> = {
   },
 };
 ```
+
+At build time, string path keys from `server.proxy` are added to the service
+worker's app-shell bypass list. Navigations to these paths go directly to the
+server instead of loading the wallet app shell. Regex proxy keys are ignored.
+Browser caching follows the response's HTTP cache headers; configure the server
+to send `Cache-Control: no-store` when these pages must never be reused.
+The local config must be present during the build because Vite cannot inspect
+the production server's proxy configuration at runtime.
 
 If `vite.config.local.ts` does not exist, the app uses the default Vite config unchanged.
 
