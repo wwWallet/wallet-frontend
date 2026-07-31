@@ -2,12 +2,13 @@
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
+import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
 
 const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 const appShellCacheName = `app-shell:${basePath}`;
+const appShellBypassPaths = import.meta.env.VITE_APP_SHELL_BYPASS_PATHS;
 
 clientsClaim();
 
@@ -38,9 +39,21 @@ const appShellStrategy = new NetworkFirst({
 	networkTimeoutSeconds: 3,
 });
 
+const matchesPathPrefix = (pathname, pathPrefix) =>
+	pathPrefix === "/" ||
+	pathname === pathPrefix ||
+	pathname.startsWith(`${pathPrefix}/`);
+
 registerRoute(
 	({ request, url }) => {
 		if (request.mode !== "navigate") return false;
+
+		const scopeRelativePathname = url.pathname.slice(basePath.length - 1);
+		const bypassesAppShell = appShellBypassPaths.some((pathPrefix) =>
+			matchesPathPrefix(scopeRelativePathname, pathPrefix)
+		);
+		if (bypassesAppShell) return false;
+
 		if (url.pathname.startsWith("/_")) return false;
 		if (/\.[a-zA-Z0-9]+$/.test(url.pathname)) return false;
 
