@@ -48,6 +48,9 @@ const mergeViteConfig = (baseConfig: UserConfig, localConfig: LocalViteConfig): 
 export default defineConfig(async ({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
 	const localViteConfig = await loadLocalViteConfig();
+	const appShellBypassPaths = Object.keys(localViteConfig.server?.proxy ?? {})
+		.filter((path) => path.startsWith('/'))
+		.map((path) => path.replace(/\/+$/, '') || '/');
 	const brandingHash = getBrandingHash(resolve('branding'));
 	const manifestRevision = getManifestRevision({
 		brandingHash,
@@ -60,6 +63,7 @@ export default defineConfig(async ({ mode }) => {
 		base: './',
 		define: {
 			'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
+			'import.meta.env.VITE_APP_SHELL_BYPASS_PATHS': JSON.stringify(appShellBypassPaths),
 		},
 		plugins: [
 			InjectConfigPlugin(env),
