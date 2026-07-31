@@ -16,6 +16,9 @@
 		"inputPlaceholder": "PIN",
 		"title": "Enter the PIN"
 	},
+	"authPopup": {
+		"description": "Please <strong>authenticate</strong> to continue."
+	},
 	"common": {
 		"and": "and",
 		"back": "Back",
@@ -344,7 +347,6 @@
 		"connectionFailed": "Could not connect to the verifier. Make sure Bluetooth is on and the verifier is waiting, then try again.",
 		"connectionLost": "Connection to the verifier was lost. Nothing was shared.",
 		"credentialMismatch": "This credential is not what the verifier requested. Nothing was shared.",
-		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
 		"nearbyVerifierRequested": "A nearby verifier requested the following fields:",
 		"pairingCancelled": "Bluetooth pairing was not completed. Your QR is still active; try again when ready.",
 		"scanPrompt": "Scan this QR code with the verifier device, then continue.",
@@ -371,6 +373,10 @@
 		"nicknameAriaLabel": "Nickname for new credential",
 		"nicknamePlaceholder": "Credential nickname",
 		"passkeyCreated": "Your passkey has been created."
+	},
+	"resyncNotification": {
+		"action": "Sync",
+		"description": "You're back online. Would you like to resync your wallet?"
 	},
 	"selectCredentialPopup": {
 		"allClaimsRequested": "The verifier has requested all claims of the credential.",

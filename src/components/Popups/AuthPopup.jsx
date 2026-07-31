@@ -1,4 +1,3 @@
-// MessagePopup.js
 import React, { useContext, useState, useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
@@ -8,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
 import { UserLock } from 'lucide-react';
 
-const WebauthnLogin = ({
+export const WebauthnLogin = ({
 	filteredUser,
 	onClose,
 }) => {
@@ -93,37 +92,33 @@ const WebauthnLogin = ({
 	);
 };
 
-const SyncPopup = ({ message, onClose }) => {
-	const { description } = message || {};
+const AuthPopup = ({ descriptionKey, onClose }) => {
 	const { t } = useTranslation();
 
 	const { keystore } = useContext(SessionContext);
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
-	const from = location.search || '/';
 
-	const getfilteredUser = () => {
-		const queryParams = new URLSearchParams(from);
+	const getFilteredUser = () => {
+		const queryParams = new URLSearchParams(location.search);
 		const state = queryParams.get('state');
 		const user = queryParams.get('user');
-		const authenticated = queryParams.get('authenticated');
 		if (user) {
-			return [cachedUsers.find((u) => u.userHandleB64u === user), true, authenticated === 'true'];
+			return cachedUsers.find((u) => u.userHandleB64u === user);
 		}
 		if (state) {
 			try {
 				const decodedState = atob(state);
 				const stateObj = JSON.parse(decodedState);
-				return [cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u), false, authenticated === 'true'];
+				return cachedUsers.find((u) => u.userHandleB64u === stateObj.userHandleB64u);
 			} catch (error) {
 				console.error('Error decoding state:', error);
 			}
 		}
-
-		return [null, false, authenticated === 'true'];
+		return null;
 	};
-	const [filteredUser] = getfilteredUser();
+	const filteredUser = getFilteredUser();
 
 	if (!filteredUser) {
 		return;
@@ -137,7 +132,7 @@ const SyncPopup = ({ message, onClose }) => {
 				</p>
 				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
 					<Trans
-						i18nKey={description}
+						i18nKey={descriptionKey}
 						components={{ strong: <strong /> }}
 					/>
 				</p>
@@ -150,4 +145,4 @@ const SyncPopup = ({ message, onClose }) => {
 	);
 };
 
-export default SyncPopup;
+export default AuthPopup;
