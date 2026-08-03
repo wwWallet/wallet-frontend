@@ -1,9 +1,18 @@
 import { BRANDING } from '@/config';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import AppSettingsContext from '@/context/AppSettingsContext';
 import { useTranslation } from 'react-i18next';
 
 type LogoType = 'light' | 'dark';
+
+const warmedLogos = new Set<string>();
+
+function warmLogoCache(url: string) {
+	if (!url || warmedLogos.has(url)) return;
+
+	warmedLogos.add(url);
+	new Image().src = url;
+}
 
 interface LogoProps {
 	type?: LogoType; // Determines the type of logo (light or dark)
@@ -29,6 +38,12 @@ const Logo: React.FC<LogoProps> = ({
 	const { t } = useTranslation();
 	const { resolvedColorScheme } = useContext(AppSettingsContext);
 	const logoUrl = getLogoUrl(type ?? resolvedColorScheme);
+
+	// Cache both logos for offline theme switching.
+	useEffect(() => {
+		warmLogoCache(BRANDING.LOGO_LIGHT);
+		warmLogoCache(BRANDING.LOGO_DARK);
+	}, []);
 
 	const img = <img src={logoUrl} alt={alt || t('common.walletName')} className={imgClassName} />
 
