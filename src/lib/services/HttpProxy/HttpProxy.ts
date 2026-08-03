@@ -93,7 +93,19 @@ export function useHttpProxy(): IHttpProxy {
 				const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
 
 				if (fallback?.data) {
-					return fallback.data;
+					const cachedData = fallback.data;
+
+					if (isBinaryRequest && cachedData.__binary) {
+						const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
+
+						return {
+							status: cachedData.status || 200,
+							headers: cachedData.headers || {},
+							data: URL.createObjectURL(blob),
+						};
+					}
+
+					return cachedData;
 				}
 
 				return {
