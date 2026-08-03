@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import QRCode from 'react-qr-code';
-import { Check, CircleAlert, CircleCheckBig, LoaderCircle, LockKeyhole, X } from 'lucide-react';
+import { Check, CircleAlert, CircleCheckBig, LoaderCircle, LockKeyhole } from 'lucide-react';
 import { getLanguage } from '@/i18n';
 import { truncateByWords } from '@/utils';
 import PopupLayout from './PopupLayout';
@@ -156,22 +156,18 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 	const notSharedSummary = notSharedLabels.length > 0 ? notSharedLabels.join(', ') : t('qrShareMdoc.nothingElse');
 	const { text: truncatedNotShared, truncated: hasHiddenNotShared } = truncateByWords(notSharedSummary, 60);
 	const visibleNotSharedSummary = showAllNotShared ? notSharedSummary : truncatedNotShared;
+	const isLoadingStatus = [
+		PROXIMITY_SHARING_STATUS.PAIRING,
+		PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST,
+		PROXIMITY_SHARING_STATUS.SHARING,
+	].includes(status);
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} fullScreen={fullScreen} flushFullScreen padding="p-0" shouldCloseOnOverlayClick={false}>
+		<PopupLayout isOpen={isOpen} onClose={onClose} fullScreen={fullScreen} useDefaultContentPadding={false} shouldCloseOnOverlayClick={false}>
 			<div className={`flex flex-col ${fullScreen ? 'h-full' : 'h-[min(640px,calc(90dvh-2rem))]'}`}>
 				<header className="shrink-0 px-5 pt-5 sm:px-6 sm:pt-6">
-					<div className="flex items-center justify-between gap-4">
-						<h2 className="text-lg font-bold text-primary dark:text-white">{t('qrShareMdoc.presentCredential')}</h2>
-						{status === PROXIMITY_SHARING_STATUS.SCAN && <button
-							id="close-proximity-sharing-popup"
-							type="button"
-							className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-transparent text-lm-gray-900 transition-colors hover:bg-lm-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-dm-gray-100 dark:hover:bg-dm-gray-600"
-							onClick={onClose}
-							aria-label={t('messagePopup.close')}
-						>
-							<X size={18} aria-hidden="true" />
-						</button>}
-					</div>
+					<h2 className="text-lg font-bold text-primary dark:text-white">
+						{t('qrShareMdoc.presentCredential')}
+					</h2>
 					<div className="mt-4 border-y border-lm-gray-400 py-3 dark:border-dm-gray-600">
 						<StepBar currentStep={currentStepForStatus(status)} complete={status === PROXIMITY_SHARING_STATUS.SUCCESS} />
 					</div>
@@ -339,8 +335,17 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 						<TransferProgress failed itemCount={requestedItems.length} t={t} />
 					)}
 				</div>
-				<div className="flex min-h-16 shrink-0 items-center justify-end border-t border-lm-gray-400 px-5 py-3 dark:border-dm-gray-600 sm:px-6">
-					{status === PROXIMITY_SHARING_STATUS.SCAN && requiresUserGesture && <Button variant="primary" onClick={onConnect}>{t('qrShareMdoc.connectToVerifier')}</Button>}
+				<div className={`flex min-h-16 shrink-0 items-center justify-end px-5 py-3 sm:px-6 ${isLoadingStatus ? '' : 'border-t border-lm-gray-400 dark:border-dm-gray-600'}`}>
+					{status === PROXIMITY_SHARING_STATUS.SCAN && (
+						<div className="flex w-full justify-between gap-2">
+							<Button onClick={onCancel}>{t('common.cancel')}</Button>
+							{requiresUserGesture && (
+								<Button variant="primary" onClick={onConnect}>
+									{t('qrShareMdoc.connectToVerifier')}
+								</Button>
+							)}
+						</div>
+					)}
 					{status === PROXIMITY_SHARING_STATUS.CONNECTION_FAILED && <div className="flex w-full justify-between gap-2"><Button onClick={onClose}>{t('messagePopup.close')}</Button><Button variant="primary" onClick={onConnect}>{t('common.tryAgain')}</Button></div>}
 					{status === PROXIMITY_SHARING_STATUS.REVIEW && <div className="flex w-full justify-between gap-2"><Button onClick={onCancel}>{t('common.cancel')}</Button><Button variant="primary" onClick={onConsent}>{t('qrShareMdoc.shareItems', { count: requestedItems.length })}</Button></div>}
 					{status === PROXIMITY_SHARING_STATUS.SUCCESS && <Button variant="primary" onClick={onClose}>{t('qrShareMdoc.done')}</Button>}
