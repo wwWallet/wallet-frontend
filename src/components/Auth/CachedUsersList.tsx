@@ -54,7 +54,7 @@ const CachedUsersList = ({
 
 			<div className="text-sm flex justify-start pt-3">
 				<Link onClick={onSwitchAccount} disabled={disabled}>
-					{t('loginSignup.switchAccount')}
+					{t('loginSignup.otherAccount')}
 				</Link>
 			</div>
 		</>

@@ -90,8 +90,8 @@
 		"signUpWithPasskey": "Criar conta com uma chave de acesso",
 		"signUpWithSecurityKey": "Usar uma chave de segurança",
 		"submitting": "A submeter...",
-		"switchAccount": "Mudar de conta",
-		"switchAccountDescription": "Escolha uma conta para continuar.",
+		"otherAccount": "Outra conta",
+		"otherAccountDescription": "Escolha uma conta para continuar.",
 		"welcomeMessage": "Bem-vindo(a) à <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {

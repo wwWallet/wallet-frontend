@@ -365,10 +365,10 @@ const WebauthnSignupLogin = ({
 				</button>
 			)}
 			<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
-				{t('loginSignup.switchAccount')}
+				{t('loginSignup.otherAccount')}
 			</h2>
 			<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
-				{t('loginSignup.switchAccountDescription')}
+				{t('loginSignup.otherAccountDescription')}
 			</p>
 		</>
 	);
@@ -380,7 +380,7 @@ const WebauthnSignupLogin = ({
 					{renderSwitcherHeader(true)}
 					<AccountSwitcherList
 						variant="desktop"
-						ariaLabel={t('loginSignup.switchAccountDescription')}
+						ariaLabel={t('loginSignup.otherAccountDescription')}
 						items={accountListItems}
 						showFade={loginableCachedUsers.length > 3}
 					/>
@@ -564,12 +564,12 @@ const WebauthnSignupLogin = ({
 				<BottomSheet
 					isOpen={isAccountSwitcherOpen}
 					onClose={closeSwitcher}
-					contentLabel={t('loginSignup.switchAccount')}
+					contentLabel={t('loginSignup.otherAccount')}
 				>
 					{renderSwitcherHeader(false)}
 					<AccountSwitcherList
 						variant="mobile"
-						ariaLabel={t('loginSignup.switchAccountDescription')}
+						ariaLabel={t('loginSignup.otherAccountDescription')}
 						items={accountListItems}
 						showFade={loginableCachedUsers.length > 3}
 					/>
