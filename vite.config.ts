@@ -48,10 +48,13 @@ const mergeViteConfig = (baseConfig: UserConfig, localConfig: LocalViteConfig): 
 export default defineConfig(async ({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
 	const localViteConfig = await loadLocalViteConfig();
+	const appShellBypassPaths = Object.keys(localViteConfig.server?.proxy ?? {})
+		.filter((path) => path.startsWith('/'))
+		.map((path) => path.replace(/\/+$/, '') || '/');
 	const brandingHash = getBrandingHash(resolve('branding'));
 	const manifestRevision = getManifestRevision({
 		brandingHash,
-		name: env.STATIC_NAME || 'wwWallet',
+		name: env.WALLET_NAME || 'wwWallet',
 	});
 
 	mkdirSync(resolve('public'), { recursive: true });
@@ -60,6 +63,7 @@ export default defineConfig(async ({ mode }) => {
 		base: './',
 		define: {
 			'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
+			'import.meta.env.VITE_APP_SHELL_BYPASS_PATHS': JSON.stringify(appShellBypassPaths),
 		},
 		plugins: [
 			InjectConfigPlugin(env),
@@ -80,7 +84,7 @@ export default defineConfig(async ({ mode }) => {
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
-					globIgnores: ['theme.css'],
+					globIgnores: ['theme.css', 'index.html'],
 					additionalManifestEntries: [
 						{ url: './manifest.json', revision: manifestRevision },
 					],

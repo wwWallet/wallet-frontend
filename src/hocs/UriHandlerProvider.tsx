@@ -7,11 +7,12 @@ import type { OpenidCredentialIssuerMetadata } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
+import SyncNotificationContext from "@/context/SyncNotificationContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
-import SyncPopup from "@/components/Popups/SyncPopup";
+import AuthPopup from "@/components/Popups/AuthPopup";
 import RedirectPopup from "@/components/Popups/RedirectPopup";
 import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
-import { useSessionStorage } from "@/hooks/useStorage";
+import { useReconnectSync } from "@/hooks/useReconnectSync";
 import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey";
@@ -22,7 +23,8 @@ const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
-	const { isOnline } = useContext(StatusContext);
+	const statusContext = useContext(StatusContext);
+	const { isOnline } = statusContext;
 
 	const filterItemByLang = useFilterItemByLang();
 
@@ -31,7 +33,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const usedPreAuthorizedCodes = useRef<string[]>([]);
 
 	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
-	const { syncPrivateData } = api;
+	const { syncPrivateData, useClearOnClearSession } = api;
 	const { getUserHandleB64u, getCachedUsers, getCalculatedWalletState } = keystore;
 
 	const location = useLocation();
@@ -47,9 +49,6 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const txCodeResolverRef = useRef<((value: string | null) => void) | null>(null);
 	const [txCodeInputOptions, setTxCodeInputOptions] = useState<TxCodeInputMetadata | null>(null);
 
-	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
-	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
-
 	const [isMessagePopupOpen, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
@@ -64,7 +63,24 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 	const [synced, setSynced] = useState(false);
-	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
+
+	const {
+		pendingResync,
+		popupDescriptionKey,
+		closeAuthPopup,
+		showSyncNotification,
+		openAuthPopup,
+		dismissSyncNotification,
+	} = useReconnectSync({
+		isOnline,
+		isLoggedIn,
+		cachedUser,
+		synced,
+		setSynced,
+		getCalculatedWalletState,
+		syncPrivateData,
+		useClearOnClearSession,
+	});
 
 	const cleanCurrentUrl = useCallback(() => {
 		const cleanPath = window.location.pathname;
@@ -93,43 +109,6 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			setSynced(false);
 		}
 	}, [location]);
-
-	useEffect(() => {
-		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
-			api.syncPrivateData(cachedUser);
-		}
-		if (isLoggedIn) {
-			setLatestIsOnlineStatus(isOnline);
-		} else {
-			setLatestIsOnlineStatus(null);
-		}
-	}, [
-		api,
-		isLoggedIn,
-		isOnline,
-		latestIsOnlineStatus,
-		setLatestIsOnlineStatus,
-		cachedUser
-	]);
-
-	useEffect(() => {
-		if (!getCalculatedWalletState || !cachedUser || !syncPrivateData) {
-			return;
-		}
-		const params = new URLSearchParams(location.search);
-		if (synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
-			console.log("Actually syncing...");
-			syncPrivateData(cachedUser).then((r) => {
-				if (!r.ok) {
-					return;
-				}
-				setSynced(true);
-				// checkForUpdates();
-				// updateOnlineStatus(false);
-			});
-		}
-
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search]);
 
 	useEffect(() => {
 		if (synced === true && window.location.search !== '') {
@@ -377,22 +356,13 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		cleanCurrentUrl,
 	]);
 
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		if (synced === true && params.get('sync') === 'fail') {
-			setSynced(false);
-		}
-		else if (params.get('sync') === 'fail' && synced === false) {
-			setTextSyncPopup({ description: 'syncPopup.description' });
-			setSyncPopup(true);
-		} else {
-			setSyncPopup(false);
-		}
-	}, [location, t, synced]);
-
 	return (
 		<>
-			{children}
+			<StatusContext.Provider value={{ ...statusContext, isOnline: isOnline && !pendingResync }}>
+				<SyncNotificationContext.Provider value={{ pendingResync, showSyncNotification, openAuthPopup, dismissSyncNotification }}>
+					{children}
+				</SyncNotificationContext.Provider>
+			</StatusContext.Provider>
 			<Suspense fallback={null}>
 				{showPinInputPopup &&
 					<PinInputPopup
@@ -413,10 +383,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 				}
 			</Suspense>
-			{showSyncPopup &&
-				<SyncPopup message={textSyncPopup}
+			{popupDescriptionKey &&
+				<AuthPopup
+					descriptionKey={popupDescriptionKey}
 					onClose={() => {
-						setSyncPopup(false);
+						closeAuthPopup();
 						logout();
 					}}
 				/>
