@@ -346,7 +346,7 @@ const WebauthnSignupLogin = ({
 
 	const closeSwitcher = () => setIsAccountSwitcherOpen(false);
 
-	const renderSwitcherHeader = (showBackButton: boolean) => (
+	const renderSwitcherHeader = (showBackButton: boolean, showCancelButton = false) => (
 		<>
 			{showBackButton && (
 				<button
@@ -359,12 +359,26 @@ const WebauthnSignupLogin = ({
 					{t('common.back')}
 				</button>
 			)}
-			<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
-				{t('loginSignup.otherAccount')}
-			</h2>
-			<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
-				{t('loginSignup.otherAccountDescription')}
-			</p>
+			<div className="flex items-start justify-between gap-4 text-lm-gray-900 dark:text-dm-gray-100">
+				<div className="min-w-0">
+					<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
+						{t('loginSignup.otherAccount')}
+					</h2>
+					<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
+						{t('loginSignup.otherAccountDescription')}
+					</p>
+				</div>
+				{showCancelButton && (
+					<button
+						id="cancel-switch-account-bottom-loginsignup"
+						type="button"
+						onClick={closeSwitcher}
+						className="-mr-2 shrink-0 px-2 py-1.5 rounded-lg text-sm font-semibold text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
+					>
+						{t('common.cancel')}
+					</button>
+				)}
+			</div>
 		</>
 	);
 
@@ -561,22 +575,13 @@ const WebauthnSignupLogin = ({
 					onClose={closeSwitcher}
 					contentLabel={t('loginSignup.otherAccount')}
 				>
-					{renderSwitcherHeader(false)}
+					{renderSwitcherHeader(false, true)}
 					<AccountSwitcherList
 						variant="mobile"
 						ariaLabel={t('loginSignup.otherAccountDescription')}
 						items={accountListItems}
 						showFade={loginableCachedUsers.length > 3}
 					/>
-					<Button
-						id="back-switch-account-bottom-loginsignup"
-						onClick={closeSwitcher}
-						variant="outline"
-						additionalClassName="w-full mt-4 shrink-0"
-					>
-						<ChevronLeft size={18} className="inline" />
-						{t('common.back')}
-					</Button>
 				</BottomSheet>
 			)}
 		</form>
