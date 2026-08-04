@@ -1,10 +1,12 @@
 import { useCallback, useRef, useMemo } from 'react';
+import * as jose from 'jose';
 import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
 import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
 import {
+	getClientAttestationHeaders,
 	retryWithFreshAttestationChallenge,
 } from './attestationBasedClientAuthentication';
 import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
@@ -14,6 +16,7 @@ const isDev = MODE === 'development';
 
 export type AccessToken = {
 	access_token: string;
+	token_type: string;
 	c_nonce: string;
 	expires_in: number;
 	c_nonce_expires_in: number;
@@ -35,6 +38,33 @@ export enum TokenRequestError {
 	AUTHORIZATION_REQUIRED,
 }
 
+export async function assertAccessTokenDpopBinding(
+	accessToken: string,
+	tokenType: string | undefined,
+	dpopPublicKeyJwk: JWK,
+): Promise<void> {
+	if (tokenType?.toLowerCase() !== 'dpop') {
+		throw new Error('Authorization Server did not return a DPoP-bound access token');
+	}
+	// Opaque access tokens expose their cnf.jkt binding to the resource server
+	// through introspection. If an AS returns a structured JWT access token,
+	// additionally verify its visible binding here.
+	if (accessToken.split('.').length !== 3) {
+		return;
+	}
+	let tokenPayload: jose.JWTPayload;
+	try {
+		tokenPayload = jose.decodeJwt(accessToken);
+	} catch {
+		throw new Error('Cannot verify DPoP binding in structured access token');
+	}
+	const expectedJkt = await jose.calculateJwkThumbprint(dpopPublicKeyJwk, 'sha256');
+	const tokenCnf = tokenPayload.cnf as { jkt?: unknown } | undefined;
+	if (tokenCnf?.jkt !== expectedJkt) {
+		throw new Error('Access token cnf.jkt does not match the WIA/DPoP key');
+	}
+}
+
 export interface TokenRequestBuilder {
 	setClientId(clientIdValue: string | null): void;
 	setIssuer(issuerValue: string): void;
@@ -50,7 +80,7 @@ export interface TokenRequestBuilder {
 	setRedirectUri(uri: string): void;
 	setTokenEndpoint(endpoint: string): void;
 	setAuthorizationServerMetadata(metadata: OpenidAuthorizationServerMetadata | null): void;
-	setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string): Promise<void>;
+	setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string, dpopPrivateKeyJwk: JWK): Promise<void>;
 	execute(): Promise<{ response: AccessToken } | { error: TokenRequestError; response?: any }>;
 }
 
@@ -72,7 +102,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const redirectUri = useRef<string | null>(null);
 	const clientId = useRef<string | null>(OPENID4VCI_REDIRECT_URI);
 	const retries = useRef<number>(0);
-	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK } | null>(null);
+	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPrivateKeyJwk: JWK, dpopPublicKeyJwk: JWK } | null>(null);
 	const dpopHandle = useRef<oauth4webapi.DPoPHandle | null>(null);
 
 	function normalizeHeaders(h: any): Record<string, string> {
@@ -192,8 +222,8 @@ export function useTokenRequest(): TokenRequestBuilder {
 		authorizationServerMetadata.current = metadata;
 	}, []);
 
-	const setDpopHeader = useCallback(async (dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, _jti: string) => {
-		dpopParams.current = { dpopPrivateKey, dpopPublicKeyJwk };
+	const setDpopHeader = useCallback(async (dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, _jti: string, dpopPrivateKeyJwk: JWK) => {
+		dpopParams.current = { dpopPrivateKey, dpopPrivateKeyJwk, dpopPublicKeyJwk };
 		dpopHandle.current = null;
 	}, []);
 
@@ -326,21 +356,34 @@ export function useTokenRequest(): TokenRequestBuilder {
 		}
 
 		const requestWithAttestationRetry = async () => {
-			const response = await tokenRequest();
 			if (shouldUseAnonymousPreAuthorizedGrant()) {
-				return response;
+				return tokenRequest();
 			}
+			const asMeta = authorizationServerMetadata.current ?? {
+				issuer: as.issuer,
+				token_endpoint: tokenEndpointURL.current!,
+			};
+			const clientInstance = dpopParams.current ? {
+				privateKey: dpopParams.current.dpopPrivateKey,
+				privateJwk: dpopParams.current.dpopPrivateKeyJwk,
+				publicJwk: dpopParams.current.dpopPublicKeyJwk,
+			} : undefined;
+			const attestationHeaders = await getClientAttestationHeaders(
+				asMeta,
+				clientId.current,
+				httpProxy,
+				{ clientInstance },
+			);
+			const response = await tokenRequestWithHeaders(attestationHeaders);
 
 			return retryWithFreshAttestationChallenge(
 				response,
 				(headers) => tokenRequestWithHeaders(headers),
 				{
-					asMeta: authorizationServerMetadata.current ?? {
-						issuer: as.issuer,
-						token_endpoint: tokenEndpointURL.current!,
-					},
+					asMeta,
 					clientId: clientId.current,
 					httpProxy,
+					clientInstance,
 				},
 			);
 		};
@@ -441,7 +484,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		} catch (err) {
 			if (oauth4webapi.isDPoPNonceError(err) && retries.current < 1) {
 				retries.current += 1;
-				response = await tokenRequest();
+				response = await requestWithAttestationRetry();
 				result = await processResponse(response);
 			} else {
 				const normalized = normalizeError(err);
@@ -457,9 +500,18 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return { error: TokenRequestError.FAILED, response: result };
 		}
 
+		if (DPoP && dpopParams.current) {
+			await assertAccessTokenDpopBinding(
+				result.access_token,
+				result.token_type,
+				dpopParams.current.dpopPublicKeyJwk,
+			);
+		}
+
 		return {
 			response: {
 				access_token: result?.access_token,
+				token_type: result?.token_type,
 				c_nonce: result?.c_nonce,
 				c_nonce_expires_in: result?.c_nonce_expires_in,
 				expires_in: result?.expires_in,

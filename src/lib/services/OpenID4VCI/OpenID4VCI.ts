@@ -506,7 +506,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			tokenRequestBuilder.setAuthorizationServerMetadata(authzServerMetadata.authzServerMetadata);
 
 			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
-				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
+				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti, dpopPrivateKeyJwk);
 				flowState.dpop = {
 					dpopAlg: 'ES256',
 					dpopJti: jti,
@@ -654,7 +654,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			]);
 
 			dpopPrivateKey = privateKey;
-			await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
+			await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti, dpopPrivateKeyJwk);
 			flowState.dpop = {
 				dpopAlg: 'ES256',
 				dpopJti: jti,
@@ -812,6 +812,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			// OAuth params
 			const params: Record<string, string> = {
 				scope,
+				resource: credentialIssuerMetadata.metadata.credential_issuer,
 				response_type: "code",
 				client_id: clientId.client_id,
 				state,
@@ -834,6 +835,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					state,
 					code_verifier: parRes.code_verifier,
 					credentialConfigurationId,
+					dpop: parRes.dpop,
 					created: Math.floor(Date.now() / 1000),
 				});
 				await openID4VCIClientStateRepository.commitStateChanges();

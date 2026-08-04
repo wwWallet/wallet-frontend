@@ -73,7 +73,12 @@ export async function refreshAccessToken(
 			dpopPrivateKey = privateKey;
 		}
 
-		await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk as jose.JWK, jti);
+		await context.tokenRequestBuilder.setDpopHeader(
+			dpopPrivateKey as jose.KeyLike,
+			dpopPublicKeyJwk as jose.JWK,
+			jti,
+			dpopPrivateKeyJwk as jose.JWK,
+		);
 		dpop = {
 			dpopAlg: 'ES256',
 			dpopJti: jti,

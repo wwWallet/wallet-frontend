@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
 import {
 	getClientAttestationHeaders,
+	getClientInstance,
 	parseAttesterX5c,
 } from './attestationBasedClientAuthentication';
 
@@ -61,6 +62,14 @@ describe('attestation-based client authentication', () => {
 			cnf: { jwk: { kty: 'EC', crv: 'P-256' } },
 		});
 		expect(jose.decodeJwt(attestation)).not.toHaveProperty('iss');
+
+		const clientInstance = await getClientInstance('wallet-client');
+		const attestationPayload = jose.decodeJwt(attestation);
+		expect((attestationPayload.cnf as { jwk: jose.JWK }).jwk).toEqual(clientInstance.publicJwk);
+		await expect(jose.jwtVerify(
+			headers['OAuth-Client-Attestation-PoP'],
+			clientInstance.privateKey,
+		)).resolves.toBeDefined();
 	});
 
 	it('rejects a missing or malformed certificate chain', () => {

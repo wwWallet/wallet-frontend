@@ -24,13 +24,15 @@ type HttpProxyLike = {
 	}>;
 };
 
-type ClientInstance = {
+export type ClientInstance = {
 	privateKey: jose.KeyLike;
+	privateJwk: jose.JWK;
 	publicJwk: jose.JWK;
 };
 
 type AttestationHeaderOptions = {
 	challenge?: string;
+	clientInstance?: ClientInstance;
 };
 
 const clientInstances = new Map<string, Promise<ClientInstance>>();
@@ -38,6 +40,15 @@ const clientInstances = new Map<string, Promise<ClientInstance>>();
 const MAX_X5C_CERTIFICATES = 5;
 const MAX_X5C_CERTIFICATE_LENGTH = 16 * 1024;
 const BASE64_CERTIFICATE_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
+
+export async function createClientInstance(): Promise<ClientInstance> {
+	const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
+	const [privateJwk, publicJwk] = await Promise.all([
+		jose.exportJWK(privateKey),
+		jose.exportJWK(publicKey),
+	]);
+	return { privateKey, privateJwk, publicJwk };
+}
 
 function getChallengeEndpoint(asMeta: AuthorizationServerMetadataWithChallenge): string {
 	const challengeEndpoint = asMeta.challenge_endpoint ?? asMeta.authorization_challenge_endpoint;
@@ -89,14 +100,10 @@ export function parseAttesterX5c(value: string | undefined): string[] {
 	});
 }
 
-async function getClientInstance(clientId: string): Promise<ClientInstance> {
+export async function getClientInstance(clientId: string): Promise<ClientInstance> {
 	let instance = clientInstances.get(clientId);
 	if (!instance) {
-		instance = (async () => {
-			const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
-			const publicJwk = await jose.exportJWK(publicKey);
-			return { privateKey, publicJwk };
-		})();
+		instance = createClientInstance();
 		clientInstances.set(clientId, instance);
 	}
 	return instance;
@@ -157,7 +164,7 @@ async function buildClientAttestationHeaders(
 	const attesterX5c = parseAttesterX5c(OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C);
 
 	const [{ privateKey: clientPrivateKey, publicJwk }, attesterPrivateKey, challenge] = await Promise.all([
-		getClientInstance(clientId),
+		options.clientInstance ?? getClientInstance(clientId),
 		jose.importJWK(attesterPrivateJwk, 'ES256'),
 		options.challenge ?? getAttestationChallenge(asMeta, httpProxy),
 	]);
@@ -212,6 +219,7 @@ export async function retryWithFreshAttestationChallenge(
 		asMeta: OpenidAuthorizationServerMetadata;
 		clientId: string | null;
 		httpProxy: HttpProxyLike;
+		clientInstance?: ClientInstance;
 	},
 ): Promise<Response> {
 	if (!OPENID4VCI_CLIENT_ATTESTATION_ENABLED || !context.clientId) {
@@ -239,7 +247,7 @@ export async function retryWithFreshAttestationChallenge(
 		context.asMeta,
 		context.clientId,
 		context.httpProxy,
-		{ challenge },
+		{ challenge, clientInstance: context.clientInstance },
 	);
 
 	return retry(headers);

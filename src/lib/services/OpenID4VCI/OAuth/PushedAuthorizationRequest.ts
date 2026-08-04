@@ -4,11 +4,22 @@ import { useCallback, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
 import { MODE } from '@/config';
 import {
+	createClientInstance,
+	getClientAttestationHeaders,
 	retryWithFreshAttestationChallenge,
 } from './attestationBasedClientAuthentication';
+import * as jose from 'jose';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
 const isDev = MODE === 'development';
+
+export async function bindPushedAuthorizationRequestToClientInstance(
+	params: Record<string, string>,
+) {
+	const clientInstance = await createClientInstance();
+	params.dpop_jkt = await jose.calculateJwkThumbprint(clientInstance.publicJwk, 'sha256');
+	return clientInstance;
+}
 
 function normalizeHeaders(h: any): Record<string, string> {
 	const out: Record<string, string> = {};
@@ -69,6 +80,7 @@ export function usePushedAuthorizationRequest() {
 				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
 			}
 			const client: oauth4webapi.Client = { client_id: params.client_id };
+			const clientInstance = await bindPushedAuthorizationRequestToClientInstance(params);
 
 			// Generate PKCE
 			const code_verifier = oauth4webapi.generateRandomCodeVerifier();
@@ -99,10 +111,16 @@ export function usePushedAuthorizationRequest() {
 				}
 			);
 
+			const attestationHeaders = await getClientAttestationHeaders(
+				asMeta,
+				params.client_id,
+				httpProxy,
+				{ clientInstance },
+			);
 			const response = await retryWithFreshAttestationChallenge(
-				await request(),
+				await request(attestationHeaders),
 				(headers) => request(headers),
-				{ asMeta, clientId: params.client_id, httpProxy },
+				{ asMeta, clientId: params.client_id, httpProxy, clientInstance },
 			);
 
 			const json = await response.json();
@@ -112,7 +130,17 @@ export function usePushedAuthorizationRequest() {
 			if (!json?.request_uri) {
 				throw new Error(`PAR failed: missing request_uri. Got: ${JSON.stringify(json)}`);
 			}
-			return { request_uri: json.request_uri, code_verifier, rawResponse: json };
+			return {
+				request_uri: json.request_uri,
+				code_verifier,
+				rawResponse: json,
+				dpop: {
+					dpopAlg: 'ES256',
+					dpopJti: crypto.randomUUID(),
+					dpopPrivateKeyJwk: clientInstance.privateJwk,
+					dpopPublicKeyJwk: clientInstance.publicJwk,
+				},
+			};
 		},
 		[httpProxy, myCustomFetch]
 	);

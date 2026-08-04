@@ -198,7 +198,9 @@ const fetchDataWithSchemaWithFallback = useCallback(
 		async (credentialIssuerIdentifier: string) => {
 
 			try {
-				const issuerResponse = await getExternalEntity('/issuer/all', undefined, true);
+				// Client registration determines the authentication mechanism and must not
+				// come from a potentially stale IndexedDB entry while online.
+				const issuerResponse = await getExternalEntity('/issuer/all', undefined, false);
 				const trustedCredentialIssuers = issuerResponse.data;
 				const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
 				if (issuer) {
