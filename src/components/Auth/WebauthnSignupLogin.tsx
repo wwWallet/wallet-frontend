@@ -362,10 +362,10 @@ const WebauthnSignupLogin = ({
 			<div className="flex items-start justify-between gap-4 text-lm-gray-900 dark:text-dm-gray-100">
 				<div className="min-w-0">
 					<h2 className="text-xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl dark:text-white">
-						{t('loginSignup.otherAccount')}
+						{t('loginSignup.otherAccounts')}
 					</h2>
 					<p className="mb-4 mt-1 text-sm text-lm-gray-900 dark:text-dm-gray-100">
-						{t('loginSignup.otherAccountDescription')}
+						{t('loginSignup.otherAccountsDescription')}
 					</p>
 				</div>
 				{showCancelButton && (
@@ -389,7 +389,7 @@ const WebauthnSignupLogin = ({
 					{renderSwitcherHeader(true)}
 					<AccountSwitcherList
 						variant="desktop"
-						ariaLabel={t('loginSignup.otherAccountDescription')}
+						ariaLabel={t('loginSignup.otherAccountsDescription')}
 						items={accountListItems}
 						showFade={loginableCachedUsers.length > 3}
 					/>
@@ -573,12 +573,12 @@ const WebauthnSignupLogin = ({
 				<BottomSheet
 					isOpen={isAccountSwitcherOpen}
 					onClose={closeSwitcher}
-					contentLabel={t('loginSignup.otherAccount')}
+					contentLabel={t('loginSignup.otherAccounts')}
 				>
 					{renderSwitcherHeader(false, true)}
 					<AccountSwitcherList
 						variant="mobile"
-						ariaLabel={t('loginSignup.otherAccountDescription')}
+						ariaLabel={t('loginSignup.otherAccountsDescription')}
 						items={accountListItems}
 						showFade={loginableCachedUsers.length > 3}
 					/>
