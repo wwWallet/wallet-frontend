@@ -89,27 +89,16 @@ registerRoute(
 );
 
 registerRoute(
-	({ request, url }) =>
-		request.destination === "style" &&
-		url.pathname.endsWith("theme.css"),
-	new StaleWhileRevalidate({
-		cacheName: "theme",
-		plugins: [
-			new ExpirationPlugin({
-				maxEntries: 5,
-			}),
-		],
-	})
-);
-
-registerRoute(
 	({ url }) =>
-		url.pathname.endsWith(".ico") ||
-		url.pathname.endsWith(".png") ||
-		url.pathname.endsWith(".jpg") ||
-		url.pathname.endsWith(".jpeg") ||
-		url.pathname.endsWith(".svg") ||
-		url.pathname.endsWith(".webp"),
+		!url.searchParams.has("v") &&
+		(
+			url.pathname.endsWith(".ico") ||
+			url.pathname.endsWith(".png") ||
+			url.pathname.endsWith(".jpg") ||
+			url.pathname.endsWith(".jpeg") ||
+			url.pathname.endsWith(".svg") ||
+			url.pathname.endsWith(".webp")
+		),
 	new StaleWhileRevalidate({
 		cacheName: "images",
 		plugins: [
@@ -142,13 +131,23 @@ self.addEventListener('install', (event) => {
 self.addEventListener("activate", (event) => {
 	event.waitUntil(
 		(async () => {
-			// Delete the old unscoped app shell cache.
+			// Delete caches replaced by the scoped app shell and branding precache.
 			const cacheNames = await caches.keys();
 			await Promise.all(
 				cacheNames
-					.filter((name) => name === "app-shell")
+					.filter((name) => name === "app-shell" || name === "theme")
 					.map((name) => caches.delete(name))
 			);
+
+			if (cacheNames.includes("images")) {
+				const imageCache = await caches.open("images");
+				const imageRequests = await imageCache.keys();
+				await Promise.all(
+					imageRequests
+						.filter((request) => new URL(request.url).searchParams.has("v"))
+						.map((request) => imageCache.delete(request))
+				);
+			}
 
 			// Claim and reload clients
 			await self.clients.claim();
