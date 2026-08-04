@@ -1,8 +1,8 @@
 import * as jose from 'jose';
 import {
 	OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK,
+	OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C,
 	OPENID4VCI_CLIENT_ATTESTATION_ENABLED,
-	OPENID4VCI_CLIENT_ATTESTATION_ISSUER,
 	OPENID4VCI_CLIENT_ATTESTATION_LIFETIME_SECONDS,
 } from '@/config';
 import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
@@ -35,6 +35,10 @@ type AttestationHeaderOptions = {
 
 const clientInstances = new Map<string, Promise<ClientInstance>>();
 
+const MAX_X5C_CERTIFICATES = 5;
+const MAX_X5C_CERTIFICATE_LENGTH = 16 * 1024;
+const BASE64_CERTIFICATE_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
+
 function getChallengeEndpoint(asMeta: AuthorizationServerMetadataWithChallenge): string {
 	const challengeEndpoint = asMeta.challenge_endpoint ?? asMeta.authorization_challenge_endpoint;
 	if (challengeEndpoint) {
@@ -56,6 +60,33 @@ function getAttesterPrivateJwk(): jose.JWK | null {
 		console.error('Failed to parse OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK', err);
 		return null;
 	}
+}
+
+export function parseAttesterX5c(value: string | undefined): string[] {
+	let parsed: unknown;
+	try {
+		parsed = value ? JSON.parse(value) : undefined;
+	} catch {
+		throw new Error('OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C must be a JSON array of base64 DER certificates');
+	}
+
+	if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > MAX_X5C_CERTIFICATES) {
+		throw new Error(`OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C must contain between 1 and ${MAX_X5C_CERTIFICATES} certificates`);
+	}
+
+	return parsed.map((certificate) => {
+		if (
+			typeof certificate !== 'string'
+			|| certificate.length === 0
+			|| certificate.length > MAX_X5C_CERTIFICATE_LENGTH
+			|| certificate.length % 4 !== 0
+			|| !BASE64_CERTIFICATE_PATTERN.test(certificate)
+		) {
+			throw new Error('OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C contains an invalid base64 DER certificate');
+		}
+
+		return certificate;
+	});
 }
 
 async function getClientInstance(clientId: string): Promise<ClientInstance> {
@@ -123,6 +154,7 @@ async function buildClientAttestationHeaders(
 	if (!attesterPrivateJwk) {
 		throw new Error('OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK is required when ABCA is enabled');
 	}
+	const attesterX5c = parseAttesterX5c(OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C);
 
 	const [{ privateKey: clientPrivateKey, publicJwk }, attesterPrivateKey, challenge] = await Promise.all([
 		getClientInstance(clientId),
@@ -134,8 +166,11 @@ async function buildClientAttestationHeaders(
 	const attestation = await new jose.SignJWT({
 		cnf: { jwk: publicJwk },
 	})
-		.setProtectedHeader({ alg: 'ES256', typ: 'oauth-client-attestation+jwt' })
-		.setIssuer(OPENID4VCI_CLIENT_ATTESTATION_ISSUER as string)
+		.setProtectedHeader({
+			alg: 'ES256',
+			typ: 'oauth-client-attestation+jwt',
+			x5c: attesterX5c,
+		})
 		.setSubject(clientId)
 		.setIssuedAt(now)
 		.setExpirationTime(now + OPENID4VCI_CLIENT_ATTESTATION_LIFETIME_SECONDS)
@@ -165,10 +200,6 @@ export async function getClientAttestationHeaders(
 ): Promise<Record<string, string>> {
 	if (!OPENID4VCI_CLIENT_ATTESTATION_ENABLED || !clientId) {
 		return {};
-	}
-
-	if (!OPENID4VCI_CLIENT_ATTESTATION_ISSUER) {
-		throw new Error('OPENID4VCI_CLIENT_ATTESTATION_ISSUER is required when ABCA is enabled');
 	}
 
 	return buildClientAttestationHeaders(asMeta, clientId, httpProxy, options);
