@@ -15,7 +15,7 @@ import BottomSheet from '../Popups/BottomSheet';
 
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { Check, ChevronLeft, KeyRoundIcon, User, Wallet, X } from 'lucide-react';
+import { ChevronLeft, KeyRoundIcon, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
@@ -137,10 +137,7 @@ const WebauthnSignupLogin = ({
 
 	const cachedUsers = keystore.getCachedUsers();
 	const loginableCachedUsers = cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0);
-	const [selectedCachedUser, setSelectedCachedUser] = useState<CachedUser | null>(null);
-	const activeCachedUser = loginableCachedUsers.find(
-		(cachedUser) => cachedUser.userHandleB64u === selectedCachedUser?.userHandleB64u
-	) ?? loginableCachedUsers[0] ?? null;
+	const activeCachedUser = loginableCachedUsers[0] ?? null;
 
 	useEffect(
 		() => {
@@ -311,20 +308,19 @@ const WebauthnSignupLogin = ({
 	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
 
 	const accountListItems = loginableCachedUsers.map((cachedUser, index) => {
-		const isActive = cachedUser.userHandleB64u === activeCachedUser?.userHandleB64u;
 		return (
 			<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-4">
 			<button
-				id={`switch-select-cached-user-${index}-loginsignup`}
+				id={`switch-login-cached-user-${index}-loginsignup`}
 				type="button"
-				onClick={() => {
-					setSelectedCachedUser(cachedUser);
+				onClick={async () => {
 					setIsAccountSwitcherOpen(false);
+					await onLoginCachedUser(cachedUser);
 				}}
 				disabled={isSubmitting}
-				aria-label={t('loginSignup.selectUser', { name: cachedUser.displayName })}
-				title={t('loginSignup.selectUser', { name: cachedUser.displayName })}
-				className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isActive ? 'border-primary dark:border-white' : 'border-lm-gray-400 dark:border-dm-gray-600'} bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
+				aria-label={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+				title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+				className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border border-lm-gray-400 dark:border-dm-gray-600 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
 			>
 				<div aria-hidden="true" className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shrink-0 select-none">
 					<User size={20} />
@@ -332,7 +328,6 @@ const WebauthnSignupLogin = ({
 				<span className="flex-1 min-w-0 text-sm font-semibold text-lm-gray-900 dark:text-white truncate">
 					{cachedUser.displayName}
 				</span>
-				{isActive && <Check size={18} aria-hidden="true" className="shrink-0 text-primary dark:text-white" />}
 			</button>
 			<button
 				id={`switch-forget-cached-user-${index}-loginsignup`}
