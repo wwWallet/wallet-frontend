@@ -16,10 +16,11 @@ import { Tag } from './utils/resources';
 		throw new Error('Destination directory flag --dest is required.');
 	}
 
-	const brandingHash = getBrandingHash(resolve('branding')); // Compute branding hash from your branding folder
-	env.BRANDING_HASH = brandingHash;
-
 	const config = EnvConfigMapSchema.parse(env);
+	const brandingHash = getBrandingHash(resolve('branding'), {
+		walletName: config.WALLET_NAME || 'wwWallet',
+	});
+	env.BRANDING_HASH = brandingHash;
 
 	const tagsToInject = new Map<string, Tag>();
 

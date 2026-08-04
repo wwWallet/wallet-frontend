@@ -9,8 +9,6 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
 import { InjectConfigPlugin } from './vite-plugins';
-import { getManifestRevision } from './config/files/manifest';
-import { getBrandingHash } from './config/branding';
 
 type LocalViteConfig = Partial<UserConfig>;
 
@@ -51,12 +49,6 @@ export default defineConfig(async ({ mode }) => {
 	const appShellBypassPaths = Object.keys(localViteConfig.server?.proxy ?? {})
 		.filter((path) => path.startsWith('/'))
 		.map((path) => path.replace(/\/+$/, '') || '/');
-	const brandingHash = getBrandingHash(resolve('branding'));
-	const manifestRevision = getManifestRevision({
-		brandingHash,
-		name: env.WALLET_NAME || 'wwWallet',
-	});
-
 	mkdirSync(resolve('public'), { recursive: true });
 
 	const baseConfig: UserConfig = {
@@ -84,10 +76,7 @@ export default defineConfig(async ({ mode }) => {
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
-					globIgnores: ['theme.css', 'index.html'],
-					additionalManifestEntries: [
-						{ url: './manifest.json', revision: manifestRevision },
-					],
+					globIgnores: ['theme.css', 'index.html', 'runtime-precache.js'],
 				},
 			}),
 

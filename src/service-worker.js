@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-globals */
+/* global importScripts */
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
@@ -6,15 +7,27 @@ import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
 
+// Build/injection regenerates this file; byte changes trigger a service worker update.
+const runtimePrecachePolicy = self.trustedTypes?.createPolicy("sw-register", {
+	createScriptURL: (url) => url,
+});
+importScripts(
+	runtimePrecachePolicy?.createScriptURL("./runtime-precache.js")
+	?? "./runtime-precache.js"
+);
+
 const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 const appShellCacheName = `app-shell:${basePath}`;
 const appShellBypassPaths = import.meta.env.VITE_APP_SHELL_BYPASS_PATHS;
+const runtimePrecacheManifest = self.__RUNTIME_PRECACHE_MANIFEST || [];
 
 clientsClaim();
+cleanupOutdatedCaches();
 
-precacheAndRoute(self.__WB_MANIFEST, {
-	ignoreURLParametersMatching: [/^v$/],
-});
+precacheAndRoute([
+	...self.__WB_MANIFEST,
+	...runtimePrecacheManifest,
+]);
 
 const SPA_ROUTE_ALLOWLIST = [
 	/^\/$/,                              // Home
@@ -129,9 +142,6 @@ self.addEventListener('install', (event) => {
 self.addEventListener("activate", (event) => {
 	event.waitUntil(
 		(async () => {
-			// Clean old Workbox precache caches
-			await cleanupOutdatedCaches();
-
 			// Delete the old unscoped app shell cache.
 			const cacheNames = await caches.keys();
 			await Promise.all(

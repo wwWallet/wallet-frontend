@@ -145,16 +145,20 @@ export function findLogoFiles(sourceDir: string): LogoFiles {
 // ============================================
 
 /**
- * Computes a stable hash from all branding inputs.
- * Changes ONLY when branding files change.
+ * Computes a stable hash from all branding and generation inputs.
  *
  * @param brandingDir Branding source directory.
  */
-export function getBrandingHash(brandingDir: string): string {
+export function getBrandingHash(
+	brandingDir: string,
+	generationInputs: Record<string, string | undefined> = {},
+): string {
 	const hash = crypto.createHash("sha256");
 
 	function walk(dir: string) {
-		const entries = fs.readdirSync(dir, { withFileTypes: true });
+		const entries = fs
+			.readdirSync(dir, { withFileTypes: true })
+			.sort((a, b) => a.name.localeCompare(b.name));
 
 		for (const entry of entries) {
 			const fullPath = path.join(dir, entry.name);
@@ -162,13 +166,18 @@ export function getBrandingHash(brandingDir: string): string {
 			if (entry.isDirectory()) {
 				walk(fullPath);
 			} else {
-				hash.update(fullPath);
+				hash.update(path.relative(brandingDir, fullPath));
 				hash.update(fs.readFileSync(fullPath));
 			}
 		}
 	}
 
 	walk(brandingDir);
+
+	for (const [key, value] of Object.entries(generationInputs).sort(([a], [b]) => a.localeCompare(b))) {
+		hash.update(key);
+		hash.update(value ?? '');
+	}
 
 	// 10 chars is enough to avoid collisions and keep URLs short
 	return hash.digest("hex").slice(0, 10);

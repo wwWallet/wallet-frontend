@@ -8,7 +8,9 @@ export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 
 	const tagsToInject = new Map<string, Tag>();
 
-	const brandingHash = getBrandingHash(resolve('branding')); // Compute branding hash from your branding folder
+	const brandingHash = getBrandingHash(resolve('branding'), {
+		walletName: config.WALLET_NAME || 'wwWallet',
+	});
 	process.env.BRANDING_HASH = brandingHash; // import.meta.env.BRANDING_HASH works in TS/JS
 	env.BRANDING_HASH = brandingHash; // BRANDING_HASH% works in index.html
 
