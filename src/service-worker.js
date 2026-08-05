@@ -52,6 +52,31 @@ const appShellStrategy = new NetworkFirst({
 	networkTimeoutSeconds: 3,
 });
 
+const createAppShellRequest = () => {
+	const appShellUrl = new URL(`${basePath}index.html`, self.location.origin);
+
+	return new Request(appShellUrl, {
+		credentials: "same-origin",
+		cache: "reload",
+	});
+};
+
+const warmAppShellCache = async () => {
+	try {
+		const appShellRequest = createAppShellRequest();
+		const response = await fetch(appShellRequest);
+
+		if (!response.ok) {
+			throw new Error(`Failed to fetch app shell: ${response.status}`);
+		}
+
+		const appShellCache = await caches.open(appShellCacheName);
+		await appShellCache.put(appShellRequest, response);
+	} catch (error) {
+		console.warn("Unable to warm app-shell cache", error);
+	}
+};
+
 const matchesPathPrefix = (pathname, pathPrefix) =>
 	pathPrefix === "/" ||
 	pathname === pathPrefix ||
@@ -75,15 +100,9 @@ registerRoute(
 		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
 	async ({ event }) => {
-		const appShellUrl = new URL(`${basePath}index.html`, self.location.origin);
-		const appShellRequest = new Request(appShellUrl, {
-			credentials: "same-origin",
-			cache: "reload",
-		});
-
 		return appShellStrategy.handle({
 			event,
-			request: appShellRequest,
+			request: createAppShellRequest(),
 		});
 	}
 );
@@ -123,9 +142,13 @@ registerRoute(
 
 let isFirstVisit = false;
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
 	isFirstVisit = !self.registration.active;
-	self.skipWaiting();
+
+	event.waitUntil(Promise.all([
+		self.skipWaiting(),
+		isFirstVisit ? warmAppShellCache() : Promise.resolve(),
+	]));
 });
 
 self.addEventListener("activate", (event) => {
