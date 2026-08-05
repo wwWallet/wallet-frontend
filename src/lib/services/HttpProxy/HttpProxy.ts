@@ -15,6 +15,16 @@ const inFlightRequests = new Map<string, Promise<any>>();
 const sessionCache = new Map<string, { data: any; expiry: number }>();
 const TIMEOUT = 3 * 1000;
 
+const restoreBinaryResponse = (cachedData: any) => {
+	const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
+
+	return {
+		status: cachedData.status || 200,
+		headers: cachedData.headers || {},
+		data: URL.createObjectURL(blob),
+	};
+};
+
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
 		header
@@ -68,15 +78,7 @@ export function useHttpProxy(): IHttpProxy {
 							if (isBinaryRequest && !cachedData?.__binary) {
 								// do nothing -> fall through to fetch
 							} else if (isBinaryRequest && cachedData?.__binary) {
-								// RECONSTRUCT a fresh Blob URL from the stored bytes and type
-								const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
-								const blobUrl = URL.createObjectURL(blob);
-
-								return {
-									status: cachedData.status || 200,
-									headers: cachedData.headers || {},
-									data: blobUrl,
-								};
+								return restoreBinaryResponse(cachedData);
 							} else {
 								return cachedData;
 							}
@@ -93,7 +95,13 @@ export function useHttpProxy(): IHttpProxy {
 				const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
 
 				if (fallback?.data) {
-					return fallback.data;
+					const cachedData = fallback.data;
+
+					if (isBinaryRequest && cachedData.__binary) {
+						return restoreBinaryResponse(cachedData);
+					}
+
+					return cachedData;
 				}
 
 				return {
