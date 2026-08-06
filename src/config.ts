@@ -44,6 +44,7 @@ export const OPENID4VCI_CLIENT_ATTESTATION_ENABLED = config.openid4vci_client_at
 export const OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK = config.openid4vci_client_attestation_attester_private_jwk;
 export const OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C = config.openid4vci_client_attestation_attester_x5c;
 export const OPENID4VCI_CLIENT_ATTESTATION_LIFETIME_SECONDS = config.openid4vci_client_attestation_lifetime_seconds && !isNaN(parseInt(config.openid4vci_client_attestation_lifetime_seconds)) ? parseInt(config.openid4vci_client_attestation_lifetime_seconds) : 300;
+export const WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE = config.wallet_provider_dev_placeholder_evidence === 'true';
 export const FOLD_EVENT_HISTORY_AFTER_SECONDS = config.fold_event_history_after_seconds && !isNaN(parseInt(config.fold_event_history_after_seconds)) ? parseInt(config.fold_event_history_after_seconds) : 2592000; // 30 days
 export const DISPLAY_ISSUANCE_WARNINGS: boolean = config.display_issuance_warnings ? JSON.parse(config.display_issuance_warnings) : false;
 export const OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: number = config.openid4vci_max_accepted_batch_size && !isNaN(parseInt(config.openid4vci_max_accepted_batch_size)) ? parseInt(config.openid4vci_max_accepted_batch_size) : 10;

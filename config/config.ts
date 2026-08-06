@@ -38,6 +38,7 @@ export const ClientEnvConfigSchema = z.object({
 	OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK: z.string().optional(),
 	OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C: z.string().optional(),
 	OPENID4VCI_CLIENT_ATTESTATION_LIFETIME_SECONDS: z.string().optional(),
+	WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE: z.string().optional(),
 	OPENID4VP_SAN_DNS_CHECK: z.string().optional(),
 	OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: z.string().optional(),
 	VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: z.string().optional(),

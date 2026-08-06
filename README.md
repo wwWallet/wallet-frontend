@@ -86,6 +86,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK`: ES256 Wallet Provider signing key used by the experimental browser-side WIA implementation.
   - `OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_X5C`: JSON array containing the matching leaf and intermediate certificates as base64-encoded DER, leaf first. Do not include the trust anchor.
   - `OPENID4VCI_CLIENT_ATTESTATION_LIFETIME_SECONDS`: Lifetime of the Wallet Instance Attestation in seconds (default: `300`).
+  - `WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE`: Use placeholder activation and key evidence for local Wallet Provider testing. Disabled by default and unsafe for production.
   - `OPENID4VP_SAN_DNS_CHECK`: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri (`true` or `false`).
   - `OPENID4VP_SAN_DNS_CHECK_SSL_CERTS`: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
   - `VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS`: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
@@ -105,6 +106,33 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `SHOW_PWA_INSTALL_PROMPT`: Hide or show the PWA installation prompt on the login screen. Defaults to false if left blank or invalid.
   - `DISPLAY_CREDENTIAL_USAGES`: Hide or show the credential usage ribbon and usage count on credential cards/details. Defaults to false (hidden) if left blank or invalid.
   - `DEV_MODE`: Show development-only wallet UI, including the credential dataset view. Defaults to false (hidden) if left blank or invalid.
+
+  **Wallet Provider evidence integration:**
+
+  Key Attestation issuance activates a Wallet Instance, requests a nonce-bound
+  Key Attestation, and marks it consumed after the Credential Issuer accepts the
+  request. The Wallet Instance identifier is cached only for the authenticated
+  browser session.
+
+  Production deployments must install a trusted platform evidence provider
+  before starting an attestation issuance flow:
+
+  ```ts
+  window.walletProviderEvidenceProvider = {
+    async getActivationEvidence(context) {
+      return nativeIntegritySdk.createActivationEvidence(context);
+    },
+    async getKeyAttestationEvidence(context) {
+      return nativeIntegritySdk.createKeyEvidence(context);
+    },
+  };
+  ```
+
+  The provider must return JSON objects accepted by the backend evidence
+  verifier. A normal browser cannot substantiate hardware-backed key storage by
+  itself. For local testing only, set
+  `WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE=true` and configure the backend's
+  `DEV_WALLET_PROVIDER_*` variables documented in `wallet-backend-server`.
 
   **Well-known file generation:**
   - `WELLKNOWN_APPLE_APPIDS`: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.

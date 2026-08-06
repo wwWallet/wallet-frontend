@@ -5,7 +5,26 @@ import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { OpenidCredentialIssuerMetadata } from "wallet-common";
-import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
+import {
+	APP_VERSION,
+	OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE,
+	WALLET_NAME,
+	WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE,
+} from "@/config";
+import { useSessionStorage } from "@/hooks/useStorage";
+import {
+	activateWalletInstance,
+	consumeKeyAttestation,
+	createKeyAttestationProof,
+	isMissingWalletInstanceError,
+	issueKeyAttestation,
+	resolveWalletProviderEvidenceProvider,
+} from "../WalletProvider";
+
+type WalletProviderInstanceCache = {
+	userHandle: string;
+	walletInstanceId: string;
+};
 
 /**
  * Compression options for jose v4 using native Browser/Node CompressionStream API.
@@ -45,27 +64,97 @@ export function useCredentialRequest() {
 	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
 	const { post, updatePrivateData } = api;
+	const [walletProviderInstance, setWalletProviderInstance, clearWalletProviderInstance] =
+		api.useClearOnClearSession(
+			useSessionStorage<WalletProviderInstanceCache | null>("walletProviderInstance", null),
+		);
+	const activationPromiseRef = useRef<Promise<string> | null>(null);
 
-	const requestKeyAttestation = useCallback(async (jwks: JWK[], nonce: string) => {
+	const activateCurrentWalletInstance = useCallback(async (): Promise<string> => {
+		if (activationPromiseRef.current) {
+			return activationPromiseRef.current;
+		}
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			throw new Error("Cannot activate a Wallet Instance without an authenticated user");
+		}
+		const context = {
+			userHandle,
+			walletName: WALLET_NAME,
+			walletVersion: APP_VERSION || "development",
+		};
+		const activationPromise = activateWalletInstance(
+			post,
+			resolveWalletProviderEvidenceProvider(WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE),
+			context,
+		).then((walletInstanceId) => {
+			setWalletProviderInstance({ userHandle, walletInstanceId });
+			return walletInstanceId;
+		}).finally(() => {
+			activationPromiseRef.current = null;
+		});
+		activationPromiseRef.current = activationPromise;
+		return activationPromise;
+	}, [keystore, post, setWalletProviderInstance]);
+
+	const getWalletInstanceId = useCallback(async (): Promise<string> => {
+		const userHandle = keystore.getUserHandleB64u();
+		if (
+			userHandle &&
+			walletProviderInstance?.userHandle === userHandle &&
+			walletProviderInstance.walletInstanceId
+		) {
+			return walletProviderInstance.walletInstanceId;
+		}
+		return activateCurrentWalletInstance();
+	}, [activateCurrentWalletInstance, keystore, walletProviderInstance]);
+
+	const requestKeyAttestation = useCallback(async (
+		jwks: JWK[],
+		proofType: "jwt" | "attestation",
+		nonce?: string,
+	) => {
 		try {
-			const response = await post("/wallet-provider/key-attestation/generate", {
-				jwks,
-				openid4vci: {
-					nonce: nonce,
-				}
-			});
-			const { key_attestation } = response.data;
-			if (!key_attestation || typeof key_attestation != 'string') {
-				console.log("Cannot parse key_attestation from wallet-backend-server");
-				return null;
+			if (proofType === "attestation" && !nonce) {
+				throw new Error("A fresh issuer nonce is required for an attestation proof");
 			}
-			return { key_attestation };
+			const userHandle = keystore.getUserHandleB64u();
+			if (!userHandle) {
+				throw new Error("Cannot request a key attestation without an authenticated user");
+			}
+			const evidenceProvider = resolveWalletProviderEvidenceProvider(WALLET_PROVIDER_DEV_PLACEHOLDER_EVIDENCE);
+			const request = async (walletInstanceId: string) => issueKeyAttestation(post, evidenceProvider, {
+				userHandle,
+				walletName: WALLET_NAME,
+				walletVersion: APP_VERSION || "development",
+				walletInstanceId,
+				jwks,
+				proofType,
+				nonce,
+			});
+
+			let walletInstanceId = await getWalletInstanceId();
+			try {
+				const result = await request(walletInstanceId);
+				return { id: result.id, key_attestation: result.keyAttestation };
+			}
+			catch (error) {
+				// A local database reset can invalidate the session-cached instance.
+				// Re-activate only for a missing instance; revocation must remain effective.
+				if (!isMissingWalletInstanceError(error)) {
+					throw error;
+				}
+				clearWalletProviderInstance();
+				walletInstanceId = await activateCurrentWalletInstance();
+				const result = await request(walletInstanceId);
+				return { id: result.id, key_attestation: result.keyAttestation };
+			}
 		}
 		catch (err) {
-			console.log(err);
+			console.error("Failed to request a key attestation", err);
 			return null;
 		}
-	}, [post]
+	}, [activateCurrentWalletInstance, clearWalletProviderInstance, getWalletInstanceId, keystore, post]
 	);
 
 	const httpHeaders = useMemo(() => ({
@@ -180,20 +269,49 @@ export function useCredentialRequest() {
 			audience: string
 		}[] | null = null;
 		let keyAttestation: string | null = null;
+		let keyAttestationId: string | null = null;
 
 		let proofsToSend: string[] = [];
 
 		try {
 			if (proofType === "jwt") {
-				const inputs = [];
-				for (let i = 0; i < numberOfProofs; i++) {
-					inputs.push({
-						nonce: c_nonce ?? undefined,
+				const keyAttestationRequired = credentialIssuerMetadata.metadata
+					.credential_configurations_supported[credentialConfigurationId]
+					?.proof_types_supported?.jwt?.key_attestations_required !== undefined;
+				if (keyAttestationRequired) {
+					if (!c_nonce) {
+						throw new Error("A fresh issuer nonce is required for a key-attested JWT proof");
+					}
+					const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfProofs);
+					await updatePrivateData(newPrivateData);
+					await keystoreCommit();
+					const requestKeyAttestationResponse = await requestKeyAttestation(
+						keypairs.map(keypair => keypair.publicKey),
+						"jwt",
+					);
+					if (!requestKeyAttestationResponse) {
+						throw new Error("Failed to get key attestation from wallet-backend-server");
+					}
+					keyAttestationId = requestKeyAttestationResponse.id;
+					proofsToSend = [await createKeyAttestationProof({
+						keyPair: keypairs[0],
+						keyAttestation: requestKeyAttestationResponse.key_attestation,
+						nonce: c_nonce,
+						audience: credentialIssuerMetadata.metadata.credential_issuer,
 						issuer: clientId.client_id,
-						audience: credentialIssuerMetadata.metadata.credential_issuer
-					})
+					})];
 				}
-				proofs = inputs;
+				else {
+					const inputs = [];
+					for (let i = 0; i < numberOfProofs; i++) {
+						inputs.push({
+							nonce: c_nonce ?? undefined,
+							issuer: clientId.client_id,
+							audience: credentialIssuerMetadata.metadata.credential_issuer
+						})
+					}
+					proofs = inputs;
+				}
 			}
 			else if (proofType === "attestation") {
 				const numberOfKeypairsToGenerate = numberOfProofs;
@@ -202,14 +320,15 @@ export function useCredentialRequest() {
 				await keystoreCommit();
 				const publicKeys = keypairs.map(kp => kp.publicKey);
 
-				const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
+				const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, "attestation", c_nonce);
 				if (!requestKeyAttestationResponse) {
 					throw new Error("Failed to get key attestation from wallet-backend-server");
 				}
 				keyAttestation = requestKeyAttestationResponse.key_attestation;
+				keyAttestationId = requestKeyAttestationResponse.id;
 			}
 
-			if (cachedProofs || proofs) {
+			if (cachedProofs || proofs || proofsToSend.length > 0) {
 				if (cachedProofs) {
 					proofsToSend = cachedProofs as string[];
 				}
@@ -408,6 +527,16 @@ export function useCredentialRequest() {
 			}
 			throw new Error("Credential Request failed");
 		}
+		if (keyAttestationId) {
+			try {
+				await consumeKeyAttestation(post, keyAttestationId);
+			}
+			catch (error) {
+				// The credential response is already final, so a bookkeeping failure
+				// must not discard successfully issued credentials.
+				console.error("Failed to mark the key attestation as consumed", error);
+			}
+		}
 
 		// const credentialResponseData = credentialResponse.data as { credentials: { credential: string }[] };
 
@@ -416,7 +545,7 @@ export function useCredentialRequest() {
 		// receivedCredentialsArrayRef.current = credentialArray;
 		console.log("Credential response: ", credentialResponse);
 		return { credentialResponse };
-	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
+	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, post, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
 
 
 
