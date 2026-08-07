@@ -96,8 +96,8 @@
 		"signUpWithPasskey": "Δημιουργία λογαριασμού με κλειδί πρόσβασης",
 		"signUpWithSecurityKey": "Χρήση κλειδιού ασφαλείας",
 		"submitting": "Υποβολή...",
-		"switchAccount": "Αλλαγή λογαριασμού",
-		"switchAccountDescription": "Επιλέξτε έναν λογαριασμό για να συνεχίσετε.",
+		"otherAccounts": "Άλλοι λογαριασμοί",
+		"otherAccountsDescription": "Επιλέξτε έναν λογαριασμό για να συνεχίσετε.",
 		"welcomeMessage": "Καλώς ήρθατε στο <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {

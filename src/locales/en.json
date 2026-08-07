@@ -109,8 +109,8 @@
 		"signUpWithPasskey": "Create account with a Passkey",
 		"signUpWithSecurityKey": "Use a Security Key",
 		"submitting": "Submitting...",
-		"switchAccount": "Switch account",
-		"switchAccountDescription": "Choose an account to continue.",
+		"otherAccounts": "Other accounts",
+		"otherAccountsDescription": "Choose an account to continue.",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {
