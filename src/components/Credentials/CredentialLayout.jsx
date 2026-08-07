@@ -1,6 +1,6 @@
 // External libraries
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useMatch, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 
@@ -19,11 +19,16 @@ import CredentialsContext from '@/context/CredentialsContext';
 import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
-import PageDescription from '../Shared/PageDescription';
-import { ArrowLeft, ArrowRight, GalleryHorizontalEnd, TriangleAlert } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+
+const SummaryDetail = ({ label, value, screenType }) => (
+	<p className={`min-w-0 truncate text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
+		{label}: {value}
+	</p>
+);
 
 const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
-	if (zeroSigCount === null || sigTotal === null) return null;
+	if (zeroSigCount === null || !sigTotal) return null;
 
 	const usageClass =
 		zeroSigCount === 0
@@ -31,20 +36,15 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 			: 'text-lm-green dark:text-dm-green';
 
 	return (
-		<div
-			className={`flex items-center text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'
-				}`}
-		>
-			<GalleryHorizontalEnd size={18} className="mr-1" />
-			<p className="font-base">
-				<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
-				<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
-			</p>
-		</div>
+		<SummaryDetail
+			label={t('pageCredentials.details.availableUsages')}
+			value={<><span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>/{sigTotal}</>}
+			screenType={screenType}
+		/>
 	);
 };
 
-const CredentialLayout = ({ children, title = null, displayCredentialInfo = null, fixedRatioImage = true }) => {
+const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summaryActions = null, actionsMenu = null }) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -68,6 +68,8 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		vcEntity?.batchId,
 		[i18n.language]
 	);
+
+	const isCredentialRoot = Boolean(useMatch('/credential/:batchId'));
 
 	const CredentialImageButton = ({
 		showRibbon,
@@ -96,66 +98,44 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		</button>
 	);
 
-	const DesktopLayout = () => (
-		<div className="w-full flex flex-col lg:flex-row gap-4">
-			{/* LEFT COLUMN (always full width, shrinks on lg) */}
-			<div className="w-full lg:w-1/2 flex flex-col gap-4">
-				<CredentialImageButton
-					showRibbon
-					fixedRatioImage={screenType === 'desktop'}
-					preferredOrientation={screenType === 'desktop' ? 'landscape' : 'portrait'}
-				/>
-				{DISPLAY_CREDENTIAL_USAGES && zeroSigCount !== null && sigTotal && (
-					<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
-
-				)}
-
-				{/* Show displayCredentialInfo inline when stacked */}
-				<div className="block lg:hidden">
-					{displayCredentialInfo}
-				</div>
-
-				{children}
-			</div>
-
-			{/* RIGHT COLUMN (only on wide layout) */}
-			<div className="hidden lg:block w-full lg:w-1/2">
-				{displayCredentialInfo}
-			</div>
+	const CredentialSummary = () => (
+		<div className='flex flex-col gap-1'>
+			{(screenType === 'desktop' || !isCredentialRoot) && (
+				<p className='text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>{credentialName}</p>
+			)}
+			{/* TODO: hardcoded placeholders. Wire to the credential's own values —
+			description, expiry and issuer all come from its metadata - and move
+			the labels into the locale files. */}
+			{isCredentialRoot && (
+				<>
+					<p className={`text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
+						Proof of identity issued by wwWallet Issuer, accepted across the EU.
+					</p>
+					<hr className='my-2 border-t border-lm-gray-400 dark:border-dm-gray-600' />
+					<SummaryDetail label="Expiry date" value="12 Mar 2027" screenType={screenType} />
+					<SummaryDetail label="Issued by" value="wwWallet Issuer" screenType={screenType} />
+					{DISPLAY_CREDENTIAL_USAGES && (
+						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+					)}
+					{summaryActions && (
+						<div className='mt-2'>{summaryActions}</div>
+					)}
+				</>
+			)}
 		</div>
 	);
 
-	const MobileLayout = () => (
-		<div className="w-full flex flex-col">
-			<div className="flex flex-row items-center gap-5 px-2">
-				<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
-					<CredentialImageButton showRibbon={false} fixedRatioImage={fixedRatioImage} />
-					{DISPLAY_CREDENTIAL_USAGES && screenType !== 'mobile' && zeroSigCount !== null && sigTotal && (
-						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
-
-					)}
+	const DesktopLayout = () => (
+		<div className="w-full flex flex-col gap-4">
+			<div className={`md:flex-1 min-w-0 flex gap-4 ${isCredentialRoot ? 'flex-col md:flex-row md:items-center' : 'flex-row items-center'}`}>
+				<div className={isCredentialRoot ? 'w-full md:w-1/2 lg:w-1/3 md:max-w-sm md:shrink-0' : 'w-4/12 shrink-0'}>
+					<CredentialImageButton
+						showRibbon
+						fixedRatioImage={screenType === 'desktop' || !isCredentialRoot}
+						preferredOrientation={screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'}
+					/>
 				</div>
-				{screenType === 'mobile' && (
-					<div className='flex flex-start flex-col gap-1'>
-						<p className='text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>{credentialName}</p>
-						{DISPLAY_CREDENTIAL_USAGES && (
-							<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
-						)}
-					</div>
-				)}
-			</div>
-
-			{screenType === 'mobile' && vcEntity?.isExpired && (
-				<div className="bg-lm-orange-bg dark:bg-dm-orange-bg text-black mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
-					<div className="mr-2 ">
-						<TriangleAlert size={18} />
-					</div>
-					<p>{t('pageCredentials.details.expired')}</p>
-				</div>
-			)}
-			<div className="mb-2">
-				{displayCredentialInfo}
-
+				<CredentialSummary />
 			</div>
 			{children}
 		</div>
@@ -164,34 +144,26 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 
 	return (
 		<div className="px-6 sm:px-12 w-full">
-			<div className=' mb-4'>
-				{screenType !== 'mobile' ? (
-					<H1
-						heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
-						flexJustifyContent="start"
-						textColorClass="text-lm-gray-700 dark:text-dm-gray-300 hover:underline"
+			<div className='mb-4'>
+				<div className='flex items-center gap-1'>
+					<button
+						id="go-previous"
+						onClick={() => navigate(-1)}
+						aria-label={t('common.back')}
+						className='-ml-2.5 p-2.5 shrink-0 rounded-full cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'
 					>
-						<ArrowRight size={20} className="mx-2 text-2xl text-inherit" />
-						<H1 heading={credentialName} />
-					</H1>
-				) : (
-					<div className='flex flex-wrap mb-4'>
-						<button
-							id="go-previous"
-							onClick={() => navigate(-1)}
-							className="mr-2"
-							aria-label="Go back to the previous page"
-						>
-							<ArrowLeft size={20} className="text-2xl text-inherit" />
-						</button>
-						{title && <H1 heading={title} />}
-					</div>
-				)}
-				<PageDescription description={t('pageCredentials.details.description')} />
+						<ArrowLeft size={24} />
+					</button>
+					<H1 heading={title} flexJustifyContent="start" />
+					{/* Overflow actions for the credential, pinned to the title's right. */}
+					{actionsMenu && (
+						<div className='ml-auto shrink-0'>{actionsMenu}</div>
+					)}
+				</div>
 			</div>
 
-			<div className={`w-full flex flex-col ${displayCredentialInfo && screenType === 'desktop' ? 'lg:flex-row gap-4' : ''} mt-0 lg:mt-5`}>
-				{(screenType === 'desktop' || !fixedRatioImage) ? <DesktopLayout /> : <MobileLayout />}
+			<div className="w-full flex flex-col">
+				<DesktopLayout />
 			</div>
 			{/* Fullscreen credential Popup*/}
 			{showFullscreenImgPopup && (

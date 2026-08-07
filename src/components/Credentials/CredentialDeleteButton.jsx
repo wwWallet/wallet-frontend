@@ -15,7 +15,7 @@ const CredentialDeleteButton = ({ onDelete }) => {
 		<Button
 			id="credential-delete-button"
 			onClick={handleClick}
-			variant="delete"
+			variant="outline"
 			title={t('common.offlineTitle')}
 			additionalClassName='xm:w-full'
 		>

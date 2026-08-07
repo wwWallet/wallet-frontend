@@ -16,21 +16,20 @@ import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import CredentialJson from '../../components/Credentials/CredentialJson';
+// import CredentialJson from '../../components/Credentials/CredentialJson';
 import HistoryList from '../../components/History/HistoryList';
+import CredentialActionsMenu from '../../components/Credentials/CredentialActionsMenu';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '../../components/Popups/ProximitySharingPopup';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
-import { H2 } from '@/components/Shared/Heading';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
 import { QrCode } from 'lucide-react';
-import { DEV_MODE } from '@/config';
-
+// import { DEV_MODE } from '@/config';
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
@@ -198,57 +197,65 @@ const Credential = () => {
 		</>
 	);
 
-	const infoTabs = DEV_MODE ? [
+	const infoTabs = [
+		{
+			// TODO: needs a `pageCredentials.detailsTitle` locale key.
+			label: 'Details',
+			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
+		},
 		{
 			label: t('pageCredentials.presentationsTitle'),
 			component: presentationsContent
 		},
-		{
-			label: t('pageCredentials.datasetTitle'),
-			component:
-				<CredentialJson
-					parsedCredential={vcEntity?.parsedCredential}
-				/>
-		}
-	] : [];
+		// ...(DEV_MODE ? [{
+		// 	label: t('pageCredentials.datasetTitle'),
+		// 	component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
+		// }] : []),
+	];
 
 	return (
 
-		<CredentialLayout title={credentialName} fixedRatioImage={false} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
-			<>
-				<div className="w-full pt-2">
-					{DEV_MODE ? (
-						screenType !== 'mobile' ? (
-							<CredentialTabsPanel tabs={infoTabs} />
-						) : (
-							<>
-								<Button
-									id="navigate-credential-history"
-									variant="primary"
-									onClick={() => navigate(`/credential/${batchId}/history`)}
-									additionalClassName='w-full my-2'
-								>
-									{t('pageCredentials.presentationsTitle')}
-								</Button>
-								<Button
-									id="navigate-credential-details"
-									variant="primary"
-									onClick={() => navigate(`/credential/${batchId}/details`)}
-									additionalClassName='w-full my-2'
-								>
-									{t('pageCredentials.datasetTitle')}
-								</Button>
-							</>
-						)
-					) : (
-						<>
-							<H2 heading={t('pageCredentials.presentationsTitle')} />
-							{presentationsContent}
-						</>
+		<CredentialLayout
+			title={credentialName}
+			fixedRatioImage={false}
+			summaryActions={
+				<div className='flex flex-wrap gap-2 xm:w-full'>
+					{shareWithQr && (
+						<Button variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
+							<span className='px-1'><QrCode /></span>{t('qrShareMdoc.shareUsingQR')}
+						</Button>
+					)}
+					{screenType === 'mobile' && (
+						<Button
+							id="navigate-credential-history"
+							variant='primary'
+							additionalClassName='xm:w-full'
+							onClick={() => navigate(`/credential/${batchId}/history`)}
+						>
+							{t('pageCredentials.presentationsTitle')}
+						</Button>
 					)}
 				</div>
+			}
+			actionsMenu={
+				<CredentialActionsMenu>
+					<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} />
+				</CredentialActionsMenu>
+			}
+		>
+			<>
+				<div className={`mt-2`}>
+					{screenType === 'mobile' ? (
+						<CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
+					) : (
+						<CredentialTabsPanel
+							tabs={infoTabs}
+							contentClassName=""
+						/>
+					)}
+				</div>
+
 				<div className='px-2 w-full'>
-					{shareWithQr && (<Button variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<ProximitySharingPopup
 						isOpen={showMdocQR}
 						fullScreen={screenType !== 'desktop'}
@@ -263,9 +270,6 @@ const Credential = () => {
 						onCancel={cancelShare}
 						onClose={() => setShowMdocQR(false)}
 					/>
-				</div>
-				<div className='px-2 w-full'>
-					<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
 				</div>
 
 				{/* Delete Credential Popup */}
