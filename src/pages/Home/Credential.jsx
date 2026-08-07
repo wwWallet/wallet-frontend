@@ -186,7 +186,7 @@ const Credential = () => {
 
 	const presentationsContent = (
 		<>
-			{history.length === 0 ? (
+			{history !== null && (history.length === 0 ? (
 				<p className="text-lm-gray-900 dark:text-white">
 					{t('pageHistory.noFound')}
 				</p>
@@ -194,7 +194,7 @@ const Credential = () => {
 				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
 					<HistoryList batchId={batchId} history={history} />
 				</div>
-			)}
+			))}
 		</>
 	);
 
