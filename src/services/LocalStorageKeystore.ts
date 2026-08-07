@@ -49,6 +49,15 @@ export enum KeystoreEvent {
 }
 
 export type CommitCallback = () => Promise<void>;
+
+export function shouldMergeOpenKeystore(
+	hasOpenKeystore: boolean,
+	currentUserHandleB64u: string | null,
+	targetUserHandleB64u: string,
+): boolean {
+	return hasOpenKeystore && currentUserHandleB64u === targetUserHandleB64u;
+}
+
 export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
@@ -332,13 +341,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<keystore.EncryptedContainer> => {
 		if (user) {
-			const userHandleB64u = ("prfKeys" in user
+			const targetUserHandleB64u = ("prfKeys" in user
 				? user.userHandleB64u
 				: toBase64Url(user.userHandle)
 			);
 			let newEncryptedContainer: keystore.EncryptedContainer;
+			let newMainKeyExport: BufferSource | null = null;
+			let newCalculatedWalletState: WalletState | null = null;
 
-			if (privateData && mainKey) { // keystore is already opened
+			if (shouldMergeOpenKeystore(Boolean(privateData && mainKey), userHandleB64u, targetUserHandleB64u)) {
 				const [localPrivateData, localMainKey] = await assertKeystoreOpen();
 				const [remoteContainer, remoteMainKey,] = await keystore.openPrivateData(unlockSuccess.mainKey, unlockSuccess.privateData);
 				const [localContainer, ,] = await keystore.openPrivateData(localMainKey, localPrivateData);
@@ -348,7 +359,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					remoteMainKey,
 				], mergedContainer as CurrentSchema.WalletStateContainer);
 				const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-				await writePrivateDataOnIdb(newPrivateDataEncryptedContainer, userHandleB64u);
+				await writePrivateDataOnIdb(newPrivateDataEncryptedContainer, targetUserHandleB64u);
 				setPrivateData(newPrivateDataEncryptedContainer);
 				newEncryptedContainer = newPrivateDataEncryptedContainer;
 				setMainKey(await keystore.exportMainKey(newMainKey));
@@ -357,7 +368,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			}
 			else {
 				async function mergeWithLocalEncryptedPrivateData(container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
-					const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
+					const userId = UserId.fromUserHandle(new Uint8Array(fromBase64Url(targetUserHandleB64u)));
 					const localUser = await getItem("users", userId.id);
 					if (!localUser) {
 						return container;
@@ -386,23 +397,21 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				const [encryptedContainer, newMainKey, decryptedWalletState] = await mergeWithLocalEncryptedPrivateData([privateData, mainKey, unlockedContainer]);
 				const foldedState = foldState(decryptedWalletState as CurrentSchema.WalletStateContainer);
 				newEncryptedContainer = encryptedContainer;
-				setPrivateData(encryptedContainer);
-				setMainKey(await keystore.exportMainKey(newMainKey));
-				await writePrivateDataOnIdb(encryptedContainer, userHandleB64u);
-				// after private data update, the calculated wallet state must be re-computed
-				setCalculatedWalletState(foldedState);
+				await writePrivateDataOnIdb(encryptedContainer, targetUserHandleB64u);
+				newMainKeyExport = await keystore.exportMainKey(newMainKey);
+				newCalculatedWalletState = foldedState;
 			}
 
 			const newUser = ("prfKeys" in user
 				? user
 				: {
 					displayName: user.displayName,
-					userHandleB64u,
+					userHandleB64u: targetUserHandleB64u,
 					prfKeys: [], // Placeholder - will be updated by useEffect above
 				}
 			);
 
-			setUserHandleB64u(userHandleB64u);
+			setUserHandleB64u(targetUserHandleB64u);
 
 			const newTabId = tabId ?? WalletStateUtils.getRandomUint32().toString();
 			setTabId(newTabId);
@@ -411,13 +420,19 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			// This must happen before setPrivateData in order to prevent the
 			// useEffect updating cachedUsers from corrupting cache entries for other
 			// users logged in in other tabs.
-			setGlobalUserHandleB64u(userHandleB64u);
+			setGlobalUserHandleB64u(targetUserHandleB64u);
 
 			setCachedUsers((cachedUsers) => {
 				// Move most recently used user to front of list
 				const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
 				return [newUser, ...otherUsers];
 			});
+
+			if (newMainKeyExport) {
+				setPrivateData(newEncryptedContainer);
+				setMainKey(newMainKeyExport);
+				setCalculatedWalletState(newCalculatedWalletState);
+			}
 
 			return newEncryptedContainer;
 		}
@@ -434,7 +449,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		writePrivateDataOnIdb,
 		assertKeystoreOpen,
 		privateData,
-		mainKey
+		mainKey,
+		userHandleB64u
 	]);
 
 
