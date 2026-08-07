@@ -65,7 +65,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 						});
 
 						const result = await (async () => {
-							switch (parsedCredential.metadata.credential.format) {
+							switch (parsedCredential?.metadata?.credential?.format) {
 								case VerifiableCredentialFormat.VC_SDJWT:
 									return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
 								case VerifiableCredentialFormat.DC_SDJWT:
@@ -81,7 +81,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 							presentation,
 							parsedCredential,
 							result,
-							isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
+							isExpired: result?.success === false && result.error === CredentialVerificationError.ExpiredCredential,
 						}
 					})
 				);
