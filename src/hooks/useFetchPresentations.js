@@ -7,7 +7,7 @@ import CredentialsContext from '@/context/CredentialsContext';
 import { CredentialVerificationError, VerifiableCredentialFormat } from "wallet-common";
 
 const useFetchPresentations = (keystore, batchId = null, transactionId = null) => {
-	const [history, setHistory] = useState({});
+	const [history, setHistory] = useState(null);
 	const { parseCredential, credentialEngine } = useContext(CredentialsContext);
 
 	useEffect(() => {
@@ -92,6 +92,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 				setHistory(presentationsGroupedByTransactionId);
 			} catch (error) {
 				console.error('Error fetching presentations:', error);
+				setHistory([]);
 			}
 		};
 

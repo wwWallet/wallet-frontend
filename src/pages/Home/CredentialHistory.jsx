@@ -22,13 +22,13 @@ const CredentialHistory = () => {
 	return (
 		<>
 			<CredentialLayout title={t('pageCredentials.presentationsTitle')}>
-				{history.length === 0 ? (
+				{history !== null && (history.length === 0 ? (
 					<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
 						{t('pageHistory.noFound')}
 					</p>
 				) : (
 					<HistoryList batchId={batchId} history={history} />
-				)}
+				))}
 			</CredentialLayout>
 
 		</>
