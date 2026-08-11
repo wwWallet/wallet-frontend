@@ -74,6 +74,8 @@
 		"loginWithSecurityKey": "Iniciar sessão com uma chave de segurança",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
 		"newHereQuestion": "Não tem uma conta de carteira? ",
+		"otherAccounts": "Outras contas",
+		"otherAccountsDescription": "Escolha uma conta para continuar.",
 		"passkeyInvalid": "Chave de acesso desconhecida, possivelmente eliminada pelo utilizador.",
 		"passkeyLoginFailedServerError": "Não foi possível iniciar sessão com chave de acesso. Por favor, tente novamente mais tarde.",
 		"passkeyLoginFailedTryAgain": "Início de sessão com chave de acesso falhou. Por favor, tente novamente.",
@@ -90,8 +92,6 @@
 		"signUpWithPasskey": "Criar conta com uma chave de acesso",
 		"signUpWithSecurityKey": "Usar uma chave de segurança",
 		"submitting": "A submeter...",
-		"otherAccounts": "Outras contas",
-		"otherAccountsDescription": "Escolha uma conta para continuar.",
 		"welcomeMessage": "Bem-vindo(a) à <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {

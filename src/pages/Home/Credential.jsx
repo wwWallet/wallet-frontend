@@ -45,6 +45,7 @@ const Credential = () => {
 	const [shareWithQr, setShareWithQr] = useState(false);
 	const [mdocQRContent, setMdocQRContent] = useState("");
 	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
+	const [mdocTypeDetails, setMdocTypeDetails] = useState(null);
 	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -113,6 +114,7 @@ const Credential = () => {
 	const generateQR = async () => {
 		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 		setBluetoothPairingCancelled(false);
+		setMdocTypeDetails(null);
 		setMdocQRContent(await generateEngagementQR(vcEntity));
 		setShowMdocQR(true);
 		if (bluetoothConnectRequiresUserGesture()) {
@@ -126,8 +128,9 @@ const Credential = () => {
 	};
 
 	const handleMdocRequest = useCallback(async () => {
-		const { fields, credentialMatchesRequest } = await getMdocRequest();
+		const { fields, credentialMatchesRequest, requestedDocType, credentialDocType } = await getMdocRequest();
 		setShareWithQrFilter(fields);
+		setMdocTypeDetails({ requestedDocType, credentialDocType });
 		setMdocQRStatus(credentialMatchesRequest ? PROXIMITY_SHARING_STATUS.REVIEW : PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH);
 	}, [getMdocRequest]);
 
@@ -256,6 +259,7 @@ const Credential = () => {
 						qrContent={mdocQRContent}
 						credential={vcEntity}
 						requestedFields={shareWithQrFilter}
+						mdocTypeDetails={mdocTypeDetails}
 						bluetoothPairingCancelled={bluetoothPairingCancelled}
 						requiresUserGesture={bluetoothConnectRequiresUserGesture()}
 						onConnect={connectClient}

@@ -97,7 +97,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return transport.connect(serviceUuidRef.current);
 	}, []);
 
-	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean }> => {
+	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean; requestedDocType: string | null; credentialDocType: string }> => {
 		let receivedMessage: Uint8Array = new Uint8Array([]);
 		if (transportRef.current) {
 			console.log("Created BLE client");
@@ -141,6 +141,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			console.log(e);
 		}
 		const fieldKeys: string[] = [];
+		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
+		const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
 		if (decryptedVerifierData) {
 			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
 			const firstDocRequest = mdocRequestDecoded.get("docRequests")?.[0];
@@ -153,8 +155,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
 			requestedNamespaceRef.current = namespace ?? null;
 
-			const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
-			const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
 			if (requestedDocTypeRef.current && requestedDocTypeRef.current !== credentialDocType) {
 				const emptyDeviceResponse = DeviceResponse.createSimple({ status: 0 });
 				const ivEncryption = new Uint8Array([
@@ -175,12 +175,12 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				} finally {
 					await transportRef.current?.terminate();
 				}
-				return { fields: fieldKeys, credentialMatchesRequest: false };
+				return { fields: fieldKeys, credentialMatchesRequest: false, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 			}
 
 			if (!fields || !namespace) {
 				requestedDcqlClaimsRef.current = [];
-				return { fields: fieldKeys, credentialMatchesRequest: true };
+				return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 			}
 
 			const requestedDcqlClaims = [];
@@ -195,7 +195,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedDcqlClaimsRef.current = requestedDcqlClaims;
 		}
 
-		return { fields: fieldKeys, credentialMatchesRequest: true };
+		return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
