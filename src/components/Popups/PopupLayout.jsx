@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import Spinner from '../Shared/Spinner';
 import Header from '../Layout/Header';
 
-const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0, fullScreen = false, children, padding = 'p-4', shouldCloseOnOverlayClick = true }) => {
+const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0, fullScreen = false, useDefaultContentPadding = true, children, padding = 'p-4', shouldCloseOnOverlayClick = true }) => {
 	const [showLoading, setShowLoading] = useState(false);
 
 	useEffect(() => {
@@ -46,13 +46,13 @@ const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0,
 			shouldCloseOnOverlayClick={shouldCloseOnOverlayClick}
 		>
 
-			<div className={`${fullScreen && 'h-full'}`}>
+			<div className={`${fullScreen && 'h-full'} ${fullScreen && !useDefaultContentPadding && 'flex flex-col'}`}>
 				{fullScreen &&
-					<div className='z-60'>
+					<div className={`z-60 ${!useDefaultContentPadding && 'shrink-0'}`}>
 						<Header toggleSidebar={() => { }} />
 					</div>
 				}
-				<div className={`${padding} ${fullScreen && 'px-6 pt-3 pb-20 flex flex-col justify-between'}`}>
+				<div className={`${fullScreen && 'flex flex-col justify-between'} ${fullScreen && !useDefaultContentPadding && 'min-h-0 flex-1'} ${useDefaultContentPadding && padding} ${fullScreen && useDefaultContentPadding && 'px-6 pt-3 pb-20'}`}>
 					{children}
 				</div>
 			</div>

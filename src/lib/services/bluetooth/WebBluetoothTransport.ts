@@ -1,4 +1,4 @@
-import { IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
+import { BluetoothConnectionResult, IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
 
 // Minimal Web Bluetooth typings (subset of @types/web-bluetooth).
 interface BluetoothRemoteGATTCharacteristic extends EventTarget {
@@ -37,6 +37,7 @@ const CHARACTERISTIC_SERVER2CLIENT_UUID = "00000007-a123-48ce-896b-4c76973373e6"
 // State characteristic commands
 const STATE_START = 0x01;
 const STATE_END = 0x02;
+const GATT_CONNECT_TIMEOUT_MS = 15_000;
 
 /**
  * Bluetooth transport backed by the Web Bluetooth API, for browsers without
@@ -67,7 +68,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 		return typeof navigator !== "undefined" && !!(navigator as any).bluetooth;
 	}
 
-	async connect(serviceUuid: string): Promise<boolean> {
+	async connect(serviceUuid: string): Promise<BluetoothConnectionResult> {
 		try {
 			const bluetooth: Bluetooth = (navigator as any).bluetooth;
 			this.device = await bluetooth.requestDevice({
@@ -75,7 +76,25 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				optionalServices: [serviceUuid],
 			});
 			this.device.addEventListener("gattserverdisconnected", this.onDisconnected);
-			this.server = await this.device.gatt.connect();
+			const connectPromise = this.device.gatt.connect();
+			this.server = await new Promise<BluetoothRemoteGATTServer>((resolve, reject) => {
+				const timeoutId = setTimeout(() => {
+					connectPromise
+						.then((server) => server.connected && server.disconnect())
+						.catch(() => {});
+					reject(new Error("Timed out connecting to the Bluetooth verifier"));
+				}, GATT_CONNECT_TIMEOUT_MS);
+				connectPromise.then(
+					(server) => {
+						clearTimeout(timeoutId);
+						resolve(server);
+					},
+					(error) => {
+						clearTimeout(timeoutId);
+						reject(error);
+					}
+				);
+			});
 			const service = await this.server.getPrimaryService(serviceUuid);
 			this.stateCharacteristic = await service.getCharacteristic(CHARACTERISTIC_STATE_UUID);
 			this.client2ServerCharacteristic = await service.getCharacteristic(CHARACTERISTIC_CLIENT2SERVER_UUID);
@@ -87,12 +106,16 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			// Signal "Start" to the reader
 			await this.stateCharacteristic.writeValueWithoutResponse(new Uint8Array([STATE_START]));
 			await new Promise((resolve) => setTimeout(resolve, 10));
-			return true;
+			return "connected";
 		} catch (e) {
+			if ((e as DOMException)?.name === "NotFoundError") {
+				await this.terminate();
+				return "cancelled";
+			}
 			console.log(e);
 			console.log("Could not initialize Web Bluetooth client");
 			await this.terminate();
-			return false;
+			return "failed";
 		}
 	}
 

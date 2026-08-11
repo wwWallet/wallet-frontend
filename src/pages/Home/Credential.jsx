@@ -2,7 +2,6 @@
 import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import QRCode from "react-qr-code";
 import i18n from '@/i18n';
 
 // Contexts
@@ -23,14 +22,13 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
-import PopupLayout from '../../components/Popups/PopupLayout';
-import CredentialImage from '../../components/Credentials/CredentialImage';
+import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '../../components/Popups/ProximitySharingPopup';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 import { H2 } from '@/components/Shared/Heading';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
-import { CircleCheckBig, QrCode } from 'lucide-react';
+import { QrCode } from 'lucide-react';
 import { DEV_MODE } from '@/config';
 
 const Credential = () => {
@@ -42,11 +40,13 @@ const Credential = () => {
 	const screenType = useScreenType();
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
-	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
+	const [mdocQRStatus, setMdocQRStatus] = useState(PROXIMITY_SHARING_STATUS.SCAN);
 	const handledMdocStatusRef = useRef(null);
 	const [shareWithQr, setShareWithQr] = useState(false);
 	const [mdocQRContent, setMdocQRContent] = useState("");
 	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
+	const [mdocTypeDetails, setMdocTypeDetails] = useState(null);
+	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
@@ -98,16 +98,23 @@ const Credential = () => {
 	};
 
 	const connectClient = async () => {
-		const client = await startClient();
-		if (!client) {
-			setMdocQRStatus(-1);
+		setBluetoothPairingCancelled(false);
+		setMdocQRStatus(PROXIMITY_SHARING_STATUS.PAIRING);
+		const connectionResult = await startClient();
+		if (connectionResult === "cancelled") {
+			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
+			setBluetoothPairingCancelled(true);
+		} else if (connectionResult === "failed") {
+			setMdocQRStatus(PROXIMITY_SHARING_STATUS.CONNECTION_FAILED);
 		} else {
-			setMdocQRStatus(1);
+			setMdocQRStatus(PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST);
 		}
 	};
 
 	const generateQR = async () => {
-		setMdocQRStatus(0);
+		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
+		setBluetoothPairingCancelled(false);
+		setMdocTypeDetails(null);
 		setMdocQRContent(await generateEngagementQR(vcEntity));
 		setShowMdocQR(true);
 		if (bluetoothConnectRequiresUserGesture()) {
@@ -121,22 +128,28 @@ const Credential = () => {
 	};
 
 	const handleMdocRequest = useCallback(async () => {
-		const fields = await getMdocRequest();
+		const { fields, credentialMatchesRequest, requestedDocType, credentialDocType } = await getMdocRequest();
 		setShareWithQrFilter(fields);
-		setMdocQRStatus(2);
+		setMdocTypeDetails({ requestedDocType, credentialDocType });
+		setMdocQRStatus(credentialMatchesRequest ? PROXIMITY_SHARING_STATUS.REVIEW : PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH);
 	}, [getMdocRequest]);
 
 	const handleMdocResponse = useCallback(async () => {
-		await sendMdocResponse();
-		setMdocQRStatus(4);
+		try {
+			await sendMdocResponse();
+			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SUCCESS);
+		} catch (error) {
+			console.error("Failed to send mdoc response", error);
+			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SHARING_FAILED);
+		}
 	}, [sendMdocResponse]);
 
 	const consentToShare = () => {
-		setMdocQRStatus(3);
+		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SHARING);
 	}
 
 	const cancelShare = () => {
-		setMdocQRStatus(0);
+		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 		setShowMdocQR(false);
 		terminateSession();
 	}
@@ -147,10 +160,10 @@ const Credential = () => {
 			return;
 		}
 		handledMdocStatusRef.current = mdocQRStatus;
-		if (mdocQRStatus === 1) {
+		if (mdocQRStatus === PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST) {
 			// Got client
 			handleMdocRequest();
-		} else if (mdocQRStatus === 3) {
+		} else if (mdocQRStatus === PROXIMITY_SHARING_STATUS.SHARING) {
 			// Got consent
 			handleMdocResponse();
 		}
@@ -176,7 +189,7 @@ const Credential = () => {
 
 	const presentationsContent = (
 		<>
-			{history.length === 0 ? (
+			{history !== null && (history.length === 0 ? (
 				<p className="text-lm-gray-900 dark:text-white">
 					{t('pageHistory.noFound')}
 				</p>
@@ -184,7 +197,7 @@ const Credential = () => {
 				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
 					<HistoryList batchId={batchId} history={history} />
 				</div>
-			)}
+			))}
 		</>
 	);
 
@@ -239,58 +252,21 @@ const Credential = () => {
 				</div>
 				<div className='px-2 w-full'>
 					{shareWithQr && (<Button variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
-					<PopupLayout fullScreen={screenType !== 'desktop'} isOpen={showMdocQR}>
-						<div className="flex items-start justify-between mb-2">
-							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-								{t('qrShareMdoc.shareUsingQR')}
-							</h2>
-						</div>
-						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
-						<span>
-							{mdocQRStatus === -1 && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
-							{mdocQRStatus === 0 && <div className='flex flex-col items-center justify-center'>
-								<div className="p-4 bg-white rounded-lg">
-									<QRCode value={mdocQRContent} size={200} style={{ height: 'auto', maxWidth: '100%', width: '200px' }} />
-								</div>
-								{bluetoothConnectRequiresUserGesture() && (
-									<>
-										<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-4 mb-2 text-center">{t('qrShareMdoc.scanPrompt')}</p>
-										<Button variant='primary' onClick={connectClient}>{t('qrShareMdoc.scannedContinue')}</Button>
-									</>
-								)}
-							</div>}
-							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
-							{mdocQRStatus === 2 && <span className={screenType !== 'desktop' ? 'pb-16' : ''}>
-								<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">
-									{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
-									<strong>
-										{
-											shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
-										}
-									</strong>
-								</p>
-								<CredentialImage
-									vcEntity={vcEntity}
-									vcEntityInstances={vcEntity.instances}
-									key={vcEntity.batchId}
-									parsedCredential={vcEntity.parsedCredential}
-									className="w-full object-cover rounded-xl"
-								/>
-								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
-									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
-								</div>
-								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
-									<Button onClick={cancelShare}>{t('common.cancel')}</Button>
-									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
-								</div>
-							</span>}
-							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><CircleCheckBig color='green' size={100} /></span>}
-							{![1, 2].includes(mdocQRStatus) &&
-								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
-									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
-								</div>}
-						</span>
-					</PopupLayout>
+					<ProximitySharingPopup
+						isOpen={showMdocQR}
+						fullScreen={screenType !== 'desktop'}
+						status={mdocQRStatus}
+						qrContent={mdocQRContent}
+						credential={vcEntity}
+						requestedFields={shareWithQrFilter}
+						mdocTypeDetails={mdocTypeDetails}
+						bluetoothPairingCancelled={bluetoothPairingCancelled}
+						requiresUserGesture={bluetoothConnectRequiresUserGesture()}
+						onConnect={connectClient}
+						onConsent={consentToShare}
+						onCancel={cancelShare}
+						onClose={() => setShowMdocQR(false)}
+					/>
 				</div>
 				<div className='px-2 w-full'>
 					<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
