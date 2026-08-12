@@ -80,6 +80,8 @@
 		"loginWithSecurityKey": "Σύνδεση με κλειδί ασφαλείας",
 		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
 		"newHereQuestion": "Δεν έχετε λογαριασμό πορτοφολιού; ",
+		"otherAccounts": "Άλλοι λογαριασμοί",
+		"otherAccountsDescription": "Επιλέξτε έναν λογαριασμό για να συνεχίσετε.",
 		"passkeyInvalid": "Άγνωστο κλειδί πρόσβασης, πιθανώς διαγράφηκε από τον χρήστη.",
 		"passkeyLoginFailedServerError": "Απέτυχε η εκκίνηση της σύνδεσης με κλειδί πρόσβασης, δοκιμάστε ξανά αργότερα.",
 		"passkeyLoginFailedTryAgain": "Η σύνδεση με κλειδί πρόσβασης απέτυχε, δοκιμάστε ξανά.",
@@ -96,8 +98,6 @@
 		"signUpWithPasskey": "Δημιουργία λογαριασμού με κλειδί πρόσβασης",
 		"signUpWithSecurityKey": "Χρήση κλειδιού ασφαλείας",
 		"submitting": "Υποβολή...",
-		"switchAccount": "Αλλαγή λογαριασμού",
-		"switchAccountDescription": "Επιλέξτε έναν λογαριασμό για να συνεχίσετε.",
 		"welcomeMessage": "Καλώς ήρθατε στο <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {

@@ -16,6 +16,9 @@
 		"inputPlaceholder": "PIN",
 		"title": "Enter the PIN"
 	},
+	"authPopup": {
+		"description": "Please <strong>authenticate</strong> to continue."
+	},
 	"common": {
 		"and": "and",
 		"back": "Back",
@@ -89,6 +92,8 @@
 		"loginWithSecurityKey": "Sign in with a Security Key",
 		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "Don't have a wallet account? ",
+		"otherAccounts": "Other accounts",
+		"otherAccountsDescription": "Choose an account to continue.",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
 		"passkeyLoginFailedServerError": "Failed to initiate passkey sign in, please try again later.",
 		"passkeyLoginFailedTryAgain": "Passkey sign in failed, please try again.",
@@ -106,8 +111,6 @@
 		"signUpWithPasskey": "Create account with a Passkey",
 		"signUpWithSecurityKey": "Use a Security Key",
 		"submitting": "Submitting...",
-		"switchAccount": "Switch account",
-		"switchAccountDescription": "Choose an account to continue.",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {
@@ -365,6 +368,10 @@
 		"nameAriaLabel": "Name for new credential",
 		"namePlaceholder": "Credential name",
 		"passkeyCreated": "Your passkey has been created."
+	},
+	"resyncNotification": {
+		"action": "Sync",
+		"description": "You're back online. Would you like to resync your wallet?"
 	},
 	"selectCredentialPopup": {
 		"allClaimsRequested": "The verifier has requested all claims of the credential.",

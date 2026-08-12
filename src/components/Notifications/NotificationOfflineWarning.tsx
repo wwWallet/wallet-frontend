@@ -4,6 +4,7 @@ import { useTranslation, Trans } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import SyncNotificationContext from '@/context/SyncNotificationContext';
 import { useSessionStorage } from '@/hooks/useStorage';
 import { TriangleAlert, X } from 'lucide-react';
 
@@ -12,13 +13,15 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
+
+	const { pendingResync, showSyncNotification } = useContext(SyncNotificationContext);
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
 
 	const handleCloseMessageOffline = () => {
 		setIsMessageOfflineVisible(true);
 	};
 
-	const show = isOnline === false && isMessageOfflineVisible === false;
+	const show = isOnline === false && !pendingResync && !showSyncNotification && isMessageOfflineVisible === false;
 	// if (!show) return null;
 
 	return (

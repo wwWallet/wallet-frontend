@@ -35,7 +35,22 @@ const WebauthnRegistration = ({
 	const { t } = useTranslation();
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
+	const [menuAlign, setMenuAlign] = useState<'left' | 'right'>('right');
 	const menuRef = useRef<HTMLDivElement | null>(null);
+	const MENU_WIDTH = 224; // min-w-56
+	const MENU_EDGE_PADDING = 8;
+
+	const toggleMenu = () => {
+		setMenuOpen((open) => {
+			const next = !open;
+			if (next && menuRef.current) {
+				const rect = menuRef.current.getBoundingClientRect();
+				const overflowsLeft = rect.right - MENU_WIDTH < MENU_EDGE_PADDING;
+				setMenuAlign(overflowsLeft ? 'left' : 'right');
+			}
+			return next;
+		});
+	};
 
 	useEffect(() => {
 		if (!menuOpen) return;
@@ -169,7 +184,7 @@ const WebauthnRegistration = ({
 			<button
 				id="add-passkey-trigger"
 				type="button"
-				onClick={() => setMenuOpen((open) => !open)}
+				onClick={toggleMenu}
 				disabled={registrationInProgress || !isOnline}
 				aria-haspopup="menu"
 				aria-expanded={menuOpen}
@@ -185,7 +200,7 @@ const WebauthnRegistration = ({
 				<div
 					role="menu"
 					aria-label={t('pageSettings.addPasskeyTitle')}
-					className="absolute left-0 mt-2 min-w-56 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50 p-1"
+					className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} mt-2 min-w-56 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50 p-1`}
 				>
 					{passkeyOptions(t).map(({ Icon, hint, btnLabel }) => (
 						<button
