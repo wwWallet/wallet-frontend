@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
-import { qrLog, qrEnvironment } from '../../utils/qr/qr-log';
+import { qrLog } from '../../utils/qr/qr-log';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
@@ -27,9 +27,9 @@ const stopMediaTracks = (stream) => {
 	});
 };
 
-const QRScanner = ({ onClose }) => {
+const QRScanner = ({ onClose, initialStream = null, cameraError = null }) => {
 	const [devices, setDevices] = useState([]);
-	const [stream, setStream] = useState(null);
+	const [stream, setStream] = useState(initialStream);
 	const streamRef = useRef(null);
 	const videoRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
@@ -37,7 +37,7 @@ const QRScanner = ({ onClose }) => {
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const [hasCameraPermission, setHasCameraPermission] = useState(null);
+	const [hasCameraPermission] = useState(Boolean(initialStream) && !cameraError);
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
@@ -58,52 +58,18 @@ const QRScanner = ({ onClose }) => {
 		onClose();
 	};
 
-	// The one and only unsolicited getUserMedia call. It has to happen immediately on mount, while the
-	// tap that opened the scanner still counts as a user gesture, and the stream it returns is the one
-	// we keep and scan: re-opening the camera later would need a gesture we no longer have.
+	// Camera access is requested by useQRScanner from the opening button's user gesture.
 	useEffect(() => {
-		let cancelled = false;
-		qrLog('component', 'mounted, opening camera', qrEnvironment());
-		navigator.mediaDevices.getUserMedia({
-			video: {
-				facingMode: { ideal: 'environment' },
-				width: { ideal: 1920 },
-				height: { ideal: 1080 },
-			},
-		})
-			.then(cameraStream => {
-				if (cancelled) {
-					stopMediaTracks(cameraStream);
-					return;
-				}
-				const track = cameraStream.getVideoTracks()[0];
-				qrLog('component', 'camera opened', {
-					trackLabel: track?.label,
-					settings: track?.getSettings(),
-				});
-				setHasCameraPermission(true);
-				streamRef.current = cameraStream;
-				setStream(cameraStream);
-				setCameraReady(true);
-			})
-			.catch(error => {
-				if (cancelled) return;
-				console.error("Camera access denied:", error);
-				qrLog('component', `opening the camera failed with ${error?.name}`, {
-					name: error?.name,
-					message: error?.message,
-					constraint: error?.constraint,
-					error,
-				});
-				setHasCameraPermission(false);
+		if (initialStream) {
+			const track = initialStream.getVideoTracks()[0];
+			qrLog('component', 'camera stream received', {
+				trackLabel: track?.label,
+				settings: track?.getSettings(),
 			});
-
-		return () => {
-			cancelled = true;
-			stopMediaTracks(streamRef.current);
-			streamRef.current = null;
-		};
-	}, []);
+			streamRef.current = initialStream;
+			setCameraReady(true);
+		}
+	}, [initialStream]);
 
 	// Labels are only populated once permission has been granted, which is why this runs off the stream
 	// rather than on mount. Purely informational: it feeds the camera switch button.
@@ -181,7 +147,7 @@ const QRScanner = ({ onClose }) => {
 			stopMediaTracks(stream);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- screenType is only logged, it must not re-attach the scanner
-	}, [stream, onDecode]);
+	}, [stream, cameraReady, onDecode]);
 
 	// Runs from a tap, so this getUserMedia call has the user gesture iOS requires.
 	const switchCamera = async () => {

@@ -11,7 +11,7 @@ import { Bell, PlusCircle, QrCode, Send, UserCircle, Wallet } from 'lucide-react
 const BottomNav = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
-	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
+	const { isQRScannerOpen, openQRScanner, closeQRScanner, cameraStream, cameraError } = useQRScanner();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -95,6 +95,8 @@ const BottomNav = ({ isOpen, toggle }) => {
 			{isQRScannerOpen && (
 				<QRCodeScanner
 					onClose={closeQRScanner}
+					initialStream={cameraStream}
+					cameraError={cameraError}
 				/>
 			)}
 		</>
