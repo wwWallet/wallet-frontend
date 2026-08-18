@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
-import { qrLog } from '../../utils/qr/qr-log';
+import { qrLog, qrEnvironment } from '../../utils/qr/qr-log';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
@@ -39,10 +39,7 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	useEffect(() => {
-		qrLog('component', 'mounted, asking for camera permission', {
-			innerWidth: window.innerWidth,
-			innerHeight: window.innerHeight,
-		});
+		qrLog('component', 'mounted, asking for camera permission', qrEnvironment());
 		navigator.mediaDevices.getUserMedia({ video: true })
 			.then(stream => {
 				qrLog('component', 'camera permission granted');
@@ -51,7 +48,12 @@ const QRScanner = ({ onClose }) => {
 			})
 			.catch(error => {
 				console.error("Camera access denied:", error);
-				qrLog('component', 'camera permission denied', error);
+				qrLog('component', `camera permission request failed with ${error?.name}`, {
+					name: error?.name,
+					message: error?.message,
+					constraint: error?.constraint,
+					error,
+				});
 				setHasCameraPermission(false);
 			});
 	}, []);

@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 import workerUrl from "./worker.ts?worker&url";
-import { qrLog } from "./qr-log";
+import { qrLog, qrEnvironment } from "./qr-log";
 
 type TrustedTypePolicy = {
 	createScriptURL(url: string): string;
@@ -367,17 +367,8 @@ class QrScanner {
 		window.addEventListener("resize", this._updateOverlay);
 
 		qrLog("env", "detected environment", {
-			userAgent: navigator.userAgent,
-			platform: navigator.userAgentData?.platform,
-			protocol: window.location.protocol,
-			isSecureContext,
-			hasMediaDevices: !!navigator.mediaDevices,
-			hasBarcodeDetector: "BarcodeDetector" in window,
+			...qrEnvironment(),
 			hasRequestVideoFrameCallback: "requestVideoFrameCallback" in video,
-			hasTrustedTypes: "trustedTypes" in window,
-			hasOffscreenCanvas: "OffscreenCanvas" in window,
-			devicePixelRatio: window.devicePixelRatio,
-			screen: { width: window.screen.width, height: window.screen.height },
 			preferredCamera: this._preferredCamera,
 		});
 
@@ -779,6 +770,10 @@ class QrScanner {
 								),
 							};
 						} catch (e) {
+							// Rethrow the "no QR code in this frame" sentinel as-is. It is thrown above into this very
+							// catch block, and wrapping it in an Error would make it unrecognizable to the callers that
+							// filter it out, turning the normal empty-frame case into a per-frame error.
+							if (e === QrScanner.NO_QR_CODE_FOUND) throw e;
 							const errorMessage = (e as Error).message || (e as string);
 							if (/not implemented|service unavailable/.test(errorMessage)) {
 								// Not implemented can apparently for some reason happen even though getSupportedFormats
@@ -1255,7 +1250,10 @@ class QrScanner {
 
 	private _onDecodeError(error: Error | string): void {
 		// default error handler; can be overwritten in the constructor
-		if (error === QrScanner.NO_QR_CODE_FOUND) return;
+		// Match on the message rather than on identity, so that a "no QR code found" that got wrapped in an Error
+		// somewhere is still recognized as the normal empty-frame case instead of being logged on every frame.
+		const message = typeof error === "string" ? error : error?.message;
+		if (message && message.endsWith(QrScanner.NO_QR_CODE_FOUND)) return;
 		console.log(error);
 	}
 
