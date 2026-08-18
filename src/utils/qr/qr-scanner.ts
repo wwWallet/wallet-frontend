@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 import workerUrl from "./worker.ts?worker&url";
+import { qrLog } from "./qr-log";
 
 type TrustedTypePolicy = {
 	createScriptURL(url: string): string;
@@ -56,7 +57,10 @@ class QrScanner {
 	static async listCameras(
 		requestLabels = false,
 	): Promise<Array<QrScanner.Camera>> {
-		if (!navigator.mediaDevices) return [];
+		if (!navigator.mediaDevices) {
+			qrLog("cameras", "navigator.mediaDevices is unavailable, no cameras");
+			return [];
+		}
 
 		const enumerateCameras = async (): Promise<Array<MediaDeviceInfo>> =>
 			(await navigator.mediaDevices.enumerateDevices()).filter(
@@ -84,10 +88,12 @@ class QrScanner {
 		}
 
 		try {
-			return (await enumerateCameras()).map((camera, i) => ({
+			const cameras = (await enumerateCameras()).map((camera, i) => ({
 				id: camera.deviceId,
 				label: camera.label || (i === 0 ? "Default Camera" : `Camera ${i + 1}`),
 			}));
+			qrLog("cameras", `found ${cameras.length} video input device(s)`, cameras);
+			return cameras;
 		} finally {
 			// close the stream we just opened for getting camera access for listing the device labels
 			if (openedStream) {
@@ -118,6 +124,7 @@ class QrScanner {
 	private _paused: boolean = false;
 	private _flashOn: boolean = false;
 	private _destroyed: boolean = false;
+	private _loggedFrameApi: boolean = false;
 
 	constructor(
 		video: HTMLVideoElement,
@@ -359,6 +366,21 @@ class QrScanner {
 		document.addEventListener("visibilitychange", this._onVisibilityChange);
 		window.addEventListener("resize", this._updateOverlay);
 
+		qrLog("env", "detected environment", {
+			userAgent: navigator.userAgent,
+			platform: navigator.userAgentData?.platform,
+			protocol: window.location.protocol,
+			isSecureContext,
+			hasMediaDevices: !!navigator.mediaDevices,
+			hasBarcodeDetector: "BarcodeDetector" in window,
+			hasRequestVideoFrameCallback: "requestVideoFrameCallback" in video,
+			hasTrustedTypes: "trustedTypes" in window,
+			hasOffscreenCanvas: "OffscreenCanvas" in window,
+			devicePixelRatio: window.devicePixelRatio,
+			screen: { width: window.screen.width, height: window.screen.height },
+			preferredCamera: this._preferredCamera,
+		});
+
 		this._qrEnginePromise = QrScanner.createQrEngine();
 	}
 
@@ -371,8 +393,12 @@ class QrScanner {
 			} else {
 				stream = (await this._getCameraStream()).stream;
 			}
-			return "torch" in stream.getVideoTracks()[0].getSettings();
+			const settings = stream.getVideoTracks()[0].getSettings();
+			const hasFlash = "torch" in settings;
+			qrLog("flash", `detected flash/torch support: ${hasFlash}`, settings);
+			return hasFlash;
 		} catch (e) {
+			qrLog("flash", "flash detection failed, assuming no flash", e);
 			return false;
 		} finally {
 			// close the stream we just opened for detecting whether it supports flash
@@ -763,6 +789,11 @@ class QrScanner {
 								// apply this optimization anymore but just set _disableBarcodeDetector in both cases.
 								// Also note that if we got an external qrEngine that crashed, we should possibly notify
 								// the caller about it, but we also don't do this here, as it's such an unlikely case.
+								qrLog(
+									"engine",
+									"native BarcodeDetector failed, disabling it and falling back to the worker",
+									errorMessage,
+								);
 								QrScanner._disableBarcodeDetector = true;
 								// retry without passing the broken BarcodeScanner instance
 								return QrScanner.scanImage(imageOrFileOrBlobOrUrl, {
@@ -848,18 +879,35 @@ class QrScanner {
 			const workerScriptUrl = QrScanner._trustedTypesPolicy
 				? QrScanner._trustedTypesPolicy.createScriptURL(workerUrl)
 				: workerUrl;
+			qrLog("engine", "creating worker", {
+				workerUrl,
+				trustedTypesSupported: !!trustedTypesFactory,
+			});
 			return new Worker(workerScriptUrl as unknown as string, {
 				type: "module",
 			});
 		};
 
+		const hasBarcodeDetector = "BarcodeDetector" in window;
+		const supportedFormats =
+			hasBarcodeDetector && BarcodeDetector.getSupportedFormats
+				? await BarcodeDetector.getSupportedFormats()
+				: null;
 		const useBarcodeDetector =
 			!QrScanner._disableBarcodeDetector &&
-			"BarcodeDetector" in window &&
-			BarcodeDetector.getSupportedFormats &&
-			(await BarcodeDetector.getSupportedFormats()).includes("qr_code");
+			!!supportedFormats &&
+			supportedFormats.includes("qr_code");
+		qrLog("engine", "detected BarcodeDetector support", {
+			hasBarcodeDetector,
+			supportedFormats,
+			previouslyDisabledAfterFailure: QrScanner._disableBarcodeDetector,
+			useBarcodeDetector,
+		});
 
-		if (!useBarcodeDetector) return createWorker();
+		if (!useBarcodeDetector) {
+			qrLog("engine", "using the WASM worker engine (no usable BarcodeDetector)");
+			return createWorker();
+		}
 
 		// On Macs with an M1/M2 processor and macOS Ventura (macOS version 13), the BarcodeDetector is broken in
 		// Chromium based browsers, regardless of the version. For that constellation, the BarcodeDetector does not
@@ -867,6 +915,15 @@ class QrScanner {
 		// See issue #209 and https://bugs.chromium.org/p/chromium/issues/detail?id=1382442
 		// TODO update this once the issue in macOS is fixed
 		const userAgentData = navigator.userAgentData;
+		qrLog("engine", "detected user agent", {
+			userAgentData: userAgentData
+				? {
+						platform: userAgentData.platform,
+						brands: userAgentData.brands,
+					}
+				: null,
+			userAgent: navigator.userAgent,
+		});
 		const isChromiumOnMacWithArmVentura =
 			userAgentData && // all Chromium browsers support userAgentData
 			userAgentData.brands.some(({ brand }) => /Chromium/i.test(brand)) &&
@@ -879,19 +936,45 @@ class QrScanner {
 				.then(({ architecture, platformVersion }) => {
 					const normalizedArchitecture = architecture || "arm";
 					const normalizedPlatformVersion = platformVersion || "13";
+					qrLog("engine", "detected high entropy values", {
+						architecture,
+						platformVersion,
+						normalizedArchitecture,
+						normalizedPlatformVersion,
+					});
 					return (
 						/arm/i.test(normalizedArchitecture) &&
 						parseInt(normalizedPlatformVersion, 10) >= /* Ventura */ 13
 					);
 				})
-				.catch(() => true));
-		if (isChromiumOnMacWithArmVentura) return createWorker();
+				.catch((e) => {
+					qrLog(
+						"engine",
+						"high entropy values unavailable, assuming broken ARM Ventura",
+						e,
+					);
+					return true;
+				}));
+		if (isChromiumOnMacWithArmVentura) {
+			qrLog(
+				"engine",
+				"using the WASM worker engine (Chromium on ARM Mac with Ventura+ has a broken BarcodeDetector)",
+			);
+			return createWorker();
+		}
 
+		qrLog("engine", "using the native BarcodeDetector engine");
 		return new BarcodeDetector({ formats: ["qr_code"] });
 	}
 
 	private _onPlay(): void {
 		this._scanRegion = this._calculateScanRegion(this.$video);
+		qrLog("scan", "video playing, scanning region", {
+			videoWidth: this.$video.videoWidth,
+			videoHeight: this.$video.videoHeight,
+			scanRegion: this._scanRegion,
+			mirrored: /scaleX\(-1\)/.test(this.$video.style.transform),
+		});
 		this._updateOverlay();
 		if (this.$overlay) {
 			this.$overlay.style.display = "";
@@ -1078,11 +1161,19 @@ class QrScanner {
 		// camera's framerate can be lower than the screen refresh rate and this._maxScansPerSecond, especially in dark
 		// settings where the exposure time is longer. Both, requestVideoFrameCallback and requestAnimationFrame are not
 		// being fired if the tab is in the background, which is what we want.
-		const requestFrame =
-			"requestVideoFrameCallback" in this.$video
-				? // @ts-ignore
-					this.$video.requestVideoFrameCallback.bind(this.$video)
-				: requestAnimationFrame;
+		const hasVideoFrameCallback = "requestVideoFrameCallback" in this.$video;
+		const requestFrame = hasVideoFrameCallback
+			? // @ts-ignore
+				this.$video.requestVideoFrameCallback.bind(this.$video)
+			: requestAnimationFrame;
+		if (!this._loggedFrameApi) {
+			this._loggedFrameApi = true;
+			qrLog(
+				"scan",
+				`scheduling frames with ${hasVideoFrameCallback ? "requestVideoFrameCallback" : "requestAnimationFrame"}`,
+				{ maxScansPerSecond: this._maxScansPerSecond },
+			);
+		}
 		requestFrame(async () => {
 			if (this.$video.readyState <= 1) {
 				// Skip scans until the video is ready as drawImage() only works correctly on a video with readyState
@@ -1172,7 +1263,14 @@ class QrScanner {
 		stream: MediaStream;
 		facingMode: QrScanner.FacingMode;
 	}> {
-		if (!navigator.mediaDevices) throw new Error("Camera not found.");
+		if (!navigator.mediaDevices) {
+			qrLog(
+				"stream",
+				"navigator.mediaDevices is unavailable (insecure context?)",
+				{ protocol: window.location.protocol, isSecureContext },
+			);
+			throw new Error("Camera not found.");
+		}
 
 		const preferenceType = /^(environment|user)$/.test(this._preferredCamera)
 			? "facingMode"
@@ -1192,6 +1290,11 @@ class QrScanner {
 			}),
 		);
 
+		qrLog("stream", "requesting camera stream", {
+			preferredCamera: this._preferredCamera,
+			preferenceType,
+		});
+
 		for (const constraints of [
 			...constraintsWithCamera,
 			...constraintsWithoutCamera,
@@ -1204,17 +1307,32 @@ class QrScanner {
 				// Try to determine the facing mode from the stream, otherwise use a guess or 'environment' as
 				// default. Note that the guess is not always accurate as Safari returns cameras of different facing
 				// mode, even for exact facingMode constraints.
+				const detectedFacingMode = this._getFacingMode(stream);
 				const facingMode =
-					this._getFacingMode(stream) ||
+					detectedFacingMode ||
 					(constraints.facingMode
 						? (this._preferredCamera as QrScanner.FacingMode) // a facing mode we were able to fulfill
 						: this._preferredCamera === "environment"
 							? "user" // switch as _preferredCamera was environment but we are not able to fulfill it
 							: "environment"); // switch from unfulfilled user facingMode or default to environment
+				const videoTrack = stream.getVideoTracks()[0];
+				qrLog("stream", "got camera stream", {
+					constraints,
+					trackLabel: videoTrack?.label,
+					settings: videoTrack?.getSettings(),
+					detectedFacingMode: detectedFacingMode || "unknown (guessed below)",
+					facingMode,
+				});
 				return { stream, facingMode };
-			} catch (e) {}
+			} catch (e) {
+				qrLog("stream", "constraints rejected, trying the next fallback", {
+					constraints,
+					error: e,
+				});
+			}
 		}
 
+		qrLog("stream", "no constraint combination produced a camera stream");
 		throw new Error("Camera not found.");
 	}
 

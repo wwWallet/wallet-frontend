@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
+import { qrLog } from '../../utils/qr/qr-log';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
@@ -38,13 +39,19 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	useEffect(() => {
+		qrLog('component', 'mounted, asking for camera permission', {
+			innerWidth: window.innerWidth,
+			innerHeight: window.innerHeight,
+		});
 		navigator.mediaDevices.getUserMedia({ video: true })
 			.then(stream => {
+				qrLog('component', 'camera permission granted');
 				setHasCameraPermission(true);
 				stream.getTracks().forEach(track => track.stop());
 			})
 			.catch(error => {
 				console.error("Camera access denied:", error);
+				qrLog('component', 'camera permission denied', error);
 				setHasCameraPermission(false);
 			});
 	}, []);
@@ -54,6 +61,8 @@ const QRScanner = ({ onClose }) => {
 			navigator.mediaDevices.enumerateDevices()
 				.then(async mediaDevices => {
 					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
+					qrLog('component', `enumerated ${videoDevices.length} video input device(s)`,
+						videoDevices.map(({ deviceId, label, groupId }) => ({ deviceId, label, groupId })));
 
 					let bestFrontCamera = null;
 					let bestBackCamera = null;
@@ -70,6 +79,14 @@ const QRScanner = ({ onClose }) => {
 							height: capabilities.height?.max || 0,
 							idealHeight: Math.min(capabilities.height?.max, capabilities.width.max, 1080)
 						};
+
+						qrLog('component', `probed camera "${device.label || device.deviceId}"`, {
+							facingMode: capabilities.facingMode,
+							isBackCamera,
+							resolution,
+							hasTorch: 'torch' in capabilities,
+							capabilities,
+						});
 
 						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
 							bestBackCamera = { device, resolution: resolution, facingMode: 'environment' };
@@ -93,6 +110,18 @@ const QRScanner = ({ onClose }) => {
 					const backCameraIndex = filteredDevices.findIndex(devices =>
 						devices.device.deviceId === bestBackCamera?.device?.deviceId);
 
+					qrLog('component', 'selected cameras', {
+						bestFrontCamera: bestFrontCamera && {
+							label: bestFrontCamera.device.label,
+							resolution: bestFrontCamera.resolution,
+						},
+						bestBackCamera: bestBackCamera && {
+							label: bestBackCamera.device.label,
+							resolution: bestBackCamera.resolution,
+						},
+						startingWith: backCameraIndex !== -1 ? 'back camera' : 'first available camera',
+					});
+
 					if (backCameraIndex !== -1) {
 						setCurrentDeviceIndex(backCameraIndex);
 					} else {
@@ -102,6 +131,7 @@ const QRScanner = ({ onClose }) => {
 				})
 				.catch(error => {
 					console.error("Error enumerating devices:", error);
+					qrLog('component', 'device enumeration failed', error);
 				});
 		}
 	}, [hasCameraPermission]);
@@ -115,6 +145,11 @@ const QRScanner = ({ onClose }) => {
 	const switchCamera = () => {
 		if (devices.length > 1) {
 			const newIndex = (currentDeviceIndex + 1) % devices.length;
+			qrLog('component', 'switching camera', {
+				from: devices[currentDeviceIndex]?.device.label,
+				to: devices[newIndex]?.device.label,
+				facingMode: devices[newIndex]?.facingMode,
+			});
 			if (webcamRef.current && webcamRef.current.stream) {
 				stopMediaTracks(webcamRef.current.stream);
 			}
@@ -127,6 +162,15 @@ const QRScanner = ({ onClose }) => {
 		if (webcamRef.current && webcamRef.current.video) {
 
 			const videoElement = webcamRef.current.video;
+			const activeTrack = webcamRef.current.stream?.getVideoTracks()[0];
+			qrLog('component', 'webcam stream ready, attaching QR scanner', {
+				screenType,
+				zoomLevel,
+				activeCamera: devices[currentDeviceIndex]?.device.label,
+				facingMode: devices[currentDeviceIndex]?.facingMode,
+				trackLabel: activeTrack?.label,
+				trackSettings: activeTrack?.getSettings(),
+			});
 			const qrScanner = new QrScanner(videoElement, (result) => {
 				console.log('decoded qr code:', result);
 				setQrDetected(true);
