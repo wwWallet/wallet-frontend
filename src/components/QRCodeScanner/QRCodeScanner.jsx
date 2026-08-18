@@ -81,15 +81,23 @@ const QRScanner = ({ onClose, initialStream = null, cameraError = null }) => {
 				qrLog('component', `enumerated ${videoDevices.length} video input device(s)`,
 					videoDevices.map(({ deviceId, label, groupId }) => ({ deviceId, label, groupId })));
 
-				const cameras = videoDevices.map(describeCamera);
-				const activeDeviceId = stream.getVideoTracks()[0]?.getSettings()?.deviceId;
-				const activeIndex = cameras.findIndex(({ deviceId }) => deviceId === activeDeviceId);
+				const cameras = videoDevices
+					.map(describeCamera)
+					.filter(camera => camera.facingMode !== 'unknown')
+					.filter((camera, index, allCameras) =>
+						allCameras.findIndex(({ facingMode }) => facingMode === camera.facingMode) === index);
+				const activeSettings = stream.getVideoTracks()[0]?.getSettings();
+				const activeFacingMode = Array.isArray(activeSettings?.facingMode)
+					? activeSettings.facingMode[0]
+					: activeSettings?.facingMode;
+				const activeIndex = cameras.findIndex(({ facingMode, deviceId }) =>
+					facingMode === activeFacingMode || deviceId === activeSettings?.deviceId);
 
 				setDevices(cameras);
 				setCurrentDeviceIndex(activeIndex === -1 ? 0 : activeIndex);
 				qrLog('component', 'camera list ready', {
 					cameras,
-					activeDeviceId,
+					activeDeviceId: activeSettings?.deviceId,
 					activeCamera: cameras[activeIndex]?.label ?? 'not matched in the device list',
 				});
 			})
@@ -149,26 +157,23 @@ const QRScanner = ({ onClose, initialStream = null, cameraError = null }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- screenType is only logged, it must not re-attach the scanner
 	}, [stream, cameraReady, onDecode]);
 
-	// Runs from a tap, so this getUserMedia call has the user gesture iOS requires.
+		// Request the logical front/back camera from the button's user gesture. Avoid selecting
+		// individual iPhone lenses by deviceId, which can be rejected or crash Safari.
 	const switchCamera = async () => {
-		if (devices.length < 2) return;
+		if (devices.length < 2 || !stream) return;
 		const newIndex = (currentDeviceIndex + 1) % devices.length;
+		const oldStream = stream;
 		qrLog('component', 'switching camera', {
 			from: devices[currentDeviceIndex]?.label,
 			to: devices[newIndex]?.label,
 			facingMode: devices[newIndex]?.facingMode,
 		});
 
-		// Stop the current capture first: iOS Safari allows only one camera stream at a time.
-		stopMediaTracks(stream);
-		streamRef.current = null;
-		setStream(null);
-		setCameraReady(false);
-
 		try {
 			const newStream = await navigator.mediaDevices.getUserMedia({
+				audio: false,
 				video: {
-					deviceId: { exact: devices[newIndex].deviceId },
+					facingMode: { exact: devices[newIndex].facingMode },
 					width: { ideal: 1920 },
 					height: { ideal: 1080 },
 				},
@@ -176,6 +181,7 @@ const QRScanner = ({ onClose, initialStream = null, cameraError = null }) => {
 			setCurrentDeviceIndex(newIndex);
 			streamRef.current = newStream;
 			setStream(newStream);
+			oldStream.getTracks().forEach(track => track.stop());
 		} catch (error) {
 			console.error('Error switching camera: ', error);
 			qrLog('component', `switching camera failed with ${error?.name}`, error);
