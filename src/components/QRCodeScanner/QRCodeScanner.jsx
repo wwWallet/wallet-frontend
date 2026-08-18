@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Webcam from 'react-webcam';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
 import { qrLog, qrEnvironment } from '../../utils/qr/qr-log';
@@ -9,9 +8,29 @@ import { H1 } from '../Shared/Heading';
 import Button from '../Buttons/Button';
 import { ArrowLeft, CheckCircle, QrCode, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
+// Describe a camera from its label alone. Probing each device with getUserMedia to read its
+// capabilities is not an option: iOS Safari only allows a getUserMedia call that is backed by a
+// user gesture, so the second and any further call is rejected with NotAllowedError.
+const describeCamera = ({ deviceId, label }) => ({
+	deviceId,
+	label,
+	facingMode: /back|rear|environment/i.test(label)
+		? 'environment'
+		: /front|user|face/i.test(label)
+			? 'user'
+			: 'unknown',
+});
+
+const stopMediaTracks = (stream) => {
+	stream?.getTracks().forEach(track => {
+		track.stop();
+	});
+};
+
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
-	const webcamRef = useRef(null);
+	const [stream, setStream] = useState(null);
+	const videoRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
@@ -38,17 +57,31 @@ const QRScanner = ({ onClose }) => {
 		onClose();
 	};
 
+	// The one and only unsolicited getUserMedia call. It has to happen immediately on mount, while the
+	// tap that opened the scanner still counts as a user gesture, and the stream it returns is the one
+	// we keep and scan: re-opening the camera later would need a gesture we no longer have.
 	useEffect(() => {
-		qrLog('component', 'mounted, asking for camera permission', qrEnvironment());
-		navigator.mediaDevices.getUserMedia({ video: true })
-			.then(stream => {
-				qrLog('component', 'camera permission granted');
+		qrLog('component', 'mounted, opening camera', qrEnvironment());
+		navigator.mediaDevices.getUserMedia({
+			video: {
+				facingMode: { ideal: 'environment' },
+				width: { ideal: 1920 },
+				height: { ideal: 1080 },
+			},
+		})
+			.then(cameraStream => {
+				const track = cameraStream.getVideoTracks()[0];
+				qrLog('component', 'camera opened', {
+					trackLabel: track?.label,
+					settings: track?.getSettings(),
+				});
 				setHasCameraPermission(true);
-				stream.getTracks().forEach(track => track.stop());
+				setStream(cameraStream);
+				setCameraReady(true);
 			})
 			.catch(error => {
 				console.error("Camera access denied:", error);
-				qrLog('component', `camera permission request failed with ${error?.name}`, {
+				qrLog('component', `opening the camera failed with ${error?.name}`, {
 					name: error?.name,
 					message: error?.message,
 					constraint: error?.constraint,
@@ -57,6 +90,34 @@ const QRScanner = ({ onClose }) => {
 				setHasCameraPermission(false);
 			});
 	}, []);
+
+	// Labels are only populated once permission has been granted, which is why this runs off the stream
+	// rather than on mount. Purely informational: it feeds the camera switch button.
+	useEffect(() => {
+		if (!stream) return;
+		navigator.mediaDevices.enumerateDevices()
+			.then(mediaDevices => {
+				const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
+				qrLog('component', `enumerated ${videoDevices.length} video input device(s)`,
+					videoDevices.map(({ deviceId, label, groupId }) => ({ deviceId, label, groupId })));
+
+				const cameras = videoDevices.map(describeCamera);
+				const activeDeviceId = stream.getVideoTracks()[0]?.getSettings()?.deviceId;
+				const activeIndex = cameras.findIndex(({ deviceId }) => deviceId === activeDeviceId);
+
+				setDevices(cameras);
+				setCurrentDeviceIndex(activeIndex === -1 ? 0 : activeIndex);
+				qrLog('component', 'camera list ready', {
+					cameras,
+					activeDeviceId,
+					activeCamera: cameras[activeIndex]?.label ?? 'not matched in the device list',
+				});
+			})
+			.catch(error => {
+				console.error("Error enumerating devices:", error);
+				qrLog('component', 'device enumeration failed', error);
+			});
+	}, [stream]);
 
 	useEffect(() => {
 		if (hasCameraPermission) {
@@ -138,66 +199,82 @@ const QRScanner = ({ onClose }) => {
 		}
 	}, [hasCameraPermission]);
 
-	const stopMediaTracks = (stream) => {
-		stream.getTracks().forEach(track => {
-			track.stop();
+	const onDecode = useCallback((result) => {
+		console.log('decoded qr code:', result);
+		setQrDetected(true);
+		// Redirect to the URL found in the QR code
+		const scannedUrl = result.data;
+		setTimeout(() => {
+			setLoading(true);
+		}, 3000);
+		setTimeout(() => {
+			const baseUrl = window.location.origin;
+			const params = scannedUrl.split('?');
+			const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
+			window.location.href = cvUrl;
+		}, 1000);
+	}, []);
+
+	// Hand the stream we already hold to the video element and scan it. QrScanner reuses an existing
+	// srcObject instead of opening the camera itself, so this adds no getUserMedia call of its own.
+	useEffect(() => {
+		const videoElement = videoRef.current;
+		if (!stream || !videoElement) return;
+
+		videoElement.srcObject = stream;
+		const activeTrack = stream.getVideoTracks()[0];
+		qrLog('component', 'attaching QR scanner to the video element', {
+			screenType,
+			trackLabel: activeTrack?.label,
+			trackSettings: activeTrack?.getSettings(),
 		});
-	};
 
-	const switchCamera = () => {
-		if (devices.length > 1) {
-			const newIndex = (currentDeviceIndex + 1) % devices.length;
-			qrLog('component', 'switching camera', {
-				from: devices[currentDeviceIndex]?.device.label,
-				to: devices[newIndex]?.device.label,
-				facingMode: devices[newIndex]?.facingMode,
+		const qrScanner = new QrScanner(videoElement, onDecode, {
+			highlightScanRegion: true,
+			highlightCodeOutline: false,
+		});
+
+		qrScanner.start().catch(err => {
+			console.error('Error starting QR Scanner: ', err);
+			qrLog('component', `starting the QR scanner failed with ${err?.name}`, err);
+		});
+
+		return () => {
+			qrScanner.stop();
+			qrScanner.destroy();
+			// destroy() leaves the scan region highlight behind, which would stack up on every camera switch.
+			qrScanner.$overlay?.remove();
+			stopMediaTracks(stream);
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- screenType is only logged, it must not re-attach the scanner
+	}, [stream, onDecode]);
+
+	// Runs from a tap, so this getUserMedia call has the user gesture iOS requires.
+	const switchCamera = async () => {
+		if (devices.length < 2) return;
+		const newIndex = (currentDeviceIndex + 1) % devices.length;
+		qrLog('component', 'switching camera', {
+			from: devices[currentDeviceIndex]?.label,
+			to: devices[newIndex]?.label,
+			facingMode: devices[newIndex]?.facingMode,
+		});
+
+		// Stop the current capture first: iOS Safari allows only one camera stream at a time.
+		stopMediaTracks(stream);
+
+		try {
+			const newStream = await navigator.mediaDevices.getUserMedia({
+				video: {
+					deviceId: { exact: devices[newIndex].deviceId },
+					width: { ideal: 1920 },
+					height: { ideal: 1080 },
+				},
 			});
-			if (webcamRef.current && webcamRef.current.stream) {
-				stopMediaTracks(webcamRef.current.stream);
-			}
 			setCurrentDeviceIndex(newIndex);
-		}
-	};
-
-	const onUserMedia = () => {
-
-		if (webcamRef.current && webcamRef.current.video) {
-
-			const videoElement = webcamRef.current.video;
-			const activeTrack = webcamRef.current.stream?.getVideoTracks()[0];
-			qrLog('component', 'webcam stream ready, attaching QR scanner', {
-				screenType,
-				zoomLevel,
-				activeCamera: devices[currentDeviceIndex]?.device.label,
-				facingMode: devices[currentDeviceIndex]?.facingMode,
-				trackLabel: activeTrack?.label,
-				trackSettings: activeTrack?.getSettings(),
-			});
-			const qrScanner = new QrScanner(videoElement, (result) => {
-				console.log('decoded qr code:', result);
-				setQrDetected(true);
-				// Redirect to the URL found in the QR code
-				const scannedUrl = result.data;
-				setTimeout(() => {
-					setLoading(true);
-				}, 3000);
-				setTimeout(() => {
-					const baseUrl = window.location.origin;
-					const params = scannedUrl.split('?');
-					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-					window.location.href = cvUrl;
-				}, 1000);
-			}, { highlightScanRegion: true, highlightCodeOutline: false });
-
-			qrScanner.start().catch(err => {
-				console.error('Error starting QR Scanner: ', err);
-				// Optionally update UI or state to reflect the error
-			});
-
-			return () => {
-				qrScanner.stop();
-				qrScanner.destroy();
-			};
+			setStream(newStream);
+		} catch (error) {
+			console.error('Error switching camera: ', error);
+			qrLog('component', `switching camera failed with ${error?.name}`, error);
 		}
 	};
 
@@ -270,15 +347,14 @@ const QRScanner = ({ onClose }) => {
 					</div>
 					<div className="webcam-container mt-4 relative flex items-center justify-center">
 						<div className="relative w-full max-h-[60vh] flex justify-center items-center overflow-hidden">
-							<Webcam
-								key={devices[currentDeviceIndex]?.device.deviceId}
-								audio={false}
-								ref={webcamRef}
-								screenshotFormat="image/jpeg"
-								videoConstraints={{
-									deviceId: devices[currentDeviceIndex]?.device.deviceId,
-									height: { ideal: devices[currentDeviceIndex]?.resolution.idealHeight, max: devices[currentDeviceIndex]?.resolution.height }
-								}}
+							<video
+								// A fresh element per stream: destroying a scanner clears the srcObject of its video
+								// on a delay, which would otherwise tear down the stream that replaced it.
+								key={stream?.id}
+								ref={videoRef}
+								autoPlay
+								playsInline
+								muted
 								style={{
 									transform: `scale(${zoomLevel})`,
 									width: "100%",
@@ -286,7 +362,6 @@ const QRScanner = ({ onClose }) => {
 									objectFit: "contain",
 									maxHeight: '100%',
 								}}
-								onUserMedia={onUserMedia}
 							/>
 							{qrDetected && (
 								<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
