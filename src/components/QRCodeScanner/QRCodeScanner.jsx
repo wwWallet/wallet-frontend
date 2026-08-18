@@ -30,6 +30,7 @@ const stopMediaTracks = (stream) => {
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
 	const [stream, setStream] = useState(null);
+	const streamRef = useRef(null);
 	const videoRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -61,6 +62,7 @@ const QRScanner = ({ onClose }) => {
 	// tap that opened the scanner still counts as a user gesture, and the stream it returns is the one
 	// we keep and scan: re-opening the camera later would need a gesture we no longer have.
 	useEffect(() => {
+		let cancelled = false;
 		qrLog('component', 'mounted, opening camera', qrEnvironment());
 		navigator.mediaDevices.getUserMedia({
 			video: {
@@ -70,16 +72,22 @@ const QRScanner = ({ onClose }) => {
 			},
 		})
 			.then(cameraStream => {
+				if (cancelled) {
+					stopMediaTracks(cameraStream);
+					return;
+				}
 				const track = cameraStream.getVideoTracks()[0];
 				qrLog('component', 'camera opened', {
 					trackLabel: track?.label,
 					settings: track?.getSettings(),
 				});
 				setHasCameraPermission(true);
+				streamRef.current = cameraStream;
 				setStream(cameraStream);
 				setCameraReady(true);
 			})
 			.catch(error => {
+				if (cancelled) return;
 				console.error("Camera access denied:", error);
 				qrLog('component', `opening the camera failed with ${error?.name}`, {
 					name: error?.name,
@@ -89,6 +97,12 @@ const QRScanner = ({ onClose }) => {
 				});
 				setHasCameraPermission(false);
 			});
+
+		return () => {
+			cancelled = true;
+			stopMediaTracks(streamRef.current);
+			streamRef.current = null;
+		};
 	}, []);
 
 	// Labels are only populated once permission has been granted, which is why this runs off the stream
@@ -118,86 +132,6 @@ const QRScanner = ({ onClose }) => {
 				qrLog('component', 'device enumeration failed', error);
 			});
 	}, [stream]);
-
-	useEffect(() => {
-		if (hasCameraPermission) {
-			navigator.mediaDevices.enumerateDevices()
-				.then(async mediaDevices => {
-					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
-					qrLog('component', `enumerated ${videoDevices.length} video input device(s)`,
-						videoDevices.map(({ deviceId, label, groupId }) => ({ deviceId, label, groupId })));
-
-					let bestFrontCamera = null;
-					let bestBackCamera = null;
-
-					for (const device of videoDevices) {
-						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
-						const track = stream.getVideoTracks()[0];
-						const capabilities = track.getCapabilities();
-						// const isBackCamera = device.label.toLowerCase().includes('back');
-						const isBackCamera = capabilities.facingMode.includes('environment');
-
-						const resolution = {
-							width: capabilities.width?.max || 0,
-							height: capabilities.height?.max || 0,
-							idealHeight: Math.min(capabilities.height?.max, capabilities.width.max, 1080)
-						};
-
-						qrLog('component', `probed camera "${device.label || device.deviceId}"`, {
-							facingMode: capabilities.facingMode,
-							isBackCamera,
-							resolution,
-							hasTorch: 'torch' in capabilities,
-							capabilities,
-						});
-
-						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
-							bestBackCamera = { device, resolution: resolution, facingMode: 'environment' };
-						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
-							bestFrontCamera = { device, resolution: resolution, facingMode: 'user' };
-						}
-
-						track.stop();
-					}
-
-					const filteredDevices = [];
-					if (bestFrontCamera) {
-						filteredDevices.push(bestFrontCamera);
-					}
-					if (bestBackCamera) {
-						filteredDevices.push(bestBackCamera);
-					}
-
-					setDevices(filteredDevices);
-
-					const backCameraIndex = filteredDevices.findIndex(devices =>
-						devices.device.deviceId === bestBackCamera?.device?.deviceId);
-
-					qrLog('component', 'selected cameras', {
-						bestFrontCamera: bestFrontCamera && {
-							label: bestFrontCamera.device.label,
-							resolution: bestFrontCamera.resolution,
-						},
-						bestBackCamera: bestBackCamera && {
-							label: bestBackCamera.device.label,
-							resolution: bestBackCamera.resolution,
-						},
-						startingWith: backCameraIndex !== -1 ? 'back camera' : 'first available camera',
-					});
-
-					if (backCameraIndex !== -1) {
-						setCurrentDeviceIndex(backCameraIndex);
-					} else {
-						setCurrentDeviceIndex(0);
-					}
-					setCameraReady(true);
-				})
-				.catch(error => {
-					console.error("Error enumerating devices:", error);
-					qrLog('component', 'device enumeration failed', error);
-				});
-		}
-	}, [hasCameraPermission]);
 
 	const onDecode = useCallback((result) => {
 		console.log('decoded qr code:', result);
@@ -261,6 +195,9 @@ const QRScanner = ({ onClose }) => {
 
 		// Stop the current capture first: iOS Safari allows only one camera stream at a time.
 		stopMediaTracks(stream);
+		streamRef.current = null;
+		setStream(null);
+		setCameraReady(false);
 
 		try {
 			const newStream = await navigator.mediaDevices.getUserMedia({
@@ -271,10 +208,12 @@ const QRScanner = ({ onClose }) => {
 				},
 			});
 			setCurrentDeviceIndex(newIndex);
+			streamRef.current = newStream;
 			setStream(newStream);
 		} catch (error) {
 			console.error('Error switching camera: ', error);
 			qrLog('component', `switching camera failed with ${error?.name}`, error);
+			setCameraReady(false);
 		}
 	};
 
