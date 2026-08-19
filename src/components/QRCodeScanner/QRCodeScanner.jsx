@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Webcam from 'react-webcam';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
 import PopupLayout from '../Popups/PopupLayout';
@@ -8,15 +7,32 @@ import { H1 } from '../Shared/Heading';
 import Button from '../Buttons/Button';
 import { ArrowLeft, CheckCircle, QrCode, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
-const QRScanner = ({ onClose }) => {
-	const [devices, setDevices] = useState([]);
-	const webcamRef = useRef(null);
+// Describe a camera from its label alone. Probing each device with getUserMedia to read its
+// capabilities is not an option: iOS Safari only allows a getUserMedia call that is backed by a
+// user gesture, so the second and any further call is rejected with NotAllowedError.
+const getFacingModeFromLabel = (label) => (
+	/back|rear|environment/i.test(label)
+		? 'environment'
+		: /front|user|face/i.test(label)
+			? 'user'
+			: null
+);
+
+const stopMediaTracks = (stream) => {
+	stream?.getTracks().forEach(track => track.stop());
+};
+
+const QRScanner = ({ onClose, initialStream = null, cameraError = null }) => {
+	const [stream, setStream] = useState(initialStream);
+	const [availableFacingModes, setAvailableFacingModes] = useState([]);
+	const [facingMode, setFacingMode] = useState(
+		initialStream?.getVideoTracks()[0]?.getSettings().facingMode || 'environment'
+	);
+	const videoRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
@@ -38,126 +54,95 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	useEffect(() => {
-		navigator.mediaDevices.getUserMedia({ video: true })
-			.then(stream => {
-				setHasCameraPermission(true);
-				stream.getTracks().forEach(track => track.stop());
+		if (initialStream) {
+			setCameraReady(true);
+		}
+	}, [initialStream]);
+
+	useEffect(() => {
+		if (!stream) {
+			return;
+		}
+		navigator.mediaDevices.enumerateDevices()
+			.then(mediaDevices => {
+				const modes = mediaDevices
+					.filter(({ kind }) => kind === 'videoinput')
+					.map(({ label }) => getFacingModeFromLabel(label))
+					.filter(Boolean);
+				setAvailableFacingModes([...new Set(modes)]);
 			})
 			.catch(error => {
-				console.error("Camera access denied:", error);
-				setHasCameraPermission(false);
+				console.error("Error enumerating devices:", error);
 			});
+	}, [stream]);
+
+	const onDecode = useCallback((result) => {
+		console.log('decoded qr code:', result);
+		setQrDetected(true);
+		// Redirect to the URL found in the QR code
+		const scannedUrl = result.data;
+		setTimeout(() => {
+			setLoading(true);
+		}, 3000);
+		setTimeout(() => {
+			const baseUrl = window.location.origin;
+			const params = scannedUrl.split('?');
+			const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
+			window.location.href = cvUrl;
+		}, 1000);
 	}, []);
 
 	useEffect(() => {
-		if (hasCameraPermission) {
-			navigator.mediaDevices.enumerateDevices()
-				.then(async mediaDevices => {
-					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
-
-					let bestFrontCamera = null;
-					let bestBackCamera = null;
-
-					for (const device of videoDevices) {
-						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
-						const track = stream.getVideoTracks()[0];
-						const capabilities = track.getCapabilities();
-						// const isBackCamera = device.label.toLowerCase().includes('back');
-						const isBackCamera = capabilities.facingMode.includes('environment');
-
-						const resolution = {
-							width: capabilities.width?.max || 0,
-							height: capabilities.height?.max || 0,
-							idealHeight: Math.min(capabilities.height?.max, capabilities.width.max, 1080)
-						};
-
-						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
-							bestBackCamera = { device, resolution: resolution, facingMode: 'environment' };
-						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
-							bestFrontCamera = { device, resolution: resolution, facingMode: 'user' };
-						}
-
-						track.stop();
-					}
-
-					const filteredDevices = [];
-					if (bestFrontCamera) {
-						filteredDevices.push(bestFrontCamera);
-					}
-					if (bestBackCamera) {
-						filteredDevices.push(bestBackCamera);
-					}
-
-					setDevices(filteredDevices);
-
-					const backCameraIndex = filteredDevices.findIndex(devices =>
-						devices.device.deviceId === bestBackCamera?.device?.deviceId);
-
-					if (backCameraIndex !== -1) {
-						setCurrentDeviceIndex(backCameraIndex);
-					} else {
-						setCurrentDeviceIndex(0);
-					}
-					setCameraReady(true);
-				})
-				.catch(error => {
-					console.error("Error enumerating devices:", error);
-				});
+		const videoElement = videoRef.current;
+		if (!stream || !videoElement) {
+			return;
 		}
-	}, [hasCameraPermission]);
+		videoElement.srcObject = stream;
 
-	const stopMediaTracks = (stream) => {
-		stream.getTracks().forEach(track => {
-			track.stop();
+		const qrScanner = new QrScanner(videoElement, onDecode, {
+			highlightScanRegion: true,
+			highlightCodeOutline: false,
 		});
-	};
 
-	const switchCamera = () => {
-		if (devices.length > 1) {
-			const newIndex = (currentDeviceIndex + 1) % devices.length;
-			if (webcamRef.current && webcamRef.current.stream) {
-				stopMediaTracks(webcamRef.current.stream);
-			}
-			setCurrentDeviceIndex(newIndex);
-		}
-	};
+		qrScanner.start().catch(err => {
+			console.error('Error starting QR Scanner: ', err);
+		});
 
-	const onUserMedia = () => {
+		return () => {
+			qrScanner.stop();
+			qrScanner.destroy();
+			// destroy() leaves the scan region highlight behind, which would stack up on every camera switch.
+			qrScanner.$overlay?.remove();
+			stopMediaTracks(stream);
+		};
+	}, [stream, cameraReady, onDecode]);
 
-		if (webcamRef.current && webcamRef.current.video) {
+	const switchCamera = async () => {
+		if (!stream) return;
+		const nextFacingMode = facingMode === 'environment' ? 'user' : 'environment';
+		if (!availableFacingModes.includes(nextFacingMode)) return;
+		const oldStream = stream;
 
-			const videoElement = webcamRef.current.video;
-			const qrScanner = new QrScanner(videoElement, (result) => {
-				console.log('decoded qr code:', result);
-				setQrDetected(true);
-				// Redirect to the URL found in the QR code
-				const scannedUrl = result.data;
-				setTimeout(() => {
-					setLoading(true);
-				}, 3000);
-				setTimeout(() => {
-					const baseUrl = window.location.origin;
-					const params = scannedUrl.split('?');
-					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-					window.location.href = cvUrl;
-				}, 1000);
-			}, { highlightScanRegion: true, highlightCodeOutline: false });
-
-			qrScanner.start().catch(err => {
-				console.error('Error starting QR Scanner: ', err);
-				// Optionally update UI or state to reflect the error
+		try {
+			const newStream = await navigator.mediaDevices.getUserMedia({
+				audio: false,
+				video: {
+					facingMode: { exact: nextFacingMode },
+					width: { ideal: 1920 },
+					height: { ideal: 1080 },
+				},
 			});
-
-			return () => {
-				qrScanner.stop();
-				qrScanner.destroy();
-			};
+			setFacingMode(newStream.getVideoTracks()[0]?.getSettings().facingMode || nextFacingMode);
+			setStream(newStream);
+			oldStream.getTracks().forEach(track => track.stop());
+		} catch (error) {
+			console.error('Error switching camera: ', error);
 		}
 	};
 
 	return (
-		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || !cameraReady} fullScreen={screenType !== 'desktop'}>
-			{hasCameraPermission === false ? (
+		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || (!cameraReady && !cameraError)} fullScreen={screenType !== 'desktop'}>
+			{cameraError ? (
 				<>
 					<div className="flex items-start justify-between border-b rounded-t dark:border-dm-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
@@ -224,15 +209,12 @@ const QRScanner = ({ onClose }) => {
 					</div>
 					<div className="webcam-container mt-4 relative flex items-center justify-center">
 						<div className="relative w-full max-h-[60vh] flex justify-center items-center overflow-hidden">
-							<Webcam
-								key={devices[currentDeviceIndex]?.device.deviceId}
-								audio={false}
-								ref={webcamRef}
-								screenshotFormat="image/jpeg"
-								videoConstraints={{
-									deviceId: devices[currentDeviceIndex]?.device.deviceId,
-									height: { ideal: devices[currentDeviceIndex]?.resolution.idealHeight, max: devices[currentDeviceIndex]?.resolution.height }
-								}}
+							<video
+								key={stream?.id}
+								ref={videoRef}
+								autoPlay
+								playsInline
+								muted
 								style={{
 									transform: `scale(${zoomLevel})`,
 									width: "100%",
@@ -240,7 +222,6 @@ const QRScanner = ({ onClose }) => {
 									objectFit: "contain",
 									maxHeight: '100%',
 								}}
-								onUserMedia={onUserMedia}
 							/>
 							{qrDetected && (
 								<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
@@ -277,7 +258,7 @@ const QRScanner = ({ onClose }) => {
 							>
 								<ZoomIn size={30} />
 							</button>
-							{devices.length > 1 && (
+							{availableFacingModes.length > 1 && (
 								<button
 									id="switch-camera-qr-code-scanner"
 									type="button"
