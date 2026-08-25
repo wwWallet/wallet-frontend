@@ -12,6 +12,7 @@ const steps = ['scan', 'connect', 'review', 'share'];
 
 export const PROXIMITY_SHARING_STATUS = Object.freeze({
 	SCAN: 'scan',
+	SELECTING_DEVICE: 'selectingDevice',
 	PAIRING: 'pairing',
 	WAITING_FOR_REQUEST: 'waitingForRequest',
 	REVIEW: 'review',
@@ -23,7 +24,7 @@ export const PROXIMITY_SHARING_STATUS = Object.freeze({
 });
 
 const currentStepForStatus = (status) => {
-	if ([PROXIMITY_SHARING_STATUS.PAIRING, PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST, PROXIMITY_SHARING_STATUS.CONNECTION_FAILED].includes(status)) return 1;
+	if ([PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING, PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST, PROXIMITY_SHARING_STATUS.CONNECTION_FAILED].includes(status)) return 1;
 	if ([PROXIMITY_SHARING_STATUS.REVIEW, PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH].includes(status)) return 2;
 	if ([PROXIMITY_SHARING_STATUS.SHARING, PROXIMITY_SHARING_STATUS.SUCCESS, PROXIMITY_SHARING_STATUS.SHARING_FAILED].includes(status)) return 3;
 	return 0;
@@ -227,7 +228,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 	const { text: truncatedNotShared, truncated: hasHiddenNotShared } = truncateByWords(notSharedSummary, 60);
 	const visibleNotSharedSummary = showAllNotShared ? notSharedSummary : truncatedNotShared;
 	const isLoadingStatus = [
-		PROXIMITY_SHARING_STATUS.PAIRING,
+		PROXIMITY_SHARING_STATUS.SELECTING_DEVICE,
 		PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST,
 		PROXIMITY_SHARING_STATUS.SHARING,
 	].includes(status);
@@ -281,7 +282,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 						/>
 					)}
 
-					{status === PROXIMITY_SHARING_STATUS.PAIRING && (
+					{[PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING].includes(status) && (
 						<div className="flex h-full flex-col items-center justify-center text-center">
 							<LoaderCircle
 								className="h-16 w-16 animate-spin text-primary dark:text-brand-light"
@@ -292,7 +293,9 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 								{t('qrShareMdoc.connectingHeading')}
 							</h3>
 							<p className="mt-2 max-w-sm text-base text-lm-gray-800 dark:text-dm-gray-200">
-								{t('qrShareMdoc.connectingInstructions')}
+								{status === PROXIMITY_SHARING_STATUS.SELECTING_DEVICE
+									? t('qrShareMdoc.connectingInstructions')
+									: t('qrShareMdoc.pairingInstructions')}
 							</p>
 						</div>
 					)}
@@ -418,6 +421,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 							)}
 						</div>
 					)}
+					{status === PROXIMITY_SHARING_STATUS.PAIRING && <Button onClick={onCancel}>{t('common.cancel')}</Button>}
 					{status === PROXIMITY_SHARING_STATUS.CONNECTION_FAILED && <div className="flex w-full justify-between gap-2"><Button onClick={onClose}>{t('messagePopup.close')}</Button><Button variant="primary" onClick={onConnect}>{t('common.tryAgain')}</Button></div>}
 					{status === PROXIMITY_SHARING_STATUS.REVIEW && <div className="flex w-full justify-between gap-2"><Button onClick={onCancel}>{t('common.cancel')}</Button><Button variant="primary" onClick={onConsent}>{t('qrShareMdoc.shareItems', { count: requestedItems.length })}</Button></div>}
 					{status === PROXIMITY_SHARING_STATUS.SUCCESS && <Button variant="primary" onClick={onClose}>{t('qrShareMdoc.done')}</Button>}

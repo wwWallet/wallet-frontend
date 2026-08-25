@@ -283,6 +283,7 @@
 		"notShared": "Δεν κοινοποιούνται: {{fields}}",
 		"nothingElse": "τίποτα άλλο",
 		"pairingCancelled": "Η σύζευξη δεν ολοκληρώθηκε. Ο κωδικός QR παραμένει ενεργός.",
+		"pairingInstructions": "Δημιουργείται ασφαλής σύνδεση με τη συσκευή του verifier.",
 		"presentCredential": "Παρουσίαση διαπιστευτηρίου",
 		"progressLabel": "Πρόοδος παρουσίασης διαπιστευτηρίου",
 		"reviewDescription": "Ο verifier ζήτησε τα παρακάτω στοιχεία.",

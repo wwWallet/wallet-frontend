@@ -358,6 +358,7 @@
 		"notShared": "Not shared: {{fields}}",
 		"nothingElse": "nothing else",
 		"pairingCancelled": "Pairing not completed. QR still active.",
+		"pairingInstructions": "Establishing a secure connection with the verifier's device.",
 		"presentCredential": "Present credential",
 		"progressLabel": "Credential presentation progress",
 		"reviewDescription": "The verifier requested the following items.",

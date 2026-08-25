@@ -14,8 +14,13 @@ export type BluetoothConnectionResult = "connected" | "cancelled" | "failed";
 export interface IBluetoothTransport {
 	/**
 	 * Connect to the reader advertising the given BLE service UUID.
+	 *
+	 * `onDeviceSelected` is invoked once the target device is settled and the
+	 * transport starts connecting to it. Backends that ask the user to pick a
+	 * device first (Web Bluetooth's chooser) call it when that dialog closes,
+	 * so the UI can tell "waiting on the user" apart from "connecting"
 	 */
-	connect(serviceUuid: string): Promise<BluetoothConnectionResult>;
+	connect(serviceUuid: string, onDeviceSelected?: () => void): Promise<BluetoothConnectionResult>;
 
 	/** Receive one complete session message (chunks reassembled, framing bytes stripped). */
 	receiveMessage(): Promise<Uint8Array>;

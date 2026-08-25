@@ -83,7 +83,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
 	}, []);
 
-	const startClient = useCallback(async (): Promise<BluetoothConnectionResult> => {
+	const startClient = useCallback(async (onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> => {
 		if (!serviceUuidRef.current) {
 			console.log("No device engagement generated yet");
 			return "failed";
@@ -94,7 +94,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			return "failed";
 		}
 		transportRef.current = transport;
-		return transport.connect(serviceUuidRef.current);
+		return transport.connect(serviceUuidRef.current, onDeviceSelected);
 	}, []);
 
 	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean; requestedDocType: string | null; credentialDocType: string }> => {
@@ -278,18 +278,29 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 	const terminateSession = useCallback(
 		async (): Promise<void> => {
-			if (!transportRef.current) {
+			const transport = transportRef.current;
+			if (!transport) {
 				return;
 			}
+			transportRef.current = null;
+
 			const sessionData = {
 				data: new Uint8Array([]),
 				status: 20
 			}
 
-			const sessionDataEncoded = cborEncode(sessionData);
-			await transportRef.current.sendMessage(sessionDataEncoded);
+			try {
+				await transport.sendMessage(cborEncode(sessionData));
+			} catch (error) {
+				// No session to end yet, e.g. cancelled while still connecting
+				console.log("Failed to send session termination", error);
+			}
 
-			await transportRef.current.terminate();
+			try {
+				await transport.terminate();
+			} catch (error) {
+				console.log("Failed to terminate Bluetooth transport", error);
+			}
 		},
 		[],
 	);
