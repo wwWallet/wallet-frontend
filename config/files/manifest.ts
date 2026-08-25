@@ -7,7 +7,7 @@ import { type EnvConfigMap } from '../config';
 import { type Tag } from '../utils/resources';
 import { pathWithBase } from '../utils/paths';
 
-const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
+export const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
 
 /**
  * Generates a web app manifest and icons, and injects them into the build output.
@@ -71,7 +71,7 @@ export function getManifestRevision({ brandingHash, name }: { brandingHash?: str
 	}), null, 2));
 }
 
-function getManifestRevisionFromContent(manifestContent: string) {
+export function getManifestRevisionFromContent(manifestContent: string) {
 	return crypto
 		.createHash('sha256')
 		.update(manifestContent)
