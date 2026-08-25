@@ -64,7 +64,10 @@ function generateAndroidAssetLinks(packages: unknown): FileToWrite<AndroidAssetL
 	const tmpl = pkgsList.entries().map(([pkgName, fingerprints]) => ({
 		'relation': [
 			'delegate_permission/common.handle_all_urls',
-			'delegate_permission/common.get_login_creds'
+			'delegate_permission/common.get_login_creds',
+			// Required for the Custom Tabs postMessage channel a TWA wrapper uses to
+			// talk to the page
+			'delegate_permission/common.use_as_origin'
 		],
 		'target': {
 			'namespace': 'android_app',

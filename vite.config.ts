@@ -8,7 +8,7 @@ import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
-import { InjectConfigPlugin } from './vite-plugins';
+import { InjectConfigPlugin, ServeWellKnownPlugin } from './vite-plugins';
 import { getManifestRevision } from './config/files/manifest';
 import { getBrandingHash } from './config/branding';
 
@@ -67,6 +67,7 @@ export default defineConfig(async ({ mode }) => {
 		},
 		plugins: [
 			InjectConfigPlugin(env),
+			ServeWellKnownPlugin(),
 			react(),
 			tailwindcss(),
 			svgr(),

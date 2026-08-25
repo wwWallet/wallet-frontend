@@ -13,11 +13,16 @@ import '@fontsource/inter/600.css';
 import './index.css';
 import { BrowserRouter } from "react-router-dom";
 import AppProvider from './AppProvider';
+import { startTwaDetection } from './utils/twa';
 
 // Set root element for react-modal
 Modal.setAppElement('#root');
 
 ConsoleBehavior();
+
+// Start listening for the TWA handshake as early as possible: the app opens the
+// channel right after the first navigation completes.
+startTwaDetection();
 
 // Initialize IndexedDB BEFORE React renders
 initializeDataSource()
