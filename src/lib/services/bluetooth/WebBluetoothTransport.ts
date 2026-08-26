@@ -68,13 +68,15 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 		return typeof navigator !== "undefined" && !!(navigator as any).bluetooth;
 	}
 
-	async connect(serviceUuid: string): Promise<BluetoothConnectionResult> {
+	async connect(serviceUuid: string, onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> {
 		try {
 			const bluetooth: Bluetooth = (navigator as any).bluetooth;
 			this.device = await bluetooth.requestDevice({
 				filters: [{ services: [serviceUuid] }],
 				optionalServices: [serviceUuid],
 			});
+			// browser device chooser is closed from here on
+			onDeviceSelected?.();
 			this.device.addEventListener("gattserverdisconnected", this.onDisconnected);
 			const connectPromise = this.device.gatt.connect();
 			this.server = await new Promise<BluetoothRemoteGATTServer>((resolve, reject) => {

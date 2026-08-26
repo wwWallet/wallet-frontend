@@ -83,7 +83,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
 	}, []);
 
-	const startClient = useCallback(async (): Promise<BluetoothConnectionResult> => {
+	const startClient = useCallback(async (onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> => {
 		if (!serviceUuidRef.current) {
 			console.log("No device engagement generated yet");
 			return "failed";
@@ -94,10 +94,10 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			return "failed";
 		}
 		transportRef.current = transport;
-		return transport.connect(serviceUuidRef.current);
+		return transport.connect(serviceUuidRef.current, onDeviceSelected);
 	}, []);
 
-	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean }> => {
+	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean; requestedDocType: string | null; credentialDocType: string }> => {
 		let receivedMessage: Uint8Array = new Uint8Array([]);
 		if (transportRef.current) {
 			console.log("Created BLE client");
@@ -141,6 +141,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			console.log(e);
 		}
 		const fieldKeys: string[] = [];
+		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
+		const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
 		if (decryptedVerifierData) {
 			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
 			const firstDocRequest = mdocRequestDecoded.get("docRequests")?.[0];
@@ -153,8 +155,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
 			requestedNamespaceRef.current = namespace ?? null;
 
-			const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
-			const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
 			if (requestedDocTypeRef.current && requestedDocTypeRef.current !== credentialDocType) {
 				const emptyDeviceResponse = DeviceResponse.createSimple({ status: 0 });
 				const ivEncryption = new Uint8Array([
@@ -175,12 +175,12 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				} finally {
 					await transportRef.current?.terminate();
 				}
-				return { fields: fieldKeys, credentialMatchesRequest: false };
+				return { fields: fieldKeys, credentialMatchesRequest: false, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 			}
 
 			if (!fields || !namespace) {
 				requestedDcqlClaimsRef.current = [];
-				return { fields: fieldKeys, credentialMatchesRequest: true };
+				return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 			}
 
 			const requestedDcqlClaims = [];
@@ -195,7 +195,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedDcqlClaimsRef.current = requestedDcqlClaims;
 		}
 
-		return { fields: fieldKeys, credentialMatchesRequest: true };
+		return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
@@ -278,18 +278,29 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 	const terminateSession = useCallback(
 		async (): Promise<void> => {
-			if (!transportRef.current) {
+			const transport = transportRef.current;
+			if (!transport) {
 				return;
 			}
+			transportRef.current = null;
+
 			const sessionData = {
 				data: new Uint8Array([]),
 				status: 20
 			}
 
-			const sessionDataEncoded = cborEncode(sessionData);
-			await transportRef.current.sendMessage(sessionDataEncoded);
+			try {
+				await transport.sendMessage(cborEncode(sessionData));
+			} catch (error) {
+				// No session to end yet, e.g. cancelled while still connecting
+				console.log("Failed to send session termination", error);
+			}
 
-			await transportRef.current.terminate();
+			try {
+				await transport.terminate();
+			} catch (error) {
+				console.log("Failed to terminate Bluetooth transport", error);
+			}
 		},
 		[],
 	);

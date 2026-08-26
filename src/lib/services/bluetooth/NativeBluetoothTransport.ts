@@ -13,7 +13,9 @@ export class NativeBluetoothTransport implements IBluetoothTransport {
 		return typeof window !== "undefined" && !!window.nativeWrapper?.bluetoothCreateClient;
 	}
 
-	async connect(serviceUuid: string): Promise<BluetoothConnectionResult> {
+	async connect(serviceUuid: string, onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> {
+		// The native wrapper picks the device itself, no selection to wait for
+		onDeviceSelected?.();
 		await window.nativeWrapper.bluetoothTerminate(); // Terminate any pending ble connections
 		try {
 			return await window.nativeWrapper.bluetoothCreateClient(serviceUuid) ? "connected" : "failed";

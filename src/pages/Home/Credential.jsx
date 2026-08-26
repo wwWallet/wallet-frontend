@@ -41,9 +41,11 @@ const Credential = () => {
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(PROXIMITY_SHARING_STATUS.SCAN);
 	const handledMdocStatusRef = useRef(null);
+	const shareSessionRef = useRef(0); // bumped on new shares, used to invalidate abandoned connections
 	const [shareWithQr, setShareWithQr] = useState(false);
 	const [mdocQRContent, setMdocQRContent] = useState("");
 	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
+	const [mdocTypeDetails, setMdocTypeDetails] = useState(null);
 	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -97,8 +99,17 @@ const Credential = () => {
 
 	const connectClient = async () => {
 		setBluetoothPairingCancelled(false);
-		setMdocQRStatus(PROXIMITY_SHARING_STATUS.PAIRING);
-		const connectionResult = await startClient();
+		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SELECTING_DEVICE);
+		const session = shareSessionRef.current;
+		const connectionResult = await startClient(() => {
+			if (shareSessionRef.current === session) {
+				setMdocQRStatus(PROXIMITY_SHARING_STATUS.PAIRING);
+			}
+		});
+		if (shareSessionRef.current !== session) {
+			// The user cancelled (or restarted) the share while connecting
+			return;
+		}
 		if (connectionResult === "cancelled") {
 			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 			setBluetoothPairingCancelled(true);
@@ -110,8 +121,10 @@ const Credential = () => {
 	};
 
 	const generateQR = async () => {
+		shareSessionRef.current += 1;
 		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 		setBluetoothPairingCancelled(false);
+		setMdocTypeDetails(null);
 		setMdocQRContent(await generateEngagementQR(vcEntity));
 		setShowMdocQR(true);
 		if (bluetoothConnectRequiresUserGesture()) {
@@ -125,8 +138,9 @@ const Credential = () => {
 	};
 
 	const handleMdocRequest = useCallback(async () => {
-		const { fields, credentialMatchesRequest } = await getMdocRequest();
+		const { fields, credentialMatchesRequest, requestedDocType, credentialDocType } = await getMdocRequest();
 		setShareWithQrFilter(fields);
+		setMdocTypeDetails({ requestedDocType, credentialDocType });
 		setMdocQRStatus(credentialMatchesRequest ? PROXIMITY_SHARING_STATUS.REVIEW : PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH);
 	}, [getMdocRequest]);
 
@@ -145,6 +159,7 @@ const Credential = () => {
 	}
 
 	const cancelShare = () => {
+		shareSessionRef.current += 1;
 		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 		setShowMdocQR(false);
 		terminateSession();
@@ -185,7 +200,7 @@ const Credential = () => {
 
 	const presentationsContent = (
 		<>
-			{history.length === 0 ? (
+			{history !== null && (history.length === 0 ? (
 				<p className="text-lm-gray-900 dark:text-white">
 					{t('pageHistory.noFound')}
 				</p>
@@ -193,7 +208,7 @@ const Credential = () => {
 				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
 					<HistoryList batchId={batchId} history={history} />
 				</div>
-			)}
+			))}
 		</>
 	);
 
@@ -263,6 +278,7 @@ const Credential = () => {
 						qrContent={mdocQRContent}
 						credential={vcEntity}
 						requestedFields={shareWithQrFilter}
+						mdocTypeDetails={mdocTypeDetails}
 						bluetoothPairingCancelled={bluetoothPairingCancelled}
 						requiresUserGesture={bluetoothConnectRequiresUserGesture()}
 						onConnect={connectClient}
