@@ -52,6 +52,7 @@ const CredentialActionsMenu = ({ children }) => {
 				aria-expanded={isOpen}
 				aria-controls={isOpen ? 'credential-actions-menu-popup' : undefined}
 				aria-label={t('common.more')}
+				title={t('common.more')}
 				className="p-2 rounded-full cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700"
 			>
 				<EllipsisVertical size={20} />

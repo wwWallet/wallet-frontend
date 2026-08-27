@@ -110,6 +110,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 						id="go-previous"
 						onClick={() => navigate(-1)}
 						aria-label={t('common.back')}
+						title={t('common.back')}
 						className='-ml-2.5 p-2.5 shrink-0 rounded-full cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'
 					>
 						<ArrowLeft size={24} />
