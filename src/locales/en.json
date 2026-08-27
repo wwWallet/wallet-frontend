@@ -194,7 +194,7 @@
 		"details": {
 			"availableUsages": "Available Usages",
 			"description": "View all the information about the chosen credential",
-			"expired": "This Credential has been expired"
+			"expired": "This credential has expired."
 		},
 		"detailsTitle": "Details",
 		"presentationsTitle": "Presentations",

@@ -19,7 +19,7 @@ import CredentialsContext from '@/context/CredentialsContext';
 import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CircleAlert } from 'lucide-react';
 
 const SummaryDetail = ({ label, value, screenType }) => (
 	<p className={`min-w-0 truncate text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
@@ -121,6 +121,21 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 					)}
 				</div>
 			</div>
+			{vcEntity.isExpired && (
+				<div
+					role="alert"
+					className="mb-4 flex items-center gap-2 rounded-xl border border-lm-red/20 bg-lm-red-light/50 p-2 shadow-md dark:border-dm-red/20 dark:bg-dm-red/5 sm:px-5"
+				>
+					<CircleAlert
+						className="h-6 w-6 shrink-0 fill-lm-red text-white [&_circle]:stroke-lm-red dark:fill-dm-red dark:[&_circle]:stroke-dm-red"
+						strokeWidth={2.5}
+						aria-hidden="true"
+					/>
+					<p className="min-w-0 flex-1 text-sm font-medium text-lm-gray-900 dark:text-dm-gray-100">
+						{t('pageCredentials.details.expired')}
+					</p>
+				</div>
+			)}
 
 			<div className="w-full flex flex-col gap-4">
 				<div className="md:flex-1 min-w-0 flex flex-col gap-4">
