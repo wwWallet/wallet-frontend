@@ -167,7 +167,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 					content={
 						<CredentialImage
 							vcEntity={vcEntity}
-							className={"max-w-full max-h-full rounded-xl"}
+							className="max-w-full max-h-full rounded-xl"
 							showRibbon={false}
 							fixedRatio={screenType === 'desktop'}
 							preferredOrientation={screenType === 'desktop' ? 'landscape' : 'portrait'}
@@ -175,7 +175,6 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 					}
 				/>
 			)}
-
 		</div>
 	);
 };

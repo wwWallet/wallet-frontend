@@ -228,7 +228,6 @@ const Credential = () => {
 	];
 
 	return (
-
 		<CredentialLayout
 			title={credentialName}
 			summaryActions={screenType === 'mobile' ? (
@@ -270,7 +269,7 @@ const Credential = () => {
 							title={t('qrShareMdoc.shareUsingQR')}
 						>
 							<QrCode size={20} />
-							<span className=''>{t('qrShareMdoc.shareUsingQR')}</span>
+							<span>{t('qrShareMdoc.shareUsingQR')}</span>
 						</Button>
 					)}
 					<CredentialActionsMenu>
@@ -279,53 +278,46 @@ const Credential = () => {
 				</div>
 			}
 		>
-			<>
-				<div className={`mt-2`}>
-					{screenType === 'mobile' ? (
-						<CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
-					) : (
-						<CredentialTabsPanel
-							tabs={infoTabs}
-							contentClassName=""
-						/>
-					)}
-				</div>
-
-				<div className='px-2 w-full'>
-					<ProximitySharingPopup
-						isOpen={showMdocQR}
-						fullScreen={screenType !== 'desktop'}
-						status={mdocQRStatus}
-						qrContent={mdocQRContent}
-						credential={vcEntity}
-						requestedFields={shareWithQrFilter}
-						mdocTypeDetails={mdocTypeDetails}
-						bluetoothPairingCancelled={bluetoothPairingCancelled}
-						requiresUserGesture={bluetoothConnectRequiresUserGesture()}
-						onConnect={connectClient}
-						onConsent={consentToShare}
-						onCancel={cancelShare}
-						onClose={() => setShowMdocQR(false)}
-					/>
-				</div>
-
-				{/* Delete Credential Popup */}
-				{showDeletePopup && vcEntity && (
-					<DeletePopup
-						isOpen={showDeletePopup}
-						onConfirm={handleSureDelete}
-						onClose={() => setShowDeletePopup(false)}
-						message={
-							<Trans
-								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName }}
-								components={{ strong: <strong />, br: <br /> }}
-							/>
-						}
-						loading={loading}
-					/>
+			<div className='mt-2'>
+				{screenType === 'mobile' ? (
+					<CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
+				) : (
+					<CredentialTabsPanel tabs={infoTabs} />
 				)}
-			</>
+			</div>
+
+			<ProximitySharingPopup
+				isOpen={showMdocQR}
+				fullScreen={screenType !== 'desktop'}
+				status={mdocQRStatus}
+				qrContent={mdocQRContent}
+				credential={vcEntity}
+				requestedFields={shareWithQrFilter}
+				mdocTypeDetails={mdocTypeDetails}
+				bluetoothPairingCancelled={bluetoothPairingCancelled}
+				requiresUserGesture={bluetoothConnectRequiresUserGesture()}
+				onConnect={connectClient}
+				onConsent={consentToShare}
+				onCancel={cancelShare}
+				onClose={() => setShowMdocQR(false)}
+			/>
+
+			{/* Delete Credential Popup */}
+			{showDeletePopup && vcEntity && (
+				<DeletePopup
+					isOpen={showDeletePopup}
+					onConfirm={handleSureDelete}
+					onClose={() => setShowDeletePopup(false)}
+					message={
+						<Trans
+							i18nKey="pageCredentials.deletePopupMessage"
+							values={{ credentialName }}
+							components={{ strong: <strong />, br: <br /> }}
+						/>
+					}
+					loading={loading}
+				/>
+			)}
 		</CredentialLayout>
 	);
 };
