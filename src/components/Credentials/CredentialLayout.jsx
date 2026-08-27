@@ -1,5 +1,5 @@
 // External libraries
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useParams, useMatch, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
@@ -87,18 +87,11 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-	const [zeroSigCount, setZeroSigCount] = useState(null)
-	const [sigTotal, setSigTotal] = useState(null);
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
-
-	useEffect(() => {
-		if (vcEntity) {
-			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
-			setSigTotal(vcEntity.instances.length);
-		}
-	}, [vcEntity]);
+	const sigTotal = vcEntity?.instances?.length ?? 0;
+	const zeroSigCount = vcEntity?.instances?.filter(instance => instance.sigCount === 0).length ?? 0;
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
