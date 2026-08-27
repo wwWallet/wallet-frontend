@@ -196,6 +196,7 @@
 			"description": "View all the information about the chosen credential",
 			"expired": "This Credential has been expired"
 		},
+		"detailsTitle": "Details",
 		"presentationsTitle": "Presentations",
 		"slideButtonAriaLabelDisable": "No {{direction}} credential",
 		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",

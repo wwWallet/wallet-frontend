@@ -214,8 +214,7 @@ const Credential = () => {
 
 	const infoTabs = [
 		{
-			// TODO: needs a `pageCredentials.detailsTitle` locale key.
-			label: 'Details',
+			label: t('pageCredentials.detailsTitle'),
 			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
 		},
 		{

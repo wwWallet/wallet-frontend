@@ -145,6 +145,7 @@
 			"description": "Consulte toda a informação sobre a credencial selecionada",
 			"expired": "Esta credencial expirou"
 		},
+		"detailsTitle": "Detalhes",
 		"presentationsTitle": "Apresentações",
 		"slideButtonAriaLabelDisable": "Sem credencial {{direction}}",
 		"slideButtonAriaLabelEnable": "Ir para credencial {{direction}}",
