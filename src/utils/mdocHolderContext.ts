@@ -12,6 +12,20 @@ import {
 	type MdocContext,
 } from "@owf/mdoc";
 
+/** Fix for @owf/mdoc 0.6.0 kid (COSE header 4), which must be a bstr (not a tstr). */
+class DeviceSigningCoseKey extends CoseKey {
+	get keyId(): any {
+		const keyId = this.decodedStructure.get(2);
+		return keyId instanceof Uint8Array ? keyId : undefined;
+	}
+}
+
+function createDeviceSigningCoseKey(jwk: Record<string, unknown>): CoseKey {
+	const key = CoseKey.fromJwk(jwk);
+	Object.setPrototypeOf(key, DeviceSigningCoseKey.prototype);
+	return key;
+}
+
 export type MDoc = DeviceResponse | {
 	documents?: any[];
 	encode?: () => Uint8Array;
@@ -44,7 +58,10 @@ function convertDerToCompact(signature: Uint8Array, profile: EcdsaProfile): Uint
 }
 
 async function importSigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
-	const jwk = key.jwk as JsonWebKey;
+	const jwk = { ...key.jwk } as JsonWebKey & { kid?: string | Uint8Array };
+	if (jwk.kid instanceof Uint8Array) {
+		jwk.kid = new TextDecoder().decode(jwk.kid);
+	}
 	const { namedCurve } = getEcdsaProfileFromJwk(jwk);
 	return await crypto.subtle.importKey(
 		"jwk",
@@ -181,7 +198,7 @@ export async function createDeviceResponseForDcql(params: {
 			sessionTranscript: params.sessionTranscript,
 			issuerSigned: [issuerSigned],
 			signature: {
-				signingKey: CoseKey.fromJwk({
+				signingKey: createDeviceSigningCoseKey({
 					...params.privateKeyJwk,
 					alg: params.alg,
 					kid: params.kid,
