@@ -73,7 +73,7 @@ const CredentialImagePreview = ({
 				vcEntity={vcEntity}
 				parsedCredential={vcEntity.parsedCredential}
 				className={className}
-				showRibbon={showRibbon}
+				showRibbon={false}
 				fixedRatio={fixedRatioImage}
 				preferredOrientation={preferredOrientation}
 			/>
@@ -121,7 +121,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 					)}
 				</div>
 			</div>
-			{vcEntity.isExpired && (
+			{ isCredentialRoot && vcEntity.isExpired && (
 				<div
 					role="alert"
 					className="mb-4 flex items-center gap-2 rounded-xl border border-lm-red/20 bg-lm-red-light/50 p-2 shadow-md dark:border-dm-red/20 dark:bg-dm-red/5 sm:px-5"
