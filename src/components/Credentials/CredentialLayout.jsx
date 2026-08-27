@@ -44,6 +44,43 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	);
 };
 
+const CredentialImagePreview = ({
+	vcEntity,
+	showRibbon,
+	className = 'w-full object-cover',
+	containerClassName = 'w-full',
+	enableFullscreen = true,
+	onFullscreen,
+	ariaLabel,
+	title,
+	fixedRatioImage = false,
+	preferredOrientation = fixedRatioImage ? 'landscape' : 'portrait',
+}) => {
+	const ImageContainer = enableFullscreen ? 'button' : 'div';
+
+	return (
+		<ImageContainer
+			{...(enableFullscreen && {
+				id: 'show-full-screen-credential',
+				type: 'button',
+				onClick: onFullscreen,
+				'aria-label': ariaLabel,
+				title,
+			})}
+			className={`relative block rounded-xl xm:rounded-lg overflow-hidden shadow-md ${enableFullscreen ? 'transition-shadow hover:shadow-lg cursor-pointer' : ''} ${containerClassName}`}
+		>
+			<CredentialImage
+				vcEntity={vcEntity}
+				parsedCredential={vcEntity.parsedCredential}
+				className={className}
+				showRibbon={showRibbon}
+				fixedRatio={fixedRatioImage}
+				preferredOrientation={preferredOrientation}
+			/>
+		</ImageContainer>
+	);
+};
+
 const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summaryActions = null, actionsMenu = null }) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
@@ -70,72 +107,6 @@ const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summ
 	);
 
 	const isCredentialRoot = Boolean(useMatch('/credential/:batchId'));
-
-	const CredentialImageButton = ({
-		showRibbon,
-		className = "w-full object-cover",
-		buttonClassName = "w-full",
-		enableFullscreen = true,
-		onClick = () => setShowFullscreenImgPopup(true),
-		ariaLabel,
-		title,
-		fixedRatioImage = false,
-		preferredOrientation = fixedRatioImage ? 'landscape' : 'portrait',
-	}) => {
-		const ImageContainer = enableFullscreen ? 'button' : 'div';
-
-		return (
-			<ImageContainer
-				{...(enableFullscreen && {
-					id: 'show-full-screen-credential',
-					type: 'button',
-					onClick,
-					'aria-label': ariaLabel ?? credentialName,
-					title: title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName }),
-				})}
-				className={`relative block rounded-xl xm:rounded-lg overflow-hidden shadow-md ${enableFullscreen ? 'transition-shadow hover:shadow-lg cursor-pointer' : ''} ${buttonClassName}`}
-			>
-				<CredentialImage
-					vcEntity={vcEntity}
-					parsedCredential={vcEntity.parsedCredential}
-					className={className}
-					showRibbon={showRibbon}
-					fixedRatio={fixedRatioImage}
-					preferredOrientation={preferredOrientation}
-				/>
-			</ImageContainer>
-		);
-	};
-
-	const CredentialContentLayout = () => (
-		<div className="w-full flex flex-col gap-4">
-			<div className="md:flex-1 min-w-0 flex flex-col gap-4">
-				<CredentialImageButton
-					showRibbon
-					enableFullscreen={isCredentialRoot}
-					buttonClassName={`mr-auto shrink-0 ${isCredentialRoot
-						? 'w-full max-w-sm xm:max-w-none'
-						: 'w-[clamp(8rem,20%,12rem)]'}`}
-					fixedRatioImage={screenType === 'desktop' || !isCredentialRoot}
-					preferredOrientation={screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'}
-				/>
-				{!isCredentialRoot && (
-					<p className='truncate text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>
-						{credentialName}
-					</p>
-				)}
-				{isCredentialRoot && DISPLAY_CREDENTIAL_USAGES && (
-					<div>
-						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
-					</div>
-				)}
-				{isCredentialRoot && summaryActions && (
-					<div>{summaryActions}</div>
-				)}
-			</div>
-			{children}
-		</div>
-	);
 	if (!vcEntity) return null;
 
 	return (
@@ -157,8 +128,36 @@ const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summ
 				</div>
 			</div>
 
-			<div className="w-full flex flex-col">
-				<CredentialContentLayout />
+			<div className="w-full flex flex-col gap-4">
+				<div className="md:flex-1 min-w-0 flex flex-col gap-4">
+					<CredentialImagePreview
+						vcEntity={vcEntity}
+						showRibbon
+						enableFullscreen={isCredentialRoot}
+						onFullscreen={() => setShowFullscreenImgPopup(true)}
+						ariaLabel={credentialName}
+						title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName })}
+						containerClassName={`mr-auto shrink-0 ${isCredentialRoot
+							? 'w-full max-w-sm xm:max-w-none'
+							: 'w-[clamp(8rem,20%,12rem)]'}`}
+						fixedRatioImage={screenType === 'desktop' || !isCredentialRoot}
+						preferredOrientation={screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'}
+					/>
+					{!isCredentialRoot && (
+						<p className='truncate text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>
+							{credentialName}
+						</p>
+					)}
+					{isCredentialRoot && DISPLAY_CREDENTIAL_USAGES && (
+						<div>
+							<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+						</div>
+					)}
+					{isCredentialRoot && summaryActions && (
+						<div>{summaryActions}</div>
+					)}
+				</div>
+				{children}
 			</div>
 			{/* Fullscreen credential Popup*/}
 			{isCredentialRoot && showFullscreenImgPopup && (
