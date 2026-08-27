@@ -233,29 +233,42 @@ const Credential = () => {
 		<CredentialLayout
 			title={credentialName}
 			fixedRatioImage={false}
-			summaryActions={
+			summaryActions={screenType === 'mobile' ? (
 				<div className='flex flex-wrap gap-2 xm:w-full'>
 					{shareWithQr && (
-						<Button variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
+						<Button id='share-credential-qr' variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
 							<span className='px-1'><QrCode /></span>{t('qrShareMdoc.shareUsingQR')}
 						</Button>
 					)}
-					{screenType === 'mobile' && (
+					<Button
+						id="navigate-credential-history"
+						variant='primary'
+						additionalClassName='xm:w-full'
+						onClick={() => navigate(`/credential/${batchId}/history`)}
+					>
+						{t('pageCredentials.presentationsTitle')}
+					</Button>
+				</div>
+			) : null}
+			actionsMenu={
+				<div className='flex items-center gap-1'>
+					{screenType !== 'mobile' && shareWithQr && (
 						<Button
-							id="navigate-credential-history"
+							id='share-credential-qr'
 							variant='primary'
-							additionalClassName='xm:w-full'
-							onClick={() => navigate(`/credential/${batchId}/history`)}
+							size='sm'
+							onClick={generateQR}
+							ariaLabel={t('qrShareMdoc.shareUsingQR')}
+							title={t('qrShareMdoc.shareUsingQR')}
 						>
-							{t('pageCredentials.presentationsTitle')}
+							<QrCode size={20} />
+							<span className=''>{t('qrShareMdoc.shareUsingQR')}</span>
 						</Button>
 					)}
+					<CredentialActionsMenu>
+						<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} />
+					</CredentialActionsMenu>
 				</div>
-			}
-			actionsMenu={
-				<CredentialActionsMenu>
-					<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} />
-				</CredentialActionsMenu>
 			}
 		>
 			<>

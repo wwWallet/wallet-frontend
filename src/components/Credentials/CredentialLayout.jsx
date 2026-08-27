@@ -74,68 +74,64 @@ const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summ
 	const CredentialImageButton = ({
 		showRibbon,
 		className = "w-full object-cover",
+		buttonClassName = "w-full",
+		enableFullscreen = true,
 		onClick = () => setShowFullscreenImgPopup(true),
 		ariaLabel,
 		title,
 		fixedRatioImage = false,
 		preferredOrientation = fixedRatioImage ? 'landscape' : 'portrait',
-	}) => (
-		<button
-			id="show-full-screen-credential"
-			className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-			onClick={onClick}
-			aria-label={ariaLabel ?? credentialName}
-			title={title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName })}
-		>
-			<CredentialImage
-				vcEntity={vcEntity}
-				parsedCredential={vcEntity.parsedCredential}
-				className={className}
-				showRibbon={showRibbon}
-				fixedRatio={fixedRatioImage}
-				preferredOrientation={preferredOrientation}
-			/>
-		</button>
-	);
+	}) => {
+		const ImageContainer = enableFullscreen ? 'button' : 'div';
 
-	const CredentialSummary = () => (
-		<div className='flex flex-col gap-1'>
-			{(screenType === 'desktop' || !isCredentialRoot) && (
-				<p className='text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>{credentialName}</p>
-			)}
-			{/* TODO: hardcoded placeholders. Wire to the credential's own values —
-			description, expiry and issuer all come from its metadata - and move
-			the labels into the locale files. */}
-			{isCredentialRoot && (
-				<>
-					<p className={`text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
-						Proof of identity issued by wwWallet Issuer, accepted across the EU.
-					</p>
-					<hr className='my-2 border-t border-lm-gray-400 dark:border-dm-gray-600' />
-					<SummaryDetail label="Expiry date" value="12 Mar 2027" screenType={screenType} />
-					<SummaryDetail label="Issued by" value="wwWallet Issuer" screenType={screenType} />
-					{DISPLAY_CREDENTIAL_USAGES && (
-						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
-					)}
-					{summaryActions && (
-						<div className='mt-2'>{summaryActions}</div>
-					)}
-				</>
-			)}
-		</div>
-	);
+		return (
+			<ImageContainer
+				{...(enableFullscreen && {
+					id: 'show-full-screen-credential',
+					type: 'button',
+					onClick,
+					'aria-label': ariaLabel ?? credentialName,
+					title: title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName }),
+				})}
+				className={`relative block rounded-xl xm:rounded-lg overflow-hidden shadow-md ${enableFullscreen ? 'transition-shadow hover:shadow-lg cursor-pointer' : ''} ${buttonClassName}`}
+			>
+				<CredentialImage
+					vcEntity={vcEntity}
+					parsedCredential={vcEntity.parsedCredential}
+					className={className}
+					showRibbon={showRibbon}
+					fixedRatio={fixedRatioImage}
+					preferredOrientation={preferredOrientation}
+				/>
+			</ImageContainer>
+		);
+	};
 
-	const DesktopLayout = () => (
+	const CredentialContentLayout = () => (
 		<div className="w-full flex flex-col gap-4">
-			<div className={`md:flex-1 min-w-0 flex gap-4 ${isCredentialRoot ? 'flex-col md:flex-row md:items-center' : 'flex-row items-center'}`}>
-				<div className={isCredentialRoot ? 'w-full md:w-1/2 lg:w-1/3 md:max-w-sm md:shrink-0' : 'w-4/12 shrink-0'}>
-					<CredentialImageButton
-						showRibbon
-						fixedRatioImage={screenType === 'desktop' || !isCredentialRoot}
-						preferredOrientation={screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'}
-					/>
-				</div>
-				<CredentialSummary />
+			<div className="md:flex-1 min-w-0 flex flex-col gap-4">
+				<CredentialImageButton
+					showRibbon
+					enableFullscreen={isCredentialRoot}
+					buttonClassName={`mr-auto shrink-0 ${isCredentialRoot
+						? 'w-full max-w-sm xm:max-w-none'
+						: 'w-[clamp(8rem,20%,12rem)]'}`}
+					fixedRatioImage={screenType === 'desktop' || !isCredentialRoot}
+					preferredOrientation={screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'}
+				/>
+				{!isCredentialRoot && (
+					<p className='truncate text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>
+						{credentialName}
+					</p>
+				)}
+				{isCredentialRoot && DISPLAY_CREDENTIAL_USAGES && (
+					<div>
+						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+					</div>
+				)}
+				{isCredentialRoot && summaryActions && (
+					<div>{summaryActions}</div>
+				)}
 			</div>
 			{children}
 		</div>
@@ -154,8 +150,7 @@ const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summ
 					>
 						<ArrowLeft size={24} />
 					</button>
-					<H1 heading={title} flexJustifyContent="start" />
-					{/* Overflow actions for the credential, pinned to the title's right. */}
+					{isCredentialRoot && <H1 heading={title} flexJustifyContent="start" />}
 					{actionsMenu && (
 						<div className='ml-auto shrink-0'>{actionsMenu}</div>
 					)}
@@ -163,10 +158,10 @@ const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summ
 			</div>
 
 			<div className="w-full flex flex-col">
-				<DesktopLayout />
+				<CredentialContentLayout />
 			</div>
 			{/* Fullscreen credential Popup*/}
-			{showFullscreenImgPopup && (
+			{isCredentialRoot && showFullscreenImgPopup && (
 				<FullscreenPopup
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
