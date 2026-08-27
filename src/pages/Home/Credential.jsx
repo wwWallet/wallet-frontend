@@ -16,7 +16,7 @@ import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-// import CredentialJson from '../../components/Credentials/CredentialJson';
+import CredentialJson from '../../components/Credentials/CredentialJson';
 import HistoryList from '../../components/History/HistoryList';
 import CredentialActionsMenu from '../../components/Credentials/CredentialActionsMenu';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
@@ -29,7 +29,7 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
 import { QrCode } from 'lucide-react';
-// import { DEV_MODE } from '@/config';
+import { DEV_MODE } from '@/config';
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
@@ -222,10 +222,10 @@ const Credential = () => {
 			label: t('pageCredentials.presentationsTitle'),
 			component: presentationsContent
 		},
-		// ...(DEV_MODE ? [{
-		// 	label: t('pageCredentials.datasetTitle'),
-		// 	component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
-		// }] : []),
+		...(DEV_MODE && screenType !== 'mobile' ? [{
+			label: t('pageCredentials.datasetTitle'),
+			component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
+		}] : []),
 	];
 
 	return (
@@ -248,6 +248,16 @@ const Credential = () => {
 					>
 						{t('pageCredentials.presentationsTitle')}
 					</Button>
+					{DEV_MODE && (
+						<Button
+							id="navigate-credential-dataset"
+							variant='primary'
+							additionalClassName='xm:w-full'
+							onClick={() => navigate(`/credential/${batchId}/details`)}
+						>
+							{t('pageCredentials.datasetTitle')}
+						</Button>
+					)}
 				</div>
 			) : null}
 			actionsMenu={
