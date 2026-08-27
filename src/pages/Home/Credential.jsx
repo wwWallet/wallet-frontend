@@ -231,7 +231,6 @@ const Credential = () => {
 
 		<CredentialLayout
 			title={credentialName}
-			fixedRatioImage={false}
 			summaryActions={screenType === 'mobile' ? (
 				<div className='flex flex-wrap gap-2 xm:w-full'>
 					{shareWithQr && (

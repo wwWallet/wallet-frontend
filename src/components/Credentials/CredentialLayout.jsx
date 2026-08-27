@@ -81,7 +81,7 @@ const CredentialImagePreview = ({
 	);
 };
 
-const CredentialLayout = ({ children, title = null, fixedRatioImage = true, summaryActions = null, actionsMenu = null }) => {
+const CredentialLayout = ({ children, title = null, summaryActions = null, actionsMenu = null }) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
