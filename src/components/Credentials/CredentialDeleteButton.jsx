@@ -16,7 +16,7 @@ const CredentialDeleteButton = ({ onDelete }) => {
 			id="credential-delete-button"
 			onClick={handleClick}
 			variant="invisible"
-			title={t('common.offlineTitle')}
+			title={t('pageCredentials.delete')}
 			additionalClassName='w-full justify-start !shadow-none text-lm-red-dark dark:text-dm-red-light'
 		>
 			<Trash2 size={18} /> {t('pageCredentials.delete')}
