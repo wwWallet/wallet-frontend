@@ -1,35 +1,39 @@
 // External libraries
-import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation, Trans } from 'react-i18next';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Braces, History, List, QrCode } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+
+// Config
+import { DEV_MODE } from '@/config';
 import i18n from '@/i18n';
 
 // Contexts
-import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
-import { useCredentialName } from '@/hooks/useCredentialName';
+import SessionContext from '@/context/SessionContext';
 
 // Hooks
-import useFetchPresentations from '../../hooks/useFetchPresentations';
-import useScreenType from '../../hooks/useScreenType';
-import { useVcEntity } from '../../hooks/useVcEntity';
+import { useCredentialName } from '@/hooks/useCredentialName';
+import useFetchPresentations from '@/hooks/useFetchPresentations';
+import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
+import useScreenType from '@/hooks/useScreenType';
+import { useVcEntity } from '@/hooks/useVcEntity';
+
+// Services
+import { bluetoothConnectRequiresUserGesture, isBluetoothTransportAvailable } from '@/lib/services/bluetooth';
 
 // Components
-import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import CredentialJson from '../../components/Credentials/CredentialJson';
-import HistoryList from '../../components/History/HistoryList';
-import CredentialActionsMenu from '../../components/Credentials/CredentialActionsMenu';
-import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
-import DeletePopup from '../../components/Popups/DeletePopup';
-import Button from '../../components/Buttons/Button';
-import CredentialLayout from '../../components/Credentials/CredentialLayout';
-import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '../../components/Popups/ProximitySharingPopup';
+import Button from '@/components/Buttons/Button';
+import CredentialActionsMenu from '@/components/Credentials/CredentialActionsMenu';
+import CredentialDeleteButton from '@/components/Credentials/CredentialDeleteButton';
+import CredentialInfo from '@/components/Credentials/CredentialInfo';
+import CredentialJson from '@/components/Credentials/CredentialJson';
+import CredentialLayout from '@/components/Credentials/CredentialLayout';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
+import DeletePopup from '@/components/Popups/DeletePopup';
+import HistoryList from '@/components/History/HistoryList';
+import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Popups/ProximitySharingPopup';
 
-import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
-import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
-import { Braces, History, List, QrCode } from 'lucide-react';
-import { DEV_MODE } from '@/config';
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
