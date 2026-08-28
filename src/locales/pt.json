@@ -156,7 +156,10 @@
 	},
 	"pageHistory": {
 		"description": "Consulte o histórico de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
-		"noFound": "Sem apresentações",
+		"emptyCredentialDescription": "Quando partilhar esta credencial, a respetiva atividade será apresentada aqui.",
+		"emptyCredentialTitle": "Ainda não há atividade para esta credencial",
+		"emptyDescription": "O histórico das suas credenciais será apresentado aqui.",
+		"emptyTitle": "Ainda não há histórico",
 		"popupTitle": "Credenciais apresentadas",
 		"presentationDetails": {
 			"title": "Detalhes de apresentação"

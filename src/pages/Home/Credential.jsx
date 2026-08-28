@@ -23,6 +23,7 @@ import { useVcEntity } from '@/hooks/useVcEntity';
 import { bluetoothConnectRequiresUserGesture, isBluetoothTransportAvailable } from '@/lib/services/bluetooth';
 
 // Components
+import ActivityEmptyState from '@/components/History/ActivityEmptyState';
 import Button from '@/components/Buttons/Button';
 import CredentialActionsMenu from '@/components/Credentials/CredentialActionsMenu';
 import CredentialDeleteButton from '@/components/Credentials/CredentialDeleteButton';
@@ -205,9 +206,7 @@ const Credential = () => {
 	const activityContent = (
 		<>
 			{history !== null && (history.length === 0 ? (
-				<p className="text-lm-gray-900 dark:text-white">
-					{t('pageHistory.noFound')}
-				</p>
+				<ActivityEmptyState credentialSpecific />
 			) : (
 				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
 					<HistoryList batchId={batchId} history={history} />
@@ -247,7 +246,7 @@ const Credential = () => {
 					)}
 					<Button
 						id="navigate-credential-history"
-						variant='primary'
+						variant='outline'
 						additionalClassName='xm:w-full'
 						onClick={() => navigate(`/credential/${batchId}/history`)}
 					>
@@ -257,10 +256,11 @@ const Credential = () => {
 					{DEV_MODE && (
 						<Button
 							id="navigate-credential-dataset"
-							variant='primary'
+							variant='outline'
 							additionalClassName='xm:w-full'
 							onClick={() => navigate(`/credential/${batchId}/details`)}
 						>
+							<Braces size={20} aria-hidden="true" />
 							{t('pageCredentials.datasetTitle')}
 						</Button>
 					)}

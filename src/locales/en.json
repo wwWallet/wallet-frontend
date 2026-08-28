@@ -207,7 +207,10 @@
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No presentations found",
+		"emptyCredentialDescription": "When you share this credential, its activity will appear here.",
+		"emptyCredentialTitle": "No activity for this credential yet",
+		"emptyDescription": "Your credential history will appear here.",
+		"emptyTitle": "No history yet",
 		"popupTitle": "Presented Credentials",
 		"presentationDetails": {
 			"title": "Presentation Details"

@@ -10,6 +10,7 @@ import SessionContext from '@/context/SessionContext';
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
+import ActivityEmptyState from '@/components/History/ActivityEmptyState';
 import HistoryList from '../../components/History/HistoryList';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 
@@ -23,9 +24,7 @@ const CredentialHistory = () => {
 		<>
 			<CredentialLayout title={t('pageCredentials.activityTitle')}>
 				{history !== null && (history.length === 0 ? (
-					<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
-						{t('pageHistory.noFound')}
-					</p>
+					<ActivityEmptyState credentialSpecific />
 				) : (
 					<HistoryList batchId={batchId} history={history} />
 				))}
