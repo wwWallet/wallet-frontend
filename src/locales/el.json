@@ -136,6 +136,7 @@
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Δραστηριότητα",
 		"addCard": {
 			"text": "Προσθήκη Νέου Πιστοποιητικού"
 		},
@@ -152,7 +153,6 @@
 			"expired": "Αυτό το Πιστοποιητικό έχει λήξει"
 		},
 		"detailsTitle": "Λεπτομέρειες",
-		"presentationsTitle": "Απεσταλμένα Πιστοποιητικά",
 		"slideButtonAriaLabelDisable": "Δεν υπάρχει {{direction}} πιστοποιητικό",
 		"slideButtonAriaLabelEnable": "Μεταβείτε στο {{direction}} πιστοποιητικό",
 		"slideButtonTitleDisable": "Δεν υπάρχει διαθέσιμο {{direction}} πιστοποιητικό",

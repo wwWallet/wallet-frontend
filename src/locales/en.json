@@ -179,6 +179,7 @@
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Activity",
 		"addCard": {
 			"text": "Add New Credential",
 			"title": "Verifable Credential"
@@ -197,7 +198,6 @@
 			"expired": "This credential has expired."
 		},
 		"detailsTitle": "Details",
-		"presentationsTitle": "Presentations",
 		"slideButtonAriaLabelDisable": "No {{direction}} credential",
 		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
 		"slideButtonTitleDisable": "No {{direction}} credential available",

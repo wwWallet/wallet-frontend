@@ -130,6 +130,7 @@
 		"searchPlaceholder": "Procurar credencial..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Atividade",
 		"addCard": {
 			"text": "Adicionar Nova Credencial"
 		},
@@ -146,7 +147,6 @@
 			"expired": "Esta credencial expirou"
 		},
 		"detailsTitle": "Detalhes",
-		"presentationsTitle": "Apresentações",
 		"slideButtonAriaLabelDisable": "Sem credencial {{direction}}",
 		"slideButtonAriaLabelEnable": "Ir para credencial {{direction}}",
 		"slideButtonTitleDisable": "Sem credencial {{direction}} disponível",

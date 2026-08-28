@@ -28,7 +28,7 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
-import { QrCode } from 'lucide-react';
+import { History, QrCode } from 'lucide-react';
 import { DEV_MODE } from '@/config';
 const Credential = () => {
 	const { batchId } = useParams();
@@ -198,7 +198,7 @@ const Credential = () => {
 		}
 	}, [vcEntity]);
 
-	const presentationsContent = (
+	const activityContent = (
 		<>
 			{history !== null && (history.length === 0 ? (
 				<p className="text-lm-gray-900 dark:text-white">
@@ -218,8 +218,8 @@ const Credential = () => {
 			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
 		},
 		{
-			label: t('pageCredentials.presentationsTitle'),
-			component: presentationsContent
+			label: t('pageCredentials.activityTitle'),
+			component: activityContent
 		},
 		...(DEV_MODE && screenType !== 'mobile' ? [{
 			label: t('pageCredentials.datasetTitle'),
@@ -243,7 +243,8 @@ const Credential = () => {
 						additionalClassName='xm:w-full'
 						onClick={() => navigate(`/credential/${batchId}/history`)}
 					>
-						{t('pageCredentials.presentationsTitle')}
+						<History size={20} aria-hidden="true" />
+						{t('pageCredentials.activityTitle')}
 					</Button>
 					{DEV_MODE && (
 						<Button
