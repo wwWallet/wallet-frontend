@@ -42,6 +42,7 @@ const Credential = () => {
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
+	const isDesktop = screenType === 'desktop';
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(PROXIMITY_SHARING_STATUS.SCAN);
@@ -226,7 +227,7 @@ const Credential = () => {
 			icon: <History size={18} aria-hidden="true" />,
 			component: activityContent
 		},
-		...(DEV_MODE && screenType !== 'mobile' ? [{
+		...(DEV_MODE && isDesktop ? [{
 			label: t('pageCredentials.datasetTitle'),
 			icon: <Braces size={18} aria-hidden="true" />,
 			component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
@@ -236,7 +237,7 @@ const Credential = () => {
 	return (
 		<CredentialLayout
 			title={credentialName}
-			summaryActions={screenType === 'mobile' ? (
+			summaryActions={!isDesktop ? (
 				<div className='flex flex-wrap gap-2 xm:w-full'>
 					{shareWithQr && (
 						<Button id='share-credential-qr' variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
@@ -268,7 +269,7 @@ const Credential = () => {
 			) : null}
 			actionsMenu={
 				<div className='flex items-center gap-1'>
-					{screenType !== 'mobile' && shareWithQr && (
+					{isDesktop && shareWithQr && (
 						<Button
 							id='share-credential-qr'
 							variant='primary'
@@ -288,7 +289,7 @@ const Credential = () => {
 			}
 		>
 			<div className='mt-2'>
-				{screenType === 'mobile' ? (
+				{!isDesktop ? (
 					<CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
 				) : (
 					<CredentialTabsPanel tabs={infoTabs} />
@@ -297,7 +298,7 @@ const Credential = () => {
 
 			<ProximitySharingPopup
 				isOpen={showMdocQR}
-				fullScreen={screenType !== 'desktop'}
+				fullScreen={!isDesktop}
 				status={mdocQRStatus}
 				qrContent={mdocQRContent}
 				credential={vcEntity}
