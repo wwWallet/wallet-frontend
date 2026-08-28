@@ -136,6 +136,7 @@
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Δραστηριότητα",
 		"addCard": {
 			"text": "Προσθήκη Νέου Πιστοποιητικού"
 		},
@@ -151,7 +152,7 @@
 			"description": "Δείτε όλες τις πληροφορίες για το επιλεγμένο πιστοποιητικό",
 			"expired": "Αυτό το Πιστοποιητικό έχει λήξει"
 		},
-		"presentationsTitle": "Απεσταλμένα Πιστοποιητικά",
+		"detailsTitle": "Λεπτομέρειες",
 		"slideButtonAriaLabelDisable": "Δεν υπάρχει {{direction}} πιστοποιητικό",
 		"slideButtonAriaLabelEnable": "Μεταβείτε στο {{direction}} πιστοποιητικό",
 		"slideButtonTitleDisable": "Δεν υπάρχει διαθέσιμο {{direction}} πιστοποιητικό",
@@ -161,7 +162,10 @@
 	},
 	"pageHistory": {
 		"description": "Δείτε στο ιστορικό αποστολών πιστοποιητικών πότε και σε ποιους verifiers τα στείλατε.",
-		"noFound": "Δεν βρέθηκαν απεσταλμένα πιστοποιητικά",
+		"emptyCredentialDescription": "Όταν κοινοποιήσετε αυτό το πιστοποιητικό, η δραστηριότητά του θα εμφανιστεί εδώ.",
+		"emptyCredentialTitle": "Δεν υπάρχει ακόμη δραστηριότητα για αυτό το πιστοποιητικό",
+		"emptyDescription": "Το ιστορικό των πιστοποιητικών σας θα εμφανίζεται εδώ.",
+		"emptyTitle": "Δεν υπάρχει ιστορικό ακόμη",
 		"popupTitle": "Απεσταλμένα Πιστοποιητικά",
 		"presentationDetails": {
 			"title": "Λεπτομέρειες Αποστολής"

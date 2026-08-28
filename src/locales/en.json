@@ -179,6 +179,7 @@
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Activity",
 		"addCard": {
 			"text": "Add New Credential",
 			"title": "Verifable Credential"
@@ -194,9 +195,9 @@
 		"details": {
 			"availableUsages": "Available Usages",
 			"description": "View all the information about the chosen credential",
-			"expired": "This Credential has been expired"
+			"expired": "This credential has expired."
 		},
-		"presentationsTitle": "Presentations",
+		"detailsTitle": "Details",
 		"slideButtonAriaLabelDisable": "No {{direction}} credential",
 		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
 		"slideButtonTitleDisable": "No {{direction}} credential available",
@@ -206,7 +207,10 @@
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No presentations found",
+		"emptyCredentialDescription": "When you share this credential, its activity will appear here.",
+		"emptyCredentialTitle": "No activity for this credential yet",
+		"emptyDescription": "Your credential history will appear here.",
+		"emptyTitle": "No history yet",
 		"popupTitle": "Presented Credentials",
 		"presentationDetails": {
 			"title": "Presentation Details"

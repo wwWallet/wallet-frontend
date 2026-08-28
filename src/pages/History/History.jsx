@@ -9,6 +9,7 @@ import SessionContext from '@/context/SessionContext';
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
+import ActivityEmptyState from '@/components/History/ActivityEmptyState';
 import { H1 } from '../../components/Shared/Heading';
 import HistoryList from '../../components/History/HistoryList';
 import PageDescription from '../../components/Shared/PageDescription';
@@ -25,9 +26,7 @@ const History = () => {
 			<PageDescription description={t('pageHistory.description')} />
 
 			{(history !== null && history.length === 0 ? (
-				<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
-					{t('pageHistory.noFound')}
-				</p>
+				<ActivityEmptyState />
 			) : (
 				<HistoryList history={history}/>
 			))}

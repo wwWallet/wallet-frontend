@@ -1,35 +1,39 @@
 // External libraries
-import React, { useState, useContext, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation, Trans } from 'react-i18next';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Braces, History, List, QrCode } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+
+// Config
+import { DEV_MODE } from '@/config';
 import i18n from '@/i18n';
 
 // Contexts
-import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
-import { useCredentialName } from '@/hooks/useCredentialName';
+import SessionContext from '@/context/SessionContext';
 
 // Hooks
-import useFetchPresentations from '../../hooks/useFetchPresentations';
-import useScreenType from '../../hooks/useScreenType';
-import { useVcEntity } from '../../hooks/useVcEntity';
+import { useCredentialName } from '@/hooks/useCredentialName';
+import useFetchPresentations from '@/hooks/useFetchPresentations';
+import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
+import useScreenType from '@/hooks/useScreenType';
+import { useVcEntity } from '@/hooks/useVcEntity';
+
+// Services
+import { bluetoothConnectRequiresUserGesture, isBluetoothTransportAvailable } from '@/lib/services/bluetooth';
 
 // Components
-import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import CredentialJson from '../../components/Credentials/CredentialJson';
-import HistoryList from '../../components/History/HistoryList';
-import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
-import DeletePopup from '../../components/Popups/DeletePopup';
-import Button from '../../components/Buttons/Button';
-import CredentialLayout from '../../components/Credentials/CredentialLayout';
-import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '../../components/Popups/ProximitySharingPopup';
+import ActivityEmptyState from '@/components/History/ActivityEmptyState';
+import Button from '@/components/Buttons/Button';
+import CredentialActionsMenu from '@/components/Credentials/CredentialActionsMenu';
+import CredentialDeleteButton from '@/components/Credentials/CredentialDeleteButton';
+import CredentialInfo from '@/components/Credentials/CredentialInfo';
+import CredentialJson from '@/components/Credentials/CredentialJson';
+import CredentialLayout from '@/components/Credentials/CredentialLayout';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
-import { H2 } from '@/components/Shared/Heading';
-
-import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
-import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
-import { QrCode } from 'lucide-react';
-import { DEV_MODE } from '@/config';
+import DeletePopup from '@/components/Popups/DeletePopup';
+import HistoryList from '@/components/History/HistoryList';
+import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Popups/ProximitySharingPopup';
 
 const Credential = () => {
 	const { batchId } = useParams();
@@ -38,6 +42,7 @@ const Credential = () => {
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
+	const isDesktop = screenType === 'desktop';
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(PROXIMITY_SHARING_STATUS.SCAN);
@@ -199,12 +204,10 @@ const Credential = () => {
 		}
 	}, [vcEntity]);
 
-	const presentationsContent = (
+	const activityContent = (
 		<>
 			{history !== null && (history.length === 0 ? (
-				<p className="text-lm-gray-900 dark:text-white">
-					{t('pageHistory.noFound')}
-				</p>
+				<ActivityEmptyState credentialSpecific />
 			) : (
 				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
 					<HistoryList batchId={batchId} history={history} />
@@ -213,94 +216,118 @@ const Credential = () => {
 		</>
 	);
 
-	const infoTabs = DEV_MODE ? [
+	const infoTabs = [
 		{
-			label: t('pageCredentials.presentationsTitle'),
-			component: presentationsContent
+			label: t('pageCredentials.detailsTitle'),
+			icon: <List size={18} aria-hidden="true" />,
+			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
 		},
 		{
+			label: t('pageCredentials.activityTitle'),
+			icon: <History size={18} aria-hidden="true" />,
+			component: activityContent
+		},
+		...(DEV_MODE && isDesktop ? [{
 			label: t('pageCredentials.datasetTitle'),
-			component:
-				<CredentialJson
-					parsedCredential={vcEntity?.parsedCredential}
-				/>
-		}
-	] : [];
+			icon: <Braces size={18} aria-hidden="true" />,
+			component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
+		}] : []),
+	];
 
 	return (
-
-		<CredentialLayout title={credentialName} fixedRatioImage={false} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
-			<>
-				<div className="w-full pt-2">
-					{DEV_MODE ? (
-						screenType !== 'mobile' ? (
-							<CredentialTabsPanel tabs={infoTabs} />
-						) : (
-							<>
-								<Button
-									id="navigate-credential-history"
-									variant="primary"
-									onClick={() => navigate(`/credential/${batchId}/history`)}
-									additionalClassName='w-full my-2'
-								>
-									{t('pageCredentials.presentationsTitle')}
-								</Button>
-								<Button
-									id="navigate-credential-details"
-									variant="primary"
-									onClick={() => navigate(`/credential/${batchId}/details`)}
-									additionalClassName='w-full my-2'
-								>
-									{t('pageCredentials.datasetTitle')}
-								</Button>
-							</>
-						)
-					) : (
-						<>
-							<H2 heading={t('pageCredentials.presentationsTitle')} />
-							{presentationsContent}
-						</>
+		<CredentialLayout
+			title={credentialName}
+			summaryActions={!isDesktop ? (
+				<div className='flex flex-wrap gap-2 xm:w-full'>
+					{shareWithQr && (
+						<Button id='share-credential-qr' variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
+							<QrCode size={20} aria-hidden="true" />
+							{t('qrShareMdoc.shareUsingQR')}
+						</Button>
+					)}
+					<Button
+						id="navigate-credential-history"
+						variant='outline'
+						additionalClassName='xm:w-full'
+						onClick={() => navigate(`/credential/${batchId}/history`)}
+					>
+						<History size={20} aria-hidden="true" />
+						{t('pageCredentials.activityTitle')}
+					</Button>
+					{DEV_MODE && (
+						<Button
+							id="navigate-credential-dataset"
+							variant='outline'
+							additionalClassName='xm:w-full'
+							onClick={() => navigate(`/credential/${batchId}/details`)}
+						>
+							<Braces size={20} aria-hidden="true" />
+							{t('pageCredentials.datasetTitle')}
+						</Button>
 					)}
 				</div>
-				<div className='px-2 w-full'>
-					{shareWithQr && (<Button variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
-					<ProximitySharingPopup
-						isOpen={showMdocQR}
-						fullScreen={screenType !== 'desktop'}
-						status={mdocQRStatus}
-						qrContent={mdocQRContent}
-						credential={vcEntity}
-						requestedFields={shareWithQrFilter}
-						mdocTypeDetails={mdocTypeDetails}
-						bluetoothPairingCancelled={bluetoothPairingCancelled}
-						requiresUserGesture={bluetoothConnectRequiresUserGesture()}
-						onConnect={connectClient}
-						onConsent={consentToShare}
-						onCancel={cancelShare}
-						onClose={() => setShowMdocQR(false)}
-					/>
+			) : null}
+			actionsMenu={
+				<div className='flex items-center gap-1'>
+					{isDesktop && shareWithQr && (
+						<Button
+							id='share-credential-qr'
+							variant='primary'
+							size='sm'
+							onClick={generateQR}
+							ariaLabel={t('qrShareMdoc.shareUsingQR')}
+							title={t('qrShareMdoc.shareUsingQR')}
+						>
+							<QrCode size={20} />
+							<span>{t('qrShareMdoc.shareUsingQR')}</span>
+						</Button>
+					)}
+					<CredentialActionsMenu>
+						<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} />
+					</CredentialActionsMenu>
 				</div>
-				<div className='px-2 w-full'>
-					<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
-				</div>
-
-				{/* Delete Credential Popup */}
-				{showDeletePopup && vcEntity && (
-					<DeletePopup
-						isOpen={showDeletePopup}
-						onConfirm={handleSureDelete}
-						onClose={() => setShowDeletePopup(false)}
-						message={
-							<Trans
-								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName }}
-								components={{ strong: <strong />, br: <br /> }}
-							/>
-						}
-						loading={loading}
-					/>
+			}
+		>
+			<div className='mt-2'>
+				{!isDesktop ? (
+					<CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
+				) : (
+					<CredentialTabsPanel tabs={infoTabs} />
 				)}
-			</>
+			</div>
+
+			<ProximitySharingPopup
+				isOpen={showMdocQR}
+				fullScreen={!isDesktop}
+				status={mdocQRStatus}
+				qrContent={mdocQRContent}
+				credential={vcEntity}
+				requestedFields={shareWithQrFilter}
+				mdocTypeDetails={mdocTypeDetails}
+				bluetoothPairingCancelled={bluetoothPairingCancelled}
+				requiresUserGesture={bluetoothConnectRequiresUserGesture()}
+				onConnect={connectClient}
+				onConsent={consentToShare}
+				onCancel={cancelShare}
+				onClose={() => setShowMdocQR(false)}
+			/>
+
+			{/* Delete Credential Popup */}
+			{showDeletePopup && vcEntity && (
+				<DeletePopup
+					isOpen={showDeletePopup}
+					onConfirm={handleSureDelete}
+					onClose={() => setShowDeletePopup(false)}
+					message={
+						<Trans
+							i18nKey="pageCredentials.deletePopupMessage"
+							values={{ credentialName }}
+							components={{ strong: <strong />, br: <br /> }}
+						/>
+					}
+					loading={loading}
+				/>
+			)}
 		</CredentialLayout>
 	);
 };
