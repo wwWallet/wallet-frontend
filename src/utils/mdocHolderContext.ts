@@ -21,7 +21,11 @@ class DeviceSigningCoseKey extends CoseKey {
 }
 
 function createDeviceSigningCoseKey(jwk: Record<string, unknown>): CoseKey {
-	const key = CoseKey.fromJwk(jwk);
+	const { kid, ...jwkWithoutKid } = jwk;
+	const key = CoseKey.fromJwk(jwkWithoutKid);
+	if (typeof kid === "string") {
+		key.decodedStructure.set(2, Uint8Array.from(new TextEncoder().encode(kid)));
+	}
 	Object.setPrototypeOf(key, DeviceSigningCoseKey.prototype);
 	return key;
 }
