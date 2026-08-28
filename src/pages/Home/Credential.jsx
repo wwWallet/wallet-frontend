@@ -234,7 +234,8 @@ const Credential = () => {
 				<div className='flex flex-wrap gap-2 xm:w-full'>
 					{shareWithQr && (
 						<Button id='share-credential-qr' variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
-							<span className='px-1'><QrCode /></span>{t('qrShareMdoc.shareUsingQR')}
+							<QrCode size={20} aria-hidden="true" />
+							{t('qrShareMdoc.shareUsingQR')}
 						</Button>
 					)}
 					<Button
