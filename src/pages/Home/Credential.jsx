@@ -28,7 +28,7 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { isBluetoothTransportAvailable, bluetoothConnectRequiresUserGesture } from '@/lib/services/bluetooth';
-import { History, QrCode } from 'lucide-react';
+import { Braces, History, List, QrCode } from 'lucide-react';
 import { DEV_MODE } from '@/config';
 const Credential = () => {
 	const { batchId } = useParams();
@@ -215,14 +215,17 @@ const Credential = () => {
 	const infoTabs = [
 		{
 			label: t('pageCredentials.detailsTitle'),
+			icon: <List size={18} aria-hidden="true" />,
 			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
 		},
 		{
 			label: t('pageCredentials.activityTitle'),
+			icon: <History size={18} aria-hidden="true" />,
 			component: activityContent
 		},
 		...(DEV_MODE && screenType !== 'mobile' ? [{
 			label: t('pageCredentials.datasetTitle'),
+			icon: <Braces size={18} aria-hidden="true" />,
 			component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
 		}] : []),
 	];
