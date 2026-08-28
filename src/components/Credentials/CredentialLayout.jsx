@@ -1,25 +1,25 @@
 // External libraries
-import React, { useState, useContext } from 'react';
-import { useParams, useMatch, useNavigate } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { ArrowLeft, CircleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
-
-// Hooks
-import useScreenType from '@/hooks/useScreenType';
-import { useVcEntity } from '@/hooks/useVcEntity';
-import { useCredentialName } from '@/hooks/useCredentialName';
+import { useMatch, useNavigate, useParams } from 'react-router-dom';
 
 // Config
 import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
+import i18n from '@/i18n';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 
+// Hooks
+import { useCredentialName } from '@/hooks/useCredentialName';
+import useScreenType from '@/hooks/useScreenType';
+import { useVcEntity } from '@/hooks/useVcEntity';
+
 // Components
-import { H1 } from '../Shared/Heading';
-import CredentialImage from './CredentialImage';
-import FullscreenPopup from '../Popups/FullscreenImg';
-import { ArrowLeft, CircleAlert } from 'lucide-react';
+import CredentialImage from '@/components/Credentials/CredentialImage';
+import FullscreenPopup from '@/components/Popups/FullscreenImg';
+import { H1 } from '@/components/Shared/Heading';
 
 const SummaryDetail = ({ label, value, screenType }) => (
 	<p className={`min-w-0 truncate text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
