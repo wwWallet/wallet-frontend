@@ -407,7 +407,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div key={fullPath} className="w-full">
 						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
-							<summary className="cursor-pointer font-semibold text-lm-gray-900 dark:text-dm-gray-100 w-full">
+							<summary className="cursor-pointer font-medium text-lm-gray-900 dark:text-dm-gray-100 w-full">
 								{label}
 							</summary>
 							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-lm-gray-900 dark:border-dm-gray-100 text-lm-gray-900 dark:text-dm-gray-100">
@@ -427,7 +427,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					>
 						<div
 							className={
-								`font-semibold text-lm-gray-900 dark:text-dm-gray-100 w-1/2 lg:w-1/3 wrap-break-word` +
+								`w-1/2 lg:w-1/3 wrap-break-word font-normal text-lm-gray-700 dark:text-dm-gray-300` +
 								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -435,7 +435,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 						</div>
 						<div
 							className={
-								`text-lm-gray-800 dark:text-dm-gray-200 w-1/2 lg:w-2/3 flex justify-between items-start wrap-break-word` +
+								`text-lm-gray-900 dark:text-dm-gray-100 w-1/2 lg:w-2/3 flex justify-between items-start wrap-break-word font-normal` +
 								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
 							}
 						>
