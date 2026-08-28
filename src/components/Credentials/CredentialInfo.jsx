@@ -427,7 +427,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					>
 						<div
 							className={
-								`w-1/2 lg:w-1/3 wrap-break-word font-normal text-lm-gray-700 dark:text-dm-gray-300` +
+								`w-1/2 lg:w-1/3 wrap-break-word font-normal text-lm-gray-800 dark:text-dm-gray-200` +
 								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
 							}
 						>
