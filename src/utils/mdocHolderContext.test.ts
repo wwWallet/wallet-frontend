@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { exportJWK } from "jose";
-import { cborDecode, Holder, IssuerSigned } from "@owf/mdoc";
+import { cborDecode, CoseKeyParameter, Holder, IssuerSigned } from "@owf/mdoc";
 import {
 	createDeviceResponseForDcql,
 	mdocContext,
@@ -47,8 +47,8 @@ describe("mdoc device signing COSE key", () => {
 
 		expect(capturedKey).toBeDefined();
 		const encodedKey = cborDecode<Map<number, unknown>>(capturedKey.encode());
-		expect(encodedKey.get(2)).toBeInstanceOf(Uint8Array);
-		expect(Array.from(encodedKey.get(2) as Uint8Array)).toEqual(
+		expect(encodedKey.get(CoseKeyParameter.KeyId)).toBeInstanceOf(Uint8Array);
+		expect(Array.from(encodedKey.get(CoseKeyParameter.KeyId) as Uint8Array)).toEqual(
 			Array.from(Uint8Array.from(new TextEncoder().encode("device-key-1"))),
 		);
 

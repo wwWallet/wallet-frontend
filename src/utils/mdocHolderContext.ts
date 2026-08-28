@@ -3,6 +3,7 @@ import { p256, p384, p521 } from "@noble/curves/nist.js";
 import {
 	cborEncode,
 	CoseKey,
+	CoseKeyParameter,
 	DeviceRequest,
 	DocRequest,
 	Holder,
@@ -12,10 +13,10 @@ import {
 	type MdocContext,
 } from "@owf/mdoc";
 
-/** Fix for @owf/mdoc 0.6.0 kid (COSE header 4), which must be a bstr (not a tstr). */
+/** Fix for @owf/mdoc 0.6.0 kid, which must be a bstr, not a tstr. */
 class DeviceSigningCoseKey extends CoseKey {
 	get keyId(): any {
-		const keyId = this.decodedStructure.get(2);
+		const keyId = this.decodedStructure.get(CoseKeyParameter.KeyId);
 		return keyId instanceof Uint8Array ? keyId : undefined;
 	}
 }
@@ -24,7 +25,7 @@ function createDeviceSigningCoseKey(jwk: Record<string, unknown>): CoseKey {
 	const { kid, ...jwkWithoutKid } = jwk;
 	const key = CoseKey.fromJwk(jwkWithoutKid);
 	if (typeof kid === "string") {
-		key.decodedStructure.set(2, Uint8Array.from(new TextEncoder().encode(kid)));
+		key.decodedStructure.set(CoseKeyParameter.KeyId, Uint8Array.from(new TextEncoder().encode(kid)));
 	}
 	Object.setPrototypeOf(key, DeviceSigningCoseKey.prototype);
 	return key;
