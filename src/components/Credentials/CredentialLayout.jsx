@@ -21,26 +21,25 @@ import CredentialImage from '@/components/Credentials/CredentialImage';
 import FullscreenPopup from '@/components/Popups/FullscreenImg';
 import { H1 } from '@/components/Shared/Heading';
 
-const SummaryDetail = ({ label, value, screenType }) => (
-	<p className={`min-w-0 truncate text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
-		{label}: {value}
-	</p>
-);
-
-const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
+const UsageStats = ({ zeroSigCount, sigTotal, t }) => {
 	if (zeroSigCount === null || !sigTotal) return null;
 
 	const usageClass =
 		zeroSigCount === 0
-			? 'text-lm-orange dark:text-dm-orange'
-			: 'text-lm-green dark:text-dm-green';
+			? 'border-lm-orange/40 bg-lm-orange/10 text-lm-gray-900 dark:border-dm-orange/40 dark:bg-dm-orange/10 dark:text-dm-gray-100'
+			: 'border-lm-green/30 bg-lm-green/10 text-lm-green dark:border-dm-green/30 dark:bg-dm-green/10 dark:text-dm-green';
 
 	return (
-		<SummaryDetail
-			label={t('pageCredentials.details.availableUsages')}
-			value={<><span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>/{sigTotal}</>}
-			screenType={screenType}
-		/>
+		<div className="flex flex-wrap items-center gap-2 text-sm">
+			<span className="font-medium text-lm-gray-900 dark:text-dm-gray-100">
+				{t('pageCredentials.details.availableUsages')}
+			</span>
+			<span className={`inline-flex items-baseline rounded-full border px-2.5 py-0.5 font-semibold tabular-nums ${usageClass}`}>
+				{zeroSigCount}
+				<span className="px-0.5 opacity-60">/</span>
+				<span className="font-normal opacity-80">{sigTotal}</span>
+			</span>
+		</div>
 	);
 };
 
@@ -159,7 +158,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 					)}
 					{isCredentialRoot && DISPLAY_CREDENTIAL_USAGES && (
 						<div>
-							<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+							<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} t={t} />
 						</div>
 					)}
 					{isCredentialRoot && summaryActions && (
