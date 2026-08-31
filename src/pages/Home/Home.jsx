@@ -97,7 +97,7 @@ const Home = () => {
 													<div className='px-6'>
 														<HistoryList
 															batchId={vcEntityList[currentSlide - 1].batchId}
-															title="Recent History"
+															title="Recent Activity"
 															limit={3}
 														/>
 													</div>
