@@ -19,7 +19,8 @@ import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
-import { APP_VERSION } from '@/config';
+import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
+import { signalCurrentUserDetails, signalUnknownCredential } from '@/util-webauthn';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
@@ -93,9 +94,20 @@ const Settings = () => {
 
 	const { getCalculatedWalletState } = keystore;
 
+	const signalWebauthnCredentialsAfterDeletion = async (
+		deletedCredentials: WebauthnCredential[],
+	): Promise<void> => {
+		await Promise.all(deletedCredentials.map(credential => signalUnknownCredential({
+			rpId: WEBAUTHN_RPID,
+			credentialId: toBase64Url(credential.credentialId),
+		})));
+	};
+
 	const deleteAccount = async () => {
 		try {
+			const deletedCredentials = userData?.webauthnCredentials ?? [];
 			await api.del('/user/session');
+			await signalWebauthnCredentialsAfterDeletion(deletedCredentials);
 			const userHandleB64u = new TextEncoder().encode(userData.uuid);
 			const cachedUser = keystore.getCachedUsers()
 				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
@@ -188,6 +200,7 @@ const Settings = () => {
 			}));
 			if (deleteResp.status === 204) {
 				await keystoreCommit();
+				await signalWebauthnCredentialsAfterDeletion([credential]);
 			} else {
 				console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
 			}
@@ -204,14 +217,20 @@ const Settings = () => {
 	};
 
 	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
-		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
+		const renameResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
 			nickname,
 		});
 		refreshData();
-		if (deleteResp.status === 204) {
+		if (renameResp.status === 204) {
+			await signalCurrentUserDetails({
+				rpId: WEBAUTHN_RPID,
+				userId: toBase64Url(new TextEncoder().encode(userData.uuid)),
+				name: nickname,
+				displayName: nickname,
+			});
 			return true;
 		} else {
-			console.error("Failed to rename WebAuthn credential", deleteResp.status, deleteResp);
+			console.error("Failed to rename WebAuthn credential", renameResp.status, renameResp);
 			return false;
 		}
 	};

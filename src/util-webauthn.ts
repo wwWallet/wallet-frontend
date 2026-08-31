@@ -52,3 +52,84 @@ export function withAuthenticatorAttachmentFromHints(authSel: AuthenticatorSelec
 		return authSel;
 	}
 }
+
+type SignalUnknownCredentialOptions = {
+	credentialId: string;
+	rpId: string;
+};
+
+type SignalCurrentUserDetailsOptions = {
+	displayName: string;
+	name: string;
+	rpId: string;
+	userId: string;
+};
+
+type PublicKeyCredentialWithSignalMethods = typeof PublicKeyCredential & {
+	getClientCapabilities?: () => Promise<Record<string, boolean>>;
+	signalCurrentUserDetails?: (options: SignalCurrentUserDetailsOptions) => Promise<void>;
+	signalUnknownCredential?: (options: SignalUnknownCredentialOptions) => Promise<void>;
+};
+
+async function getPublicKeyCredentialSignals(): Promise<{
+	clientCapabilities: Record<string, boolean>;
+	publicKeyCredential: PublicKeyCredentialWithSignalMethods;
+} | null> {
+	if (typeof window === "undefined" || !window.isSecureContext || typeof PublicKeyCredential === "undefined") {
+		return null;
+	}
+
+	const publicKeyCredential = PublicKeyCredential as PublicKeyCredentialWithSignalMethods;
+	if (!publicKeyCredential.getClientCapabilities) {
+		return null;
+	}
+
+	return {
+		clientCapabilities: await publicKeyCredential.getClientCapabilities(),
+		publicKeyCredential,
+	};
+}
+
+export async function signalUnknownCredential(options?: SignalUnknownCredentialOptions): Promise<boolean> {
+	if (!options) {
+		return false;
+	}
+
+	try {
+		const signals = await getPublicKeyCredentialSignals();
+		if (
+			!signals?.publicKeyCredential.signalUnknownCredential
+			|| signals.clientCapabilities.signalUnknownCredential !== true
+		) {
+			return false;
+		}
+
+		await signals.publicKeyCredential.signalUnknownCredential(options);
+		return true;
+	} catch (error) {
+		console.warn("Failed to signal unknown WebAuthn credential", error);
+		return false;
+	}
+}
+
+export async function signalCurrentUserDetails(options?: SignalCurrentUserDetailsOptions): Promise<boolean> {
+	if (!options) {
+		return false;
+	}
+
+	try {
+		const signals = await getPublicKeyCredentialSignals();
+		if (
+			!signals?.publicKeyCredential.signalCurrentUserDetails
+			|| signals.clientCapabilities.signalCurrentUserDetails !== true
+		) {
+			return false;
+		}
+
+		await signals.publicKeyCredential.signalCurrentUserDetails(options);
+		return true;
+	} catch (error) {
+		console.warn("Failed to signal current WebAuthn user details", error);
+		return false;
+	}
+}
