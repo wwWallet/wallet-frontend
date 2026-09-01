@@ -124,11 +124,13 @@ const CredentialShareMenu = ({
 			>
 				<Share2 size={20} aria-hidden="true" />
 				<span>{t('credentialShareMenu.buttonLabel')}</span>
-				<ChevronDown
-					size={16}
-					aria-hidden="true"
-					className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
-				/>
+				{!useBottomSheet && (
+					<ChevronDown
+						size={16}
+						aria-hidden="true"
+						className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
+					/>
+				)}
 			</Button>
 
 			{useBottomSheet ? (
