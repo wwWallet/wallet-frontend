@@ -49,6 +49,12 @@
 		"tryAgain": "Δοκιμάστε ξανά",
 		"walletName": "wwWallet"
 	},
+	"credentialShareMenu": {
+		"buttonLabel": "Κοινοποίηση",
+		"nearbyDeviceHeading": "Κοινοποίηση σε κοντινή συσκευή",
+		"showQrCode": "Εμφάνιση κωδικού QR",
+		"trustedVerifierHeading": "Συνέχεια με έμπιστο verifier"
+	},
 	"expiredRibbon": {
 		"expired": "Ληγμένο"
 	},

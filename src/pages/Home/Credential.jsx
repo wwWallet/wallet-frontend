@@ -1,6 +1,6 @@
 // External libraries
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Braces, History, List, QrCode } from 'lucide-react';
+import { Braces, History, List } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import i18n from '@/i18n';
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import SessionContext from '@/context/SessionContext';
+import StatusContext from '@/context/StatusContext';
 
 // Hooks
 import { useCredentialName } from '@/hooks/useCredentialName';
@@ -30,6 +31,7 @@ import CredentialDeleteButton from '@/components/Credentials/CredentialDeleteBut
 import CredentialInfo from '@/components/Credentials/CredentialInfo';
 import CredentialJson from '@/components/Credentials/CredentialJson';
 import CredentialLayout from '@/components/Credentials/CredentialLayout';
+import CredentialShareMenu from '@/components/Credentials/CredentialShareMenu';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 import DeletePopup from '@/components/Popups/DeletePopup';
 import HistoryList from '@/components/History/HistoryList';
@@ -38,6 +40,7 @@ import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Po
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
+	const { isOnline } = useContext(StatusContext);
 	const history = useFetchPresentations(keystore, batchId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -49,6 +52,7 @@ const Credential = () => {
 	const handledMdocStatusRef = useRef(null);
 	const shareSessionRef = useRef(0); // bumped on new shares, used to invalidate abandoned connections
 	const [shareWithQr, setShareWithQr] = useState(false);
+	const [verifiers, setVerifiers] = useState(null);
 	const [mdocQRContent, setMdocQRContent] = useState("");
 	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
 	const [mdocTypeDetails, setMdocTypeDetails] = useState(null);
@@ -72,6 +76,19 @@ const Credential = () => {
 	);
 
 	const [cachedUser, setCachedUser] = useState(null);
+
+	useEffect(() => {
+		const fetchVerifiers = async () => {
+			try {
+				const fetchedVerifiers = await api.getAllVerifiers();
+				setVerifiers(Array.isArray(fetchedVerifiers) ? fetchedVerifiers : []);
+			} catch (error) {
+				console.error('Error fetching verifiers:', error);
+				setVerifiers([]);
+			}
+		};
+		fetchVerifiers();
+	}, [api]);
 
 
 	useEffect(() => {
@@ -102,6 +119,23 @@ const Credential = () => {
 		setLoading(false);
 		setShowDeletePopup(false);
 	};
+
+	const redirectToVerifier = (verifier) => {
+		window.location.href = verifier.url;
+	};
+
+	const shareMenu = (fullWidth = false) => (
+		<CredentialShareMenu
+			canShareWithQr={shareWithQr}
+			isOnline={isOnline}
+			verifiers={verifiers}
+			onShareWithQr={generateQR}
+			onSelectVerifier={redirectToVerifier}
+			align={isDesktop ? 'right' : 'left'}
+			fullWidth={fullWidth}
+			largeButton={!isDesktop}
+		/>
+	);
 
 	const connectClient = async () => {
 		setBluetoothPairingCancelled(false);
@@ -239,12 +273,7 @@ const Credential = () => {
 			title={credentialName}
 			summaryActions={!isDesktop ? (
 				<div className='flex flex-wrap gap-2 xm:w-full'>
-					{shareWithQr && (
-						<Button id='share-credential-qr' variant='primary' additionalClassName='xm:w-full' onClick={generateQR}>
-							<QrCode size={20} aria-hidden="true" />
-							{t('qrShareMdoc.shareUsingQR')}
-						</Button>
-					)}
+					{shareMenu(screenType === 'mobile')}
 					<Button
 						id="navigate-credential-history"
 						variant='outline'
@@ -269,19 +298,7 @@ const Credential = () => {
 			) : null}
 			actionsMenu={
 				<div className='flex items-center gap-1'>
-					{isDesktop && shareWithQr && (
-						<Button
-							id='share-credential-qr'
-							variant='primary'
-							size='sm'
-							onClick={generateQR}
-							ariaLabel={t('qrShareMdoc.shareUsingQR')}
-							title={t('qrShareMdoc.shareUsingQR')}
-						>
-							<QrCode size={20} />
-							<span>{t('qrShareMdoc.shareUsingQR')}</span>
-						</Button>
-					)}
+					{isDesktop && shareMenu()}
 					<CredentialActionsMenu>
 						<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} />
 					</CredentialActionsMenu>

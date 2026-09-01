@@ -61,6 +61,12 @@
 		"legendRequested": "Requested by verifier",
 		"legendRequired": "Required"
 	},
+	"credentialShareMenu": {
+		"buttonLabel": "Share",
+		"nearbyDeviceHeading": "Share to a nearby device",
+		"showQrCode": "Show QR Code",
+		"trustedVerifierHeading": "Continue with a trusted verifier"
+	},
 	"expiredRibbon": {
 		"expired": "Expired"
 	},

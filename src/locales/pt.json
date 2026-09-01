@@ -49,6 +49,12 @@
 		"tryAgain": "Tentar novamente",
 		"walletName": "wwWallet"
 	},
+	"credentialShareMenu": {
+		"buttonLabel": "Partilhar",
+		"nearbyDeviceHeading": "Partilhar com um dispositivo próximo",
+		"showQrCode": "Mostrar código QR",
+		"trustedVerifierHeading": "Continuar com um verificador de confiança"
+	},
 	"expiredRibbon": {
 		"expired": "Expirada"
 	},
