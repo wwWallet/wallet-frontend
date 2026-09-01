@@ -175,7 +175,7 @@
 		}
 	},
 	"pageActivity": {
-		"description": "View activity of credential transmissions, detailing when and to which verifiers you sent",
+		"description": "View activity of credential presentations, detailing when and to which verifiers you sent them",
 		"emptyCredentialDescription": "When you share this credential, its activity will appear here.",
 		"emptyCredentialTitle": "No activity for this credential yet",
 		"emptyDescription": "Your credential activity will appear here.",
