@@ -49,7 +49,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 		const engine = await initializeCredentialEngine(
 			httpProxy,
 			helper,
-			() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
+			() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data.issuers),
 			trustedCertificates,
 			useCache,
 			(issuerIdentifier: string) => {

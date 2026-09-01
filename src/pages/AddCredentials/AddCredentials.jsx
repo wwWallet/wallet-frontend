@@ -111,7 +111,8 @@ const AddCredentials = () => {
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
-				let fetchedIssuers = response.data;
+				const { portals: fetchedPortals, issuers: fetchedIssuers } = response.data;
+				void fetchedPortals;
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						if (!issuer.visible) {
