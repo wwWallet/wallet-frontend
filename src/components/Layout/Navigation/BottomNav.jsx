@@ -6,7 +6,7 @@ import { useQRScanner } from '../../../hooks/useQRScanner';
 import QRCodeScanner from '../../QRCodeScanner/QRCodeScanner';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
-import { Bell, PlusCircle, QrCode, Send, UserCircle, Wallet } from 'lucide-react';
+import { Bell, History, PlusCircle, QrCode, UserCircle, Wallet } from 'lucide-react';
 
 const BottomNav = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
@@ -20,7 +20,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 		{ icon: <Wallet size={20} />, id: 'credentials', path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
 		{ icon: <PlusCircle size={20} />, id: 'add', path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
 		{ icon: <QrCode size={20} />, id: 'qr', path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
-		{ icon: <Send size={20} />, id: 'send', path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
+		{ icon: <History size={20} />, id: 'history', path: '/history', label: `${t("common.navItemHistory")}`, stepClass: 'step-5-small-screen' },
 	];
 
 	const handleNavigate = (path) => {

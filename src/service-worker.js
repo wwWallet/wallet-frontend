@@ -35,7 +35,6 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/history$/,                       // History list
 	/^\/pending$/,                       // Pending
 	/^\/add$/,                           // Add credentials
-	/^\/send$/,                          // Send credentials
 	/^\/verification\/result$/,          // Verification result
 	/^\/login$/,                         // Login
 	/^\/register$/,                      // Register
