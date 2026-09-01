@@ -48,6 +48,7 @@
 		"platformPasskey": "This device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then sign in and try again.",
+		"recentActivity": "Recent Activity",
 		"refresh": "Refresh",
 		"save": "Save",
 		"showLess": "Show less",
