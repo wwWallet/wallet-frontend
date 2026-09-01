@@ -18,6 +18,7 @@ const CredentialShareMenu = ({
 	const [isOpen, setIsOpen] = useState(false);
 	const containerRef = useRef(null);
 	const triggerRef = useRef(null);
+	const hasVerifierOptions = verifiers === null || verifiers.length > 0;
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -107,12 +108,13 @@ const CredentialShareMenu = ({
 
 					)}
 
-					{canShareWithQr && (
+					{canShareWithQr && hasVerifierOptions && (
 						<div className="my-1">
 								<SeparatorLine><span className="uppercase">{t('common.or')}</span></SeparatorLine>
 						</div>
 					)}
-					<div className={`${canShareWithQr ? ' border-lm-gray-400 dark:border-dm-gray-600' : ''}`}>
+					{hasVerifierOptions && (
+						<div className={`${canShareWithQr ? ' border-lm-gray-400 dark:border-dm-gray-600' : ''}`}>
 						<p className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm font-base tracking-wide text-lm-gray-700 dark:text-dm-gray-300">
 								{t('credentialShareMenu.trustedVerifierHeading')}
 						</p>
@@ -142,7 +144,8 @@ const CredentialShareMenu = ({
 								))}
 							</div>
 						)}
-					</div>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

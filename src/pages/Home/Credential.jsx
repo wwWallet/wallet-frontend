@@ -1,6 +1,6 @@
 // External libraries
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Braces, History, List } from 'lucide-react';
+import { Braces, History, List, QrCode } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -124,18 +124,39 @@ const Credential = () => {
 		window.location.href = verifier.url;
 	};
 
-	const shareMenu = (fullWidth = false) => (
-		<CredentialShareMenu
-			canShareWithQr={shareWithQr}
-			isOnline={isOnline}
-			verifiers={verifiers}
-			onShareWithQr={generateQR}
-			onSelectVerifier={redirectToVerifier}
-			align={isDesktop ? 'right' : 'left'}
-			fullWidth={fullWidth}
-			largeButton={!isDesktop}
-		/>
-	);
+	const shareMenu = (fullWidth = false) => {
+		if (verifiers === null) {
+			return null;
+		}
+
+		if (shareWithQr && verifiers.length === 0) {
+			return (
+				<Button
+					id="share-credential-qr"
+					variant="primary"
+					size={!isDesktop ? 'md' : 'sm'}
+					additionalClassName={fullWidth ? 'w-full' : ''}
+					onClick={generateQR}
+				>
+					<QrCode size={20} aria-hidden="true" />
+					{t('qrShareMdoc.shareUsingQR')}
+				</Button>
+			);
+		}
+
+		return (shareWithQr || verifiers.length > 0) && (
+			<CredentialShareMenu
+				canShareWithQr={shareWithQr}
+				isOnline={isOnline}
+				verifiers={verifiers}
+				onShareWithQr={generateQR}
+				onSelectVerifier={redirectToVerifier}
+				align={isDesktop ? 'right' : 'left'}
+				fullWidth={fullWidth}
+				largeButton={!isDesktop}
+			/>
+		);
+	};
 
 	const connectClient = async () => {
 		setBluetoothPairingCancelled(false);
