@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, LoaderCircle, QrCode, Share2, ExternalLink } from 'lucide-react';
+import { ChevronDown, QrCode, Share2, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '@/components/Buttons/Button';
 import SeparatorLine from '@/components/Shared/SeparatorLine';
@@ -18,7 +18,6 @@ const CredentialShareMenu = ({
 	const [isOpen, setIsOpen] = useState(false);
 	const containerRef = useRef(null);
 	const triggerRef = useRef(null);
-	const hasVerifierOptions = verifiers === null || verifiers.length > 0;
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -90,7 +89,6 @@ const CredentialShareMenu = ({
 					className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} z-50 mt-2 w-[min(22rem,calc(100vw-3rem))] overflow-hidden rounded-lg border border-lm-gray-400 bg-lm-gray-100 p-1 shadow-lg dark:border-dm-gray-600 dark:bg-dm-gray-900`}
 				>
 					{canShareWithQr && (
-
 						<>
 							<p className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm font-base tracking-wide text-lm-gray-700 dark:text-dm-gray-300">
 								{t('credentialShareMenu.nearbyDeviceHeading')}
@@ -105,47 +103,34 @@ const CredentialShareMenu = ({
 								{t('credentialShareMenu.showQrCode')}
 							</button>
 						</>
-
 					)}
 
-					{canShareWithQr && hasVerifierOptions && (
+					{canShareWithQr && (
 						<div className="my-1">
-								<SeparatorLine><span className="uppercase">{t('common.or')}</span></SeparatorLine>
+							<SeparatorLine><span className="uppercase">{t('common.or')}</span></SeparatorLine>
 						</div>
 					)}
-					{hasVerifierOptions && (
-						<div className={`${canShareWithQr ? ' border-lm-gray-400 dark:border-dm-gray-600' : ''}`}>
-						<p className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm font-base tracking-wide text-lm-gray-700 dark:text-dm-gray-300">
-								{t('credentialShareMenu.trustedVerifierHeading')}
-						</p>
+					<p className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm font-base tracking-wide text-lm-gray-700 dark:text-dm-gray-300">
+						{t('credentialShareMenu.trustedVerifierHeading')}
+					</p>
 
-						{verifiers === null && (
-							<div className="flex justify-center px-3 py-2" aria-busy="true">
-								<LoaderCircle size={18} className="animate-spin" aria-hidden="true" />
-							</div>
-						)}
+					<div className="max-h-60 overflow-y-auto custom-scrollbar" role="group" aria-label={t('credentialShareMenu.trustedVerifierHeading')}>
+						{verifiers.map((verifier) => (
+							<button
+								id={`share-credential-verifier-${verifier.id}`}
+								key={verifier.id}
+								type="button"
+								disabled={!isOnline}
+								title={!isOnline ? t('common.offlineTitle') : verifier.name}
+								className="flex w-full items-center gap-3 rounded-md px-4 py-2.5 text-left text-sm text-lm-gray-900 enabled:cursor-pointer enabled:hover:bg-lm-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:text-dm-gray-100 dark:enabled:hover:bg-dm-gray-700"
+								onClick={() => selectAction(() => onSelectVerifier(verifier))}
+							>
+								<ExternalLink size={20} className="shrink-0" aria-hidden="true" />
 
-						{verifiers?.length > 0 && (
-							<div className="max-h-60 overflow-y-auto custom-scrollbar" role="group" aria-label={t('credentialShareMenu.trustedVerifierHeading')}>
-								{verifiers.map((verifier) => (
-									<button
-										id={`share-credential-verifier-${verifier.id}`}
-										key={verifier.id}
-										type="button"
-										disabled={!isOnline}
-										title={!isOnline ? t('common.offlineTitle') : verifier.name}
-										className="flex w-full items-center gap-3 rounded-md px-4 py-2.5 text-left text-sm text-lm-gray-900 enabled:cursor-pointer enabled:hover:bg-lm-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:text-dm-gray-100 dark:enabled:hover:bg-dm-gray-700"
-										onClick={() => selectAction(() => onSelectVerifier(verifier))}
-									>
-										<ExternalLink size={20} className="shrink-0" aria-hidden="true" />
-
-										<span className="min-w-0 truncate">{verifier.name}</span>
-									</button>
-								))}
-							</div>
-						)}
-						</div>
-					)}
+								<span className="min-w-0 truncate">{verifier.name}</span>
+							</button>
+						))}
+					</div>
 				</div>
 			)}
 		</div>

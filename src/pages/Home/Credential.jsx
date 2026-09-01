@@ -129,7 +129,11 @@ const Credential = () => {
 			return null;
 		}
 
-		if (shareWithQr && verifiers.length === 0) {
+		if (verifiers.length === 0) {
+			if (!shareWithQr) {
+				return null;
+			}
+
 			return (
 				<Button
 					id="share-credential-qr"
@@ -144,7 +148,7 @@ const Credential = () => {
 			);
 		}
 
-		return (shareWithQr || verifiers.length > 0) && (
+		return (
 			<CredentialShareMenu
 				canShareWithQr={shareWithQr}
 				isOnline={isOnline}
