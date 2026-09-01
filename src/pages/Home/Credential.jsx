@@ -158,6 +158,7 @@ const Credential = () => {
 				align={isDesktop ? 'right' : 'left'}
 				fullWidth={fullWidth}
 				largeButton={!isDesktop}
+				useBottomSheet={!isDesktop}
 			/>
 		);
 	};
