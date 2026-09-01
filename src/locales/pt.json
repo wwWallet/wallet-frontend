@@ -130,6 +130,7 @@
 		"searchPlaceholder": "Procurar credencial..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Atividade",
 		"addCard": {
 			"text": "Adicionar Nova Credencial"
 		},
@@ -145,7 +146,7 @@
 			"description": "Consulte toda a informação sobre a credencial selecionada",
 			"expired": "Esta credencial expirou"
 		},
-		"presentationsTitle": "Apresentações",
+		"detailsTitle": "Detalhes",
 		"slideButtonAriaLabelDisable": "Sem credencial {{direction}}",
 		"slideButtonAriaLabelEnable": "Ir para credencial {{direction}}",
 		"slideButtonTitleDisable": "Sem credencial {{direction}} disponível",
@@ -155,7 +156,10 @@
 	},
 	"pageHistory": {
 		"description": "Consulte o histórico de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
-		"noFound": "Sem apresentações",
+		"emptyCredentialDescription": "Quando partilhar esta credencial, a respetiva atividade será apresentada aqui.",
+		"emptyCredentialTitle": "Ainda não há atividade para esta credencial",
+		"emptyDescription": "O histórico das suas credenciais será apresentado aqui.",
+		"emptyTitle": "Ainda não há histórico",
 		"popupTitle": "Credenciais apresentadas",
 		"presentationDetails": {
 			"title": "Detalhes de apresentação"

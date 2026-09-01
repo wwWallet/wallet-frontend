@@ -136,6 +136,7 @@
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Δραστηριότητα",
 		"addCard": {
 			"text": "Προσθήκη Νέου Πιστοποιητικού"
 		},
@@ -151,7 +152,7 @@
 			"description": "Δείτε όλες τις πληροφορίες για το επιλεγμένο πιστοποιητικό",
 			"expired": "Αυτό το Πιστοποιητικό έχει λήξει"
 		},
-		"presentationsTitle": "Απεσταλμένα Πιστοποιητικά",
+		"detailsTitle": "Λεπτομέρειες",
 		"slideButtonAriaLabelDisable": "Δεν υπάρχει {{direction}} πιστοποιητικό",
 		"slideButtonAriaLabelEnable": "Μεταβείτε στο {{direction}} πιστοποιητικό",
 		"slideButtonTitleDisable": "Δεν υπάρχει διαθέσιμο {{direction}} πιστοποιητικό",
@@ -161,7 +162,10 @@
 	},
 	"pageHistory": {
 		"description": "Δείτε στο ιστορικό αποστολών πιστοποιητικών πότε και σε ποιους verifiers τα στείλατε.",
-		"noFound": "Δεν βρέθηκαν απεσταλμένα πιστοποιητικά",
+		"emptyCredentialDescription": "Όταν κοινοποιήσετε αυτό το πιστοποιητικό, η δραστηριότητά του θα εμφανιστεί εδώ.",
+		"emptyCredentialTitle": "Δεν υπάρχει ακόμη δραστηριότητα για αυτό το πιστοποιητικό",
+		"emptyDescription": "Το ιστορικό των πιστοποιητικών σας θα εμφανίζεται εδώ.",
+		"emptyTitle": "Δεν υπάρχει ιστορικό ακόμη",
 		"popupTitle": "Απεσταλμένα Πιστοποιητικά",
 		"presentationDetails": {
 			"title": "Λεπτομέρειες Αποστολής"
@@ -268,11 +272,46 @@
 		"title": "Σαρώστε τον QR Κωδικό"
 	},
 	"qrShareMdoc": {
-		"communicating": "Επικοινωνία με τον verifier...",
-		"enablePermissions": "Δεν ήταν δυνατή η πρόσβαση στις λειτουργίες κοντινών συσκευών. Παρακαλώ ενεργοποιήστε τα δικαιώματα για εύρεση κοντινών συσκευών στις ρυθμίσεις σας και επανεκκινήστε την εφαρμογή.",
-		"nearbyVerifierRequested": "Ένας κοντινός verifier ζήτησε τα εξής πεδία:",
-		"send": "Αποστολή",
-		"shareUsingQR": "Αποστολή με κωδικό QR"
+		"connectToVerifier": "Σύνδεση με τον verifier",
+		"connected": "Συνδέθηκε με τον verifier",
+		"connectingHeading": "Σύνδεση με τον verifier",
+		"connectingInstructions": "Επιλέξτε την κοντινή συσκευή του verifier στο παράθυρο σύζευξης.",
+		"connectionFailed": "Δεν ήταν δυνατή η σύνδεση με τον verifier. Βεβαιωθείτε ότι το Bluetooth είναι ενεργό και ότι ο verifier βρίσκεται σε αναμονή και δοκιμάστε ξανά.",
+		"connectionFailedHeading": "Δεν ήταν δυνατή η σύνδεση",
+		"connectionLost": "Η σύνδεση με τον verifier χάθηκε. Δεν κοινοποιήθηκε τίποτα.",
+		"credentialMismatch": "Αυτό το διαπιστευτήριο δεν είναι αυτό που ζήτησε ο verifier. Δεν κοινοποιήθηκε τίποτα.",
+		"credentialMismatchHeading": "Τα διαπιστευτήρια δεν ταιριάζουν",
+		"credentialTypeMismatch": "Ο verifier ζήτησε {{requestedType}}, αλλά αυτό το διαπιστευτήριο είναι {{credentialType}}.",
+		"done": "Τέλος",
+		"keepOpen": "Κρατήστε αυτό το παράθυρο ανοιχτό.",
+		"notShared": "Δεν κοινοποιούνται: {{fields}}",
+		"nothingElse": "τίποτα άλλο",
+		"pairingCancelled": "Η σύζευξη δεν ολοκληρώθηκε. Ο κωδικός QR παραμένει ενεργός.",
+		"pairingInstructions": "Δημιουργείται ασφαλής σύνδεση με τη συσκευή του verifier.",
+		"presentCredential": "Παρουσίαση διαπιστευτηρίου",
+		"progressLabel": "Πρόοδος παρουσίασης διαπιστευτηρίου",
+		"reviewDescription": "Ο verifier ζήτησε τα παρακάτω στοιχεία.",
+		"reviewHeading": "Ελέγξτε τι θα κοινοποιηθεί",
+		"scanHeading": "Αφήστε τον verifier να σαρώσει αυτόν τον κωδικό QR",
+		"scanInstructions": "Κρατήστε αυτό το παράθυρο ανοιχτό. Αφού σαρώσει τον κωδικό, συνδεθείτε στην κοντινή συσκευή του.",
+		"sendingFailed": "Δεν ήταν δυνατή η αποστολή των ζητούμενων στοιχείων",
+		"sendingItems_one": "Αποστολή {{count}} ζητούμενου στοιχείου",
+		"sendingItems_other": "Αποστολή {{count}} ζητούμενων στοιχείων",
+		"shareItems_one": "Κοινοποίηση {{count}} στοιχείου",
+		"shareItems_other": "Κοινοποίηση {{count}} στοιχείων",
+		"shareUsingQR": "Αποστολή με κωδικό QR",
+		"sharedHeading": "Το διαπιστευτήριο κοινοποιήθηκε",
+		"sharedItems_one": "Κοινοποιήθηκε με επιτυχία {{count}} στοιχείο.",
+		"sharedItems_other": "Κοινοποιήθηκαν με επιτυχία {{count}} στοιχεία.",
+		"sharingFailedHeading": "Η κοινοποίηση απέτυχε",
+		"sharingHeading": "Κοινοποίηση διαπιστευτηρίου",
+		"steps": {
+			"connect": "Σύνδεση",
+			"review": "Έλεγχος",
+			"scan": "Σάρωση",
+			"share": "Κοινοποίηση"
+		},
+		"waitingForRequest": "Δημιουργήθηκε ασφαλής σύνδεση. Αναμονή για το αίτημα του verifier..."
 	},
 	"queryableList": {
 		"all": "Όλα",
