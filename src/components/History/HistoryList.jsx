@@ -32,7 +32,7 @@ function HistoryListView({ title = '', limit = null, history = {} }) {
 
 	const handleHistoryItemClick = (item) => {
 		const transactionId = item[0].presentation.transactionId;
-		if (screenType === 'mobile') navigate(`/history/${transactionId}`);
+		if (screenType === 'mobile') navigate(`/activity/${transactionId}`);
 		else {
 			setSelectedByTx(item);
 			setImageModalOpen(true);
@@ -57,7 +57,7 @@ function HistoryListView({ title = '', limit = null, history = {} }) {
 					{(limit ? sorted.slice(0, limit) : sorted).map(item => (
 						<Button
 							variant='outline'
-							id={`credential-history-item-${item[0].presentation.transactionId}`}
+							id={`credential-activity-item-${item[0].presentation.transactionId}`}
 							key={item[0].presentation.transactionId}
 							onClick={() => handleHistoryItemClick(item)}
 							additionalClassName='w-full'
