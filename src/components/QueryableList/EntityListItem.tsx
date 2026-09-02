@@ -55,6 +55,14 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 					{highlightBestSequence(primaryData.name, searchQuery)}
 				</span>
 			</span>
+			{!secondaryData && primaryData.description && (
+				<span
+					className="line-clamp-2 text-sm font-normal text-lm-gray-800 dark:text-dm-gray-300"
+					title={primaryData.description}
+				>
+					{primaryData.description}
+				</span>
+			)}
 
 			{secondaryData && (
 				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-lm-gray-300 dark:bg-dm-gray-700 whitespace-nowrap">

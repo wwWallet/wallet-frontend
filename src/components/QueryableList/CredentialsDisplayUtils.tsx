@@ -9,6 +9,28 @@ export function getCredentialType(parsedCredential: any): string {
 	);
 }
 
+export function buildCredentialPortal(
+	portal: any,
+	filterItemByLang: (items: any[], langKey: string) => any
+) {
+	const display = filterItemByLang(portal.display, 'locale');
+	if (!display?.name || !portal.url) {
+		return null;
+	}
+
+	return {
+		...portal,
+		identifierField: `portal-${portal.id}`,
+		credentialConfigurationDisplayName: display.name,
+		displayNode: (searchQuery: string): React.ReactNode => (
+			<EntityListItem
+				primaryData={display}
+				searchQuery={searchQuery}
+			/>
+		),
+	};
+}
+
 export function buildCredentialConfiguration(
 	key: string,
 	config: any,

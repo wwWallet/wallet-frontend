@@ -390,11 +390,13 @@
 		"waitingForRequest": "Secure connection established. Waiting for the verifier's request..."
 	},
 	"queryableList": {
-		"all": "All",
-		"recent": "Recent"
+		"featuredCredentials": "Featured Credentials",
+		"recent": "Recent",
+		"trustedIssuers": "Trusted Issuers"
 	},
 	"redirectPopup": {
 		"issuanceMessage": "You will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"portalMessage": "You will be redirected to <strong>{{portalName}}</strong> <i>{{portalDescription}}</i>.",
 		"presentationMessage": "You will be redirected to <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {
