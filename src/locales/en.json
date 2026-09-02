@@ -269,6 +269,7 @@
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+			"notAttested": "Not attested",
 			"prfUpgrade": "Upgrade",
 			"prfUpgradeAriaLabel": "Upgrade passkey {{passkeyLabel}}",
 			"rename": "Rename",
