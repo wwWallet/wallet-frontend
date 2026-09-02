@@ -32,12 +32,12 @@ const QueryableList = <T extends object>({
 }: QueryableListProps<T>) => {
 	const { t } = useTranslation();
 	const resolvedPortalList = portalList ?? defaultPortalList;
-	const hasPortalList = portalList !== undefined;
 	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [filteredList, setFilteredList] = useState<T[]>(list);
 	const [filteredPortalList, setFilteredPortalList] = useState<T[]>(resolvedPortalList);
 	const [recentList, setRecentList] = useState<string[]>(recent);
 	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState([]);
+	const showSectionHeadings = filteredPortalList.length > 0 && filteredList.length > 0;
 
 	const handleSearch = (inputQuery: string) => {
 		setSearchQuery(inputQuery);
@@ -119,13 +119,13 @@ const QueryableList = <T extends object>({
 					</div>
 				</div>
 			</div>
-			{filteredPortalList.length > 0 && <H3 heading={t("queryableList.trustedIssuers")} />}
+			{showSectionHeadings && <H3 heading={t("queryableList.trustedIssuers")} />}
 			{filteredPortalList.length > 0 && (
 				<div className="mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
 					{filteredPortalList.map((el) => renderListItem(el, "portal"))}
 				</div>
 			)}
-			{filteredList.length > 0 && hasPortalList && <H3 heading={t("queryableList.featuredCredentials")} />}
+			{showSectionHeadings && <H3 heading={t("queryableList.featuredCredentials")} />}
 			{filteredList.length === 0 && filteredPortalList.length === 0 ? (
 				<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
 					{t(translationPrefix + ".noFound")}
