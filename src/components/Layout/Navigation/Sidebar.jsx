@@ -150,12 +150,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
-							id="history"
-							path="/history"
+							id="activity"
+							path="/activity"
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={History}
-							label={t("common.navItemHistory")}
+							label={t("common.navItemActivity")}
 							className="step-6"
 						/>
 

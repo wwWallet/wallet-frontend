@@ -1,0 +1,33 @@
+export type BluetoothConnectionResult = "connected" | "cancelled" | "failed";
+
+/**
+ * Transport abstraction for the ISO 18013-5 proximity presentation flow.
+ *
+ * The wallet always acts in "mdoc central client mode": it connects as a
+ * BLE GATT client to the verifier (reader), which runs a GATT server
+ * advertising the service UUID announced in the device engagement.
+ *
+ * Implementations exchange complete session-layer messages; the BLE
+ * fragmentation scheme of ISO 18013-5 (a leading byte of 0x01 for
+ * intermediate chunks and 0x00 for the final chunk) is handled internally.
+ */
+export interface IBluetoothTransport {
+	/**
+	 * Connect to the reader advertising the given BLE service UUID.
+	 *
+	 * `onDeviceSelected` is invoked once the target device is settled and the
+	 * transport starts connecting to it. Backends that ask the user to pick a
+	 * device first (Web Bluetooth's chooser) call it when that dialog closes,
+	 * so the UI can tell "waiting on the user" apart from "connecting"
+	 */
+	connect(serviceUuid: string, onDeviceSelected?: () => void): Promise<BluetoothConnectionResult>;
+
+	/** Receive one complete session message (chunks reassembled, framing bytes stripped). */
+	receiveMessage(): Promise<Uint8Array>;
+
+	/** Send one complete session message (fragmented into chunks as needed). */
+	sendMessage(payload: Uint8Array): Promise<void>;
+
+	/** Tear down the connection and release any Bluetooth resources. */
+	terminate(): Promise<void>;
+}

@@ -28,10 +28,10 @@
 		"externalPasskey": "Security key",
 		"hybridPasskey": "Nearby device",
 		"more": "More",
+		"navItemActivity": "Activity",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
-		"navItemHistory": "History",
 		"navItemProfile": "Profile",
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSendCredentialsSimple": "Send",
@@ -48,6 +48,7 @@
 		"platformPasskey": "This device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then sign in and try again.",
+		"recentActivity": "Recent Activity",
 		"refresh": "Refresh",
 		"save": "Save",
 		"showLess": "Show less",
@@ -92,6 +93,8 @@
 		"loginWithSecurityKey": "Sign in with a Security Key",
 		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "Don't have a wallet account? ",
+		"otherAccounts": "Other accounts",
+		"otherAccountsDescription": "Choose an account to continue.",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
 		"passkeyLoginFailedServerError": "Failed to initiate passkey sign in, please try again later.",
 		"passkeyLoginFailedTryAgain": "Passkey sign in failed, please try again.",
@@ -109,8 +112,6 @@
 		"signUpWithPasskey": "Create account with a Passkey",
 		"signUpWithSecurityKey": "Use a Security Key",
 		"submitting": "Submitting...",
-		"switchAccount": "Switch account",
-		"switchAccountDescription": "Choose an account to continue.",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {
@@ -173,12 +174,24 @@
 			"title": "Success"
 		}
 	},
+	"pageActivity": {
+		"description": "View activity of credential presentations, detailing when and to which verifiers you sent them",
+		"emptyCredentialDescription": "When you share this credential, its activity will appear here.",
+		"emptyCredentialTitle": "No activity for this credential yet",
+		"emptyDescription": "Your credential activity will appear here.",
+		"emptyTitle": "No activity yet",
+		"popupTitle": "Presented Credentials",
+		"presentationDetails": {
+			"title": "Presentation Details"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Activity",
 		"addCard": {
 			"text": "Add New Credential",
 			"title": "Verifable Credential"
@@ -189,28 +202,20 @@
 		"credentialTitle": "Credential",
 		"datasetTitle": "Dataset",
 		"delete": "Delete Credential",
-		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
+		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your activity.</strong>",
 		"description": "View all of your credentials",
 		"details": {
 			"availableUsages": "Available Usages",
 			"description": "View all the information about the chosen credential",
-			"expired": "This Credential has been expired"
+			"expired": "This credential has expired."
 		},
-		"presentationsTitle": "Presentations",
+		"detailsTitle": "Details",
 		"slideButtonAriaLabelDisable": "No {{direction}} credential",
 		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
 		"slideButtonTitleDisable": "No {{direction}} credential available",
 		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
 		"slideNext": "next",
 		"slidePrevious": "previous"
-	},
-	"pageHistory": {
-		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No presentations found",
-		"popupTitle": "Presented Credentials",
-		"presentationDetails": {
-			"title": "Presentation Details"
-		}
 	},
 	"pagePending": {
 		"description": "View pending issuance requests",
@@ -345,11 +350,46 @@
 		"title": "Scan the QR Code"
 	},
 	"qrShareMdoc": {
-		"communicating": "Communicating with verifier...",
-		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
-		"nearbyVerifierRequested": "A nearby verifier requested the following fields:",
-		"send": "Send",
-		"shareUsingQR": "Share using QRCode"
+		"connectToVerifier": "Connect to verifier",
+		"connected": "Connected to verifier",
+		"connectingHeading": "Connecting to verifier",
+		"connectingInstructions": "Choose the verifier's nearby device in the pairing window.",
+		"connectionFailed": "Could not connect to the verifier. Make sure Bluetooth is on and the verifier is waiting, then try again.",
+		"connectionFailedHeading": "Could not connect",
+		"connectionLost": "Connection to the verifier was lost. Nothing was shared.",
+		"credentialMismatch": "This credential is not what the verifier requested. Nothing was shared.",
+		"credentialMismatchHeading": "Credentials do not match",
+		"credentialTypeMismatch": "The verifier requested {{requestedType}}, but this credential is {{credentialType}}.",
+		"done": "Done",
+		"keepOpen": "Please keep this window open.",
+		"notShared": "Not shared: {{fields}}",
+		"nothingElse": "nothing else",
+		"pairingCancelled": "Pairing not completed. QR still active.",
+		"pairingInstructions": "Establishing a secure connection with the verifier's device.",
+		"presentCredential": "Present credential",
+		"progressLabel": "Credential presentation progress",
+		"reviewDescription": "The verifier requested the following items.",
+		"reviewHeading": "Review what will be shared",
+		"scanHeading": "Let the verifier scan this QR code",
+		"scanInstructions": "Keep this window open. After they scan, connect to their nearby device.",
+		"sendingFailed": "Requested items could not be sent",
+		"sendingItems_one": "Sending {{count}} requested item",
+		"sendingItems_other": "Sending {{count}} requested items",
+		"shareItems_one": "Share {{count}} item",
+		"shareItems_other": "Share {{count}} items",
+		"shareUsingQR": "Share using QR Code",
+		"sharedHeading": "Credential shared",
+		"sharedItems_one": "Successfully shared {{count}} item",
+		"sharedItems_other": "Successfully shared {{count}} items",
+		"sharingFailedHeading": "Sharing failed",
+		"sharingHeading": "Sharing credential",
+		"steps": {
+			"connect": "Connect",
+			"review": "Review",
+			"scan": "Scan",
+			"share": "Share"
+		},
+		"waitingForRequest": "Secure connection established. Waiting for the verifier's request..."
 	},
 	"queryableList": {
 		"all": "All",
@@ -414,7 +454,7 @@
 		"tourStep3": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
 		"tourStep4": "Click this button to scan a QR code for sending or receiving credentials.",
 		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
-		"tourStep6": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
+		"tourStep6": "On the 'Activity' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
 		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings."
 	},
 	"updateNotification": {

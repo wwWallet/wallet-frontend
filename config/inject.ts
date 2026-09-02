@@ -9,6 +9,7 @@ import sitemapXml from './files/sitemap';
 import brandingManifest from './files/manifest';
 import themeCSS from './files/theme';
 import metadataImage from './files/metadata-image';
+import runtimePrecache from './files/runtime-precache';
 import { Tag, TagsMap } from './utils/resources';
 import { configMetaTag, getTagSortingPriority, insertTag } from './utils/tags';
 import { pathWithBase } from './utils/paths';
@@ -44,6 +45,12 @@ export async function injectConfigFiles({ destDir, config, tagsToInject }: Injec
 		themeCSS(destDir, config, tagsToInject, brandingHash),
 		metadataImage(destDir, config, tagsToInject, brandingHash),
 	]);
+
+	if (!brandingHash) {
+		throw new Error('BRANDING_HASH is required to generate the runtime precache manifest.');
+	}
+
+	await runtimePrecache(destDir, brandingHash);
 }
 
 export type InjectHtmlOptions = {
@@ -106,25 +113,7 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 
 	// Inject meta tags
 	(function injectConfigMetaTags() {
-		const existingMetaTag = document.querySelector('meta[name="www:config"]');
-		let existingMetaConfig = {};
-
-		if (existingMetaTag) {
-			const existingContent = existingMetaTag.getAttribute('content');
-
-			if (existingContent) {
-				try {
-					existingMetaConfig = JSON.parse(existingContent);
-				} catch (error) {
-					console.warn('Failed to parse existing www:config meta tag:', error);
-				}
-			}
-		}
-
-		const metaConfig = {
-			...existingMetaConfig,
-			...getMetaConfigFromEnvConfig(config),
-		};
+		const metaConfig = getMetaConfigFromEnvConfig(config);
 
 		// Add branding logo meta tags
 		const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));

@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -44,6 +45,8 @@ type UpgradePrfState = (
 	}
 );
 
+const SETTINGS_TAB_IDS = ['general', 'account', 'privacy'];
+
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
@@ -68,7 +71,25 @@ const Settings = () => {
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
-	const [activeTab, setActiveTab] = useState('general');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const requestedTab = searchParams.get('tab');
+	const activeTab = requestedTab && SETTINGS_TAB_IDS.includes(requestedTab)
+		? requestedTab
+		: 'general';
+
+	const setActiveTab = (tab: string) => {
+		if (tab === activeTab) {
+			return;
+		}
+
+		const nextParams = new URLSearchParams(searchParams);
+		if (tab === 'general') {
+			nextParams.delete('tab');
+		} else {
+			nextParams.set('tab', tab);
+		}
+		setSearchParams(nextParams, { preventScrollReset: true });
+	};
 
 	const { getCalculatedWalletState } = keystore;
 

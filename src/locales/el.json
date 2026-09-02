@@ -22,10 +22,10 @@
 		"continue": "Συνέχεια",
 		"delete": "Διαγραφή",
 		"more": "Περισσότερα",
+		"navItemActivity": "Δραστηριότητα",
 		"navItemAddCredentials": "Προσθήκη Πιστοποιητικών",
 		"navItemAddCredentialsSimple": "Προσθήκη",
 		"navItemCredentials": "Πιστοποιητικά",
-		"navItemHistory": "Ιστορικό",
 		"navItemProfile": "Προφίλ",
 		"navItemSendCredentials": "Αποστολή Πιστοποιητικών",
 		"navItemSendCredentialsSimple": "Αποστολή",
@@ -41,6 +41,7 @@
 		"passwordShowTitle": "Κάντε κλικ για να εμφανίσετε τον κωδικό",
 		"previous": "Προηγούμενο",
 		"privateDataConflict": "Η συνεδρία σας δεν είναι συγχρονισμένη με τον server. Παρακαλώ αποσυνδεθείτε, συνδεθείτε ξανά και δοκιμάστε ξανά.",
+		"recentActivity": "Πρόσφατη δραστηριότητα",
 		"refresh": "Ανανέωση",
 		"save": "Αποθήκευση",
 		"showLess": "Εμφάνιση λιγότερων",
@@ -80,6 +81,8 @@
 		"loginWithSecurityKey": "Σύνδεση με κλειδί ασφαλείας",
 		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
 		"newHereQuestion": "Δεν έχετε λογαριασμό πορτοφολιού; ",
+		"otherAccounts": "Άλλοι λογαριασμοί",
+		"otherAccountsDescription": "Επιλέξτε έναν λογαριασμό για να συνεχίσετε.",
 		"passkeyInvalid": "Άγνωστο κλειδί πρόσβασης, πιθανώς διαγράφηκε από τον χρήστη.",
 		"passkeyLoginFailedServerError": "Απέτυχε η εκκίνηση της σύνδεσης με κλειδί πρόσβασης, δοκιμάστε ξανά αργότερα.",
 		"passkeyLoginFailedTryAgain": "Η σύνδεση με κλειδί πρόσβασης απέτυχε, δοκιμάστε ξανά.",
@@ -96,8 +99,6 @@
 		"signUpWithPasskey": "Δημιουργία λογαριασμού με κλειδί πρόσβασης",
 		"signUpWithSecurityKey": "Χρήση κλειδιού ασφαλείας",
 		"submitting": "Υποβολή...",
-		"switchAccount": "Αλλαγή λογαριασμού",
-		"switchAccountDescription": "Επιλέξτε έναν λογαριασμό για να συνεχίσετε.",
 		"welcomeMessage": "Καλώς ήρθατε στο <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {
@@ -130,12 +131,24 @@
 		"message": "Λυπούμαστε, η σελίδα που ψάχνετε δεν μπορεί να προσπελαστεί",
 		"title": "Ωχ, η σελίδα δεν βρέθηκε!"
 	},
+	"pageActivity": {
+		"description": "Δείτε στη δραστηριότητα αποστολών πιστοποιητικών πότε και σε ποιους verifiers τα στείλατε.",
+		"emptyCredentialDescription": "Όταν κοινοποιήσετε αυτό το πιστοποιητικό, η δραστηριότητά του θα εμφανιστεί εδώ.",
+		"emptyCredentialTitle": "Δεν υπάρχει ακόμη δραστηριότητα για αυτό το πιστοποιητικό",
+		"emptyDescription": "Η δραστηριότητα των πιστοποιητικών σας θα εμφανίζεται εδώ.",
+		"emptyTitle": "Δεν υπάρχει ακόμη δραστηριότητα",
+		"popupTitle": "Απεσταλμένα Πιστοποιητικά",
+		"presentationDetails": {
+			"title": "Λεπτομέρειες Αποστολής"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Δραστηριότητα",
 		"addCard": {
 			"text": "Προσθήκη Νέου Πιστοποιητικού"
 		},
@@ -144,28 +157,20 @@
 		"credentialTitle": "Πιστοποιητικό",
 		"datasetTitle": "Σύνολο Δεδομένων",
 		"delete": "Διαγραφή Πιστοποιητικού",
-		"deletePopupMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε το πιστοποιητικό <strong>{{credentialName}}</strong>;<br/> Αν το διαγράψετε, <strong>όλες οι κοινοποιήσεις που περιλαμβάνουν αυτό το VC θα αφαιρεθούν από το ιστορικό σας.</strong>",
+		"deletePopupMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε το πιστοποιητικό <strong>{{credentialName}}</strong>;<br/> Αν το διαγράψετε, <strong>όλες οι κοινοποιήσεις που περιλαμβάνουν αυτό το VC θα αφαιρεθούν από τη δραστηριότητά σας.</strong>",
 		"description": "Δείτε όλα τα πιστοποιητικά σας",
 		"details": {
 			"availableUsages": "Διαθέσιμες Χρήσεις",
 			"description": "Δείτε όλες τις πληροφορίες για το επιλεγμένο πιστοποιητικό",
 			"expired": "Αυτό το Πιστοποιητικό έχει λήξει"
 		},
-		"presentationsTitle": "Απεσταλμένα Πιστοποιητικά",
+		"detailsTitle": "Λεπτομέρειες",
 		"slideButtonAriaLabelDisable": "Δεν υπάρχει {{direction}} πιστοποιητικό",
 		"slideButtonAriaLabelEnable": "Μεταβείτε στο {{direction}} πιστοποιητικό",
 		"slideButtonTitleDisable": "Δεν υπάρχει διαθέσιμο {{direction}} πιστοποιητικό",
 		"slideButtonTitleEnable": "Κάντε κλικ για να μεταβείτε στο {{direction}} πιστοποιητικό",
 		"slideNext": "επόμενο",
 		"slidePrevious": "προηγούμενο"
-	},
-	"pageHistory": {
-		"description": "Δείτε στο ιστορικό αποστολών πιστοποιητικών πότε και σε ποιους verifiers τα στείλατε.",
-		"noFound": "Δεν βρέθηκαν απεσταλμένα πιστοποιητικά",
-		"popupTitle": "Απεσταλμένα Πιστοποιητικά",
-		"presentationDetails": {
-			"title": "Λεπτομέρειες Αποστολής"
-		}
 	},
 	"pageSendCredentials": {
 		"description": "Αναζητήστε και επιλέξτε ένα verifier για να μοιραστείτε πιστοποιητικά",
@@ -270,11 +275,46 @@
 		"title": "Σαρώστε τον QR Κωδικό"
 	},
 	"qrShareMdoc": {
-		"communicating": "Επικοινωνία με τον verifier...",
-		"enablePermissions": "Δεν ήταν δυνατή η πρόσβαση στις λειτουργίες κοντινών συσκευών. Παρακαλώ ενεργοποιήστε τα δικαιώματα για εύρεση κοντινών συσκευών στις ρυθμίσεις σας και επανεκκινήστε την εφαρμογή.",
-		"nearbyVerifierRequested": "Ένας κοντινός verifier ζήτησε τα εξής πεδία:",
-		"send": "Αποστολή",
-		"shareUsingQR": "Αποστολή με κωδικό QR"
+		"connectToVerifier": "Σύνδεση με τον verifier",
+		"connected": "Συνδέθηκε με τον verifier",
+		"connectingHeading": "Σύνδεση με τον verifier",
+		"connectingInstructions": "Επιλέξτε την κοντινή συσκευή του verifier στο παράθυρο σύζευξης.",
+		"connectionFailed": "Δεν ήταν δυνατή η σύνδεση με τον verifier. Βεβαιωθείτε ότι το Bluetooth είναι ενεργό και ότι ο verifier βρίσκεται σε αναμονή και δοκιμάστε ξανά.",
+		"connectionFailedHeading": "Δεν ήταν δυνατή η σύνδεση",
+		"connectionLost": "Η σύνδεση με τον verifier χάθηκε. Δεν κοινοποιήθηκε τίποτα.",
+		"credentialMismatch": "Αυτό το διαπιστευτήριο δεν είναι αυτό που ζήτησε ο verifier. Δεν κοινοποιήθηκε τίποτα.",
+		"credentialMismatchHeading": "Τα διαπιστευτήρια δεν ταιριάζουν",
+		"credentialTypeMismatch": "Ο verifier ζήτησε {{requestedType}}, αλλά αυτό το διαπιστευτήριο είναι {{credentialType}}.",
+		"done": "Τέλος",
+		"keepOpen": "Κρατήστε αυτό το παράθυρο ανοιχτό.",
+		"notShared": "Δεν κοινοποιούνται: {{fields}}",
+		"nothingElse": "τίποτα άλλο",
+		"pairingCancelled": "Η σύζευξη δεν ολοκληρώθηκε. Ο κωδικός QR παραμένει ενεργός.",
+		"pairingInstructions": "Δημιουργείται ασφαλής σύνδεση με τη συσκευή του verifier.",
+		"presentCredential": "Παρουσίαση διαπιστευτηρίου",
+		"progressLabel": "Πρόοδος παρουσίασης διαπιστευτηρίου",
+		"reviewDescription": "Ο verifier ζήτησε τα παρακάτω στοιχεία.",
+		"reviewHeading": "Ελέγξτε τι θα κοινοποιηθεί",
+		"scanHeading": "Αφήστε τον verifier να σαρώσει αυτόν τον κωδικό QR",
+		"scanInstructions": "Κρατήστε αυτό το παράθυρο ανοιχτό. Αφού σαρώσει τον κωδικό, συνδεθείτε στην κοντινή συσκευή του.",
+		"sendingFailed": "Δεν ήταν δυνατή η αποστολή των ζητούμενων στοιχείων",
+		"sendingItems_one": "Αποστολή {{count}} ζητούμενου στοιχείου",
+		"sendingItems_other": "Αποστολή {{count}} ζητούμενων στοιχείων",
+		"shareItems_one": "Κοινοποίηση {{count}} στοιχείου",
+		"shareItems_other": "Κοινοποίηση {{count}} στοιχείων",
+		"shareUsingQR": "Αποστολή με κωδικό QR",
+		"sharedHeading": "Το διαπιστευτήριο κοινοποιήθηκε",
+		"sharedItems_one": "Κοινοποιήθηκε με επιτυχία {{count}} στοιχείο.",
+		"sharedItems_other": "Κοινοποιήθηκαν με επιτυχία {{count}} στοιχεία.",
+		"sharingFailedHeading": "Η κοινοποίηση απέτυχε",
+		"sharingHeading": "Κοινοποίηση διαπιστευτηρίου",
+		"steps": {
+			"connect": "Σύνδεση",
+			"review": "Έλεγχος",
+			"scan": "Σάρωση",
+			"share": "Κοινοποίηση"
+		},
+		"waitingForRequest": "Δημιουργήθηκε ασφαλής σύνδεση. Αναμονή για το αίτημα του verifier..."
 	},
 	"queryableList": {
 		"all": "Όλα",
@@ -326,7 +366,7 @@
 		"tourStep3": "Η σελίδα 'Προσθήκη Πιστοποιητικών' σας επιτρέπει να λάβετε πιστοποιητικά από έναν συγκεκριμένο Issuer",
 		"tourStep4": "Κάντε κλικ σε αυτό το κουμπί για να σαρώσετε έναν QR κωδικό για αποστολή ή λήψη πιστοποιητικών.",
 		"tourStep5": "Χρησιμοποιήστε τη σελίδα 'Αποστολή Πιστοποιητικών' για να επιλέξετε ένα verifier για κοινή χρήση των πιστοποιητικών σας.",
-		"tourStep6": "Στη σελίδα 'Ιστορικό' μπορείτε να δείτε λεπτομέρειες αποστολών πιστοποιητικών, συμπεριλαμβανομένου πότε και σε ποιους verifiers εστάλησαν.",
+		"tourStep6": "Στη σελίδα 'Δραστηριότητα' μπορείτε να δείτε λεπτομέρειες αποστολών πιστοποιητικών, συμπεριλαμβανομένου πότε και σε ποιους verifiers εστάλησαν.",
 		"tourStep7": "Στη σελίδα 'Ρυθμίσεις' μπορείτε να διαχειριστείτε τα κλειδιά πρόσβασης και τις ρυθμίσεις του λογαριασμού σας."
 	},
 	"updateNotification": {
