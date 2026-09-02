@@ -199,7 +199,7 @@ const WebauthnCredentialItem = ({
 						</p>
 					</div>
 					<div>
-							<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">Authenticator Model</p>
+							<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.authenticatorName')}</p>
 							<p className="text-lm-gray-900 dark:text-white">{credential.authenticatorName || "Unknown Authenticator"}</p>
 						</div>
 				</div>

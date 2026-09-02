@@ -207,7 +207,8 @@
 			"syncableAvailable": "Υποστηρίζεται Συγχρονισμός",
 			"syncableNo": "Όχι",
 			"syncableYes": "Ναι",
-			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
+			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης",
+			"authenticatorName": "Μέσο αυθεντικοποίησης"
 		},
 		"rememberIssuer": {
 			"description": "Ορίστε τη διάρκεια πρόσβασης σε issuers χωρίς νέα αυθεντικοποίηση (σύμφωνα με την πολιτική του issuer)",

@@ -277,7 +277,8 @@
 			"syncableAvailable": "Available",
 			"syncableNo": "No",
 			"syncableYes": "Yes",
-			"unnamed": "Unnamed passkey"
+			"unnamed": "Unnamed passkey",
+			"authenticatorName": "Authenticator"
 		},
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
