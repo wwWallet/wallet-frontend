@@ -214,6 +214,7 @@
 			"syncableAvailable": "Υποστηρίζεται Συγχρονισμός",
 			"syncableNo": "Όχι",
 			"syncableYes": "Ναι",
+			"unknownAuthenticator": "Άγνωστο",
 			"unnamed": "Ανώνυμο κλειδί πρόσβασης"
 		},
 		"rememberIssuer": {

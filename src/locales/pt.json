@@ -208,6 +208,7 @@
 			"syncableAvailable": "Disponível",
 			"syncableNo": "Não",
 			"syncableYes": "Sim",
+			"unknownAuthenticator": "Desconhecido",
 			"unnamed": "Chave de acesso sem nome"
 		},
 		"rememberIssuer": {

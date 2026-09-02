@@ -201,10 +201,13 @@ const WebauthnCredentialItem = ({
 					<div>
 						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.authenticatorName')}</p>
 						<div className="flex flex-wrap items-center gap-2">
-							<p className="text-lm-gray-900 dark:text-white">{credential.authenticatorName || "Unknown Authenticator"}</p>
-							<span className="inline-flex shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-orange/20 text-lm-gray-900 dark:bg-dm-orange/70 dark:text-white">
-								{t('pageSettings.passkeyItem.notAttested')}
-							</span>
+							<p className="text-lm-gray-900 dark:text-white">{credential.authenticatorName || t("pageSettings.passkeyItem.unknownAuthenticator")}</p>
+							{credential.authenticatorName && (
+								<span className="inline-flex shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-orange/20 text-lm-gray-900 dark:bg-dm-orange/70 dark:text-white">
+									{t('pageSettings.passkeyItem.notAttested')}
+								</span>
+							)}
+
 						</div>
 					</div>
 				</div>

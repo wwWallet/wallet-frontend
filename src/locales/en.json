@@ -284,6 +284,7 @@
 			"syncableAvailable": "Available",
 			"syncableNo": "No",
 			"syncableYes": "Yes",
+			"unknownAuthenticator": "Unknown",
 			"unnamed": "Unnamed passkey"
 		},
 		"rememberIssuer": {
