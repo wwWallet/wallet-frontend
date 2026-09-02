@@ -187,6 +187,7 @@
 		},
 		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
 		"passkeyItem": {
+			"authenticatorName": "Μέσο αυθεντικοποίησης",
 			"cancelChangesAriaLabel": "Ακύρωση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"created": "Δημιουργήθηκε",
 			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
@@ -207,8 +208,7 @@
 			"syncableAvailable": "Υποστηρίζεται Συγχρονισμός",
 			"syncableNo": "Όχι",
 			"syncableYes": "Ναι",
-			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης",
-			"authenticatorName": "Μέσο αυθεντικοποίησης"
+			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
 		},
 		"rememberIssuer": {
 			"description": "Ορίστε τη διάρκεια πρόσβασης σε issuers χωρίς νέα αυθεντικοποίηση (σύμφωνα με την πολιτική του issuer)",

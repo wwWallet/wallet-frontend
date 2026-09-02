@@ -181,6 +181,7 @@
 		},
 		"description": "Consulte informação da conta e gira chaves de acesso",
 		"passkeyItem": {
+			"authenticatorName": "Autenticador",
 			"cancelChangesAriaLabel": "Cancelar alterações à chave de acesso {{passkeyLabel}}",
 			"created": "Criada",
 			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
@@ -201,8 +202,7 @@
 			"syncableAvailable": "Disponível",
 			"syncableNo": "Não",
 			"syncableYes": "Sim",
-			"unnamed": "Chave de acesso sem nome",
-			"authenticatorName": "Autenticador"
+			"unnamed": "Chave de acesso sem nome"
 		},
 		"rememberIssuer": {
 			"description": "Defina a duração de acesso aos issuers sem ser necessário nova autenticação (de acordo com a política do issuer)",

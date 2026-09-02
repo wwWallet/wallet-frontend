@@ -257,6 +257,7 @@
 			"title": "Oblivious HTTP"
 		},
 		"passkeyItem": {
+			"authenticatorName": "Authenticator",
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
@@ -277,8 +278,7 @@
 			"syncableAvailable": "Available",
 			"syncableNo": "No",
 			"syncableYes": "Yes",
-			"unnamed": "Unnamed passkey",
-			"authenticatorName": "Authenticator"
+			"unnamed": "Unnamed passkey"
 		},
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
