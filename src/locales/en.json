@@ -28,10 +28,10 @@
 		"externalPasskey": "Security key",
 		"hybridPasskey": "Nearby device",
 		"more": "More",
+		"navItemActivity": "Activity",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
-		"navItemHistory": "History",
 		"navItemProfile": "Profile",
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSendCredentialsSimple": "Send",
@@ -48,6 +48,7 @@
 		"platformPasskey": "This device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then sign in and try again.",
+		"recentActivity": "Recent Activity",
 		"refresh": "Refresh",
 		"save": "Save",
 		"showLess": "Show less",
@@ -173,6 +174,17 @@
 			"title": "Success"
 		}
 	},
+	"pageActivity": {
+		"description": "View activity of credential presentations, detailing when and to which verifiers you sent them",
+		"emptyCredentialDescription": "When you share this credential, its activity will appear here.",
+		"emptyCredentialTitle": "No activity for this credential yet",
+		"emptyDescription": "Your credential activity will appear here.",
+		"emptyTitle": "No activity yet",
+		"popupTitle": "Presented Credentials",
+		"presentationDetails": {
+			"title": "Presentation Details"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
@@ -190,7 +202,7 @@
 		"credentialTitle": "Credential",
 		"datasetTitle": "Dataset",
 		"delete": "Delete Credential",
-		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
+		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your activity.</strong>",
 		"description": "View all of your credentials",
 		"details": {
 			"availableUsages": "Available Usages",
@@ -204,17 +216,6 @@
 		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
 		"slideNext": "next",
 		"slidePrevious": "previous"
-	},
-	"pageHistory": {
-		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"emptyCredentialDescription": "When you share this credential, its activity will appear here.",
-		"emptyCredentialTitle": "No activity for this credential yet",
-		"emptyDescription": "Your credential history will appear here.",
-		"emptyTitle": "No history yet",
-		"popupTitle": "Presented Credentials",
-		"presentationDetails": {
-			"title": "Presentation Details"
-		}
 	},
 	"pagePending": {
 		"description": "View pending issuance requests",
@@ -451,7 +452,7 @@
 		"tourStep3": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
 		"tourStep4": "Click this button to scan a QR code for sending or receiving credentials.",
 		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
-		"tourStep6": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
+		"tourStep6": "On the 'Activity' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
 		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings."
 	},
 	"updateNotification": {

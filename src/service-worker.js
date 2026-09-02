@@ -32,7 +32,7 @@ precacheAndRoute([
 const SPA_ROUTE_ALLOWLIST = [
 	/^\/$/,                              // Home
 	/^\/settings$/,                      // Settings
-	/^\/history$/,                       // History list
+	/^\/activity$/,                      // Activity list
 	/^\/pending$/,                       // Pending
 	/^\/add$/,                           // Add credentials
 	/^\/send$/,                          // Send credentials
@@ -42,9 +42,9 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/login-state$/,                   // Login state
 	/^\/cb(\/.*)?$/,                     // Callback routes
 	/^\/credential\/[^/]+$/,             // Credential
-	/^\/credential\/[^/]+\/history$/,    // Credential history
+	/^\/credential\/[^/]+\/activity$/,   // Credential activity
 	/^\/credential\/[^/]+\/details$/,    // Credential details
-	/^\/history\/[^/]+$/,                // History detail
+	/^\/activity\/[^/]+$/,               // Activity detail
 ];
 
 const appShellStrategy = new NetworkFirst({
