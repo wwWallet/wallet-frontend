@@ -45,7 +45,7 @@ export type WebauthnCredential = {
 	prfCapable: boolean,
 	backupEligibility: boolean,
 	backupState: boolean,
-	authenticatorName: string
+	authenticatorName?: string
 }
 
 export type UserSettings = {
