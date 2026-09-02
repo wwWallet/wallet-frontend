@@ -16,7 +16,9 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 	const hasBackgroundColor = !!primaryData.background_color;
 	const shouldUseCustomStyle = hasTextColor && hasBackgroundColor;
 
-	const logoStyle = shouldUseCustomStyle
+	const logoStyle = primaryLogoSrc
+		? { backgroundColor: primaryData.background_color || 'white' }
+		: shouldUseCustomStyle
 		? {
 			backgroundColor: primaryData.background_color,
 			color: primaryData.text_color,
@@ -26,10 +28,9 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 			color: 'white',
 		};
 
-	const issuerHasBackgroundColor = !!secondaryData?.background_color;
-	const issuerLogoStyle = issuerHasBackgroundColor
-		? { backgroundColor: secondaryData.background_color }
-		: { backgroundColor: 'white' };
+	const issuerLogoStyle = {
+		backgroundColor: secondaryData?.background_color || 'white',
+	};
 
 	return (
 		<span className="flex flex-col justify-between w-full gap-2 leading-tight wrap-break-word">
