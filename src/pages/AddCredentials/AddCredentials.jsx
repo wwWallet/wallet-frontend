@@ -226,7 +226,8 @@ const AddCredentials = () => {
 					<QueryableList
 						isOnline={isOnline}
 						list={sortedCredentialConfigurations}
-						recent={credentialConfigurations.length < 6 ? [] : recent}
+						// recent={credentialConfigurations.length < 6 ? [] : recent}
+						recent={[]}
 						queryField='credentialConfigurationDisplayName'
 						translationPrefix='pageAddCredentials'
 						identifierField='identifierField'
