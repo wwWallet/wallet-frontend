@@ -6,32 +6,31 @@ import { useTranslation } from 'react-i18next';
 import SessionContext from '@/context/SessionContext';
 
 // Hooks
-import useFetchPresentations from '../../hooks/useFetchPresentations';
+import useFetchPresentations from '@/hooks/useFetchPresentations';
 
 // Components
 import ActivityEmptyState from '@/components/History/ActivityEmptyState';
-import { H1 } from '../../components/Shared/Heading';
-import HistoryList from '../../components/History/HistoryList';
-import PageDescription from '../../components/Shared/PageDescription';
+import HistoryList from '@/components/History/HistoryList';
+import { H1 } from '@/components/Shared/Heading';
+import PageDescription from '@/components/Shared/PageDescription';
 
-const History = () => {
+const Activity = () => {
 	const { keystore } = useContext(SessionContext);
-	const history = useFetchPresentations(keystore);
-
+	const activity = useFetchPresentations(keystore);
 	const { t } = useTranslation();
 
 	return (
 		<div className="px-6 sm:px-12 w-full">
-			<H1 heading={t('common.navItemHistory')} />
-			<PageDescription description={t('pageHistory.description')} />
+			<H1 heading={t('common.navItemActivity')} />
+			<PageDescription description={t('pageActivity.description')} />
 
-			{(history !== null && history.length === 0 ? (
+			{(activity !== null && activity.length === 0 ? (
 				<ActivityEmptyState />
 			) : (
-				<HistoryList history={history}/>
+				<HistoryList history={activity}/>
 			))}
 		</div>
 	);
 };
 
-export default History;
+export default Activity;

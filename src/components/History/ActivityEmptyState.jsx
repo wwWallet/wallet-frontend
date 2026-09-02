@@ -6,11 +6,11 @@ import { useTranslation } from 'react-i18next';
 const ActivityEmptyState = ({ credentialSpecific = false }) => {
 	const { t } = useTranslation();
 	const titleKey = credentialSpecific
-		? 'pageHistory.emptyCredentialTitle'
-		: 'pageHistory.emptyTitle';
+		? 'pageActivity.emptyCredentialTitle'
+		: 'pageActivity.emptyTitle';
 	const descriptionKey = credentialSpecific
-		? 'pageHistory.emptyCredentialDescription'
-		: 'pageHistory.emptyDescription';
+		? 'pageActivity.emptyCredentialDescription'
+		: 'pageActivity.emptyDescription';
 
 	return (
 		<div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-dashed border-lm-gray-400 bg-lm-gray-200/50 px-6 py-8 text-center dark:border-dm-gray-600 dark:bg-dm-gray-800/50">

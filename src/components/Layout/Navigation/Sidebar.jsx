@@ -101,8 +101,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<div className='pr-2 border-r border-r-lm-gray-400 dark:border-r-dm-gray-600'>
 								<ConnectionStatusIcon size='small' />
 							</div>
-							{ obliviousKeyConfig !== null && (
-								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600" title={t('sidebar.obliviousEnabled')}/>
+							{obliviousKeyConfig !== null && (
+								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600" title={t('sidebar.obliviousEnabled')} />
 							)}
 
 							<UserCircle className="shrink-0" size={20} title={displayName || username} />
@@ -140,12 +140,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
-							id="history"
-							path="/history"
+							id="activity"
+							path="/activity"
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={History}
-							label={t("common.navItemHistory")}
+							label={t("common.navItemActivity")}
 							className="step-5 hidden md:flex"
 						/>
 

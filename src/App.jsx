@@ -25,9 +25,9 @@ const ResyncNotification = React.lazy(() => import('./components/Notifications/R
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
-const History = React.lazy(() => import('./pages/History/History'));
+const Activity = React.lazy(() => import('./pages/History/History'));
 const Pending = React.lazy(() => import('./pages/Pending/Pending'));
-const HistoryDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
+const ActivityDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
@@ -61,11 +61,11 @@ function App() {
 						<Route path="/settings" element={<Settings />} />
 						<Route path="/" element={<Home />} />
 						<Route path="/credential/:batchId" element={<Credential />} />
-						<Route path="/credential/:batchId/history" element={<CredentialHistory />} />
+						<Route path="/credential/:batchId/activity" element={<CredentialHistory />} />
 						<Route path="/credential/:batchId/details" element={<CredentialDetails />} />
-						<Route path="/history" element={<History />} />
+						<Route path="/activity" element={<Activity />} />
 						<Route path="/pending" element={<Pending />} />
-						<Route path="/history/:transactionId" element={<HistoryDetail />} />
+						<Route path="/activity/:transactionId" element={<ActivityDetail />} />
 						<Route path="/add" element={<AddCredentials />} />
 						<Route path="/verification/result" element={<VerificationResult />} />
 						<Route path="/cb/*" element={<Home />} />

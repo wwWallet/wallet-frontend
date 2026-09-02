@@ -20,7 +20,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 		{ icon: <Wallet size={20} />, id: 'credentials', path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
 		{ icon: <PlusCircle size={20} />, id: 'add', path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
 		{ icon: <QrCode size={20} />, id: 'qr', path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
-		{ icon: <History size={20} />, id: 'history', path: '/history', label: `${t("common.navItemHistory")}`, stepClass: 'step-5-small-screen' },
+		{ icon: <History size={20} />, id: 'activity', path: '/activity', label: `${t("common.navItemActivity")}`, stepClass: 'step-5-small-screen' },
 	];
 
 	const handleNavigate = (path) => {

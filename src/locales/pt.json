@@ -22,10 +22,10 @@
 		"continue": "Continuar",
 		"delete": "Eliminar",
 		"more": "Mais",
+		"navItemActivity": "Atividade",
 		"navItemAddCredentials": "Adicionar Credenciais",
 		"navItemAddCredentialsSimple": "Adicionar",
 		"navItemCredentials": "Credenciais",
-		"navItemHistory": "Histórico",
 		"navItemProfile": "Perfil",
 		"navItemSendCredentialsSimple": "Enviar",
 		"navItemSettings": "Definições",
@@ -40,6 +40,7 @@
 		"passwordShowTitle": "Clique para mostrar palavra-passe",
 		"previous": "Anterior",
 		"privateDataConflict": "A sua sessão não está sincronizada com o servidor. Por favor, volte a iniciar sessão e tente novamente.",
+		"recentActivity": "Atividade recente",
 		"refresh": "Atualizar",
 		"save": "Guardar",
 		"showLess": "Mostrar menos",
@@ -129,6 +130,17 @@
 		"message": "Lamentamos, mas a página que procura não pode ser acedida",
 		"title": "Oops, página não encontrada!"
 	},
+	"pageActivity": {
+		"description": "Consulte a atividade de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
+		"emptyCredentialDescription": "Quando partilhar esta credencial, a respetiva atividade será apresentada aqui.",
+		"emptyCredentialTitle": "Ainda não há atividade para esta credencial",
+		"emptyDescription": "A atividade das suas credenciais será apresentada aqui.",
+		"emptyTitle": "Ainda não há atividade",
+		"popupTitle": "Credenciais apresentadas",
+		"presentationDetails": {
+			"title": "Detalhes de apresentação"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Pesquise e selecione um credencial que deseja emitir",
 		"noFound": "Sem issuers correspondentes.",
@@ -144,7 +156,7 @@
 		"credentialTitle": "Credencial",
 		"datasetTitle": "Dataset",
 		"delete": "Eliminar credencial",
-		"deletePopupMessage": "Tem a certeza que deseja eliminar a credencial <strong>{{credentialName}}</strong>? Se continuar, <strong>todas as apresentações que incluem esta VC serão removidas do seu histórico.</strong>",
+		"deletePopupMessage": "Tem a certeza que deseja eliminar a credencial <strong>{{credentialName}}</strong>? Se continuar, <strong>todas as apresentações que incluem esta VC serão removidas da sua atividade.</strong>",
 		"description": "Consulte as suas credenciais",
 		"details": {
 			"availableUsages": "Utilizações disponíveis",
@@ -158,17 +170,6 @@
 		"slideButtonTitleEnable": "Clique para ir para a credencial {{direction}}",
 		"slideNext": "Seguinte",
 		"slidePrevious": "Anterior"
-	},
-	"pageHistory": {
-		"description": "Consulte o histórico de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
-		"emptyCredentialDescription": "Quando partilhar esta credencial, a respetiva atividade será apresentada aqui.",
-		"emptyCredentialTitle": "Ainda não há atividade para esta credencial",
-		"emptyDescription": "O histórico das suas credenciais será apresentado aqui.",
-		"emptyTitle": "Ainda não há histórico",
-		"popupTitle": "Credenciais apresentadas",
-		"presentationDetails": {
-			"title": "Detalhes de apresentação"
-		}
 	},
 	"pageSettings": {
 		"addPasskey": "Adicionar chave de acesso:",
@@ -303,7 +304,7 @@
 		"tourStep2": "A página 'Credenciais' é a sua página inicial. Aqui, pode gerir as suas credenciais.",
 		"tourStep3": "A página 'Adicionar Credenciais' permite que receba credenciais de um issuer específico.",
 		"tourStep4": "Clique neste botão para ler um código QR para enviar ou receber crendenciais.",
-		"tourStep5": "Na página 'Histórico', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
+		"tourStep5": "Na página 'Atividade', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
 		"tourStep6": "Na página 'Definições' pode gerir as suas chaves de acesso e configurações de conta."
 	},
 	"updateNotification": {

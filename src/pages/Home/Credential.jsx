@@ -301,10 +301,10 @@ const Credential = () => {
 				<div className='flex flex-wrap gap-2 xm:w-full'>
 					{shareMenu(screenType === 'mobile')}
 					<Button
-						id="navigate-credential-history"
+						id="navigate-credential-activity"
 						variant='outline'
 						additionalClassName='xm:w-full'
-						onClick={() => navigate(`/credential/${batchId}/history`)}
+						onClick={() => navigate(`/credential/${batchId}/activity`)}
 					>
 						<History size={20} aria-hidden="true" />
 						{t('pageCredentials.activityTitle')}
