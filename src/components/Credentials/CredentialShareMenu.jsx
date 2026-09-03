@@ -13,7 +13,6 @@ const CredentialShareMenu = ({
 	onSelectVerifier,
 	align = 'right',
 	fullWidth = false,
-	largeButton = false,
 	useBottomSheet = false,
 }) => {
 	const { t } = useTranslation();
@@ -114,7 +113,7 @@ const CredentialShareMenu = ({
 				ref={triggerRef}
 				id="share-credential-menu"
 				variant="primary"
-				size={largeButton ? 'md' : 'sm'}
+				size={"md"}
 				additionalClassName={fullWidth ? 'w-full' : ''}
 				onClick={() => setIsOpen((open) => !open)}
 				ariaLabel={t('credentialShareMenu.buttonLabel')}

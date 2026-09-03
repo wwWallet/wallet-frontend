@@ -138,7 +138,7 @@ const Credential = () => {
 				<Button
 					id="share-credential-qr"
 					variant="primary"
-					size={!isDesktop ? 'md' : 'sm'}
+					size={'md'}
 					additionalClassName={fullWidth ? 'w-full' : ''}
 					onClick={generateQR}
 				>
@@ -157,7 +157,6 @@ const Credential = () => {
 				onSelectVerifier={redirectToVerifier}
 				align={isDesktop ? 'right' : 'left'}
 				fullWidth={fullWidth}
-				largeButton={!isDesktop}
 				useBottomSheet={!isDesktop}
 			/>
 		);
