@@ -97,7 +97,7 @@ const QueryableList = <T extends object>({
 				{"displayNode" in el && typeof el.displayNode === "function"
 					? el.displayNode(itemSearchQuery)
 					: highlightBestSequence(
-						getElementPropValue(el, queryField) ?? "Unknown",
+						String(getElementPropValue(el, queryField) ?? "Unknown"),
 						itemSearchQuery
 					)}
 			</Button>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function highlightBestSequence(text, search) {
+export function highlightBestSequence(text: string, search: string): React.ReactNode {
 	if (!text || !search) return text;
 
 	const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
