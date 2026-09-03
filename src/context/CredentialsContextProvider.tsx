@@ -7,6 +7,7 @@ import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsCon
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import { setAppBadgeCount } from '@/utils';
+import i18n from '@/i18n';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
@@ -215,6 +216,18 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 		console.log("Triggerring getData()")
 		getData();
 	}, [getData, getCalculatedWalletState, credentialEngine, isLoggedIn]);
+
+	useEffect(() => {
+		if (!isLoggedIn || !vcEntityList?.length) return;
+
+		void Promise.allSettled(vcEntityList.map((vcEntity) =>
+			vcEntity.parsedCredential.metadata.credential.image.dataUri(
+				undefined,
+				[...i18n.languages],
+				{ orientation: 'landscape' },
+			)
+		));
+	}, [isLoggedIn, vcEntityList]);
 
 	if (isLoggedIn && !credentialEngine) {
 		return (
