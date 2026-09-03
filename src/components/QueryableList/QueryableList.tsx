@@ -40,12 +40,13 @@ const QueryableList = <T extends object>({
 	const showSectionHeadings = filteredPortalList.length > 0 && filteredList.length > 0;
 
 	const handleSearch = (inputQuery: string) => {
-		setSearchQuery(inputQuery);
+		const normalizedQuery = inputQuery.trim();
+		setSearchQuery(normalizedQuery);
 
 		const filter = (el: T) => {
 			const friendlyName =
 				(getElementPropValue(el, queryField) as string) ?? "Unknown";
-			const query = inputQuery.toLowerCase().trimStart();
+			const query = normalizedQuery.toLowerCase();
 			return friendlyName.toLowerCase().includes(query);
 		};
 
