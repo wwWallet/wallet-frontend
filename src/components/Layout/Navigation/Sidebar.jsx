@@ -9,7 +9,7 @@ import SessionContext from '@/context/SessionContext';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
-import { Bell, History, LogOut, PlusCircle, Send, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
+import { Bell, History, LogOut, PlusCircle, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
 
 const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
@@ -101,8 +101,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<div className='pr-2 border-r border-r-lm-gray-400 dark:border-r-dm-gray-600'>
 								<ConnectionStatusIcon size='small' />
 							</div>
-							{ obliviousKeyConfig !== null && (
-								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600" title={t('sidebar.obliviousEnabled')}/>
+							{obliviousKeyConfig !== null && (
+								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600" title={t('sidebar.obliviousEnabled')} />
 							)}
 
 							<UserCircle className="shrink-0" size={20} title={displayName || username} />
@@ -140,23 +140,13 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
-							id="send"
-							path="/send"
-							location={location}
-							handleNavigate={handleNavigate}
-							icon={Send}
-							label={t("common.navItemSendCredentials")}
-							className="step-5 hidden md:flex"
-						/>
-
-						<NavItem
 							id="activity"
 							path="/activity"
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={History}
 							label={t("common.navItemActivity")}
-							className="step-6"
+							className="step-5 hidden md:flex"
 						/>
 
 						<NavItem
@@ -171,7 +161,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 									<Bell size={22} className="text-lm-green dark:text-dm-green" />
 								)
 							}
-							className="step-7"
+							className="step-6"
 						/>
 
 						<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />

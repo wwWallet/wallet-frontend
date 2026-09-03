@@ -22,7 +22,6 @@ Disallow: /settings
 Disallow: /credential/
 Disallow: /activity
 Disallow: /add
-Disallow: /send
 Allow: /login
 
 Allow: /
