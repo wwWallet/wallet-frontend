@@ -9,7 +9,7 @@ export function highlightBestSequence(text, search) {
 
 	return text.split(regex).map((part, i) =>
 		part.toLowerCase() === normalizedSearch ? (
-			<span key={i} className="font-bold text-lm-gray-900 dark:text-dm-gray-100">
+			<span key={i} className="font-bold text-lm-gray-900 dark:text-dm-gray-200">
 				{part}
 			</span>
 		) : (
