@@ -5,7 +5,6 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
-import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
@@ -240,7 +239,6 @@ const AddCredentials = () => {
 		<>
 			<div className="px-6 sm:px-12 w-full">
 				<H1 heading={t('common.navItemAddCredentials')} />
-				<PageDescription description={t('pageAddCredentials.description')} />
 
 				{credentialConfigurations && recent && (
 					<QueryableList

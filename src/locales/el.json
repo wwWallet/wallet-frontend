@@ -148,7 +148,6 @@
 		}
 	},
 	"pageAddCredentials": {
-		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
 		"searchPlaceholder": "Αναζήτηση εκδότη ή πιστοποιητικού..."
 	},

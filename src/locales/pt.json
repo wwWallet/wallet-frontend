@@ -142,7 +142,6 @@
 		}
 	},
 	"pageAddCredentials": {
-		"description": "Pesquise e selecione um credencial que deseja emitir",
 		"noFound": "Sem issuers correspondentes.",
 		"searchPlaceholder": "Procurar emissor ou credencial..."
 	},
