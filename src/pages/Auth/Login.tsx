@@ -11,6 +11,7 @@ import Link from '../../components/Links/Link';
 import Spinner from '../../components/Shared/Spinner';
 import AuthCard from '../../components/Auth/AuthCard';
 import WebauthnSignupLogin from '../../components/Auth/WebauthnSignupLogin';
+import { resolveLoginRedirect } from '../../components/Auth/loginRedirect';
 
 const Login = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -29,7 +30,7 @@ const Login = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			navigate(`/${window.location.search}`, { replace: true });
+			navigate(resolveLoginRedirect(window.location.search), { replace: true });
 		}
 	}, [isLoggedIn, navigate]);
 

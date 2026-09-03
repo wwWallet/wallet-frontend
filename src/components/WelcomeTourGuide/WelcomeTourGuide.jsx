@@ -54,10 +54,6 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep6")}</p>,
 			},
 			{
-				selector: '.step-7',
-				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep7")}</p>,
-			},
-			{
 				content: () => (
 					<>
 						<p className='mt-2 text-lm-gray-900'>{t("tourGuide.tourComplete")}</p>
@@ -81,9 +77,9 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				...step,
 				action: () => {
 					if (screenType !== 'desktop') {
-						if (index >= 5 && index <= 6 && !isOpen) {
+						if (index === 5 && !isOpen) {
 							toggleMenu();
-						} else if ((index < 5 || index > 6) && isOpen) {
+						} else if (index !== 5 && isOpen) {
 							toggleMenu();
 						}
 					}

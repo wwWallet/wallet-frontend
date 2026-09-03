@@ -33,7 +33,6 @@
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
 		"navItemProfile": "Profile",
-		"navItemSendCredentials": "Send Credentials",
 		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
 		"next": "Next",
@@ -61,6 +60,12 @@
 		"legendAriaLabel": "Claim legend",
 		"legendRequested": "Requested by verifier",
 		"legendRequired": "Required"
+	},
+	"credentialShareMenu": {
+		"buttonLabel": "Share",
+		"nearbyDeviceHeading": "Share to a nearby device",
+		"showQrCode": "Show QR Code",
+		"trustedVerifierHeading": "Continue with a trusted verifier"
 	},
 	"expiredRibbon": {
 		"expired": "Expired"
@@ -221,11 +226,6 @@
 		"description": "View pending issuance requests",
 		"noFound": "No pending issuance requests found",
 		"title": "Pending Issuance Requests"
-	},
-	"pageSendCredentials": {
-		"description": "Search and choose a verifier to share credentials with",
-		"noFound": "No matching verifiers found.",
-		"searchPlaceholder": "Search verifiers..."
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey:",
@@ -453,9 +453,8 @@
 		"tourStep2": "The 'Credentials' page is your Home page, where you can manage your credentials.",
 		"tourStep3": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
 		"tourStep4": "Click this button to scan a QR code for sending or receiving credentials.",
-		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
-		"tourStep6": "On the 'Activity' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
-		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings."
+		"tourStep5": "On the 'Activity' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
+		"tourStep6": "In the 'Settings' page you can manage your passkeys and account settings."
 	},
 	"updateNotification": {
 		"description": "New Version is available!"

@@ -27,7 +27,6 @@
 		"navItemAddCredentialsSimple": "Adicionar",
 		"navItemCredentials": "Credenciais",
 		"navItemProfile": "Perfil",
-		"navItemSendCredentials": "Enviar Credenciais",
 		"navItemSendCredentialsSimple": "Enviar",
 		"navItemSettings": "Definições",
 		"next": "Próximo",
@@ -49,6 +48,12 @@
 		"submit": "Submeter",
 		"tryAgain": "Tentar novamente",
 		"walletName": "wwWallet"
+	},
+	"credentialShareMenu": {
+		"buttonLabel": "Partilhar",
+		"nearbyDeviceHeading": "Partilhar com um dispositivo próximo",
+		"showQrCode": "Mostrar código QR",
+		"trustedVerifierHeading": "Continuar com um verificador de confiança"
 	},
 	"expiredRibbon": {
 		"expired": "Expirada"
@@ -165,11 +170,6 @@
 		"slideButtonTitleEnable": "Clique para ir para a credencial {{direction}}",
 		"slideNext": "Seguinte",
 		"slidePrevious": "Anterior"
-	},
-	"pageSendCredentials": {
-		"description": "Pesquise e selecione um verifier para partilhar credenciais",
-		"noFound": "Sem verifiers correspondentes.",
-		"searchPlaceholder": "Procurar verifiers..."
 	},
 	"pageSettings": {
 		"addPasskey": "Adicionar chave de acesso:",
@@ -306,9 +306,8 @@
 		"tourStep2": "A página 'Credenciais' é a sua página inicial. Aqui, pode gerir as suas credenciais.",
 		"tourStep3": "A página 'Adicionar Credenciais' permite que receba credenciais de um issuer específico.",
 		"tourStep4": "Clique neste botão para ler um código QR para enviar ou receber crendenciais.",
-		"tourStep5": "Utilize a página 'Enviar Credenciais' para selecionar um verifier e partilhar as suas credenciais.",
-		"tourStep6": "Na página 'Atividade', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
-		"tourStep7": "Na página 'Definições' pode gerir as suas chaves de acesso e configurações de conta."
+		"tourStep5": "Na página 'Atividade', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
+		"tourStep6": "Na página 'Definições' pode gerir as suas chaves de acesso e configurações de conta."
 	},
 	"updateNotification": {
 		"description": "Nova versão disponível!"

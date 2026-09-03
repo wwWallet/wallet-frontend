@@ -36,11 +36,13 @@ export type Props = {
 	additionalClassName?: string,
 	disabled?: boolean,
 	ariaLabel?: string,
+	ariaExpanded?: boolean,
+	ariaControls?: string,
 	title?: string,
 	value?: string;
 };
 
-const Button = ({
+const Button = React.forwardRef<HTMLButtonElement, Props>(function Button({
 	id,
 	type = 'button',
 	children,
@@ -52,9 +54,11 @@ const Button = ({
 	additionalClassName = '',
 	disabled = false,
 	ariaLabel,
+	ariaExpanded,
+	ariaControls,
 	title,
 	value,
-}: Props) => {
+}, ref) {
 
 	const getVariantClassName = () => {
 		let sizeClasses = '';
@@ -105,18 +109,22 @@ const Button = ({
 
 	return (
 		<button
+			ref={ref}
 			id={id}
 			type={type}
 			{...(onClick && { onClick: onClick })}
 			{...(disabled && { disabled })}
 			className={className}
 			{...(ariaLabel && { 'aria-label': ariaLabel })}
+			// Check for undefined so aria-expanded="false" is still rendered.
+			{...(ariaExpanded !== undefined && { 'aria-expanded': ariaExpanded })}
+			{...(ariaControls && { 'aria-controls': ariaControls })}
 			{...(title && { title })}
 			{...(value && { value })}
 		>
 			{children}
 		</button>
 	);
-};
+});
 
 export default Button;
