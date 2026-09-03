@@ -21,7 +21,9 @@ export function buildCredentialPortal(
 	return {
 		...portal,
 		identifierField: `portal-${portal.id}`,
-		credentialConfigurationDisplayName: display.name,
+		credentialConfigurationDisplayName: [display.name, display.description]
+			.filter(Boolean)
+			.join(' '),
 		displayNode: (searchQuery: string): React.ReactNode => (
 			<EntityListItem
 				primaryData={display}

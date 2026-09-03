@@ -61,7 +61,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 					className="line-clamp-2 text-sm font-normal text-lm-gray-800 dark:text-dm-gray-300"
 					title={primaryData.description}
 				>
-					{primaryData.description}
+					{highlightBestSequence(primaryData.description, searchQuery)}
 				</span>
 			)}
 
