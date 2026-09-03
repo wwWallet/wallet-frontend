@@ -204,7 +204,6 @@
 			"nickname": "Ψευδώνυμο",
 			"nicknameInput": "Νέο ψευδώνυμο",
 			"nicknameInputAriaLabel": "Εισάγετε νέο ψευδώνυμο για το κλειδί πρόσβασης {{passkeyLabel}}",
-			"notAttested": "Μη επαληθευμένο",
 			"prfUpgrade": "Αναβάθμιση",
 			"prfUpgradeAriaLabel": "Αναβάθμιση κλειδιού πρόσβασης {{passkeyLabel}}",
 			"rename": "Μετονομασία",

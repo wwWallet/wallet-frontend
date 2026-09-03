@@ -198,7 +198,6 @@
 			"nickname": "Nome",
 			"nicknameInput": "Novo nome",
 			"nicknameInputAriaLabel": "Introduza novo nome para a chave de acesso {{passkeyLabel}}",
-			"notAttested": "Não atestado",
 			"prfUpgrade": "Atualizar",
 			"prfUpgradeAriaLabel": "Atualizar chave de acesso {{passkeyLabel}}",
 			"rename": "Renomear",
