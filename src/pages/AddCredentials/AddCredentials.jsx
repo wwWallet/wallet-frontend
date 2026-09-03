@@ -1,19 +1,27 @@
+// External libraries
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
-import RedirectPopup from '../../components/Popups/RedirectPopup';
-import { H1 } from '../../components/Shared/Heading';
-import QueryableList from '../../components/QueryableList/QueryableList';
-import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
-import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+// Contexts
 import CredentialsContext from '@/context/CredentialsContext';
+import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import SessionContext from '@/context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+
+// Hooks
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
+import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+
+// Utilities
 import { buildCredentialConfiguration, buildCredentialPortal } from '@/components/QueryableList/CredentialsDisplayUtils';
 import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
 import { buildPortalRedirectPopupContent } from '@/components/Popups/portalRedirectPopupContent';
+
+// Components
 import MessagePopup from '@/components/Popups/MessagePopup';
+import RedirectPopup from '@/components/Popups/RedirectPopup';
+import QueryableList from '@/components/QueryableList/QueryableList';
+import { H1 } from '@/components/Shared/Heading';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
