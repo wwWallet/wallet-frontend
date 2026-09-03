@@ -7,6 +7,7 @@ import SessionContext from '@/context/SessionContext';
 import Button from '../../components/Buttons/Button';
 import AuthCard from '../../components/Auth/AuthCard';
 import checkForUpdates from '../../offlineUpdateSW';
+import { resolveLoginRedirect } from '../../components/Auth/loginRedirect';
 import { UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
@@ -129,7 +130,7 @@ const LoginState = () => {
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
 	} else if ((isLoggedIn && !forceAuthenticate) || (forceAuthenticate === true && authenticated)) {
-		return <Navigate to={`/${window.location.search}`} replace />;
+		return <Navigate to={resolveLoginRedirect(window.location.search)} replace />;
 	}
 
 	return (

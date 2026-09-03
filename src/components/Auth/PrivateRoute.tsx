@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import SessionContext from '@/context/SessionContext';
+import { withLoginRedirect } from './loginRedirect';
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactElement => {
 	const { isLoggedIn, keystore } = useContext(SessionContext);
@@ -21,10 +22,11 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	};
 
 	if (!isLoggedIn) {
+		const search = withLoginRedirect(window.location.pathname, window.location.search);
 		if (state && userExistsInCache(state)) {
-			return <Navigate to={`/login-state${window.location.search}`} replace />;
+			return <Navigate to={`/login-state${search}`} replace />;
 		} else {
-			return <Navigate to={`/login${window.location.search}`} replace />;
+			return <Navigate to={`/login${search}`} replace />;
 		}
 	}
 

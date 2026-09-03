@@ -29,7 +29,6 @@ const Activity = React.lazy(() => import('./pages/History/History'));
 const Pending = React.lazy(() => import('./pages/Pending/Pending'));
 const ActivityDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
-const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
 const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
@@ -68,7 +67,6 @@ function App() {
 						<Route path="/pending" element={<Pending />} />
 						<Route path="/activity/:transactionId" element={<ActivityDetail />} />
 						<Route path="/add" element={<AddCredentials />} />
-						<Route path="/send" element={<SendCredentials />} />
 						<Route path="/verification/result" element={<VerificationResult />} />
 						<Route path="/cb/*" element={<Home />} />
 					</Route>

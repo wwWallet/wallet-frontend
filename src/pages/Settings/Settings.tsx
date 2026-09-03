@@ -26,6 +26,7 @@ import SettingsSection from './components/SettingsSection';
 import SettingsRow from './components/SettingsRow';
 import SettingsSelect from './components/SettingsSelect';
 import SettingsTabs, { SettingsTab } from './components/SettingsTabs';
+import { SETTINGS_TAB_IDS } from './tabs';
 import WebauthnRegistration from './components/WebauthnRegistration';
 import WebauthnCredentialItem, { useWebauthnCredentialName } from './components/WebauthnCredentialItem';
 
@@ -44,8 +45,6 @@ type UpgradePrfState = (
 		webauthnCredential: WebauthnCredential,
 	}
 );
-
-const SETTINGS_TAB_IDS = ['general', 'account', 'privacy'];
 
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
