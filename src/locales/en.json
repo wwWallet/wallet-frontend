@@ -401,7 +401,7 @@
 	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
-		"givenName": "Give this credential a name:",
+		"giveName": "Give this credential a name:",
 		"messageDone": "Almost done!",
 		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
 		"messageInteract": "Please interact with your authenticator...",

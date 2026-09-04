@@ -272,6 +272,7 @@
 	},
 	"registerPasskey": {
 		"authOnceMore": "Para concluir a configuração, por favor autentique-se novamente.",
+		"giveName": "Dê um nome a esta credencial:",
 		"messageDone": "Quase pronto!",
 		"messageErrorTryAgain": "Algo correu mal. Por favor, tente novamente.<br/> Note que tem que usar a chave de acesso que criou no passo anterior.",
 		"messageInteract": "Por favor, interaja com o seu autenticador...",
