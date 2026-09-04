@@ -12,10 +12,10 @@ import DeletePopup from '../../../components/Popups/DeletePopup';
 import Button from '../../../components/Buttons/Button';
 import { Edit, RefreshCcw, Trash2 } from 'lucide-react';
 
-export function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
+export function useWebauthnCredentialName(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
 	if (credential) {
-		return credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
+		return credential.name || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
 	} else {
 		return "";
 	}
@@ -33,14 +33,14 @@ const WebauthnCredentialItem = ({
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	isCurrent?: boolean,
 	onDelete?: false | (() => Promise<void>),
-	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
+	onRename: (credential: WebauthnCredential, name: string | null) => Promise<boolean>,
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 }) => {
 	const { isOnline } = useContext(StatusContext);
-	const [nickname, setNickname] = useState(credential.nickname || '');
+	const [name, setName] = useState(credential.name || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
-	const currentLabel = useWebauthnCredentialNickname(credential);
+	const currentLabel = useWebauthnCredentialName(credential);
 	const [submitting, setSubmitting] = useState(false);
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -59,10 +59,10 @@ const WebauthnCredentialItem = ({
 
 	const onCancelEditing = useCallback(
 		() => {
-			setNickname(credential.nickname || '');
+			setName(credential.name || '');
 			setEditing(false);
 		},
-		[credential.nickname],
+		[credential.name],
 	);
 
 	const onKeyUp = useCallback(
@@ -78,7 +78,7 @@ const WebauthnCredentialItem = ({
 		event.preventDefault();
 		setSubmitting(true);
 		try {
-			const result = await onRename(credential, nickname);
+			const result = await onRename(credential, name);
 			if (result) {
 				setEditing(false);
 			}
@@ -95,17 +95,17 @@ const WebauthnCredentialItem = ({
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
 					<div className="flex flex-wrap items-center gap-2 min-w-0">
 						<span className="shrink-0 text-sm text-lm-gray-700 dark:text-dm-gray-300">
-							{t('pageSettings.passkeyItem.nickname')}
+							{t('pageSettings.passkeyItem.name')}
 						</span>
 						{editing
 							? (
 								<input
 									className="w-full text-sm max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
 									type="text"
-									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
-									value={nickname}
-									onChange={(event) => setNickname(event.target.value)}
-									aria-label={t('pageSettings.passkeyItem.nicknameInputAriaLabel', { passkeyLabel: currentLabel })}
+									placeholder={t('pageSettings.passkeyItem.nameInput')}
+									value={name}
+									onChange={(event) => setName(event.target.value)}
+									aria-label={t('pageSettings.passkeyItem.nameInputAriaLabel', { passkeyLabel: currentLabel })}
 									onKeyUp={onKeyUp}
 									disabled={submitting}
 									autoFocus
@@ -228,7 +228,7 @@ const WebauthnCredentialItem = ({
 				message={
 					<Trans
 						i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
-						values={{ nickname: nickname }}
+						values={{ name: name }}
 						components={{ strong: <strong /> }}
 					/>
 				}
