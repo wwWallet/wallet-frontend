@@ -191,7 +191,7 @@
 		}
 	},
 	"pageAddCredentials": {
-		"noFound": "No matching issuers found.",
+		"noFound": "No matching results found.",
 		"searchPlaceholder": "Search issuer or credential..."
 	},
 	"pageCredentials": {

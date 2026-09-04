@@ -148,7 +148,7 @@
 		}
 	},
 	"pageAddCredentials": {
-		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
+		"noFound": "Δεν βρέθηκαν αποτελέσματα.",
 		"searchPlaceholder": "Αναζήτηση εκδότη ή πιστοποιητικού..."
 	},
 	"pageCredentials": {

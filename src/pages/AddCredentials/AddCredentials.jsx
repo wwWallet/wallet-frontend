@@ -182,13 +182,13 @@ const AddCredentials = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const result = await api.syncPrivateData(cachedUser);
-		if (!result.ok) {
-			return {};
-		}
 		const clickedPortal = portals.find((portal) => portal.identifierField === credentialConfigurationIdWithCredentialIssuerIdentifier);
 		if (clickedPortal) {
 			setSelectedPortal(clickedPortal);
+			return {};
+		}
+		const result = await api.syncPrivateData(cachedUser);
+		if (!result.ok) {
 			return {};
 		}
 		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);

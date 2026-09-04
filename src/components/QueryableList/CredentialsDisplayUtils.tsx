@@ -14,7 +14,14 @@ export function buildCredentialPortal(
 	filterItemByLang: (items: any[], langKey: string) => any
 ) {
 	const display = filterItemByLang(portal.display, 'locale');
-	if (!display?.name || !portal.url) {
+	let portalUrl: URL;
+	try {
+		portalUrl = new URL(portal.url);
+	} catch {
+		return null;
+	}
+
+	if (!display?.name || !['http:', 'https:'].includes(portalUrl.protocol)) {
 		return null;
 	}
 
