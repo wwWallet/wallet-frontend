@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from "react";
-import SearchInput from "../Inputs/SearchInput";
-import Button from "../Buttons/Button";
-import { useTranslation } from "react-i18next";
-import { getElementPropValue, sanitizeId } from "../../util";
-import { H3 } from "../Shared/Heading";
-import { highlightBestSequence } from "./highlightBestSequence";
+// External libraries
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+// Utilities
+import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
+import { getElementPropValue, sanitizeId } from '@/util';
+
+// Components
+import Button from '@/components/Buttons/Button';
+import SearchInput from '@/components/Inputs/SearchInput';
+import { H3 } from '@/components/Shared/Heading';
 
 type QueryableListProps<T> = {
 	list: T[];
