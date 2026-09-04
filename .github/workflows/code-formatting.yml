@@ -17,10 +17,10 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
 
     - name: Set up editorconfig-checker
-      uses: editorconfig-checker/action-editorconfig-checker@v2
+      uses: editorconfig-checker/action-editorconfig-checker@v3.0.0
 
     - name: Check code formatting
       run: editorconfig-checker
