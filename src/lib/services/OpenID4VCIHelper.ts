@@ -217,7 +217,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 			try {
 				const issuerResponse = await getExternalEntity('/issuer/all', undefined, true);
-				const trustedCredentialIssuers = issuerResponse.data;
+				const trustedCredentialIssuers = issuerResponse.data.issuers;
 				const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
 				if (issuer) {
 					return { client_id: issuer.clientId };

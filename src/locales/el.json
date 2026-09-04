@@ -148,9 +148,8 @@
 		}
 	},
 	"pageAddCredentials": {
-		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
-		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
-		"searchPlaceholder": "Αναζήτηση credential..."
+		"noFound": "Δεν βρέθηκαν αποτελέσματα.",
+		"searchPlaceholder": "Αναζήτηση εκδότη ή πιστοποιητικού..."
 	},
 	"pageCredentials": {
 		"activityTitle": "Δραστηριότητα",
@@ -317,11 +316,13 @@
 		"waitingForRequest": "Δημιουργήθηκε ασφαλής σύνδεση. Αναμονή για το αίτημα του verifier..."
 	},
 	"queryableList": {
-		"all": "Όλα",
-		"recent": "Πρόσφατα"
+		"featuredCredentials": "Προτεινόμενα Πιστοποιητικά",
+		"recent": "Πρόσφατα",
+		"trustedIssuers": "Αξιόπιστοι Εκδότες"
 	},
 	"redirectPopup": {
 		"issuanceMessage": "Θα ανακατευθυνθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"portalMessage": "Θα ανακατευθυνθείτε στο <strong>{{portalName}}</strong> <i>{{portalDescription}}</i>.",
 		"presentationMessage": "Θα ανακατευθυνθείτε στο <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {

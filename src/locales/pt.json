@@ -142,9 +142,8 @@
 		}
 	},
 	"pageAddCredentials": {
-		"description": "Pesquise e selecione um credencial que deseja emitir",
-		"noFound": "Sem issuers correspondentes.",
-		"searchPlaceholder": "Procurar credencial..."
+		"noFound": "Sem resultados correspondentes.",
+		"searchPlaceholder": "Procurar emissor ou credencial..."
 	},
 	"pageCredentials": {
 		"activityTitle": "Atividade",
@@ -263,11 +262,13 @@
 		"title": "Ler o código QR"
 	},
 	"queryableList": {
-		"all": "Todos",
-		"recent": "Recentes"
+		"featuredCredentials": "Credenciais em Destaque",
+		"recent": "Recentes",
+		"trustedIssuers": "Emissores de Confiança"
 	},
 	"redirectPopup": {
 		"issuanceMessage": "Será redirecionado para <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir uma <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"portalMessage": "Será redirecionado para <strong>{{portalName}}</strong> <i>{{portalDescription}}</i>.",
 		"presentationMessage": "Será redirecionado para <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {

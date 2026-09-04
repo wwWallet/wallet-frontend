@@ -16,7 +16,9 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 	const hasBackgroundColor = !!primaryData.background_color;
 	const shouldUseCustomStyle = hasTextColor && hasBackgroundColor;
 
-	const logoStyle = shouldUseCustomStyle
+	const logoStyle = primaryLogoSrc
+		? { backgroundColor: primaryData.background_color || 'white' }
+		: shouldUseCustomStyle
 		? {
 			backgroundColor: primaryData.background_color,
 			color: primaryData.text_color,
@@ -26,10 +28,9 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 			color: 'white',
 		};
 
-	const issuerHasBackgroundColor = !!secondaryData?.background_color;
-	const issuerLogoStyle = issuerHasBackgroundColor
-		? { backgroundColor: secondaryData.background_color }
-		: { backgroundColor: 'white' };
+	const issuerLogoStyle = {
+		backgroundColor: secondaryData?.background_color || 'white',
+	};
 
 	return (
 		<span className="flex flex-col justify-between w-full gap-2 leading-tight wrap-break-word">
@@ -55,6 +56,14 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 					{highlightBestSequence(primaryData.name, searchQuery)}
 				</span>
 			</span>
+			{!secondaryData && primaryData.description && (
+				<span
+					className="line-clamp-2 text-sm font-normal text-lm-gray-800 dark:text-dm-gray-300"
+					title={primaryData.description}
+				>
+					{highlightBestSequence(primaryData.description, searchQuery)}
+				</span>
+			)}
 
 			{secondaryData && (
 				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-lm-gray-300 dark:bg-dm-gray-700 whitespace-nowrap">

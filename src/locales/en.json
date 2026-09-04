@@ -191,9 +191,8 @@
 		}
 	},
 	"pageAddCredentials": {
-		"description": "Search and choose the credential you want to issue",
-		"noFound": "No matching issuers found.",
-		"searchPlaceholder": "Search credential..."
+		"noFound": "No matching results found.",
+		"searchPlaceholder": "Search issuer or credential..."
 	},
 	"pageCredentials": {
 		"activityTitle": "Activity",
@@ -392,11 +391,13 @@
 		"waitingForRequest": "Secure connection established. Waiting for the verifier's request..."
 	},
 	"queryableList": {
-		"all": "All",
-		"recent": "Recent"
+		"featuredCredentials": "Featured Credentials",
+		"recent": "Recent",
+		"trustedIssuers": "Trusted Issuers"
 	},
 	"redirectPopup": {
 		"issuanceMessage": "You will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"portalMessage": "You will be redirected to <strong>{{portalName}}</strong> <i>{{portalDescription}}</i>.",
 		"presentationMessage": "You will be redirected to <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {
