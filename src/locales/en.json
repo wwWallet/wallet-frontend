@@ -261,6 +261,7 @@
 			"title": "Oblivious HTTP"
 		},
 		"passkeyItem": {
+			"authenticatorName": "Authenticator",
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
@@ -281,6 +282,7 @@
 			"syncableAvailable": "Available",
 			"syncableNo": "No",
 			"syncableYes": "Yes",
+			"unknownAuthenticator": "Unknown",
 			"unnamed": "Unnamed passkey"
 		},
 		"rememberIssuer": {
