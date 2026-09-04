@@ -234,7 +234,7 @@ const WebauthnRegistration = ({
 									hr={false}
 									flexJustifyContent='center'
 								/>
-								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveName')}</p>
+								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.givenName')}</p>
 								<input
 									type="text"
 									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"

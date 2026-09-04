@@ -76,7 +76,7 @@
 		"acceptPolicies": "Αποδέχομαι την <policyLinks/>.",
 		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό πορτοφολιού; ",
 		"authOnceMoreLogin": "Για να ολοκληρώσετε το ξεκλείδωμα του wallet αυθεντικοποιηθείτε με το κλειδί πρόσβασής σας μία ακόμη φορά.",
-		"choosePasskeyUsername": "Ψευδώνυμο Πορτοφολιού",
+		"choosePasskeyUsername": "Όνομα Πορτοφολιού",
 		"continueAs": "Συνέχεια ως",
 		"enterPasskeyName": "Πορτοφόλι της Jane Doe",
 		"forgetCachedUser": "Κάντε κλικ για να Ξεχάσετε τον Αποθηκευμένο Χρήστη {{name}}",
