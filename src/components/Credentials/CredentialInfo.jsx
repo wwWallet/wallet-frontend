@@ -1,12 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { formatDate } from 'wallet-common';
+import { formatDate, imageValueToDataUri, isCborDate } from 'wallet-common';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
-import { isCborDate } from 'wallet-common';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -168,38 +167,14 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 
 	if (typeof value === 'boolean') return String(value);
 
+	const imageDataUri = imageValueToDataUri(value);
+	if (imageDataUri) return renderImg(imageDataUri);
+
 	// String handling
 	if (typeof value === 'string') {
-		const lower = value.toLowerCase();
-
-		// Image data URI
-		if (lower.startsWith('data:image/')) {
-			return renderImg(value);
-		}
 		// Long string fallback
 		if (!value.includes(' ') && value.length > 30) {
 			return value.slice(0, 30) + '…';
-		}
-	}
-
-	// Handle raw image bytes
-	if (
-		typeof value === 'object' &&
-		value !== null &&
-		Object.keys(value).length > 0 &&
-		Object.keys(value).every(k => !isNaN(Number(k))) &&
-		Object.values(value).every(v => typeof v === 'number')
-	) {
-		try {
-			const uint8Array = new Uint8Array(Object.values(value));
-			const base64 = btoa(
-				String.fromCharCode.apply(null, Array.from(uint8Array))
-			);
-			const src = `data:image/jpeg;base64,${base64}`;
-			return renderImg(src);
-		} catch {
-			// fallback if conversion fails
-			return renderJson(value);
 		}
 	}
 
