@@ -55,7 +55,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
-			window.location.reload();
+			if (screenType !== 'desktop') {
+				toggle();
+			}
 		} else {
 			React.startTransition(() => {
 				if (screenType !== 'desktop') {
