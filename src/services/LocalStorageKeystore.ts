@@ -356,63 +356,69 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				setCalculatedWalletState(foldedState);
 			}
 			else {
-				async function mergeWithLocalEncryptedPrivateData(
-					container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]
-				): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+				async function mergeWithLocalEncryptedPrivateData( container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]):
+					Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+
+					const [remotePrivateData, remoteMainKey, remoteWalletState] = container;
 					const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
 					const localUser = await getItem("users", userId.id);
 					if (!localUser) {
 						return container;
 					}
+
 					const localPrivateData: Uint8Array = localUser.privateData;
 					const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
-
-					if (parsedLocalEncryptedPrivateData.jwe === unlockSuccess.privateData.jwe) {
+					if (parsedLocalEncryptedPrivateData.jwe === remotePrivateData.jwe) {
 						return container;
 					}
 
 					const stringifiedLocalPrivateData = jsonStringifyTaggedBinary(localPrivateData);
 					const stringifiedSerializedNewlyUnlockedPrivateData = jsonStringifyTaggedBinary(
-						keystore.serializePrivateData(unlockSuccess.privateData)
+						keystore.serializePrivateData(remotePrivateData)
 					);
+					if (stringifiedLocalPrivateData === stringifiedSerializedNewlyUnlockedPrivateData) {
+						return container;
+					}
 
-					if (stringifiedLocalPrivateData !== stringifiedSerializedNewlyUnlockedPrivateData) {
-						let localContainer: WalletStateContainerGeneric;
+					let localContainer: WalletStateContainerGeneric;
+					try {
+						[localContainer, ,] = await keystore.openPrivateData(
+							remoteMainKey,
+							parsedLocalEncryptedPrivateData
+						);
+					} catch (err) {
+						const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
+							k => credential && toBase64Url(k.credentialId) === credential.id
+						);
 
-						try {
-							[localContainer, ,] = await keystore.openPrivateData(
-								unlockSuccess.mainKey,
-								parsedLocalEncryptedPrivateData
-							);
-						} catch (err) {
-							const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
-								k => credential && toBase64Url(k.credentialId) === credential.id
-							);
-
-							if (credential && hasMatchingPrfKey) {
-								const [unlockPrfResult,] = await keystore.unlockPrf(
-									parsedLocalEncryptedPrivateData,
-									credential,
-									promptForPrfRetry
-								);
-								const { privateData, mainKey } = unlockPrfResult;
-								[localContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
-							} else {
-								console.warn("Skipping local merge: credential not found in stale local PRF keys and mainKey mismatched.");
-								return container;
-							}
+						if (!credential || !hasMatchingPrfKey) {
+							console.warn("Skipping local merge sincecredential not found in stale local PRF keys and mainKey mismatched.");
+							return container;
 						}
 
-						const mergedContainer = await mergeEventHistories(unlockedContainer, localContainer);
-						const { newContainer } = await keystore.updateWalletState([
-							keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData),
-							unlockSuccess.mainKey,
-						], mergedContainer as CurrentSchema.WalletStateContainer);
-
-						const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-						return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
+						try {
+							const [unlockPrfResult,] = await keystore.unlockPrf(
+								parsedLocalEncryptedPrivateData,
+								credential,
+								promptForPrfRetry
+							);
+							const { privateData: oldPrivateData, mainKey: oldMainKey } = unlockPrfResult;
+							[localContainer, ,] = await keystore.openPrivateData(oldMainKey, oldPrivateData);
+						} catch (prfError) {
+							console.warn("Failed to unlock local data via PRF", prfError);
+							return container;
+						}
 					}
-					return container;
+
+					const mergedContainer = await mergeEventHistories(remoteWalletState, localContainer);
+
+					const { newContainer } = await keystore.updateWalletState([
+						keystore.assertAsymmetricEncryptedContainer(remotePrivateData),
+						remoteMainKey,
+					], mergedContainer as CurrentSchema.WalletStateContainer);
+
+					const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
+					return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
 				}
 
 				const { privateData, mainKey } = unlockSuccess;
