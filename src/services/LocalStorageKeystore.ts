@@ -372,11 +372,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 						return container;
 					}
 
-					const stringifiedLocalPrivateData = jsonStringifyTaggedBinary(localPrivateData);
-					const stringifiedSerializedNewlyUnlockedPrivateData = jsonStringifyTaggedBinary(
-						keystore.serializePrivateData(remotePrivateData)
-					);
-					if (stringifiedLocalPrivateData === stringifiedSerializedNewlyUnlockedPrivateData) {
+					const localSerialized = jsonStringifyTaggedBinary(localPrivateData);
+					const remoteSerialized = jsonStringifyTaggedBinary( keystore.serializePrivateData(remotePrivateData));
+					if (localSerialized === remoteSerialized) {
 						return container;
 					}
 
