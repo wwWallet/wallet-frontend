@@ -367,8 +367,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					const localPrivateData: Uint8Array = localUser.privateData;
 					const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
 
-					// 1. If the encrypted wallet state (JWE) is identical, no merge is needed at all!
-					// (Even if prfKeys lists differ between local and remote)
 					if (parsedLocalEncryptedPrivateData.jwe === unlockSuccess.privateData.jwe) {
 						return container;
 					}
@@ -382,15 +380,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 						let localContainer: WalletStateContainerGeneric;
 
 						try {
-							// 2. Try opening local data using the ALREADY unlocked mainKey first.
-							// Adding a passkey doesn't rotate mainKey, so this succeeds directly without PRF retry.
 							[localContainer, ,] = await keystore.openPrivateData(
 								unlockSuccess.mainKey,
 								parsedLocalEncryptedPrivateData
 							);
 						} catch (err) {
-							// 3. Fallback: Only if mainKey fails (e.g., key rotation happened), check if the
-							// current login credential actually exists in the local container before attempting PRF unlock.
 							const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
 								k => credential && toBase64Url(k.credentialId) === credential.id
 							);
@@ -441,21 +435,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					prfKeys: [], // Placeholder - will be updated by useEffect above
 				}
 			);
-
-			//const newUser = ("prfKeys" in user
-			//    ? user
-			//    : {
-			//        displayName: user.displayName,
-			//        userHandleB64u,
-			//        // Grab the salts directly from the container you just unlocked,
-			//        // bypassing the need for the useEffect to catch up.
-			//        prfKeys: newEncryptedContainer.prfKeys.map((keyInfo) => ({
-			//            credentialId: keyInfo.credentialId,
-			//            transports: keyInfo.transports,
-			//            prfSalt: keyInfo.prfSalt,
-			//        })),
-			//    }
-			//);
 
 			setUserHandleB64u(userHandleB64u);
 
