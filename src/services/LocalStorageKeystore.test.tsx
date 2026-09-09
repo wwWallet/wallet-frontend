@@ -3,7 +3,7 @@ import { act, cleanup, render, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LocalStorageKeystore } from "./LocalStorageKeystore";
-import { useLocalStorageKeystore } from "./LocalStorageKeystore";
+import { shouldMergeOpenKeystore, useLocalStorageKeystore } from "./LocalStorageKeystore";
 import * as keystoreApi from "./keystore";
 import { CurrentSchema, foldState, mergeEventHistories } from "./WalletStateSchema";
 import { getItem } from "../indexedDB";
@@ -215,6 +215,37 @@ describe("unlocking with locally cached encrypted private data", () => {
 		expect(getItem).toHaveBeenCalledWith("users", "merge-user");
 		expect(keystoreApi.parsePrivateData).not.toHaveBeenCalled();
 		expectRemoteFallback(result, encrypted);
+	});
+
+	it.each([false, true])("does not merge user A's open wallet when logging in as user B (cached user: %s)", async (cachedUser) => {
+		const userA = { displayName: "User A", userHandle: new TextEncoder().encode("user-a") };
+		const credentialA = { id: toBase64Url(new Uint8Array([0xbb])) } as PublicKeyCredential;
+		vi.mocked(keystoreApi.unlockPrf).mockResolvedValueOnce([{ privateData: local, mainKey: oldKey }, null]);
+		vi.mocked(foldState).mockReturnValueOnce(localState.S);
+		const { result } = renderHook(() => useLocalStorageKeystore(eventTarget));
+
+		await act(async () => {
+			await result.current.unlockPrf(local, credentialA, promptForPrfRetry, userA);
+		});
+		expect(result.current.isOpen()).toBe(true);
+		expect(result.current.getUserHandleB64u()).toBe(toBase64Url(userA.userHandle));
+		expect(result.current.getCalculatedWalletState()).toBe(localState.S);
+
+		// A second login can return B's passkey while A's keystore is still open.
+		// Use the same mounted hook so its current handle, private data and key remain A's.
+		vi.clearAllMocks();
+		let unlocked: Awaited<ReturnType<LocalStorageKeystore["unlockPrf"]>>;
+		await act(async () => {
+			unlocked = await result.current.unlockPrf(remote, credential, promptForPrfRetry,
+				cachedUser ? { displayName: user.displayName, userHandleB64u: toBase64Url(userHandle), prfKeys: [] } : user);
+		});
+
+		expect(getItem).toHaveBeenCalledWith("users", "merge-user");
+		expect(keystoreApi.openPrivateData).toHaveBeenCalledOnce();
+		expect(keystoreApi.openPrivateData).toHaveBeenCalledWith(remoteKey, remote);
+		expect(put).toHaveBeenCalledOnce();
+		expect(result.current.getUserHandleB64u()).toBe(toBase64Url(userHandle));
+		expectRemoteFallback(result, unlocked![0]);
 	});
 
 	it("skips local decryption when the JWE matches even if PRF metadata differs", async () => {
