@@ -1,4 +1,4 @@
-import React, { FormEvent, KeyboardEvent, useCallback, useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -10,7 +10,7 @@ import { isPrfKeyV2 } from '../../../services/keystore';
 
 import DeletePopup from '../../../components/Popups/DeletePopup';
 import Button from '../../../components/Buttons/Button';
-import { Edit, RefreshCcw, Trash2 } from 'lucide-react';
+import { RefreshCcw, Trash2 } from 'lucide-react';
 
 export function useWebauthnCredentialName(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -26,22 +26,17 @@ const WebauthnCredentialItem = ({
 	prfKeyInfo,
 	isCurrent,
 	onDelete,
-	onRename,
 	onUpgradePrfKey,
 }: {
 	credential: WebauthnCredential,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	isCurrent?: boolean,
 	onDelete?: false | (() => Promise<void>),
-	onRename: (credential: WebauthnCredential, name: string | null) => Promise<boolean>,
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 }) => {
 	const { isOnline } = useContext(StatusContext);
-	const [name, setName] = useState(credential.name || '');
-	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
 	const currentLabel = useWebauthnCredentialName(credential);
-	const [submitting, setSubmitting] = useState(false);
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 
@@ -57,131 +52,18 @@ const WebauthnCredentialItem = ({
 		}
 	};
 
-	const onCancelEditing = useCallback(
-		() => {
-			setName(credential.name || '');
-			setEditing(false);
-		},
-		[credential.name],
-	);
-
-	const onKeyUp = useCallback(
-		(event: KeyboardEvent<HTMLInputElement>) => {
-			if (event.key === "Escape") {
-				onCancelEditing();
-			}
-		},
-		[onCancelEditing],
-	);
-
-	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		setSubmitting(true);
-		try {
-			const result = await onRename(credential, name);
-			if (result) {
-				setEditing(false);
-			}
-		} finally {
-			setSubmitting(false);
-		}
-	};
-
 	const needsPrfUpgrade = prfKeyInfo && !isPrfKeyV2(prfKeyInfo);
 
 	return (
 		<div className="p-4 border border-lm-gray-300 dark:border-dm-gray-700 rounded-xl">
-			<form onSubmit={onSubmit} className="flex flex-col gap-3">
-				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-					<div className="flex flex-wrap items-center gap-2 min-w-0">
-						<span className="shrink-0 text-sm text-lm-gray-700 dark:text-dm-gray-300">
-							{t('pageSettings.passkeyItem.name')}
+			<div className="flex flex-col gap-3">
+				{isCurrent && (
+					<div className="flex flex-wrap items-center gap-2">
+						<span className="inline-flex shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-blue/5 text-lm-blue/70 dark:bg-dm-blue/50 dark:text-lm-gray-100">
+							{t('pageSettings.passkeyItem.loggedIn')}
 						</span>
-						{editing
-							? (
-								<input
-									className="w-full text-sm max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-									type="text"
-									placeholder={t('pageSettings.passkeyItem.nameInput')}
-									value={name}
-									onChange={(event) => setName(event.target.value)}
-									aria-label={t('pageSettings.passkeyItem.nameInputAriaLabel', { passkeyLabel: currentLabel })}
-									onKeyUp={onKeyUp}
-									disabled={submitting}
-									autoFocus
-								/>
-							)
-							: (
-								<p className="font-medium text-sm text-lm-gray-900 dark:text-white truncate">
-									{currentLabel}
-								</p>
-							)
-						}
-						{!editing && isCurrent && (
-							<div className="order-first sm:order-none w-full sm:w-auto">
-								<span className="inline-flex shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-blue/5 text-lm-blue/70 dark:bg-dm-blue/50 dark:text-lm-gray-100">
-									{t('pageSettings.passkeyItem.loggedIn')}
-								</span>
-							</div>
-						)}
 					</div>
-
-					<div className="flex gap-2 shrink-0">
-						{editing
-							? (
-								<>
-									<Button
-										id="cancel-editing-settings"
-										size="sm"
-										onClick={onCancelEditing}
-										disabled={submitting}
-										ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
-									>
-										{t('common.cancel')}
-									</Button>
-									<Button
-										id="save-editing-settings"
-										size="sm"
-										type="submit"
-										disabled={submitting}
-										variant="primary"
-									>
-										{t('common.save')}
-									</Button>
-								</>
-							)
-							: (
-								<Button
-									id="rename-passkey"
-									size="sm"
-									variant="outline"
-									onClick={() => setEditing(true)}
-									disabled={!isOnline}
-									aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-									title={!isOnline ? t("common.offlineTitle") : ""}
-								>
-									<Edit size={14} />
-									{t('pageSettings.passkeyItem.rename')}
-								</Button>
-							)
-						}
-
-						{onDelete && (
-							<Button
-								id="delete-passkey"
-								size="sm"
-								variant="delete"
-								onClick={openDeleteConfirmation}
-								disabled={!isOnline}
-								aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-								title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
-							>
-								<Trash2 size={14} />
-								{t('common.delete')}
-							</Button>
-						)}
-					</div>
-				</div>
+				)}
 
 				<div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
 					<div>
@@ -219,7 +101,23 @@ const WebauthnCredentialItem = ({
 						</Button>
 					</div>
 				)}
-			</form>
+				{onDelete && (
+					<div className="flex justify-start">
+						<Button
+							id="delete-passkey"
+							size="sm"
+							variant="delete"
+							onClick={openDeleteConfirmation}
+							disabled={!isOnline}
+							ariaLabel={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
+							title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+						>
+							<Trash2 size={14} />
+							{t('common.delete')}
+						</Button>
+					</div>
+				)}
+			</div>
 
 			<DeletePopup
 				isOpen={isDeleteConfirmationOpen}
@@ -228,7 +126,7 @@ const WebauthnCredentialItem = ({
 				message={
 					<Trans
 						i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
-						values={{ name: name }}
+						values={{ name: currentLabel }}
 						components={{ strong: <strong /> }}
 					/>
 				}

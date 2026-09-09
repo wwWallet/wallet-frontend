@@ -207,6 +207,7 @@
 			"prfUpgradeAriaLabel": "Αναβάθμιση κλειδιού πρόσβασης {{passkeyLabel}}",
 			"rename": "Μετονομασία",
 			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
+			"renameFailed": "Αδυναμία μετονομασίας κλειδιού πρόσβασης. Παρακαλώ δοκιμάστε ξανά.",
 			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"syncable": "Συγχρονισμένο",
 			"syncableAvailable": "Υποστηρίζεται Συγχρονισμός",

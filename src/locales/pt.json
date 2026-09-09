@@ -201,6 +201,7 @@
 			"prfUpgradeAriaLabel": "Atualizar chave de acesso {{passkeyLabel}}",
 			"rename": "Renomear",
 			"renameAriaLabel": "Renomear chave de acesso {{passkeyLabel}}",
+			"renameFailed": "Não foi possível renomear as suas chaves de acesso. Tente novamente.",
 			"saveChangesAriaLabel": "Guardar alterações para chave de acesso {{passkeyLabel}}",
 			"syncable": "Sincronizado",
 			"syncableAvailable": "Disponível",

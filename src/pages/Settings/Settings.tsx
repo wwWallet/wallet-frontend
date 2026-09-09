@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, useCallback, useContext, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -18,7 +18,7 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
+import { Bell, Clock, Edit, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
 import { signalCurrentUserDetails, signalUnknownCredential } from '@/util-webauthn';
 
@@ -46,6 +46,137 @@ type UpgradePrfState = (
 		webauthnCredential: WebauthnCredential,
 	}
 );
+
+const PasskeyNameRow = ({ credential, onRename }: {
+	credential: WebauthnCredential,
+	onRename: (name: string) => Promise<boolean>,
+}) => {
+	const { isOnline } = useContext(StatusContext);
+	const { t } = useTranslation();
+	const currentLabel = useWebauthnCredentialName(credential);
+	const [name, setName] = useState(credential.name || '');
+	const [editing, setEditing] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
+	const [renameFailed, setRenameFailed] = useState(false);
+
+	const onCancelEditing = useCallback(
+		() => {
+			setName(credential.name || '');
+			setRenameFailed(false);
+			setEditing(false);
+		},
+		[credential.name],
+	);
+
+	const onKeyUp = useCallback(
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			if (event.key === "Escape") {
+				onCancelEditing();
+			}
+		},
+		[onCancelEditing],
+	);
+
+	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		if (submitting || !isOnline) return;
+		setSubmitting(true);
+		setRenameFailed(false);
+		try {
+			const result = await onRename(name);
+			setRenameFailed(!result);
+			if (result) {
+				setEditing(false);
+			}
+		} catch {
+			setRenameFailed(true);
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	return (
+		<form onSubmit={onSubmit} className="py-2">
+			<div className={`flex flex-col gap-3 ${editing ? 'sm:flex-row sm:items-center sm:justify-between' : 'min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between'}`}>
+				<div className={`flex items-center gap-2 min-w-0 ${editing ? 'flex-wrap' : 'flex-nowrap'}`}>
+					<span className="shrink-0 text-sm text-lm-gray-700 dark:text-dm-gray-300">
+						{t('pageSettings.passkeyItem.name')}
+					</span>
+					{editing
+						? (
+							<input
+								className="w-full text-sm max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
+								type="text"
+								maxLength={255}
+								placeholder={t('pageSettings.passkeyItem.nameInput')}
+								value={name}
+								onChange={(event) => setName(event.target.value)}
+								aria-label={t('pageSettings.passkeyItem.nameInputAriaLabel', { passkeyLabel: currentLabel })}
+								onKeyUp={onKeyUp}
+								disabled={submitting}
+								autoFocus
+							/>
+						)
+						: (
+							<p className="font-medium text-sm text-lm-gray-900 dark:text-white truncate">
+								{currentLabel}
+							</p>
+						)
+					}
+				</div>
+
+				<div className="flex gap-2 shrink-0">
+					{editing
+						? (
+							<>
+								<Button
+									id="cancel-editing-settings"
+									size="sm"
+									onClick={onCancelEditing}
+									disabled={submitting}
+									ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
+								>
+									{t('common.cancel')}
+								</Button>
+								<Button
+									id="save-editing-settings"
+									size="sm"
+									type="submit"
+									disabled={submitting || !isOnline}
+									variant="primary"
+								>
+									{t('common.save')}
+								</Button>
+							</>
+						)
+						: (
+							<Button
+								id="rename-passkey"
+								size="sm"
+								variant="outline"
+								onClick={() => {
+									setName(credential.name || '');
+									setEditing(true);
+								}}
+								disabled={!isOnline}
+								ariaLabel={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
+								title={!isOnline ? t("common.offlineTitle") : ""}
+							>
+								<Edit size={14} />
+								{t('pageSettings.passkeyItem.rename')}
+							</Button>
+						)
+					}
+				</div>
+			</div>
+			{renameFailed && (
+				<p role="alert" className="mt-2 text-sm text-lm-red dark:text-dm-red">
+					{t('pageSettings.passkeyItem.renameFailed')}
+				</p>
+			)}
+		</form>
+	);
+};
 
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
@@ -215,8 +346,8 @@ const Settings = () => {
 		}
 	};
 
-	const onRenameWebauthnCredential = async (credential: WebauthnCredential, name: string): Promise<boolean> => {
-		const renameResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
+	const onRenameWebauthnCredentials = async (name: string): Promise<boolean> => {
+		const renameResp = await api.post('/user/session/webauthn/credentials/rename', {
 			name,
 		});
 		refreshData();
@@ -229,7 +360,7 @@ const Settings = () => {
 			});
 			return true;
 		} else {
-			console.error("Failed to rename WebAuthn credential", renameResp.status, renameResp);
+			console.error("Failed to rename WebAuthn credentials", renameResp.status, renameResp);
 			return false;
 		}
 	};
@@ -475,21 +606,27 @@ const Settings = () => {
 											actions={<WebauthnRegistration onSuccess={() => refreshData()} />}
 											card={false}
 										>
+											{userData.webauthnCredentials.length > 0 && (
+												<PasskeyNameRow
+													credential={loggedInPasskey || userData.webauthnCredentials[0]}
+													onRename={onRenameWebauthnCredentials}
+												/>
+											)}
 											<ul className="flex flex-col gap-3">
 												{userData.webauthnCredentials
 													.slice()
 													.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
 													.sort((a, b) => Number(b.id === loggedInPasskey?.id) - Number(a.id === loggedInPasskey?.id))
 													.map(cred => (
-														<WebauthnCredentialItem
-															key={cred.id}
-															credential={cred}
-															prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
-															isCurrent={cred.id === loggedInPasskey?.id}
-															onDelete={!(loggedInPasskey && cred.id === loggedInPasskey.id) && showDelete && (() => deleteWebauthnCredential(cred))}
-															onRename={onRenameWebauthnCredential}
-															onUpgradePrfKey={onUpgradePrfKey}
-														/>
+														<li key={cred.id}>
+															<WebauthnCredentialItem
+																credential={cred}
+																prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
+																isCurrent={cred.id === loggedInPasskey?.id}
+																onDelete={!(loggedInPasskey && cred.id === loggedInPasskey.id) && showDelete && (() => deleteWebauthnCredential(cred))}
+																onUpgradePrfKey={onUpgradePrfKey}
+															/>
+														</li>
 													))}
 											</ul>
 										</SettingsSection>

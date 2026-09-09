@@ -277,6 +277,7 @@
 			"prfUpgradeAriaLabel": "Upgrade passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
+			"renameFailed": "Could not rename your passkeys. Please try again.",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"syncable": "Synced",
 			"syncableAvailable": "Available",
