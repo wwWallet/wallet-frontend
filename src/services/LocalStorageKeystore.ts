@@ -356,31 +356,69 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				setCalculatedWalletState(foldedState);
 			}
 			else {
-				async function mergeWithLocalEncryptedPrivateData(container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+				async function mergeWithLocalEncryptedPrivateData( container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]):
+					Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+
+					const [remotePrivateData, remoteMainKey, remoteWalletState] = container;
 					const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
 					const localUser = await getItem("users", userId.id);
 					if (!localUser) {
 						return container;
 					}
+
 					const localPrivateData: Uint8Array = localUser.privateData;
 					const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
-					const stringifiedLocalPrivateData = jsonStringifyTaggedBinary(localPrivateData);
-					const stringifiedSerializedNewlyUnlockedPrivateData = jsonStringifyTaggedBinary(keystore.serializePrivateData(unlockSuccess.privateData));
-					if (stringifiedLocalPrivateData !== stringifiedSerializedNewlyUnlockedPrivateData) { // local and remote are different
-						// decryption of local is required
-						const [unlockPrfResult,] = await keystore.unlockPrf(parsedLocalEncryptedPrivateData, credential, promptForPrfRetry);
-						const { privateData, mainKey } = unlockPrfResult;
-						const [localContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
-						const mergedContainer = await mergeEventHistories(unlockedContainer, localContainer);
-						const { newContainer } = await keystore.updateWalletState([
-							keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData),
-							unlockSuccess.mainKey,
-						], mergedContainer as CurrentSchema.WalletStateContainer);
-						const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-						return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
+					if (parsedLocalEncryptedPrivateData.jwe === remotePrivateData.jwe) {
+						return container;
 					}
-					return container;
+
+					const localSerialized = jsonStringifyTaggedBinary(localPrivateData);
+					const remoteSerialized = jsonStringifyTaggedBinary( keystore.serializePrivateData(remotePrivateData));
+					if (localSerialized === remoteSerialized) {
+						return container;
+					}
+
+					let localContainer: WalletStateContainerGeneric;
+					try {
+						[localContainer, ,] = await keystore.openPrivateData(
+							remoteMainKey,
+							parsedLocalEncryptedPrivateData
+						);
+					} catch (err) {
+						const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
+							k => credential && toBase64Url(k.credentialId) === credential.id
+						);
+
+						if (!credential || !hasMatchingPrfKey) {
+							console.warn("Skipping local merge sincecredential not found in stale local PRF keys and mainKey mismatched.");
+							return container;
+						}
+
+						try {
+							const [unlockPrfResult,] = await keystore.unlockPrf(
+								parsedLocalEncryptedPrivateData,
+								credential,
+								promptForPrfRetry
+							);
+							const { privateData: oldPrivateData, mainKey: oldMainKey } = unlockPrfResult;
+							[localContainer, ,] = await keystore.openPrivateData(oldMainKey, oldPrivateData);
+						} catch (prfError) {
+							console.warn("Failed to unlock local data via PRF", prfError);
+							return container;
+						}
+					}
+
+					const mergedContainer = await mergeEventHistories(remoteWalletState, localContainer);
+
+					const { newContainer } = await keystore.updateWalletState([
+						keystore.assertAsymmetricEncryptedContainer(remotePrivateData),
+						remoteMainKey,
+					], mergedContainer as CurrentSchema.WalletStateContainer);
+
+					const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
+					return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
 				}
+
 				const { privateData, mainKey } = unlockSuccess;
 				const [unlockedContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
 				const [encryptedContainer, newMainKey, decryptedWalletState] = await mergeWithLocalEncryptedPrivateData([privateData, mainKey, unlockedContainer]);
