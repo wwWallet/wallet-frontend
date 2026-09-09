@@ -3,7 +3,7 @@ import { act, cleanup, render, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LocalStorageKeystore } from "./LocalStorageKeystore";
-import { shouldMergeOpenKeystore, useLocalStorageKeystore } from "./LocalStorageKeystore";
+import { useLocalStorageKeystore } from "./LocalStorageKeystore";
 import * as keystoreApi from "./keystore";
 import { CurrentSchema, foldState, mergeEventHistories } from "./WalletStateSchema";
 import { getItem } from "../indexedDB";
