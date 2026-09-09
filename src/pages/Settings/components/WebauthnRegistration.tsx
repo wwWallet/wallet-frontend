@@ -163,8 +163,8 @@ const WebauthnRegistration = ({
 				await signalCurrentUserDetails({
 					rpId: WEBAUTHN_RPID,
 					userId: toBase64Url(beginData.createOptions.publicKey.user.id),
-					name: nickname,
-					displayName: nickname,
+					name: name,
+					displayName: name,
 				});
 				onSuccess();
 				setName("");
