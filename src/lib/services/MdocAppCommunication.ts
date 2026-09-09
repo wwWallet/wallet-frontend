@@ -1,18 +1,22 @@
 import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
-import { cborDecode, cborEncode, DataItem, IssuerSigned } from "@owf/mdoc";
+import { cborDecode, cborEncode, DataItem, DeviceResponse, IssuerSigned } from "@owf/mdoc";
 import { v4 as uuidv4 } from 'uuid';
 import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
 import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
-import { toBase64 } from "@/util";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { VerifiableCredentialFormat } from "wallet-common";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
+import { createBluetoothTransport, IBluetoothTransport } from "./bluetooth";
+import type { BluetoothConnectionResult } from "../interfaces/IBluetoothTransport";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
 	let ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
-	const uuid = uuidv4();
+	// BLE service UUID of the current engagement. Generated per QR code and
+	// kept in a ref so that startClient() connects to the same UUID that the
+	// verifier learned from the QR, even across re-renders
+	let serviceUuidRef = useRef<string | null>(null);
 	let deviceEngagementBytesRef = useRef<any>(null);
 	let credentialRef = useRef<any>(null);
 	let sessionDataEncodedRef = useRef<Uint8Array | null>(null);
@@ -21,7 +25,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	let requestedNamespaceRef = useRef<string | null>(null);
 	let sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
 	let skDeviceRef = useRef<CryptoKey>(null);
-	const assumedChunkSize = 512;
+	let transportRef = useRef<IBluetoothTransport | null>(null);
 
 	const { keystore, api } = useContext(SessionContext);
 	const { updatePrivateData } = api;
@@ -32,8 +36,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			try {
 				const transactionId = WalletStateUtils.getRandomUint32();
 				const [, newPrivateData, keystoreCommit] = await addPresentations([presentation].map((vpData, _index) => {
-					console.log("Presentation: ")
-
 					return {
 						transactionId: transactionId,
 						data: vpData,
@@ -66,57 +68,47 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		const publicKeyJWK = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
 
-		// const uuid =  '00179c7a-eec6-4f88-8646-045fda9ac4d8'
+		const uuid = uuidv4();
+		serviceUuidRef.current = uuid;
 
 		const deviceEngagement = getDeviceEngagement(uuid, publicKeyJWK);
 		const cbor = cborEncode(deviceEngagement);
 
 		deviceEngagementBytesRef.current = DataItem.fromData(deviceEngagement);
 		credentialRef.current = vcEntity;
+		requestedDcqlClaimsRef.current = [];
+		requestedDocTypeRef.current = null;
+		requestedNamespaceRef.current = null;
 
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
-	}, [uuid]);
+	}, []);
 
-	const startClient = useCallback(async (): Promise<boolean> => {
-		/* @ts-ignore */
-		if (window.nativeWrapper) {
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothTerminate(); // Terminate any pending ble connections
-			try {
-				/* @ts-ignore */
-				const client = await window.nativeWrapper.bluetoothCreateClient(uuid);
-				return client;
-			} catch (e) {
-				console.log(e);
-				/* @ts-ignore */
-				console.log(await nativeWrapper.bluetoothStatus());
-				console.log("Could not initialize BLE client");
-				return false;
-			}
+	const startClient = useCallback(async (onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> => {
+		if (!serviceUuidRef.current) {
+			console.log("No device engagement generated yet");
+			return "failed";
 		}
-		return false;
-	}, [uuid]);
+		const transport = createBluetoothTransport();
+		if (!transport) {
+			console.log("No Bluetooth backend available");
+			return "failed";
+		}
+		transportRef.current = transport;
+		return transport.connect(serviceUuidRef.current, onDeviceSelected);
+	}, []);
 
-	const getMdocRequest = useCallback(async (): Promise<string[]> => {
-		let aggregatedData = [];
-		/* @ts-ignore */
-		if (window.nativeWrapper) {
+	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean; requestedDocType: string | null; credentialDocType: string }> => {
+		let receivedMessage: Uint8Array = new Uint8Array([]);
+		if (transportRef.current) {
 			console.log("Created BLE client");
 			try {
-				let dataReceived = [1];
-				while (dataReceived[0] === 1) {
-					/* @ts-ignore */
-					dataReceived = JSON.parse(await window.nativeWrapper.bluetoothReceiveFromServer());
-					// this.assumedChunkSize = Math.max(this.assumedChunkSize, dataReceived.length);
-					aggregatedData = [...aggregatedData, ...dataReceived.slice(1)];
-				}
+				receivedMessage = await transportRef.current.receiveMessage();
 			} catch (e) {
 				console.log("Error receiving");
 				console.log(e);
 			}
 		}
-		console.log('Assumed chunk size: ', assumedChunkSize);
-		const sessionMessage = uint8ArraytoHexString(new Uint8Array(aggregatedData));
+		const sessionMessage = uint8ArraytoHexString(receivedMessage);
 		const decoded = cborDecode<Map<string, any>>(hexToUint8Array(sessionMessage));
 		const readerKey = decoded.get('eReaderKey');
 		const verifierData = decoded.get('data');
@@ -149,6 +141,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			console.log(e);
 		}
 		const fieldKeys: string[] = [];
+		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
+		const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
 		if (decryptedVerifierData) {
 			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
 			const firstDocRequest = mdocRequestDecoded.get("docRequests")?.[0];
@@ -158,12 +152,36 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const firstNamespaceEntry = nameSpaces?.entries?.().next?.().value as [string, Map<string, boolean>] | undefined;
 			const namespace = firstNamespaceEntry?.[0];
 			const fields = firstNamespaceEntry?.[1];
+			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
+			requestedNamespaceRef.current = namespace ?? null;
+
+			if (requestedDocTypeRef.current && requestedDocTypeRef.current !== credentialDocType) {
+				const emptyDeviceResponse = DeviceResponse.createSimple({ status: 0 });
+				const ivEncryption = new Uint8Array([
+					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+					0x00, 0x00, 0x00, 0x01
+				]);
+				const { ciphertext } = await encryptUint8Array(
+					skDeviceRef.current,
+					emptyDeviceResponse.encode(),
+					ivEncryption
+				);
+				const sessionData = cborEncode({
+					data: new Uint8Array(ciphertext),
+					status: 20
+				});
+				try {
+					await transportRef.current?.sendMessage(sessionData);
+				} finally {
+					await transportRef.current?.terminate();
+				}
+				return { fields: fieldKeys, credentialMatchesRequest: false, requestedDocType: requestedDocTypeRef.current, credentialDocType };
+			}
+
 			if (!fields || !namespace) {
 				requestedDcqlClaimsRef.current = [];
-				return fieldKeys;
+				return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 			}
-			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
-			requestedNamespaceRef.current = namespace;
 
 			const requestedDcqlClaims = [];
 			fields.forEach((value, key) => {
@@ -177,104 +195,112 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedDcqlClaimsRef.current = requestedDcqlClaims;
 		}
 
-		return fieldKeys;
+		return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
-		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
-		const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
-		const descriptorDocType = requestedDocTypeRef.current ?? credentialDocType;
-		const descriptorNamespace = requestedNamespaceRef.current ?? credentialDocType;
+		try {
+			const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
+			const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
+			const descriptorDocType = requestedDocTypeRef.current ?? credentialDocType;
+			const descriptorNamespace = requestedNamespaceRef.current ?? credentialDocType;
 
-		const claims = requestedDcqlClaimsRef.current.length > 0
-			? requestedDcqlClaimsRef.current
-			: [];
+			const claims = requestedDcqlClaimsRef.current.length > 0
+				? requestedDcqlClaimsRef.current
+				: [];
 
-		const dcqlQuery = {
-			credentials: [
-				{
-					id: descriptorDocType,
-					format: VerifiableCredentialFormat.MSO_MDOC,
-					meta: { doctype_value: descriptorDocType },
-					claims: claims.map((claim) => ({
-						...claim,
-						path: [descriptorNamespace, claim.path?.[1] ?? claim.id]
-					}))
-				}
-			]
-		};
-		const descriptor = { "id": descriptorDocType }
-		const mdoc = {
-			documents: [{
-				docType: descriptor.id,
-				issuerSigned
-			}]
-		};
-
-		const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc as any, dcqlQuery, sessionTranscriptBytesRef.current);
-
-		// encrypt mdoc response
-		const ivEncryption = new Uint8Array([
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // identifier
-			0x00, 0x00, 0x00, 0x01 // message counter
-		]);
-
-		const { ciphertext } = (await encryptUint8Array(skDeviceRef.current, deviceResponseMDoc.encode(), ivEncryption));
-		const encryptedMdoc = ciphertext;
-
-		const sessionData = {
-			data: new Uint8Array(encryptedMdoc),
-			// data: encryptedMdoc,
-			status: 20
-		}
-
-		sessionDataEncodedRef.current = cborEncode(sessionData);
-
-		if (sessionDataEncodedRef.current) {
-			let toSendBytes = Array.from(sessionDataEncodedRef.current);
-			while (toSendBytes.length > (assumedChunkSize - 1)) {
-				const chunk = [1, ...toSendBytes.slice(0, (assumedChunkSize - 1))]
-				/* @ts-ignore */
-				await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
-				toSendBytes = toSendBytes.slice((assumedChunkSize - 1));
-			}
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
-
-			const presentationSubmission = {
-				id: generateRandomIdentifier(8),
-				definition_id: "MdocPID",
-				descriptor_map: [
+			const dcqlQuery = {
+				credentials: [
 					{
-						id: dcqlQuery.credentials[0].id,
+						id: descriptorDocType,
 						format: VerifiableCredentialFormat.MSO_MDOC,
-						path: `$`
+						meta: { doctype_value: descriptorDocType },
+						claims: claims.map((claim) => ({
+							...claim,
+							path: [descriptorNamespace, claim.path?.[1] ?? claim.id]
+						}))
 					}
-				],
+				]
+			};
+			const descriptor = { "id": descriptorDocType }
+			const mdoc = {
+				documents: [{
+					docType: descriptor.id,
+					issuerSigned
+				}]
 			};
 
-			const presentations = "b64:" + toBase64(new TextEncoder().encode(base64url.encode((deviceResponseMDoc.encode()))));
-			await storeVerifiablePresentation(presentations, presentationSubmission, credentialRef.current.credentialId, "Proximity Mode");
-		}
+			const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc as any, dcqlQuery, sessionTranscriptBytesRef.current);
 
-		/* @ts-ignore */
-		await nativeWrapper.bluetoothTerminate();
-		return;
+			// encrypt mdoc response
+			const ivEncryption = new Uint8Array([
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // identifier
+				0x00, 0x00, 0x00, 0x01 // message counter
+			]);
+
+			const { ciphertext } = (await encryptUint8Array(skDeviceRef.current, deviceResponseMDoc.encode(), ivEncryption));
+			const encryptedMdoc = ciphertext;
+
+			const sessionData = {
+				data: new Uint8Array(encryptedMdoc),
+				// data: encryptedMdoc,
+				status: 20
+			}
+
+			sessionDataEncodedRef.current = cborEncode(sessionData);
+
+			if (sessionDataEncodedRef.current) {
+				await transportRef.current.sendMessage(sessionDataEncodedRef.current);
+
+				const presentationSubmission = {
+					id: generateRandomIdentifier(8),
+					definition_id: "MdocPID",
+					descriptor_map: [
+						{
+							id: dcqlQuery.credentials[0].id,
+							format: VerifiableCredentialFormat.MSO_MDOC,
+							path: `$`
+						}
+					],
+				};
+
+				const presentations = base64url.encode(deviceResponseMDoc.encode());
+				await storeVerifiablePresentation(presentations, presentationSubmission, credentialRef.current.credentialId, "Proximity Mode");
+			}
+		} finally {
+			try {
+				await transportRef.current?.terminate();
+			} catch (error) {
+				console.log("Failed to terminate Bluetooth transport", error);
+			}
+		}
 	}, [generateDeviceResponseWithProximity, storeVerifiablePresentation]);
 
 	const terminateSession = useCallback(
 		async (): Promise<void> => {
+			const transport = transportRef.current;
+			if (!transport) {
+				return;
+			}
+			transportRef.current = null;
+
 			const sessionData = {
 				data: new Uint8Array([]),
 				status: 20
 			}
 
-			const sessionDataEncoded = cborEncode(sessionData);
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+			try {
+				await transport.sendMessage(cborEncode(sessionData));
+			} catch (error) {
+				// No session to end yet, e.g. cancelled while still connecting
+				console.log("Failed to send session termination", error);
+			}
 
-			/* @ts-ignore */
-			await nativeWrapper.bluetoothTerminate();
+			try {
+				await transport.terminate();
+			} catch (error) {
+				console.log("Failed to terminate Bluetooth transport", error);
+			}
 		},
 		[],
 	);

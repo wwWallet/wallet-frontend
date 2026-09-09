@@ -17,28 +17,30 @@
 	},
 	"common": {
 		"and": "e",
+		"back": "Voltar",
 		"cancel": "Cancelar",
 		"continue": "Continuar",
 		"delete": "Eliminar",
 		"more": "Mais",
+		"navItemActivity": "Atividade",
 		"navItemAddCredentials": "Adicionar Credenciais",
 		"navItemAddCredentialsSimple": "Adicionar",
 		"navItemCredentials": "Credenciais",
-		"navItemHistory": "Histórico",
 		"navItemProfile": "Perfil",
-		"navItemSendCredentials": "Enviar Credenciais",
 		"navItemSendCredentialsSimple": "Enviar",
 		"navItemSettings": "Definições",
 		"next": "Próximo",
 		"offline": "Offline",
 		"offlineTitle": "Está offline. Não tem acesso neste momento.",
 		"online": "Online",
+		"or": "ou",
 		"passwordHideAriaLabel": "Ocultar palavra-passe",
 		"passwordHideTitle": "Clique para ocultar palavra-passe",
 		"passwordShowAriaLabel": "Mostrar palavra-passe",
 		"passwordShowTitle": "Clique para mostrar palavra-passe",
 		"previous": "Anterior",
 		"privateDataConflict": "A sua sessão não está sincronizada com o servidor. Por favor, volte a iniciar sessão e tente novamente.",
+		"recentActivity": "Atividade recente",
 		"refresh": "Atualizar",
 		"save": "Guardar",
 		"showLess": "Mostrar menos",
@@ -46,6 +48,12 @@
 		"submit": "Submeter",
 		"tryAgain": "Tentar novamente",
 		"walletName": "wwWallet"
+	},
+	"credentialShareMenu": {
+		"buttonLabel": "Partilhar",
+		"nearbyDeviceHeading": "Partilhar com um dispositivo próximo",
+		"showQrCode": "Mostrar código QR",
+		"trustedVerifierHeading": "Continuar com um verificador de confiança"
 	},
 	"expiredRibbon": {
 		"expired": "Expirada"
@@ -63,15 +71,17 @@
 		"alreadyHaveAccountQuestion": "Já tem uma conta de carteira? ",
 		"authOnceMoreLogin": "Para concluir o desbloqueio da carteira, por favor autentique-se com a sua chave de acesso novamente.",
 		"choosePasskeyUsername": "Apelido da Carteira",
+		"continueAs": "Continuar como",
 		"enterPasskeyName": "Carteira de Jane Doe",
 		"forgetCachedUser": "Clique para esquecer o utilizador guardado {{name}}",
 		"loginAsUser": "Iniciar sessão como {{name}}",
-		"loginCache": "Selecione sua conta de carteira",
 		"loginKeystoreFailed": "Não foi possível aceder ao armazenamento de chaves da carteira. Por favor, tente novamente.",
 		"loginWithPasskey": "Iniciar sessão com uma chave de acesso",
 		"loginWithSecurityKey": "Iniciar sessão com uma chave de segurança",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
 		"newHereQuestion": "Não tem uma conta de carteira? ",
+		"otherAccounts": "Outras contas",
+		"otherAccountsDescription": "Escolha uma conta para continuar.",
 		"passkeyInvalid": "Chave de acesso desconhecida, possivelmente eliminada pelo utilizador.",
 		"passkeyLoginFailedServerError": "Não foi possível iniciar sessão com chave de acesso. Por favor, tente novamente mais tarde.",
 		"passkeyLoginFailedTryAgain": "Início de sessão com chave de acesso falhou. Por favor, tente novamente.",
@@ -83,11 +93,11 @@
 		"passkeySignupPrfNotSupportedAriaLabel": "Saiba mais sobre navegadores suportados ou chaves de segurança.",
 		"privateDataConflict": "Outra sessão associada a esta conta interrompeu a tentativa de início de sessão. Por favor, tente novamente.",
 		"reachedLengthLimit": "Tamanho máximo excedido",
+		"selectUser": "Selecionar {{name}}",
 		"signUp": "Registar",
 		"signUpWithPasskey": "Criar conta com uma chave de acesso",
 		"signUpWithSecurityKey": "Usar uma chave de segurança",
 		"submitting": "A submeter...",
-		"useOtherAccount": "Usar outra conta",
 		"welcomeMessage": "Bem-vindo(a) à <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginState": {
@@ -120,12 +130,23 @@
 		"message": "Lamentamos, mas a página que procura não pode ser acedida",
 		"title": "Oops, página não encontrada!"
 	},
+	"pageActivity": {
+		"description": "Consulte a atividade de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
+		"emptyCredentialDescription": "Quando partilhar esta credencial, a respetiva atividade será apresentada aqui.",
+		"emptyCredentialTitle": "Ainda não há atividade para esta credencial",
+		"emptyDescription": "A atividade das suas credenciais será apresentada aqui.",
+		"emptyTitle": "Ainda não há atividade",
+		"popupTitle": "Credenciais apresentadas",
+		"presentationDetails": {
+			"title": "Detalhes de apresentação"
+		}
+	},
 	"pageAddCredentials": {
-		"description": "Pesquise e selecione um credencial que deseja emitir",
-		"noFound": "Sem issuers correspondentes.",
-		"searchPlaceholder": "Procurar credencial..."
+		"noFound": "Sem resultados correspondentes.",
+		"searchPlaceholder": "Procurar emissor ou credencial..."
 	},
 	"pageCredentials": {
+		"activityTitle": "Atividade",
 		"addCard": {
 			"text": "Adicionar Nova Credencial"
 		},
@@ -134,33 +155,20 @@
 		"credentialTitle": "Credencial",
 		"datasetTitle": "Dataset",
 		"delete": "Eliminar credencial",
-		"deletePopupMessage": "Tem a certeza que deseja eliminar a credencial <strong>{{credentialName}}</strong>? Se continuar, <strong>todas as apresentações que incluem esta VC serão removidas do seu histórico.</strong>",
+		"deletePopupMessage": "Tem a certeza que deseja eliminar a credencial <strong>{{credentialName}}</strong>? Se continuar, <strong>todas as apresentações que incluem esta VC serão removidas da sua atividade.</strong>",
 		"description": "Consulte as suas credenciais",
 		"details": {
 			"availableUsages": "Utilizações disponíveis",
 			"description": "Consulte toda a informação sobre a credencial selecionada",
 			"expired": "Esta credencial expirou"
 		},
-		"presentationsTitle": "Apresentações",
+		"detailsTitle": "Detalhes",
 		"slideButtonAriaLabelDisable": "Sem credencial {{direction}}",
 		"slideButtonAriaLabelEnable": "Ir para credencial {{direction}}",
 		"slideButtonTitleDisable": "Sem credencial {{direction}} disponível",
 		"slideButtonTitleEnable": "Clique para ir para a credencial {{direction}}",
 		"slideNext": "Seguinte",
 		"slidePrevious": "Anterior"
-	},
-	"pageHistory": {
-		"description": "Consulte o histórico de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
-		"noFound": "Sem apresentações",
-		"popupTitle": "Credenciais apresentadas",
-		"presentationDetails": {
-			"title": "Detalhes de apresentação"
-		}
-	},
-	"pageSendCredentials": {
-		"description": "Pesquise e selecione um verifier para partilhar credenciais",
-		"noFound": "Sem verifiers correspondentes.",
-		"searchPlaceholder": "Procurar verifiers..."
 	},
 	"pageSettings": {
 		"addPasskey": "Adicionar chave de acesso:",
@@ -177,17 +185,18 @@
 		},
 		"description": "Consulte informação da conta e gira chaves de acesso",
 		"passkeyItem": {
+			"authenticatorName": "Autenticador",
 			"cancelChangesAriaLabel": "Cancelar alterações à chave de acesso {{passkeyLabel}}",
 			"created": "Criada",
 			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Clique para eliminar a chave de acesso {{passkeyLabel}}",
 			"lastUsed": "Última utilização",
 			"loggedIn": "Autenticada",
-			"messageDeletePasskey": "Tem a certeza que deseja eliminar a chave de acesso <strong>{{nickname}}</strong>?",
+			"messageDeletePasskey": "Tem a certeza que deseja eliminar a chave de acesso <strong>{{name}}</strong>?",
+			"name": "Nome",
+			"nameInput": "Novo nome",
+			"nameInputAriaLabel": "Introduza novo nome para a chave de acesso {{passkeyLabel}}",
 			"needsPrfUpgrade": "Atualização necessária",
-			"nickname": "Nome",
-			"nicknameInput": "Novo nome",
-			"nicknameInputAriaLabel": "Introduza novo nome para a chave de acesso {{passkeyLabel}}",
 			"prfUpgrade": "Atualizar",
 			"prfUpgradeAriaLabel": "Atualizar chave de acesso {{passkeyLabel}}",
 			"rename": "Renomear",
@@ -197,6 +206,7 @@
 			"syncableAvailable": "Disponível",
 			"syncableNo": "Não",
 			"syncableYes": "Sim",
+			"unknownAuthenticator": "Desconhecido",
 			"unnamed": "Chave de acesso sem nome"
 		},
 		"rememberIssuer": {
@@ -252,23 +262,25 @@
 		"title": "Ler o código QR"
 	},
 	"queryableList": {
-		"all": "Todos",
-		"recent": "Recentes"
+		"featuredCredentials": "Credenciais em Destaque",
+		"recent": "Recentes",
+		"trustedIssuers": "Emissores de Confiança"
 	},
 	"redirectPopup": {
 		"issuanceMessage": "Será redirecionado para <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir uma <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"portalMessage": "Será redirecionado para <strong>{{portalName}}</strong> <i>{{portalDescription}}</i>.",
 		"presentationMessage": "Será redirecionado para <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {
 		"authOnceMore": "Para concluir a configuração, por favor autentique-se novamente.",
-		"giveNickname": "Dê um nome a esta credencial:",
+		"giveName": "Dê um nome a esta credencial:",
 		"messageDone": "Quase pronto!",
 		"messageErrorTryAgain": "Algo correu mal. Por favor, tente novamente.<br/> Note que tem que usar a chave de acesso que criou no passo anterior.",
 		"messageInteract": "Por favor, interaja com o seu autenticador...",
 		"messageInteractNewPasskey": "Por favor, autentique-se com a nova chave de acesso...",
 		"messageSuccess": "Sucesso!",
-		"nicknameAriaLabel": "Nome para nova credencial",
-		"nicknamePlaceholder": "Nome da credencial",
+		"nameAriaLabel": "Nome para nova credencial",
+		"namePlaceholder": "Nome da credencial",
 		"passkeyCreated": "A sua chave de acesso foi criada."
 	},
 	"selectCredentialPopup": {
@@ -295,9 +307,8 @@
 		"tourStep2": "A página 'Credenciais' é a sua página inicial. Aqui, pode gerir as suas credenciais.",
 		"tourStep3": "A página 'Adicionar Credenciais' permite que receba credenciais de um issuer específico.",
 		"tourStep4": "Clique neste botão para ler um código QR para enviar ou receber crendenciais.",
-		"tourStep5": "Utilize a página 'Enviar Credenciais' para selecionar um verifier e partilhar as suas credenciais.",
-		"tourStep6": "Na página 'Histórico', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
-		"tourStep7": "Na página 'Definições' pode gerir as suas chaves de acesso e configurações de conta."
+		"tourStep5": "Na página 'Atividade', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
+		"tourStep6": "Na página 'Definições' pode gerir as suas chaves de acesso e configurações de conta."
 	},
 	"updateNotification": {
 		"description": "Nova versão disponível!"

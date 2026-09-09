@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-export type NotificationType = "success" | "newCredential";
+export type NotificationType = "success" | "newCredential" | "error";
 
 export type NotifyPayload = {
 	title?: string;

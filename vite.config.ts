@@ -1,29 +1,61 @@
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
+import type { UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
 import { InjectConfigPlugin } from './vite-plugins';
-import { getManifestRevision } from './config/files/manifest';
-import { getBrandingHash } from './config/branding';
+
+type LocalViteConfig = Partial<UserConfig>;
+
+const loadLocalViteConfig = async (): Promise<LocalViteConfig> => {
+	const localConfigPath = resolve('vite.config.local.ts');
+
+	if (!existsSync(localConfigPath)) {
+		return {};
+	}
+
+	const localConfigModule = await import(pathToFileURL(localConfigPath).href);
+	return (localConfigModule.localViteConfig ?? localConfigModule.default ?? {}) as LocalViteConfig;
+};
+
+const mergeViteConfig = (baseConfig: UserConfig, localConfig: LocalViteConfig): UserConfig => {
+	const baseServer = baseConfig.server ?? {};
+	const localServer = localConfig.server ?? {};
+	const baseProxy = typeof baseServer === 'object' ? baseServer.proxy : undefined;
+	const localProxy = typeof localServer === 'object' ? localServer.proxy : undefined;
+
+	return {
+		...baseConfig,
+		...localConfig,
+		server: {
+			...(typeof baseServer === 'object' ? baseServer : {}),
+			...(typeof localServer === 'object' ? localServer : {}),
+			proxy: {
+				...(baseProxy && typeof baseProxy === 'object' ? baseProxy : {}),
+				...(localProxy && typeof localProxy === 'object' ? localProxy : {}),
+			},
+		},
+	};
+};
 
 export default defineConfig(async ({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
-	const brandingHash = getBrandingHash(resolve('branding'));
-	const manifestRevision = getManifestRevision({
-		brandingHash,
-		name: env.STATIC_NAME || 'wwWallet',
-	});
-
+	const localViteConfig = await loadLocalViteConfig();
+	const appShellBypassPaths = Object.keys(localViteConfig.server?.proxy ?? {})
+		.filter((path) => path.startsWith('/'))
+		.map((path) => path.replace(/\/+$/, '') || '/');
 	mkdirSync(resolve('public'), { recursive: true });
 
-	return {
+	const baseConfig: UserConfig = {
 		base: './',
 		define: {
 			'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
+			'import.meta.env.VITE_APP_SHELL_BYPASS_PATHS': JSON.stringify(appShellBypassPaths),
 		},
 		plugins: [
 			InjectConfigPlugin(env),
@@ -44,10 +76,7 @@ export default defineConfig(async ({ mode }) => {
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
-					globIgnores: ['theme.css'],
-					additionalManifestEntries: [
-						{ url: './manifest.json', revision: manifestRevision },
-					],
+					globIgnores: ['theme.css', 'index.html', 'runtime-precache.js'],
 				},
 			}),
 
@@ -75,5 +104,7 @@ export default defineConfig(async ({ mode }) => {
 			sourcemap: env.GENERATE_SOURCEMAP === 'true',
 			minify: env.GENERATE_SOURCEMAP !== 'true'
 		},
-	}
+	};
+
+	return mergeViteConfig(baseConfig, localViteConfig);
 });

@@ -41,10 +41,11 @@ export type WebauthnCredential = {
 	credentialId: Uint8Array,
 	id: string,
 	lastUseTime: string,
-	nickname?: string,
+	name?: string,
 	prfCapable: boolean,
 	backupEligibility: boolean,
 	backupState: boolean,
+	authenticatorName?: string
 }
 
 export type UserSettings = {

@@ -11,6 +11,12 @@ declare global {
 
 	interface NativeWrapper {
 		isKeystoreOpen(): Promise<boolean>;
+
+		bluetoothCreateClient(uuid: string): Promise<boolean>;
+		bluetoothReceiveFromServer(): Promise<string>;
+		bluetoothSendToServer(chunk: string): Promise<void>;
+		bluetoothTerminate(): Promise<void>;
+		bluetoothStatus(): Promise<string>;
 	}
 }
 

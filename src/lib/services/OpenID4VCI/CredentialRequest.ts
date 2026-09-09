@@ -263,7 +263,7 @@ export function useCredentialRequest() {
 				credentialRequestEncryptionSupportedErrors.push(`No supported credential_request_encryption keys found. Keys using Alg values[${credentialRequestWalletSupportedAlg.join(', ')}] are supported.`);
 			}
 
-			const credentialRequestWalletSupportedEnc = ['A128GCM'];
+			const credentialRequestWalletSupportedEnc = ['A128GCM', 'A256GCM'];
 			const credentialRequestIssuerSupportedEnc = credentialIssuerMetadata.metadata.credential_request_encryption.enc_values_supported;
 			credentialRequestEncryptionEnc = credentialRequestWalletSupportedEnc.find(enc => credentialRequestIssuerSupportedEnc.includes(enc));
 			if (!credentialRequestEncryptionEnc) {

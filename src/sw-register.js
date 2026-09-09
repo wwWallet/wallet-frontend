@@ -31,7 +31,11 @@ if ('serviceWorker' in navigator) {
 
 		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swPath) : swPath;
 		navigator.serviceWorker
-			.register(trustedSwUrl, { scope: swScope })
+			.register(trustedSwUrl, {
+				scope: swScope,
+				// Always revalidate imports during service worker update checks.
+				updateViaCache: 'none',
+			})
 			.catch(err => {
 				console.error('Service worker registration failed:', err);
 			});

@@ -29,7 +29,7 @@ const WebauthnRegistration = ({
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
-	const [nickname, setNickname] = useState("");
+	const [name, setName] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
@@ -37,7 +37,22 @@ const WebauthnRegistration = ({
 	const { t } = useTranslation();
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
+	const [menuAlign, setMenuAlign] = useState<'left' | 'right'>('right');
 	const menuRef = useRef<HTMLDivElement | null>(null);
+	const MENU_WIDTH = 224; // min-w-56
+	const MENU_EDGE_PADDING = 8;
+
+	const toggleMenu = () => {
+		setMenuOpen((open) => {
+			const next = !open;
+			if (next && menuRef.current) {
+				const rect = menuRef.current.getBoundingClientRect();
+				const overflowsLeft = rect.right - MENU_WIDTH < MENU_EDGE_PADDING;
+				setMenuAlign(overflowsLeft ? 'left' : 'right');
+			}
+			return next;
+		});
+	};
 
 	useEffect(() => {
 		if (!menuOpen) return;
@@ -49,7 +64,7 @@ const WebauthnRegistration = ({
 		return () => document.removeEventListener('mousedown', handler);
 	}, [menuOpen]);
 
-	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
+	const stateChooseName = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
 		async (webauthnHint) => {
@@ -130,7 +145,7 @@ const WebauthnRegistration = ({
 				setIsSubmitting(true);
 				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
-					nickname,
+					name,
 					credential: {
 						type: pendingCredential.type,
 						id: pendingCredential.id,
@@ -152,7 +167,7 @@ const WebauthnRegistration = ({
 					displayName: nickname,
 				});
 				onSuccess();
-				setNickname("");
+				setName("");
 				await keystoreCommit();
 
 			} catch (e) {
@@ -177,7 +192,7 @@ const WebauthnRegistration = ({
 			<button
 				id="add-passkey-trigger"
 				type="button"
-				onClick={() => setMenuOpen((open) => !open)}
+				onClick={toggleMenu}
 				disabled={registrationInProgress || !isOnline}
 				aria-haspopup="menu"
 				aria-expanded={menuOpen}
@@ -193,7 +208,7 @@ const WebauthnRegistration = ({
 				<div
 					role="menu"
 					aria-label={t('pageSettings.addPasskeyTitle')}
-					className="absolute left-0 mt-2 min-w-56 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50 p-1"
+					className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} mt-2 min-w-56 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50 p-1`}
 				>
 					{passkeyOptions(t).map(({ Icon, hint, btnLabel }) => (
 						<button
@@ -215,7 +230,7 @@ const WebauthnRegistration = ({
 			)}
 
 			<Dialog
-				open={stateChooseNickname}
+				open={stateChooseName}
 				onCancel={onCancel}
 			>
 				<form onSubmit={onFinish}>
@@ -227,16 +242,16 @@ const WebauthnRegistration = ({
 									hr={false}
 									flexJustifyContent='center'
 								/>
-								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveNickname')}</p>
+								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveName')}</p>
 								<input
 									type="text"
 									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-									aria-label={t('registerPasskey.nicknameAriaLabel')}
+									aria-label={t('registerPasskey.nameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
-									onChange={(event) => setNickname(event.target.value)}
-									placeholder={t('registerPasskey.nicknamePlaceholder')}
-									value={nickname}
+									onChange={(event) => setName(event.target.value)}
+									placeholder={t('registerPasskey.namePlaceholder')}
+									value={name}
 								/>
 							</>
 						)

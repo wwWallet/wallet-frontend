@@ -14,6 +14,7 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - 📦 [Installation](#installation)
 - ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
+- ⚙️ [Local Vite Config](#local-vite-config)
 - 🔐 [PRF Compatibility](#prf-compatibility)
 - 🎨 [Tailwind CSS](#tailwind-css)
 - 💡 [Contributing](#contributing)
@@ -86,9 +87,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS`: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
   - `MULTI_LANGUAGE_DISPLAY`: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
   - `STATIC_PUBLIC_URL`: The installation's public url.
-  - `STATIC_NAME`: The installation's public name.
+  - `WALLET_NAME`: The installation's public name. Used for the page title, PWA manifest, meta tags, and in-app displayed name.
   - `WALLET_TAGLINE`: Optional tagline displayed below the wallet name on the login page.
-  - `I18N_WALLET_NAME_OVERRIDE`: String to override translations of common.walletName (Optional).
   - `FOLD_EVENT_HISTORY_AFTER_SECONDS`: Fold history events older than this value in seconds (default: 2592000 = 30 days).
   - `DISPLAY_ISSUANCE_WARNINGS`: Enable or disable (`true` or `false`) the display of the issuance warnings popup.
   - `OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE`: Configure the maximum accepted batch size during an OpenID4VCI flow.
@@ -145,6 +145,36 @@ git add -A
 ## 🚀Usage
 
 Once the development server is running, you can access the app by visiting http://localhost:3000 in your web browser. The app provides various pages and components that you can interact with. Explore the features and enjoy using the Wallet Frontend!
+
+## ⚙️Local Vite Config
+
+For local development or downstream builds, you can create an optional `vite.config.local.ts` file in the project root. This file is ignored by git and is merged into the main Vite config when present.
+
+This is useful for machine-specific settings, such as custom dev server proxy rules or navigation paths served by another application, without editing the committed `vite.config.ts`.
+
+Example:
+
+```ts
+import type { UserConfig } from 'vite';
+
+export const localViteConfig: Partial<UserConfig> = {
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
+};
+```
+
+At build time, string path keys from `server.proxy` are added to the service
+worker's app-shell bypass list. Navigations to these paths go directly to the
+server instead of loading the wallet app shell. Regex proxy keys are ignored.
+Browser caching follows the response's HTTP cache headers; configure the server
+to send `Cache-Control: no-store` when these pages must never be reused.
+The local config must be present during the build because Vite cannot inspect
+the production server's proxy configuration at runtime.
+
+If `vite.config.local.ts` does not exist, the app uses the default Vite config unchanged.
 
 ## 🔐PRF Compatibility
 
@@ -269,7 +299,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -308,8 +338,8 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -348,9 +378,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
   </tbody>
 </table>

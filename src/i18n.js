@@ -15,9 +15,9 @@ const resources = {
 	pt: { translation: ptTranslation },
 };
 
-if (config.I18N_WALLET_NAME_OVERRIDE) {
+if (config.WALLET_NAME) {
 	for (const lang in resources) {
-		resources[lang].translation.common.walletName = config.I18N_WALLET_NAME_OVERRIDE;
+		resources[lang].translation.common.walletName = config.WALLET_NAME;
 	}
 }
 
@@ -28,10 +28,8 @@ const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
 
 // Helper function to get only the language part and check if it exists
-export const getLanguage = (locale) => {
-	const language = locale.includes('-') ? locale.split('-')[0] : locale;
-	return language;
-};
+export const getLanguage = (locale) =>
+	(locale && (locale.includes('-') ? locale.split('-')[0] : locale)) || undefined;
 
 // Get the preferred language
 let preferredLanguage =

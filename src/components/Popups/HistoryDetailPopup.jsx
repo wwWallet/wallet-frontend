@@ -11,7 +11,7 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 		<PopupLayout isOpen={isOpen} onClose={onClose}>
 			<div className="flex items-start justify-between mb-2">
 				<h2 className="right text-lg font-bold text-lm-gray-900 dark:text-dm-gray-100">
-					{t('pageHistory.popupTitle')}
+					{t('pageActivity.popupTitle')}
 				</h2>
 				<Button
 					id="dismiss-history-detail-popup"

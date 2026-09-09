@@ -7,7 +7,7 @@ import { type EnvConfigMap } from '../config';
 import { type Tag } from '../utils/resources';
 import { pathWithBase } from '../utils/paths';
 
-const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
+export const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
 
 /**
  * Generates a web app manifest and icons, and injects them into the build output.
@@ -24,7 +24,7 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 
 	const manifest = generateManifest({
 		hash: brandingHash,
-		name: config.STATIC_NAME || 'wwWallet',
+		name: config.WALLET_NAME || 'wwWallet',
 		icons,
 	});
 
@@ -71,7 +71,7 @@ export function getManifestRevision({ brandingHash, name }: { brandingHash?: str
 	}), null, 2));
 }
 
-function getManifestRevisionFromContent(manifestContent: string) {
+export function getManifestRevisionFromContent(manifestContent: string) {
 	return crypto
 		.createHash('sha256')
 		.update(manifestContent)
@@ -137,7 +137,6 @@ function generateManifest({ hash, name, icons }: GenerateManifestOptions): Parti
 		'id': '/',
 		'start_url': '/',
 		'display': 'standalone',
-		'orientation': 'any',
 		'theme_color': '#0c0e11',
 		'description': `${name || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
 		'background_color': '#ffffff',

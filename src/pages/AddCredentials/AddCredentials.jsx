@@ -1,29 +1,38 @@
+// External libraries
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
-import RedirectPopup from '../../components/Popups/RedirectPopup';
-import { H1 } from '../../components/Shared/Heading';
-import PageDescription from '../../components/Shared/PageDescription';
-import QueryableList from '../../components/QueryableList/QueryableList';
-import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
-import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+// Contexts
 import CredentialsContext from '@/context/CredentialsContext';
+import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import SessionContext from '@/context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+
+// Hooks
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
-import { buildCredentialConfiguration } from '@/components/QueryableList/CredentialsDisplayUtils';
+import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+
+// Utilities
+import { buildCredentialConfiguration, buildCredentialPortal } from '@/components/QueryableList/CredentialsDisplayUtils';
 import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
+import { buildPortalRedirectPopupContent } from '@/components/Popups/portalRedirectPopupContent';
+
+// Components
 import MessagePopup from '@/components/Popups/MessagePopup';
+import RedirectPopup from '@/components/Popups/RedirectPopup';
+import QueryableList from '@/components/QueryableList/QueryableList';
+import { H1 } from '@/components/Shared/Heading';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [issuers, setIssuers] = useState([]);
+	const [portals, setPortals] = useState([]);
 	const [recent, setRecent] = useState([]);
 	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
-	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 
 	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
+	const [selectedPortal, setSelectedPortal] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [messagePopupState, setMessagePopupState] = useState(null);
 
@@ -95,6 +104,12 @@ const AddCredentials = () => {
 	}, [credentialConfigurations]);
 
 	const redirectPopupContent = useMemo(() => {
+		if (selectedPortal) {
+			return buildPortalRedirectPopupContent({
+				portal: selectedPortal,
+				filterItemByLang,
+			});
+		}
 		if (!selectedCredentialConfiguration || !selectedIssuer) {
 			return null;
 		}
@@ -105,13 +120,17 @@ const AddCredentials = () => {
 			issuerMetadata: selectedIssuer,
 			filterItemByLang,
 		});
-	}, [t, selectedCredentialConfiguration, selectedIssuer, filterItemByLang]);
+	}, [t, selectedPortal, selectedCredentialConfiguration, selectedIssuer, filterItemByLang]);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
-				let fetchedIssuers = response.data;
+				const { portals: fetchedPortals, issuers: fetchedIssuers } = response.data;
+				setPortals(fetchedPortals
+					.filter((portal) => portal.visible)
+					.map((portal) => buildCredentialPortal(portal, filterItemByLang))
+					.filter(Boolean));
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						if (!issuer.visible) {
@@ -163,6 +182,11 @@ const AddCredentials = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
+		const clickedPortal = portals.find((portal) => portal.identifierField === credentialConfigurationIdWithCredentialIssuerIdentifier);
+		if (clickedPortal) {
+			setSelectedPortal(clickedPortal);
+			return {};
+		}
 		const result = await api.syncPrivateData(cachedUser);
 		if (!result.ok) {
 			return {};
@@ -171,18 +195,21 @@ const AddCredentials = () => {
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId && conf.credentialIssuerIdentifier === credentialIssuerIdentifier);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
-			setShowRedirectPopup(true);
 		}
 	}
 
 	const handleCancel = () => {
-		setShowRedirectPopup(false);
 		setSelectedCredentialConfiguration(null);
+		setSelectedPortal(null);
 	};
 
 	const handleContinue = async () => {
 		setLoading(true);
 		try {
+			if (selectedPortal) {
+				window.location.href = selectedPortal.url;
+				return;
+			}
 			if (!selectedCredentialConfiguration) {
 				return;
 			}
@@ -211,7 +238,8 @@ const AddCredentials = () => {
 			});
 		} finally {
 			setLoading(false);
-			setShowRedirectPopup(false);
+			setSelectedCredentialConfiguration(null);
+			setSelectedPortal(null);
 		}
 	};
 
@@ -219,13 +247,14 @@ const AddCredentials = () => {
 		<>
 			<div className="px-6 sm:px-12 w-full">
 				<H1 heading={t('common.navItemAddCredentials')} />
-				<PageDescription description={t('pageAddCredentials.description')} />
 
 				{credentialConfigurations && recent && (
 					<QueryableList
 						isOnline={isOnline}
 						list={sortedCredentialConfigurations}
-						recent={credentialConfigurations.length < 6 ? [] : recent}
+						portalList={portals}
+						// recent={credentialConfigurations.length < 6 ? [] : recent}
+						recent={[]}
 						queryField='credentialConfigurationDisplayName'
 						translationPrefix='pageAddCredentials'
 						identifierField='identifierField'
@@ -234,7 +263,7 @@ const AddCredentials = () => {
 				)}
 			</div>
 
-			{showRedirectPopup && selectedCredentialConfiguration && (
+			{(selectedCredentialConfiguration || selectedPortal) && (
 				<RedirectPopup
 					loading={loading}
 					showLoadingAfterMs={200}

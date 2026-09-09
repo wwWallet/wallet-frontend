@@ -1,20 +1,23 @@
-// MessagePopup.js
-import React, { useContext, useState, useCallback } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
-import Button from '../Buttons/Button';
-import PopupLayout from './PopupLayout';
+import React, { useCallback, useContext, useState } from 'react';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
+
 import SessionContext from '@/context/SessionContext';
-import { useLocation, useNavigate } from 'react-router-dom';
-import checkForUpdates from '@/offlineUpdateSW';
+
+import Button from '../../components/Buttons/Button';
+import AuthCard from '../../components/Auth/AuthCard';
+import checkForUpdates from '../../offlineUpdateSW';
+import { resolveLoginRedirect } from '../../components/Auth/loginRedirect';
 import { UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
 	filteredUser,
-	onClose,
 }) => {
 	const { api, keystore } = useContext(SessionContext);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
+	const location = useLocation();
+	const from = location.search || '/';
 	const { t } = useTranslation();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,10 +26,10 @@ const WebauthnLogin = ({
 		async (cachedUser) => {
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
-				const params = new URLSearchParams(window.location.search);
-				params.delete("user");
-				params.delete('sync')
-				navigate(`${window.location.pathname}?${params.toString()}`, { replace: true });
+				const params = new URLSearchParams(from);
+				params.append('authenticated', 'true');
+				navigate(`?${params.toString()}`, { replace: true });
+
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
@@ -51,7 +54,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t],
+		[api, keystore, navigate, t, from],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {
@@ -68,11 +71,11 @@ const WebauthnLogin = ({
 				<div className='flex flex-row gap-4 justify-center mr-2'>
 					<Button
 						id="cancel-login-state"
-						onClick={onClose}
+						onClick={() => navigate('/')}
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						Logout
+						{t('common.cancel')}
 					</Button>
 					<Button
 						id={`${isSubmitting ? 'submitting' : 'continue'}-login-state`}
@@ -88,16 +91,14 @@ const WebauthnLogin = ({
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
+			{error && <div role="alert" className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };
 
-const SyncPopup = ({ message, onClose }) => {
-	const { description } = message || {};
+const LoginState = () => {
+	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
-
-	const { keystore } = useContext(SessionContext);
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
@@ -113,6 +114,7 @@ const SyncPopup = ({ message, onClose }) => {
 		}
 		if (state) {
 			try {
+				console.log('state', state);
 				const decodedState = atob(state);
 				const stateObj = JSON.parse(decodedState);
 				return [cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u), false, authenticated === 'true'];
@@ -123,31 +125,39 @@ const SyncPopup = ({ message, onClose }) => {
 
 		return [null, false, authenticated === 'true'];
 	};
-	const [filteredUser] = getfilteredUser();
+	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
 
 	if (!filteredUser) {
-		return;
+		return <Navigate to="/login" replace />;
+	} else if ((isLoggedIn && !forceAuthenticate) || (forceAuthenticate === true && authenticated)) {
+		return <Navigate to={resolveLoginRedirect(window.location.search)} replace />;
 	}
 
 	return (
-		<PopupLayout isOpen={true} onClose={onClose} shouldCloseOnOverlayClick={false}>
-			<div className="flex flex-col items-center text-center mb-2">
-				<p className="font-bold text-xl mt-2 dark:text-dm-gray-100">
-					{t('loginState.title')} {filteredUser.displayName}
-				</p>
-				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
-					<Trans
-						i18nKey={description}
-						components={{ strong: <strong /> }}
-					/>
-				</p>
-			</div>
+		<AuthCard
+			appHeading={
+				<Trans
+					i18nKey="loginState.welcomeBackMessage"
+					components={{
+						highlight: <span className="text-primary dark:text-brand-light" />
+					}}
+				/>
+			}
+			heading={<>{t('loginState.title')} {filteredUser.displayName}</>}
+			showPasskeyInfoPopup={false}
+		>
+			<p className="text-sm text-center text-lm-gray-800 dark:text-white mb-2">
+				<Trans
+					i18nKey="loginState.message"
+					components={{ strong: <strong /> }}
+				/>
+			</p>
+
 			<WebauthnLogin
 				filteredUser={filteredUser}
-				onClose={onClose}
 			/>
-		</PopupLayout>
+		</AuthCard>
 	);
 };
 
-export default SyncPopup;
+export default LoginState;

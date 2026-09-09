@@ -55,7 +55,7 @@ const LanguageSelector = ({
 					))}
 				</select>
 				<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
-					<ChevronDown size={18} className="dark:text-white" />
+					<ChevronDown size={18} className="text-lm-gray-800 dark:text-dm-gray-200" />
 				</span>
 			</div>
 		);

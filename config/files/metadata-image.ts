@@ -16,7 +16,7 @@ export default async function metadataImage(destDir: string, config: EnvConfigMa
 	const fileName = 'image.png';
 
 	const generationConfig = {
-		title: config.STATIC_NAME || 'wwWallet',
+		title: config.WALLET_NAME || 'wwWallet',
 	};
 
 	const cacheDir = path.resolve('config', '.cache');
