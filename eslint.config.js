@@ -43,6 +43,7 @@ export default tseslint.config(
 			'coverage/**',
 			'dist/**',
 			'node_modules/**',
+			'public/**',
 		],
 	},
 	{
