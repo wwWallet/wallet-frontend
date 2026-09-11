@@ -157,6 +157,7 @@ export default tseslint.config(
 		rules: {
 			...vitest.configs.recommended.rules,
 			'vitest/expect-expect': 'off',
+			'vitest/prefer-called-exactly-once-with': 'off',
 		},
 	},
 	{
