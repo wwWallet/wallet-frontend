@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
@@ -13,13 +13,6 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 	const reinitialize = useCallback(() => {
 		setPopupConsentState((current) => ({ ...current, isOpen: false }));
 	}, [setPopupConsentState]);
-
-
-	useEffect(() => {
-		if (popupConsentState?.options) {
-		}
-	}, [popupConsentState]);
-
 
 	const consent = () => {
 		reinitialize();
