@@ -78,7 +78,6 @@ export default tseslint.config(
 			'@typescript-eslint/no-unsafe-function-type': 'off',
 			'no-empty': 'off',
 			'no-useless-catch': 'off',
-			'prefer-const': 'off',
 		},
 	},
 	{

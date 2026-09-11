@@ -171,7 +171,6 @@ async function decryptEncapsulatedResponse(
 
 export const fetchKeyConfig = async (gatewayKeysUrl: string): Promise<HpkeConfig> => {
 	let cfgs;
-	let cfg;
 	try {
 		// TODO: consider moving axios fetch outside of util
 		const res = await axios.get<ArrayBuffer>(gatewayKeysUrl, {
@@ -187,7 +186,7 @@ export const fetchKeyConfig = async (gatewayKeysUrl: string): Promise<HpkeConfig
 	}
 
 	if (!cfgs || !cfgs.length) throw new Error('No key configs found')
-	cfg = cfgs[0]
+	const cfg = cfgs[0]
 	if (!cfg.pairs.length) throw new Error('No symmetric alg pairs in config')
 
 	const { kdfId, aeadId } = cfg.pairs[0] // TODO: this gets only first pair

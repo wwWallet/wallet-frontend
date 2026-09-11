@@ -24,7 +24,7 @@ export function encVarint(v: number | bigint): Uint8Array {
 		return Uint8Array.of(b0, b1, b2, b3);
 	} else if (n <= 4611686018427387903n) {
 		// 11xxxxxx (8 bytes)
-		let x = n;
+		const x = n;
 		const out = new Uint8Array(8);
 		out[0] = 0xC0 | Number((x >> 56n) & 0x3fn);
 		out[1] = Number((x >> 48n) & 0xffn);
@@ -200,7 +200,7 @@ export function decVarint(u8: Uint8Array, off: number): [number, number] {
 		return [v >>> 0, off + 4]; // max 2^30-1
 	}
 	// size === 8 -> use BigInt then downcast safely
-	let v = (BigInt(b0 & 0x3f) << 56n)
+	const v = (BigInt(b0 & 0x3f) << 56n)
 				| (BigInt(u8[off + 1]) << 48n)
 				| (BigInt(u8[off + 2]) << 40n)
 				| (BigInt(u8[off + 3]) << 32n)
