@@ -352,9 +352,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								);
 							})()}
 
-							{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData) => {
+							{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData, index) => {
 								const TxComp = txData.ui;
-								return (<TxComp />)
+								return (<TxComp key={`${txData.transaction_data_b64u}-${index}`} />)
 							})}
 
 							<div>
@@ -456,9 +456,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							/>
 						</p>
 
-						{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData) => {
+						{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData, index) => {
 							const TxComp = txData.ui;
-							return <TxComp />
+							return <TxComp key={`${txData.transaction_data_b64u}-${index}`} />
 						})}
 
 						<div className={`${screenType === 'desktop' && 'max-w-[600px]'}`}>

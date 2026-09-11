@@ -105,10 +105,10 @@ export function uint8ArrayToBase64Url(array: any) {
 	});
 
 	// Convert the binary string to a Base64 string
-	let base64String = btoa(binaryString);
+	const base64String = btoa(binaryString);
 
 	// Convert the Base64 string to Base64URL format
-	let base64UrlString = base64String
+	const base64UrlString = base64String
 		.replace(/\+/g, '-') // Replace + with -
 		.replace(/\//g, '_') // Replace / with _
 		.replace(/=+$/, ''); // Remove trailing '='

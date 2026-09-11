@@ -289,7 +289,9 @@ class QrScanner {
 							easing: "ease-in-out",
 						},
 					);
-				} catch (e) {}
+				} catch {
+					// Ignore browsers without Web Animations support.
+				}
 				videoContainer.insertBefore(this.$overlay, this.$video.nextSibling);
 			}
 			if (options.highlightCodeOutline) {
@@ -1212,7 +1214,9 @@ class QrScanner {
 							? "user" // switch as _preferredCamera was environment but we are not able to fulfill it
 							: "environment"); // switch from unfulfilled user facingMode or default to environment
 				return { stream, facingMode };
-			} catch (e) {}
+			} catch {
+				// Try the next camera constraint.
+			}
 		}
 
 		throw new Error("Camera not found.");

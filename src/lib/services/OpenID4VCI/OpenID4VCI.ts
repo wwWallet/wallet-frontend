@@ -228,7 +228,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 
 				let userConsent = true;
-				if (warnings.length > 0 && config.DISPLAY_ISSUANCE_WARNINGS === true) {
+				if (warnings.length > -1 && config.DISPLAY_ISSUANCE_WARNINGS === true) {
 					userConsent = await showPopupConsent({
 						title: t("issuance.title"),
 						warnings: warnings
@@ -717,7 +717,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				offer = CredentialOfferSchema.parse(JSON.parse(credentialOffer));
 			} else if (credentialOfferUri) {
 				try {
-					let response = await httpProxy.get(credentialOfferUri, {})
+					const response = await httpProxy.get(credentialOfferUri, {})
 					offer = CredentialOfferSchema.parse(response.data);
 				}
 				catch (err) {

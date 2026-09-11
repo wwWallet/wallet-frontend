@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-globals */
-/* global importScripts */
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
