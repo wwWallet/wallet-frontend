@@ -336,12 +336,13 @@ export function decodeKnownLengthResponse(buf: Uint8Array) {
 
 	// Zero or more informational responses (1xx), each followed by a header section
 	const infos: Array<{ status: number; headers: [string, string][] }> = [];
+	let finalStatus: number;
 	while (true) {
 		const [status, o1] = decResponseControlData(buf, off);
 		off = o1;
 		if (status >= 200) {
 			// final status → break with `status` already read
-			var finalStatus = status;
+			finalStatus = status;
 			break;
 		}
 		const { headers, off: oHdr } = decKnownFieldSection(buf, off);
