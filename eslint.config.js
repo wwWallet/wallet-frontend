@@ -111,7 +111,6 @@ export default tseslint.config(
 			...accessibilityRules,
 			'react-hooks/exhaustive-deps': 'warn',
 			'react-hooks/rules-of-hooks': 'error',
-			'react/display-name': 'off',
 			'react/prop-types': 'off',
 		},
 	},
