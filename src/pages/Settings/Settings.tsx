@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -25,8 +26,9 @@ import SettingsSection from './components/SettingsSection';
 import SettingsRow from './components/SettingsRow';
 import SettingsSelect from './components/SettingsSelect';
 import SettingsTabs, { SettingsTab } from './components/SettingsTabs';
+import { SETTINGS_TAB_IDS } from './tabs';
 import WebauthnRegistration from './components/WebauthnRegistration';
-import WebauthnCredentialItem, { useWebauthnCredentialNickname } from './components/WebauthnCredentialItem';
+import WebauthnCredentialItem, { useWebauthnCredentialName } from './components/WebauthnCredentialItem';
 
 type UpgradePrfState = (
 	null
@@ -65,10 +67,28 @@ const Settings = () => {
 		setUnlocked(false);
 	};
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
-	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
+	const upgradePrfPasskeyLabel = useWebauthnCredentialName(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
-	const [activeTab, setActiveTab] = useState('general');
+	const [searchParams, setSearchParams] = useSearchParams();
+	const requestedTab = searchParams.get('tab');
+	const activeTab = requestedTab && SETTINGS_TAB_IDS.includes(requestedTab)
+		? requestedTab
+		: 'general';
+
+	const setActiveTab = (tab: string) => {
+		if (tab === activeTab) {
+			return;
+		}
+
+		const nextParams = new URLSearchParams(searchParams);
+		if (tab === 'general') {
+			nextParams.delete('tab');
+		} else {
+			nextParams.set('tab', tab);
+		}
+		setSearchParams(nextParams, { preventScrollReset: true });
+	};
 
 	const { getCalculatedWalletState } = keystore;
 
@@ -182,9 +202,9 @@ const Settings = () => {
 		}
 	};
 
-	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
+	const onRenameWebauthnCredential = async (credential: WebauthnCredential, name: string): Promise<boolean> => {
 		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
-			nickname,
+			name,
 		});
 		refreshData();
 		if (deleteResp.status === 204) {

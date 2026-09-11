@@ -38,6 +38,8 @@ export function withAuthenticatorAttachmentFromHints(authSel: AuthenticatorSelec
 	const onlyPlatform = hasClientDevice && !(hasHybrid || hasSecurityKey);
 	const onlyExternal = (hasHybrid || hasSecurityKey) && !hasClientDevice;
 
+	console.log("withAuthenticatorAttachmentFromHints", { authSel, hints, onlyPlatform, onlyExternal });
+
 	if (onlyPlatform) {
 		return {
 			...authSel,

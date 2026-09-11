@@ -11,6 +11,7 @@ import checkForUpdates from '../../offlineUpdateSW';
 import Spinner from '../../components/Shared/Spinner';
 import AuthCard from '../../components/Auth/AuthCard';
 import WebauthnSignupLogin from '../../components/Auth/WebauthnSignupLogin';
+import { resolveLoginRedirect } from '../../components/Auth/loginRedirect';
 
 const Register = () => {
 	const { updateOnlineStatus } = useContext(StatusContext);
@@ -26,7 +27,7 @@ const Register = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			navigate(`/${window.location.search}`, { replace: true });
+			navigate(resolveLoginRedirect(window.location.search), { replace: true });
 		}
 	}, [isLoggedIn, navigate]);
 

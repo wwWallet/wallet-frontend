@@ -1,4 +1,4 @@
-FROM node:22-bullseye-slim AS builder-base
+FROM node:24-bookworm-slim AS builder-base
 
 RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 

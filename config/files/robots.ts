@@ -20,9 +20,8 @@ export function generateRobotsTxt(baseUrl: string = 'https://demo.wwwallet.org')
 User-agent: *
 Disallow: /settings
 Disallow: /credential/
-Disallow: /history
+Disallow: /activity
 Disallow: /add
-Disallow: /send
 Allow: /login
 
 Allow: /
