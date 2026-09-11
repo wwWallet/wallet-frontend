@@ -112,7 +112,6 @@ export default tseslint.config(
 			'react-hooks/exhaustive-deps': 'warn',
 			'react-hooks/rules-of-hooks': 'error',
 			'react/display-name': 'off',
-			'react/jsx-key': 'off',
 			'react/prop-types': 'off',
 		},
 	},
