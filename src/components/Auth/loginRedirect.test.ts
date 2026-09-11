@@ -64,7 +64,6 @@ describe('resolveLoginRedirect', () => {
 	it('always lands on a known same-origin route', () => {
 		const hostile = [
 			'/settings', '//evil.com/settings', '/\\evil.com/settings',
-			// eslint-disable-next-line no-script-url -- rejecting this is the point
 			'https://evil.com/settings', 'javascript:alert(1)', 'http://[',
 			'__proto__', 'constructor', '', '   ', '%%%', 'settings',
 		];
