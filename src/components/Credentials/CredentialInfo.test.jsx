@@ -381,4 +381,47 @@ describe('CredentialInfo Component', () => {
 		expect(screen.getByText('Βαθμίδα:')).toBeInTheDocument();
 		expect(screen.getByText('8')).toBeInTheDocument();
 	});
+
+	it('renders a PID mdoc portrait byte string as an image', () => {
+		const parsedCredential = {
+			signedClaims: {
+				'eu.europa.ec.eudi.pid.1': {
+					portrait: new Uint8Array([0xff, 0xd8, 0xff, 0x00]),
+				},
+			},
+			metadata: {
+				credential: {
+					TypeMetadata: {
+						claims: [{
+							path: ['eu.europa.ec.eudi.pid.1', 'portrait'],
+							display: [{ locale: 'en-US', label: 'Portrait Image' }],
+						}],
+					},
+				},
+			},
+		};
+
+		const { container } = render(<CredentialInfo parsedCredential={parsedCredential} />);
+		expect(container.querySelector('img')).toHaveAttribute('src', 'data:image/jpeg;base64,/9j/AA==');
+	});
+
+	it('renders a Base64 SVG QR code claim as an image', () => {
+		const qrCode = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiLz48L3N2Zz4=';
+		const parsedCredential = {
+			signedClaims: { QRCode: qrCode },
+			metadata: {
+				credential: {
+					TypeMetadata: {
+						claims: [{
+							path: ['QRCode'],
+							display: [{ locale: 'en-US', label: 'QR code' }],
+						}],
+					},
+				},
+			},
+		};
+
+		const { container } = render(<CredentialInfo parsedCredential={parsedCredential} />);
+		expect(container.querySelector('img')).toHaveAttribute('src', qrCode);
+	});
 });
