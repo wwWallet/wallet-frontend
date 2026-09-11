@@ -77,7 +77,6 @@ export default tseslint.config(
 			],
 			'@typescript-eslint/no-unsafe-function-type': 'off',
 			'no-empty': 'off',
-			'no-useless-escape': 'off',
 			'no-useless-catch': 'off',
 			'no-var': 'off',
 			'prefer-const': 'off',
