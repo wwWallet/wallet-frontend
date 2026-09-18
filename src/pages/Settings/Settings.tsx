@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
+import NotificationContext from '@/context/NotificationContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
@@ -14,12 +15,14 @@ import type { WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
+import ClearCachePopup from '../../components/Popups/ClearCachePopup';
 import Button from '../../components/Buttons/Button';
 import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
+import { Bell, Clock, Database, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION } from '@/config';
+import { clearWalletCache } from '@/services/clearWalletCache';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
@@ -46,10 +49,13 @@ type UpgradePrfState = (
 	}
 );
 
+const CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY = 'clearCacheSuccessNotification';
+
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
+	const notifications = useContext(NotificationContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
@@ -59,12 +65,50 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [isClearCacheConfirmationOpen, setIsClearCacheConfirmationOpen] = useState(false);
+	const [clearCacheInProgress, setClearCacheInProgress] = useState(false);
+	const [clearCacheError, setClearCacheError] = useState(false);
+	const [cacheCleared, setCacheCleared] = useState(false);
 	const screenType = useScreenType();
+
+	useEffect(() => {
+		if (!notifications || sessionStorage.getItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY) !== 'true') return;
+
+		sessionStorage.removeItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY);
+		notifications.notify('success', {
+			title: t('pageSettings.clearCache.successMessage'),
+		});
+	}, [notifications, t]);
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => {
 		setIsDeleteConfirmationOpen(false);
 		setUnlocked(false);
+	};
+	const openClearCachePopup = () => {
+		setClearCacheError(false);
+		setCacheCleared(false);
+		setIsClearCacheConfirmationOpen(true);
+	};
+	const closeClearCachePopup = () => {
+		setIsClearCacheConfirmationOpen(false);
+		setCacheCleared(false);
+	};
+	const confirmClearCache = async () => {
+		setClearCacheInProgress(true);
+		setClearCacheError(false);
+		try {
+			await clearWalletCache();
+			sessionStorage.setItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY, 'true');
+			setCacheCleared(true);
+			// Show the result in the popup before a fresh page resets module caches and React state.
+			window.setTimeout(() => window.location.reload(), 1500);
+		} catch (error) {
+			console.error('Failed to clear wallet cache', error);
+			setClearCacheError(true);
+			closeClearCachePopup();
+			setClearCacheInProgress(false);
+		}
 	};
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialName(upgradePrfState?.webauthnCredential);
@@ -364,6 +408,21 @@ const Settings = () => {
 											</SettingsRow>
 										</SettingsSection>
 
+										<SettingsSection title={t('pageSettings.clearCache.title')} icon={<Database size={18} />}>
+											<SettingsRow description={t('pageSettings.clearCache.description')}>
+												<Button
+													id="clear-cache"
+													variant="outline"
+													onClick={openClearCachePopup}
+													disabled={!isOnline || clearCacheInProgress}
+													title={!isOnline ? t('common.offlineTitle') : undefined}
+												>
+													{t('pageSettings.clearCache.buttonText')}
+												</Button>
+											</SettingsRow>
+											{clearCacheError && <p role="alert" className="mt-3 text-sm text-lm-red dark:text-dm-red">{t('pageSettings.clearCache.errorMessage')}</p>}
+										</SettingsSection>
+
 										<SettingsSection
 											title={t('pageSettings.title.appVersion')}
 											icon={<Info size={18} />}
@@ -511,6 +570,14 @@ const Settings = () => {
 						/>
 					}
 					loading={loading}
+				/>
+
+				<ClearCachePopup
+					isOpen={isClearCacheConfirmationOpen}
+					onClose={closeClearCachePopup}
+					onConfirm={confirmClearCache}
+					isClearing={clearCacheInProgress}
+					isCleared={cacheCleared}
 				/>
 
 				<Dialog
