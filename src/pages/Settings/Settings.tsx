@@ -18,8 +18,9 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
+import { Bell, Clock, Database, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION } from '@/config';
+import { clearWalletCache } from '@/services/clearWalletCache';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
@@ -59,12 +60,31 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [isClearCacheConfirmationOpen, setIsClearCacheConfirmationOpen] = useState(false);
+	const [clearCacheInProgress, setClearCacheInProgress] = useState(false);
+	const [clearCacheError, setClearCacheError] = useState(false);
+	const [cacheCleared, setCacheCleared] = useState(false);
 	const screenType = useScreenType();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => {
 		setIsDeleteConfirmationOpen(false);
 		setUnlocked(false);
+	};
+	const confirmClearCache = async () => {
+		setClearCacheInProgress(true);
+		setClearCacheError(false);
+		try {
+			await clearWalletCache();
+			setCacheCleared(true);
+			// Show the result in the popup before a fresh page resets module caches and React state.
+			window.setTimeout(() => window.location.reload(), 1500);
+		} catch (error) {
+			console.error('Failed to clear wallet cache', error);
+			setClearCacheError(true);
+			setIsClearCacheConfirmationOpen(false);
+			setClearCacheInProgress(false);
+		}
 	};
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialName(upgradePrfState?.webauthnCredential);
@@ -364,6 +384,25 @@ const Settings = () => {
 											</SettingsRow>
 										</SettingsSection>
 
+										<SettingsSection title={t('pageSettings.clearCache.title')} icon={<Database size={18} />}>
+											<SettingsRow description={t('pageSettings.clearCache.description')}>
+												<Button
+													id="clear-cache"
+													variant="outline"
+													onClick={() => {
+														setClearCacheError(false);
+														setCacheCleared(false);
+														setIsClearCacheConfirmationOpen(true);
+													}}
+													disabled={!isOnline || clearCacheInProgress}
+													title={!isOnline ? t('common.offlineTitle') : undefined}
+												>
+													{t('pageSettings.clearCache.buttonText')}
+												</Button>
+											</SettingsRow>
+											{clearCacheError && <p role="alert" className="mt-3 text-sm text-lm-red dark:text-dm-red">{t('pageSettings.clearCache.errorMessage')}</p>}
+										</SettingsSection>
+
 										<SettingsSection
 											title={t('pageSettings.title.appVersion')}
 											icon={<Info size={18} />}
@@ -512,6 +551,37 @@ const Settings = () => {
 					}
 					loading={loading}
 				/>
+
+				<Dialog
+					open={isClearCacheConfirmationOpen}
+					onCancel={() => {
+						if (clearCacheInProgress) return;
+						setIsClearCacheConfirmationOpen(false);
+						setCacheCleared(false);
+					}}
+				>
+					{cacheCleared ? (
+						<>
+							<div role="status">
+								<H2 heading={t('pageSettings.clearCache.successMessage')} hr={false} flexJustifyContent="center" />
+								<p className="mt-3 text-lm-gray-800 dark:text-dm-gray-200">{t('pageSettings.clearCache.reloadingMessage')}</p>
+							</div>
+						</>
+					) : (
+						<>
+							<H2 heading={t('pageSettings.clearCache.confirmTitle')} hr={false} flexJustifyContent="center" />
+							<p className="mb-4 text-lm-gray-800 dark:text-dm-gray-200">{t('pageSettings.clearCache.confirmMessage')}</p>
+							<div className="flex gap-2 justify-center">
+								<Button onClick={() => setIsClearCacheConfirmationOpen(false)} disabled={clearCacheInProgress}>
+									{t('common.cancel')}
+								</Button>
+								<Button id="confirm-clear-cache" variant="primary" onClick={confirmClearCache} disabled={clearCacheInProgress}>
+									{clearCacheInProgress ? t('pageSettings.clearCache.clearing') : t('pageSettings.clearCache.buttonText')}
+								</Button>
+							</div>
+						</>
+					)}
+				</Dialog>
 
 				<Dialog
 					open={upgradePrfState !== null}
