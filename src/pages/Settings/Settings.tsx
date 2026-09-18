@@ -14,6 +14,7 @@ import type { WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
+import ClearCachePopup from '../../components/Popups/ClearCachePopup';
 import Button from '../../components/Buttons/Button';
 import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
@@ -71,6 +72,15 @@ const Settings = () => {
 		setIsDeleteConfirmationOpen(false);
 		setUnlocked(false);
 	};
+	const openClearCachePopup = () => {
+		setClearCacheError(false);
+		setCacheCleared(false);
+		setIsClearCacheConfirmationOpen(true);
+	};
+	const closeClearCachePopup = () => {
+		setIsClearCacheConfirmationOpen(false);
+		setCacheCleared(false);
+	};
 	const confirmClearCache = async () => {
 		setClearCacheInProgress(true);
 		setClearCacheError(false);
@@ -82,7 +92,7 @@ const Settings = () => {
 		} catch (error) {
 			console.error('Failed to clear wallet cache', error);
 			setClearCacheError(true);
-			setIsClearCacheConfirmationOpen(false);
+			closeClearCachePopup();
 			setClearCacheInProgress(false);
 		}
 	};
@@ -389,11 +399,7 @@ const Settings = () => {
 												<Button
 													id="clear-cache"
 													variant="outline"
-													onClick={() => {
-														setClearCacheError(false);
-														setCacheCleared(false);
-														setIsClearCacheConfirmationOpen(true);
-													}}
+													onClick={openClearCachePopup}
 													disabled={!isOnline || clearCacheInProgress}
 													title={!isOnline ? t('common.offlineTitle') : undefined}
 												>
@@ -552,36 +558,13 @@ const Settings = () => {
 					loading={loading}
 				/>
 
-				<Dialog
-					open={isClearCacheConfirmationOpen}
-					onCancel={() => {
-						if (clearCacheInProgress) return;
-						setIsClearCacheConfirmationOpen(false);
-						setCacheCleared(false);
-					}}
-				>
-					{cacheCleared ? (
-						<>
-							<div role="status">
-								<H2 heading={t('pageSettings.clearCache.successMessage')} hr={false} flexJustifyContent="center" />
-								<p className="mt-3 text-lm-gray-800 dark:text-dm-gray-200">{t('pageSettings.clearCache.reloadingMessage')}</p>
-							</div>
-						</>
-					) : (
-						<>
-							<H2 heading={t('pageSettings.clearCache.confirmTitle')} hr={false} flexJustifyContent="center" />
-							<p className="mb-4 text-lm-gray-800 dark:text-dm-gray-200">{t('pageSettings.clearCache.confirmMessage')}</p>
-							<div className="flex gap-2 justify-center">
-								<Button onClick={() => setIsClearCacheConfirmationOpen(false)} disabled={clearCacheInProgress}>
-									{t('common.cancel')}
-								</Button>
-								<Button id="confirm-clear-cache" variant="primary" onClick={confirmClearCache} disabled={clearCacheInProgress}>
-									{clearCacheInProgress ? t('pageSettings.clearCache.clearing') : t('pageSettings.clearCache.buttonText')}
-								</Button>
-							</div>
-						</>
-					)}
-				</Dialog>
+				<ClearCachePopup
+					isOpen={isClearCacheConfirmationOpen}
+					onClose={closeClearCachePopup}
+					onConfirm={confirmClearCache}
+					isClearing={clearCacheInProgress}
+					isCleared={cacheCleared}
+				/>
 
 				<Dialog
 					open={upgradePrfState !== null}
