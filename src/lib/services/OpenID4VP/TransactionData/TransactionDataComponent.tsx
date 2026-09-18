@@ -28,7 +28,7 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 						<div className="w-5/6 flex items-center">
 							<ul className="flex flex-col list-disc">
 								{req.documentDigests.map((digest, index) => (
-									<span className="text-lm-gray-800 dark:text-dm-gray-200 font-bold">
+									<span key={`${digest.hash ?? digest.label}-${index}`} className="text-lm-gray-800 dark:text-dm-gray-200 font-bold">
 										{digest.label}
 									</span>
 								))}
