@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
+import NotificationContext from '@/context/NotificationContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
@@ -48,10 +49,13 @@ type UpgradePrfState = (
 	}
 );
 
+const CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY = 'clearCacheSuccessNotification';
+
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
+	const notifications = useContext(NotificationContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
@@ -66,6 +70,15 @@ const Settings = () => {
 	const [clearCacheError, setClearCacheError] = useState(false);
 	const [cacheCleared, setCacheCleared] = useState(false);
 	const screenType = useScreenType();
+
+	useEffect(() => {
+		if (!notifications || sessionStorage.getItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY) !== 'true') return;
+
+		sessionStorage.removeItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY);
+		notifications.notify('success', {
+			title: t('pageSettings.clearCache.successMessage'),
+		});
+	}, [notifications, t]);
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => {
@@ -86,6 +99,7 @@ const Settings = () => {
 		setClearCacheError(false);
 		try {
 			await clearWalletCache();
+			sessionStorage.setItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY, 'true');
 			setCacheCleared(true);
 			// Show the result in the popup before a fresh page resets module caches and React state.
 			window.setTimeout(() => window.location.reload(), 1500);
