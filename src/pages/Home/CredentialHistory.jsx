@@ -22,7 +22,7 @@ const CredentialHistory = () => {
 
 	return (
 		<>
-			<CredentialLayout title={t('pageCredentials.activityTitle')}>
+			<CredentialLayout title={t('pageCredentials.activityTitle')} hideHeadingOnMobile>
 				{history !== null && (history.length === 0 ? (
 					<ActivityEmptyState credentialSpecific />
 				) : (

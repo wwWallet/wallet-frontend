@@ -21,7 +21,7 @@ import { buildPortalRedirectPopupContent } from '@/components/Popups/portalRedir
 import MessagePopup from '@/components/Popups/MessagePopup';
 import RedirectPopup from '@/components/Popups/RedirectPopup';
 import QueryableList from '@/components/QueryableList/QueryableList';
-import { H1 } from '@/components/Shared/Heading';
+import PageHeading from '@/components/Shared/PageHeading';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -246,7 +246,7 @@ const AddCredentials = () => {
 	return (
 		<>
 			<div className="px-6 sm:px-12 w-full">
-				<H1 heading={t('common.navItemAddCredentials')} />
+				<PageHeading heading={t('common.navItemAddCredentials')} />
 
 				{credentialConfigurations && recent && (
 					<QueryableList
