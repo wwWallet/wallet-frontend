@@ -8,6 +8,7 @@ import { H1 } from './Heading';
 type PageHeadingProps = {
 	heading: ReactNode,
 	actions?: ReactNode,
+	backPath?: string,
 	hideHeadingOnMobile?: boolean,
 	showBackButtonOnDesktop?: boolean,
 };
@@ -15,6 +16,7 @@ type PageHeadingProps = {
 const PageHeading = ({
 	heading,
 	actions,
+	backPath = '/',
 	hideHeadingOnMobile = false,
 	showBackButtonOnDesktop = false,
 }: PageHeadingProps) => {
@@ -26,7 +28,7 @@ const PageHeading = ({
 			<button
 				id="go-previous"
 				type="button"
-				onClick={() => navigate(-1)}
+				onClick={() => navigate(backPath, { replace: true })}
 				aria-label={t('common.back')}
 				title={t('common.back')}
 				className={`${showBackButtonOnDesktop ? '' : 'md:hidden'} -ml-2.5 p-2.5 shrink-0 rounded-full cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700`}

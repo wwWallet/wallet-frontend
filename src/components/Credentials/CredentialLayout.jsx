@@ -106,6 +106,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 				<PageHeading
 					heading={title}
 					actions={actionsMenu}
+					backPath={isCredentialRoot ? '/' : `/credential/${batchId}`}
 					hideHeadingOnMobile={hideHeadingOnMobile}
 					showBackButtonOnDesktop
 				/>
