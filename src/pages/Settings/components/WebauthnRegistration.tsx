@@ -189,7 +189,7 @@ const WebauthnRegistration = ({
 				aria-haspopup="menu"
 				aria-expanded={menuOpen}
 				title={!isOnline ? t("common.offlineTitle") : t('pageSettings.addPasskeyTitle')}
-				className={`rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 text-sm px-4 py-2 text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 ${(registrationInProgress || !isOnline) ? 'grayscale opacity-75 cursor-not-allowed' : 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]'}`}
+				className={`rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 text-sm px-2 py-2 text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 ${(registrationInProgress || !isOnline) ? 'grayscale opacity-75 cursor-not-allowed' : 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]'}`}
 			>
 				<Plus size={18} />
 				{t('pageSettings.addPasskey').replace(/:$/, '')}
