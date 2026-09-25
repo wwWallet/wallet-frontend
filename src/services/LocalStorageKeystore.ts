@@ -79,7 +79,7 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: CachedUser | UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
-	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
+	getPrfKeyInfo(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo,
 	getPasswordOrPrfKeyFromSession(
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[CryptoKey, WrappedKeyInfo]>,
@@ -517,7 +517,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const initPrf = useCallback(
 		async (
 			credential: PublicKeyCredential,
-			prfSalt: Uint8Array,
+			prfSalt: Uint8Array<ArrayBuffer>,
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 			user: UserData,
 		): Promise<EncryptedContainer> => {
@@ -529,7 +529,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const getPrfKeyInfo = useCallback(
-		(id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined => {
+		(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo | undefined => {
 			return privateData?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
 		},
 		[privateData]
