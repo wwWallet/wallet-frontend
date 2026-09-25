@@ -11,7 +11,7 @@ import useFetchPresentations from '@/hooks/useFetchPresentations';
 // Components
 import ActivityEmptyState from '@/components/History/ActivityEmptyState';
 import HistoryList from '@/components/History/HistoryList';
-import { H1 } from '@/components/Shared/Heading';
+import PageHeading from '@/components/Shared/PageHeading';
 import PageDescription from '@/components/Shared/PageDescription';
 
 const Activity = () => {
@@ -21,7 +21,7 @@ const Activity = () => {
 
 	return (
 		<div className="px-6 sm:px-12 w-full">
-			<H1 heading={t('common.navItemActivity')} />
+			<PageHeading heading={t('common.navItemActivity')} />
 			<PageDescription description={t('pageActivity.description')} />
 
 			{(activity !== null && activity.length === 0 ? (

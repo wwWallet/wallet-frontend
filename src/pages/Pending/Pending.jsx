@@ -5,7 +5,7 @@ import { reverse, compareBy } from "@/util";
 import CredentialsContext from "@/context/CredentialsContext";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import useFilterItemByLang from "@/hooks/useFilterItemByLang";
-import { H1 } from "../../components/Shared/Heading";
+import PageHeading from "../../components/Shared/PageHeading";
 import PageDescription from "../../components/Shared/PageDescription";
 import { History } from "lucide-react";
 
@@ -41,7 +41,7 @@ const Pending = () => {
 	if (!pendingTransactions?.length) {
 		return (
 			<div className="px-6 sm:px-12 w-full">
-				<H1 heading={t("pagePending.title")} />
+				<PageHeading heading={t("pagePending.title")} />
 				<PageDescription description={t("pagePending.description")} />
 				<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
 					{t("pagePending.noFound")}
@@ -52,7 +52,7 @@ const Pending = () => {
 
 	return (
 		<div className="px-6 sm:px-12 w-full">
-			<H1 heading={t("pagePending.title")} />
+			<PageHeading heading={t("pagePending.title")} />
 			<PageDescription description={t("pagePending.description")} />
 
 			<div className="py-4 w-full">

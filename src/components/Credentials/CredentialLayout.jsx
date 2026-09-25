@@ -1,8 +1,8 @@
 // External libraries
 import React, { useContext, useState } from 'react';
-import { ArrowLeft, CircleAlert } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useMatch, useNavigate, useParams } from 'react-router-dom';
+import { useMatch, useParams } from 'react-router-dom';
 
 // Config
 import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
@@ -19,7 +19,7 @@ import { useVcEntity } from '@/hooks/useVcEntity';
 // Components
 import CredentialImage from '@/components/Credentials/CredentialImage';
 import FullscreenPopup from '@/components/Popups/FullscreenImg';
-import { H1 } from '@/components/Shared/Heading';
+import PageHeading from '@/components/Shared/PageHeading';
 
 const UsageStats = ({ zeroSigCount, sigTotal, t }) => {
 	if (zeroSigCount === null || !sigTotal) return null;
@@ -80,12 +80,11 @@ const CredentialImagePreview = ({
 	);
 };
 
-const CredentialLayout = ({ children, title = null, summaryActions = null, actionsMenu = null }) => {
+const CredentialLayout = ({ children, title = null, summaryActions = null, actionsMenu = null, hideHeadingOnMobile = false }) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const { t } = useTranslation();
-	const navigate = useNavigate();
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
@@ -104,21 +103,13 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 	return (
 		<div className="px-6 sm:px-12 w-full">
 			<div className='mb-4'>
-				<div className='flex items-center gap-1'>
-					<button
-						id="go-previous"
-						onClick={() => navigate(-1)}
-						aria-label={t('common.back')}
-						title={t('common.back')}
-						className='-ml-2.5 p-2.5 shrink-0 rounded-full cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'
-					>
-						<ArrowLeft size={24} />
-					</button>
-					{isCredentialRoot && <H1 heading={title} flexJustifyContent="start" />}
-					{actionsMenu && (
-						<div className='ml-auto shrink-0'>{actionsMenu}</div>
-					)}
-				</div>
+				<PageHeading
+					heading={title}
+					actions={actionsMenu}
+					backPath={isCredentialRoot ? '/' : `/credential/${batchId}`}
+					hideHeadingOnMobile={hideHeadingOnMobile}
+					showBackButtonOnDesktop
+				/>
 			</div>
 			{ isCredentialRoot && vcEntity.isExpired && (
 				<div
