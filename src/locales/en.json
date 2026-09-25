@@ -243,6 +243,17 @@
 			},
 			"title": "Appearance"
 		},
+		"clearCache": {
+			"buttonText": "Clear cache",
+			"clearing": "Clearing…",
+			"confirmMessage": "The wallet will delete temporary app data and reload. Your account, credentials, and passkeys won't be removed.",
+			"confirmTitle": "Clear cache?",
+			"description": "Clear temporary app data to resolve outdated or inconsistent information. Your account and credentials won't be removed.",
+			"errorMessage": "The cache could not be cleared. Please try again.",
+			"reloadingMessage": "Reloading the wallet…",
+			"successMessage": "Cache cleared",
+			"title": "Clear cache"
+		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
