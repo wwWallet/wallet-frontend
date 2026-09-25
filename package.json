@@ -59,7 +59,7 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
-    "@types/node": "^20.5.0",
+    "@types/node": "^24.10.2",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.3.1",
     "@types/reflect-metadata": "^0.1.0",
@@ -77,6 +77,9 @@
     "vite-plugin-checker": "^0.11.0",
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=24"
   },
   "scripts": {
     "start": "vite --no-open",
