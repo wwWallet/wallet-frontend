@@ -10,6 +10,7 @@ import CredentialsContext from "@/context/CredentialsContext";
 import SyncNotificationContext from "@/context/SyncNotificationContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import AuthPopup from "@/components/Popups/AuthPopup";
+import MessagePopup from "@/components/Popups/MessagePopup";
 import RedirectPopup from "@/components/Popups/RedirectPopup";
 import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
 import { useReconnectSync } from "@/hooks/useReconnectSync";
@@ -19,7 +20,6 @@ import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP
 import { getAuthorizationResponseErrorMessageKey } from "@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey";
 import type { TxCodeInputMetadata } from "@/lib/interfaces/IOpenID4VCI";
 
-const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
