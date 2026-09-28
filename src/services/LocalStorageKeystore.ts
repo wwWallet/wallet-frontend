@@ -79,7 +79,7 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: CachedUser | UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
-	getPrfKeyInfo(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo,
+	getPrfKeyInfo(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo | undefined,
 	getPasswordOrPrfKeyFromSession(
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[CryptoKey, WrappedKeyInfo]>,
