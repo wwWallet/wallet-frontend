@@ -126,7 +126,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			decoded.get('eReaderKey'), // EReaderKeyBytes
 		);
 		const zab = await deriveSharedSecret(ephemeralKeyRef.current.privateKey, verifierPublicKey);
-		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytesRef.current);
+		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytesRef.current as Uint8Array<ArrayBuffer>);
 		skDeviceRef.current = await getKey(zab, salt, "SKDevice");
 		const skReader = await getKey(zab, salt, "SKReader");
 		const iv = new Uint8Array([

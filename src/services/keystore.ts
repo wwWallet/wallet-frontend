@@ -51,7 +51,7 @@ type EphemeralEncapsulationInfo = {
 type StaticEncapsulationInfo = {
 	keypair: EncapsulationKeypairInfo,
 	unwrapKey: {
-		wrappedKey: Uint8Array,
+		wrappedKey: Uint8Array<ArrayBuffer>,
 		unwrappingKey: EncapsulationUnwrappingKeyInfo,
 	},
 }
@@ -71,7 +71,7 @@ export function assertAsymmetricEncryptedContainer(privateData: EncryptedContain
 
 
 type SymmetricWrappedKeyInfo = {
-	wrappedKey: Uint8Array,
+	wrappedKey: Uint8Array<ArrayBuffer>,
 	unwrapAlgo: "AES-KW",
 	unwrappedKeyAlgo: KeyAlgorithm,
 };
@@ -85,7 +85,7 @@ export function isAsymmetricWrappedKeyInfo(keyInfo: WrappedKeyInfo): keyInfo is 
 type EncapsulationPublicKeyInfo = {
 	importKey: {
 		format: "raw",
-		keyData: Uint8Array,
+		keyData: Uint8Array<ArrayBuffer>,
 		algorithm: EcKeyImportParams,
 	},
 }
@@ -93,7 +93,7 @@ type EncapsulationPublicKeyInfo = {
 type EncapsulationPrivateKeyInfo = {
 	unwrapKey: {
 		format: KeyFormat,
-		wrappedKey: Uint8Array,
+		wrappedKey: Uint8Array<ArrayBuffer>,
 		unwrapAlgo: AesGcmParams,
 		unwrappedKeyAlgo: EcKeyImportParams,
 	},
@@ -114,9 +114,9 @@ type EncapsulationUnwrappingKeyInfo = {
 };
 
 export type WebauthnPrfSaltInfo = {
-	credentialId: Uint8Array,
+	credentialId: Uint8Array<ArrayBuffer>,
 	transports?: AuthenticatorTransport[],
-	prfSalt: Uint8Array,
+	prfSalt: Uint8Array<ArrayBuffer>,
 }
 
 export type WebauthnPrfEncryptionKeyInfo = (
@@ -124,8 +124,8 @@ export type WebauthnPrfEncryptionKeyInfo = (
 	| WebauthnPrfEncryptionKeyInfoV2
 );
 type WebauthnPrfEncryptionKeyDeriveKeyParams = {
-	hkdfSalt: Uint8Array,
-	hkdfInfo: Uint8Array,
+	hkdfSalt: Uint8Array<ArrayBuffer>,
+	hkdfInfo: Uint8Array<ArrayBuffer>,
 	algorithm?: AesKeyGenParams,
 }
 type WebauthnPrfEncryptionKeyInfoV1 = WebauthnPrfSaltInfo & WebauthnPrfEncryptionKeyDeriveKeyParams & {
@@ -267,7 +267,7 @@ export type PrivateDataV1 = {
 export type PrivateData = WalletStateContainer;
 export type PrivateDataV2 = WalletStateContainerV2;
 
-export async function parsePrivateData(privateData: BufferSource): Promise<EncryptedContainer> {
+export async function parsePrivateData(privateData: ArrayBuffer | ArrayBufferView): Promise<EncryptedContainer> {
 	return jsonParseTaggedBinary(new TextDecoder().decode(privateData));
 }
 
@@ -670,7 +670,7 @@ async function getPrfOutput(
 
 async function createPrfKey(
 	credential: PublicKeyCredential,
-	prfSalt: Uint8Array,
+	prfSalt: Uint8Array<ArrayBuffer>,
 	mainKeyInfo: EphemeralEncapsulationInfo,
 	mainKey: CryptoKey,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
@@ -833,7 +833,7 @@ export async function init(
 
 export async function initPrf(
 	credential: PublicKeyCredential,
-	prfSalt: Uint8Array,
+	prfSalt: Uint8Array<ArrayBuffer>,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
 	const mainKeyInfo = await createAsymmetricMainKey();
