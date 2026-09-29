@@ -23,7 +23,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-/* eslint-env worker */
 // @ts-ignore jsqr-es6 does not provide types currently
 /// <reference lib="webworker" />
 import jsQR from "jsqr-es6";

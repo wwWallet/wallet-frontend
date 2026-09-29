@@ -28,4 +28,4 @@ If you have multiple ideas for solutions, present each one clearly. Comparisons 
 ---
 
 ### 📢 Before You Submit:
-Please check our [Discussions](https://github.com/wwWallet/wallet-ecosystem/discussions) to see if this feature has already been requested or is being discussed. Joining an ongoing conversation can help refine ideas and avoid duplication!
+Please check our [Discussions](https://github.com/orgs/wwWallet/discussions) to see if this feature has already been requested or is being discussed. Joining an ongoing conversation can help refine ideas and avoid duplication!

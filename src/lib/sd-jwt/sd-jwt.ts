@@ -2,7 +2,7 @@ import * as jose from 'jose';
 import { fromPemToPKIJSCertificate, toPem, validateChain, getPublicKeyFromB64Cert } from '../utils/pki';
 
 export async function verifySdJwtBasedOnTrustAnchors(credential: string) {
-	let cred = credential.split('~')[0];
+	const cred = credential.split('~')[0];
 
 	const { x5c } = JSON.parse(new TextDecoder().decode(jose.base64url.decode(cred.split('.')[0])))
 	const chain = x5c.map((c) => {
