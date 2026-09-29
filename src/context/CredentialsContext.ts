@@ -1,7 +1,7 @@
 // CredentialsContext.ts
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import { createContext } from 'react';
-import { ParsedCredential, ParsingEngineI, CredentialVerifier } from 'wallet-common';
+import type { ParsedCredential, ParsingEngineI, CredentialVerifier } from 'wallet-common';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
