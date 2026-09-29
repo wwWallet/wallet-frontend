@@ -5,7 +5,7 @@ export function coerce<T>(value: T): T {
 }
 
 
-export function toU8(b: BufferSource) {
+export function toU8<T extends ArrayBufferLike>(b: ArrayBuffer | ArrayBufferView<T>): Uint8Array<ArrayBuffer | T> {
 	if (b instanceof ArrayBuffer) {
 		return new Uint8Array(b);
 	} else {
@@ -13,7 +13,7 @@ export function toU8(b: BufferSource) {
 	}
 }
 
-export function toBase64(binary: BufferSource): string {
+export function toBase64(binary: ArrayBuffer | ArrayBufferView): string {
 	const uint8Array = toU8(binary);
 	const chunkSize = 0x8000; // 32KB
 	let result = '';
@@ -24,11 +24,11 @@ export function toBase64(binary: BufferSource): string {
 	return btoa(result);
 }
 
-export function toBase64Url(binary: BufferSource): string {
+export function toBase64Url(binary: ArrayBuffer | ArrayBufferView): string {
 	return toBase64(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-export function byteArrayEquals(a: BufferSource, b: BufferSource): boolean {
+export function byteArrayEquals(a: ArrayBuffer | ArrayBufferView, b: ArrayBuffer | ArrayBufferView): boolean {
 	return toBase64(a) === toBase64(b);
 }
 
@@ -45,11 +45,11 @@ function base64pad(s: string): string {
 	}
 }
 
-export function fromBase64(s: string): Uint8Array {
+export function fromBase64(s: string): Uint8Array<ArrayBuffer> {
 	return new Uint8Array(Array.from(atob(base64pad(s))).map(c => c.charCodeAt(0)));
 }
 
-export function fromBase64Url(s: string): Uint8Array {
+export function fromBase64Url(s: string): Uint8Array<ArrayBuffer> {
 	return fromBase64(s.replace(/-/g, "+").replace(/_/g, "/"));
 }
 
