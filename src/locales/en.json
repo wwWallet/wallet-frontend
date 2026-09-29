@@ -19,6 +19,7 @@
 	"authPopup": {
 		"description": "Please <strong>authenticate</strong> to continue."
 	},
+	"testLocale:": "testLocale",
 	"common": {
 		"and": "and",
 		"back": "Back",
