@@ -22,15 +22,17 @@ const defaults: DefaultableProps = {
 }
 
 
-function withDefaults(defaults: DefaultableProps, Component: React.ComponentType<Props>): React.ComponentType<Props> {
-	return (props: Props) => {
+function withDefaults(displayName: string, defaults: DefaultableProps, Component: React.ComponentType<Props>): React.ComponentType<Props> {
+	const ComponentWithDefaults = (props: Props) => {
 		const p = { ...defaults, ...props };
 		return <Component {...p} />;
 	};
+	ComponentWithDefaults.displayName = displayName;
+	return ComponentWithDefaults;
 }
 
 
-export const H1 = withDefaults({ ...defaults, hr: false }, (props: Props) => (
+export const H1 = withDefaults('H1', { ...defaults, hr: false }, (props: Props) => (
 	<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
 		<h1 className={`text-2xl font-bold ${props.textColorClass}`}>
 			{props.heading}
@@ -39,7 +41,7 @@ export const H1 = withDefaults({ ...defaults, hr: false }, (props: Props) => (
 	</div>
 ));
 
-export const H2 = withDefaults({
+export const H2 = withDefaults('H2', {
 	...defaults,
 	textColorClass: "text-lm-gray-900 dark:text-white"
 }, (props: Props) => (
@@ -54,7 +56,7 @@ export const H2 = withDefaults({
 	</>
 ));
 
-export const H3 = withDefaults({
+export const H3 = withDefaults('H3', {
 	...defaults,
 	textColorClass: "text-lm-gray-900 dark:text-dm-gray-100",
 }, (props: Props) => (
