@@ -53,7 +53,7 @@ export function fromBase64Url(s: string): Uint8Array<ArrayBuffer> {
 	return fromBase64(s.replace(/-/g, "+").replace(/_/g, "/"));
 }
 
-function replacerUint8ArrayToTaggedBase64Url(key: string, value: any): any {
+function replacerUint8ArrayToTaggedBase64Url(this: Record<string, unknown>, key: string, value: any): any {
 	if (this[key] instanceof Uint8Array || this[key] instanceof ArrayBuffer) {
 		return { '$b64u': toBase64Url(toU8(this[key])) };
 	} else {
