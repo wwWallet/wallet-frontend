@@ -73,7 +73,7 @@ export interface BackendApi {
 		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
 	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
+		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'passkeyUnknown' | 'x-private-data-etag'>
 	>,
 	signupWebauthn(
 		name: string,
@@ -100,6 +100,7 @@ export interface BackendApi {
 		| 'passkeyInvalid'
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
+		| 'passkeyUnknown'
 		| 'x-private-data-etag'
 	>>;
 }
@@ -322,6 +323,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| 'passkeyInvalid'
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
+		| 'passkeyUnknown'
 		| 'x-private-data-etag'
 	>> => {
 
@@ -490,6 +492,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| 'passkeyInvalid'
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
+		| 'passkeyUnknown'
 		| 'x-private-data-etag'
 	>> => {
 		try {
@@ -607,6 +610,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							rpId: config.WEBAUTHN_RPID,
 							credentialId: credential.id,
 						});
+						return Err('passkeyUnknown');
 					}
 
 					if (isOnline && isRejectedWebauthnLoginFinishError(e)) {

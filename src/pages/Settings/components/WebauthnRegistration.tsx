@@ -4,9 +4,7 @@ import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
-import { signalCurrentUserDetails, withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
-import { WEBAUTHN_RPID } from '@/config';
-import { toBase64Url } from '@/util';
+import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
@@ -160,12 +158,6 @@ const WebauthnRegistration = ({
 					},
 					privateData: serializePrivateData(newPrivateData),
 				}));
-				await signalCurrentUserDetails({
-					rpId: WEBAUTHN_RPID,
-					userId: toBase64Url(beginData.createOptions.publicKey.user.id),
-					name: name,
-					displayName: name,
-				});
 				onSuccess();
 				setName("");
 				await keystoreCommit();
