@@ -15,7 +15,8 @@ import { serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
-import { H1, H2 } from '../../components/Shared/Heading';
+import { H2 } from '../../components/Shared/Heading';
+import PageHeading from '../../components/Shared/PageHeading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
@@ -324,7 +325,7 @@ const Settings = () => {
 			<div className="px-6 sm:px-12 w-full">
 				{userData && (
 					<>
-						<H1 heading={t('common.navItemSettings')} />
+						<PageHeading heading={t('common.navItemSettings')} />
 						<PageDescription description={t('pageSettings.description')} />
 
 						<div className="mt-4">
