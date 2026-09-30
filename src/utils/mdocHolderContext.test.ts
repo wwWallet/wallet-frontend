@@ -65,7 +65,7 @@ describe("mdoc device signing COSE key", () => {
 		expect(await crypto.subtle.verify(
 			{ name: "ECDSA", hash: "SHA-256" },
 			publicKey,
-			signature,
+			signature as Uint8Array<ArrayBuffer>,
 			payload,
 		)).toBe(true);
 	});

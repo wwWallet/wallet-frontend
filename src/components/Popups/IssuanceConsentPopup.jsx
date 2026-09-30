@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
@@ -13,13 +13,6 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 	const reinitialize = useCallback(() => {
 		setPopupConsentState((current) => ({ ...current, isOpen: false }));
 	}, [setPopupConsentState]);
-
-
-	useEffect(() => {
-		if (popupConsentState?.options) {
-		}
-	}, [popupConsentState]);
-
 
 	const consent = () => {
 		reinitialize();
@@ -47,8 +40,8 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 					<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 					<p className='text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-3 mb-2'>{t('issuance.credentialsHaveErrors')}</p>
 					<ul className='text-sm text-lm-gray-800 dark:text-dm-gray-200 list-disc ml-1 mb-4'>
-						{popupConsentState?.options?.warnings?.map(warning => (
-							<li className='flex gap-3 items-center'>
+						{popupConsentState?.options?.warnings?.map((warning, index) => (
+							<li key={`${warning.code}-${index}`} className='flex gap-3 items-center'>
 								<TriangleAlert />
 								{i18n.exists(`parsing.${warning.code}`) ? t(`parsing.${warning.code}`) : warning.code}
 							</li>

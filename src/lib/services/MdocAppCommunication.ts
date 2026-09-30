@@ -12,20 +12,20 @@ import { createBluetoothTransport, IBluetoothTransport } from "./bluetooth";
 import type { BluetoothConnectionResult } from "../interfaces/IBluetoothTransport";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
-	let ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
+	const ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
 	// BLE service UUID of the current engagement. Generated per QR code and
 	// kept in a ref so that startClient() connects to the same UUID that the
 	// verifier learned from the QR, even across re-renders
-	let serviceUuidRef = useRef<string | null>(null);
-	let deviceEngagementBytesRef = useRef<any>(null);
-	let credentialRef = useRef<any>(null);
-	let sessionDataEncodedRef = useRef<Uint8Array | null>(null);
-	let requestedDcqlClaimsRef = useRef<any[]>([]);
-	let requestedDocTypeRef = useRef<string | null>(null);
-	let requestedNamespaceRef = useRef<string | null>(null);
-	let sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
-	let skDeviceRef = useRef<CryptoKey>(null);
-	let transportRef = useRef<IBluetoothTransport | null>(null);
+	const serviceUuidRef = useRef<string | null>(null);
+	const deviceEngagementBytesRef = useRef<any>(null);
+	const credentialRef = useRef<any>(null);
+	const sessionDataEncodedRef = useRef<Uint8Array | null>(null);
+	const requestedDcqlClaimsRef = useRef<any[]>([]);
+	const requestedDocTypeRef = useRef<string | null>(null);
+	const requestedNamespaceRef = useRef<string | null>(null);
+	const sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
+	const skDeviceRef = useRef<CryptoKey>(null);
+	const transportRef = useRef<IBluetoothTransport | null>(null);
 
 	const { keystore, api } = useContext(SessionContext);
 	const { updatePrivateData } = api;
@@ -126,7 +126,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			decoded.get('eReaderKey'), // EReaderKeyBytes
 		);
 		const zab = await deriveSharedSecret(ephemeralKeyRef.current.privateKey, verifierPublicKey);
-		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytesRef.current);
+		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytesRef.current as Uint8Array<ArrayBuffer>);
 		skDeviceRef.current = await getKey(zab, salt, "SKDevice");
 		const skReader = await getKey(zab, salt, "SKReader");
 		const iv = new Uint8Array([

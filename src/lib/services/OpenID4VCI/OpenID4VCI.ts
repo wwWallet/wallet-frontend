@@ -717,7 +717,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				offer = CredentialOfferSchema.parse(JSON.parse(credentialOffer));
 			} else if (credentialOfferUri) {
 				try {
-					let response = await httpProxy.get(credentialOfferUri, {})
+					const response = await httpProxy.get(credentialOfferUri, {})
 					offer = CredentialOfferSchema.parse(response.data);
 				}
 				catch (err) {
