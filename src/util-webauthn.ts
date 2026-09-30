@@ -60,7 +60,6 @@ type SignalUnknownCredentialOptions = {
 	rpId: string;
 };
 
-<<<<<<< HEAD
 type SignalAllAcceptedCredentialsOptions = {
 	allAcceptedCredentialIds: string[];
 	rpId: string;
@@ -78,10 +77,6 @@ type PublicKeyCredentialWithSignalMethods = typeof PublicKeyCredential & {
 	getClientCapabilities?: () => Promise<Record<string, boolean>>;
 	signalAllAcceptedCredentials?: (options: SignalAllAcceptedCredentialsOptions) => Promise<void>;
 	signalCurrentUserDetails?: (options: SignalCurrentUserDetailsOptions) => Promise<void>;
-=======
-type PublicKeyCredentialWithSignalMethods = typeof PublicKeyCredential & {
-	getClientCapabilities?: () => Promise<Record<string, boolean>>;
->>>>>>> 2eee29f90a6fbd594d53a630261418f689f1d1b0
 	signalUnknownCredential?: (options: SignalUnknownCredentialOptions) => Promise<void>;
 };
 
@@ -125,7 +120,6 @@ export async function signalUnknownCredential(options?: SignalUnknownCredentialO
 		return false;
 	}
 }
-<<<<<<< HEAD
 
 export async function signalAllAcceptedCredentials(options?: SignalAllAcceptedCredentialsOptions): Promise<boolean> {
 	if (!options) {
@@ -170,5 +164,3 @@ export async function signalCurrentUserDetails(options?: SignalCurrentUserDetail
 		return false;
 	}
 }
-=======
->>>>>>> 2eee29f90a6fbd594d53a630261418f689f1d1b0

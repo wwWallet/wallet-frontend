@@ -20,11 +20,7 @@ import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
-<<<<<<< HEAD
-import { signalAllAcceptedCredentials, signalCurrentUserDetails, signalUnknownCredential } from '@/util-webauthn';
-=======
-import { signalUnknownCredential } from '@/util-webauthn';
->>>>>>> 2eee29f90a6fbd594d53a630261418f689f1d1b0
+import { signalAllAcceptedCredentials, signalUnknownCredential } from '@/util-webauthn';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
