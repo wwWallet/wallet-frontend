@@ -20,7 +20,7 @@ import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
-import { signalAllAcceptedCredentials, signalUnknownCredential } from '@/util-webauthn';
+import { signalAllAcceptedCredentials } from '@/util-webauthn';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
@@ -93,13 +93,15 @@ const Settings = () => {
 
 	const { getCalculatedWalletState } = keystore;
 
-	const signalWebauthnCredentialsAfterDeletion = async (
-		deletedCredentials: WebauthnCredential[],
+	const signalAcceptedWebauthnCredentials = async (
+		currentUserData: UserData,
 	): Promise<void> => {
-		await Promise.all(deletedCredentials.map(credential => signalUnknownCredential({
+		await signalAllAcceptedCredentials({
 			rpId: WEBAUTHN_RPID,
-			credentialId: toBase64Url(credential.credentialId),
-		})));
+			userId: toBase64Url(new TextEncoder().encode(currentUserData.uuid)),
+			allAcceptedCredentialIds: currentUserData.webauthnCredentials
+				.map(credential => toBase64Url(credential.credentialId)),
+		});
 	};
 
 	const deleteAccount = async () => {
@@ -170,15 +172,17 @@ const Settings = () => {
 			try {
 				const response = await api.get('/user/session/account-info');
 				const s = keystore.getCalculatedWalletState();
-				const userData = {
+				const refreshedUserData: UserData = {
 					...response.data,
 					settings: s.settings,
 				};
-				console.log(userData);
-				setUserData(userData);
+				console.log(refreshedUserData);
+				setUserData(refreshedUserData);
 				dispatchEvent(new CustomEvent("settingsChanged"));
+				return refreshedUserData;
 			} catch (error) {
 				console.error('Failed to fetch data', error);
+				return null;
 			}
 		},
 		[
@@ -203,11 +207,13 @@ const Settings = () => {
 			}));
 			if (deleteResp.status === 204) {
 				await keystoreCommit();
-				await signalWebauthnCredentialsAfterDeletion([credential]);
 			} else {
 				console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
 			}
-			await refreshData();
+			const refreshedUserData = await refreshData();
+			if (deleteResp.status === 204 && refreshedUserData) {
+				await signalAcceptedWebauthnCredentials(refreshedUserData);
+			}
 
 		} catch (e) {
 			console.error("Failed to delete WebAuthn credential", e);
