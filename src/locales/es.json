@@ -1,0 +1,426 @@
+{
+	"ConnectionStatusIcon": {
+		"qualityLabels": {
+			"connecting": "Conectando...",
+			"excellent": "Excelente",
+			"fair": "Razonable",
+			"good": "Bueno",
+			"poor": "Pobre",
+			"veryPoor": "Muy Pobre"
+		},
+		"status": "Estado de Conexión:"
+	},
+	"PinInputPopup": {
+		"description": "Por favor ingrese el PIN que fue mostrado por el emisor",
+		"errMessage": "Usted ha ingresado un pin incorrecto",
+		"inputPlaceholder": "Pin",
+		"title": "Ingrese el Pin"
+	},
+	"common": {
+		"cancel": "Cancelar",
+		"continue": "Continuar",
+		"delete": "Borrar",
+		"externalPasskey": "Passkey en una llave de seguridad",
+		"hybridPasskey": "Passkey de un dispositivo en la cercanía",
+		"navItemAddCredentials": "Agregar Credenciales",
+		"navItemAddCredentialsSimple": "Agregar",
+		"navItemCredentials": "Credenciales",
+		"navItemHistory": "Historia",
+		"navItemProfile": "Perfil",
+		"navItemSendCredentials": "Enviar Credenciales",
+		"navItemSendCredentialsSimple": "Enviar",
+		"navItemSettings": "Ajustes",
+		"next": "Siguiente",
+		"offline": "Fuera de linea",
+		"offlineTitle": "Está fuera de línea. Usted no tiene acceso acá en este momento.",
+		"online": "En linea",
+		"passwordHideAriaLabel": "Ocultar clave",
+		"passwordHideTitle": "Cliquee para ocultar clave",
+		"passwordShowTitle": "Cliquee para mostrar clave",
+		"platformPasskey": "Passkey en este dispositivo",
+		"previous": "Anterior",
+		"privateDataConflict": "Su sesión está fuera de sincronización con el servidor. Por favor desconéctese, luego conectese e intente nuevamente.",
+		"refresh": "Refrescar",
+		"save": "Grabar",
+		"showLess": "Mostrar menos",
+		"showMore": "Mostrar más",
+		"submit": "Enviar",
+		"tryAgain": "Intentar nuevamente",
+		"walletName": "wwWallet"
+	},
+	"credentialInfo": {
+		"legendAriaLabel": "Leyenda de afirmación",
+		"legendRequested": "Solicitado por el verificador",
+		"legendRequired": "Requerido"
+	},
+	"expiredRibbon": {
+		"expired": "Expirado"
+	},
+	"issuance": {
+		"credentialsHaveErrors": "Se han encontrado errores mientras se verificaba la credencial que usted está tratando de recibir.",
+		"error": "Error de emisión",
+		"proceed": "¿Quiere usted recibir esta credencial?",
+		"title": "Emisión de Credencial"
+	},
+	"language": {
+		"label": "Idioma"
+	},
+	"layout": {
+		"messageAllowPermission": "Para recibir actualizaciones en tiempo-real de <strong>Credenciales, permita notificaciones y re-cargue esta página</strong>.",
+		"messageOffline": "Usted está actualmente <strong>fuera de linea. Algunas características podrían no estar disponibles.</strong>",
+		"messageResetPermission": "Algo <strong>no está funcionando adecuadamente con las notificaciones</strong>, por favor <reloadButton>recargue esta página</reloadButton>."
+	},
+	"loginSignup": {
+		"alreadyHaveAccountQuestion": "¿Ya tiene una cuenta? ",
+		"authOnceMoreLogin": "Para finalizar el desbloqueo de su portadocumento, por favor autentiquese con su passkey una vez más.",
+		"capitalLetter": "Al menos una letra en mayúscula",
+		"choosePasskeyPlatform": "Seleccione su tipo de passkey preferido",
+		"choosePasskeyUsername": "¿Como debemos llamarlo?",
+		"confirmPasswordLabel": "Confirmar Clave",
+		"enterPasskeyName": "Elija un nombre para si mismo",
+		"enterPassword": "Ingrese su clave",
+		"enterUsername": "Ingrese su nombre de usuario",
+		"enterconfirmPasswordLabel": "Ingrese su clave de confirmación",
+		"fillInFieldsError": "POr favor complete todos los campos requeridos",
+		"forgetCachedUser": "Cliquee para Olvidar el Usuario que está en el Caché {{name}}",
+		"incorrectCredentialsError": "Nombre de usuario o clave incorrecta",
+		"login": "Conectar",
+		"loginAsUser": "Conectado como {{name}}",
+		"loginCache": "Seleccione su cuenta",
+		"loginKeystoreFailed": "Ha fallado el acceso al almacenamiento de llaves del portadocumentos, por favor reintente nuevamente.",
+		"loginLocalKeystoreFailed": "Ha fallado la inicialización del almacenamiento de llaves del portadocumento, por favor reintente nuevamente.",
+		"loginSubmit": "Conectar",
+		"loginTitle": "Conectar con una Passkey",
+		"messageOffline": "Usted está fuera de linea. Algunas características podrían no estar disponible.",
+		"newHereQuestion": "¿No tiene una cuenta? ",
+		"number": "Al menos un número",
+		"or": "O",
+		"passkeyInvalid": "Passkey desconocido, posiblemente borrado por el usuario.",
+		"passkeyLoginFailedServerError": "Ha fallado la iniciación de la conexión con el passkey, por favor reintente nuevamente.",
+		"passkeyLoginFailedTryAgain": "Conexión fallida con el Passkey, por favor reintente nuevamente.",
+		"passkeySignupFailedServerError": "Ha fallado la iniciación de la creación del passkey, por favor reintente nuevamente.",
+		"passkeySignupFailedTryAgain": "La creación del passkey ha fallado, por favor reintente nuevamente.",
+		"passkeySignupFinishFailedServerError": "Ha fallado la finalización de la creación del passkey, por favor reintente nuevamente.",
+		"passkeySignupKeystoreFailed": "Ha fallado la inicialización del almacenamiento de llaves del portadocumentos, por favor reintente nuevamente.",
+		"passkeySignupPrfNotSupported": "Este navegador o llave de seguridad no está soportado.  Por favor asegurese que su navegador soporte la extensión WebAuthn PRF y su llave de seguridad, si tiene, soporte la extensión \"hmac-secret\". <docLink>Aprenda más acá</docLink>.",
+		"passkeySignupPrfNotSupportedAriaLabel": "Aprenda más sobre los navegadores soportados o llaves de seguridad",
+		"passwordLabel": "Clave",
+		"passwordLength": "Largo mínimo: 8 caracteres",
+		"passwordUnlockFailed": "Ha fallado el desbloqueo del portadocumento con la clave",
+		"passwordsNotMatchError": "Claves no coinciden",
+		"privateDataConflict": "Otra sesión para esta cuenta interrumpió el intento de conexión. Por favor reintente nuevamente.",
+		"reachedLengthLimit": "Limite de largo excedido",
+		"signUp": "Inscribirse",
+		"signUpSubmit": "Inscribirse",
+		"specialCharacter": "Al menos un caracter especial",
+		"strength": "Robustez",
+		"submitting": "Enviando...",
+		"useOtherAccount": "Use otro Cuenta",
+		"usernameExistsError": "Ha fallado la creación de la cuenta de usuario, el nombre de usuario ya existe",
+		"usernameLabel": "Nombre de Usuario",
+		"weakPasswordError": "Clave débil",
+		"welcomeMessage": "Bienvenido a <highlight>$t(common.walletName)</highlight>"
+	},
+	"loginState": {
+		"confirm": "Confirmar",
+		"message": "Use su <strong>passkey</strong> para continuar y capture su credencial en su portadocumentos.",
+		"title": "Hola,",
+		"welcomeBackMessage": "Bienvenido de vuelta a <highlight>$t(common.walletName)</highlight>"
+	},
+	"messagePopup": {
+		"close": "Cerrar",
+		"insufficientCredentials": {
+			"description": "Una o más de las credenciales que quiere presentar no existen para su selección.",
+			"title": "Credenciales Insuficientes"
+		},
+		"nonTrustedVerifier": {
+			"description": "Verificador no proveyó datos válidos para su verificación",
+			"title": "Verificador no es Confiable"
+		},
+		"onlyOneInputDescriptor": {
+			"description": "Actualmente el portadocumentos no puede aceptar una Solicitud de Presentación de más de una credencial a la vez.",
+			"title": "Versión de protocolo no soportado"
+		},
+		"sendResponseError": {
+			"description": "Un error ocurrió durante la presentación de las credenciales.",
+			"title": "Envio de una Respuesta de Error"
+		},
+		"sendResponseSuccess": {
+			"description": "Credenciales se enviaron exitosamente.",
+			"title": "La presentación fue exitosa"
+		}
+	},
+	"notFound": {
+		"homeButton": "Volver al Inicio",
+		"message": "Lo sentimos, la página que usted está solicitando no puede ser accesada",
+		"title": "¡Ups, página no encontrada!"
+	},
+	"notifications": {
+		"newCredential": {
+			"message": "Una nueva credencial ha llegado.",
+			"title": "Nueva credencial"
+		},
+		"success": {
+			"message": "La operación fue completada exitosamente.",
+			"title": "Exito"
+		}
+	},
+	"pageAddCredentials": {
+		"description": "Buscar y seleccionar la credencial que quiere emitir",
+		"noFound": "No se encontraron emisores coincidentes.",
+		"popup": {
+			"message": "Usted va a ser redirigido a <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir una <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+			"title": "Seleccionada:"
+		},
+		"searchPlaceholder": "Buscar credencial..."
+	},
+	"pageCredentials": {
+		"addCard": {
+			"text": "Agregar Nueva Credencial",
+			"title": "Credencial Verificable"
+		},
+		"copyDatasetToClipboard": "Copiar el Dataset (JSON) al portapapeles",
+		"credentialDetailsTitle": "Cliquee para visualizar detalle de {{friendlyName}}",
+		"credentialFullScreenTitle": "Cliquee para visualizar pantalla completa de {{friendlyName}}",
+		"credentialTitle": "Credencial",
+		"datasetTitle": "Dataset",
+		"delete": "Borrar Credencial",
+		"deletePopupMessage": "¿Está seguro que quiere borrar la credencial <strong>{{credentialName}}</strong>?<br/> Si usted lo borra, <strong>todas las presentaciones que incluyen esta CV serán sacadas de su historia.</strong>",
+		"description": "Visualizar todas sus credenciales",
+		"details": {
+			"availableUsages": "Usos Disponibles",
+			"description": "Visualización de toda la información sobre la credencial seleccionada",
+			"expired": "Esta Credencial ha expirado"
+		},
+		"presentationsTitle": "Presentaciones",
+		"slideButtonAriaLabelDisable": "Credencial {{direction}} no está",
+		"slideButtonAriaLabelEnable": "Ir a credencial {{direction}}",
+		"slideButtonTitleDisable": "Credencial {{direction}} no disponible",
+		"slideButtonTitleEnable": "Cliquee para moverse a la credencial {{direction}}",
+		"slideNext": "siguiente",
+		"slidePrevious": "anterior"
+	},
+	"pageHistory": {
+		"description": "Visualizar la historia de la transmisiones de credenciales, detallando cuando y a que verificadores se los ha enviado",
+		"noFound": "No se encontraron presentaciones",
+		"popupTitle": "Credenciales Presentadas",
+		"presentationDetails": {
+			"title": "Detalles de las Presentación"
+		}
+	},
+	"pagePending": {
+		"description": "Visualizar las solicitudes emisión pendientes",
+		"noFound": "No hay solicitudes pendientes de emisión",
+		"title": "Solicitudes de emisión pendientes"
+	},
+	"pageSendCredentials": {
+		"description": "Buscar y seleccionar un verificador para compartir credenciales",
+		"noFound": "No se encontraron verificadores coincidentes.",
+		"popup": {
+			"message": "Usted será redirigido a <strong>{{verifierName}}</strong>.",
+			"title": "Seleccionado:"
+		},
+		"searchPlaceholder": "Buscar verificadores..."
+	},
+	"pageSettings": {
+		"addPasskey": "Agregar passkey:",
+		"addPasskeyTitle": "Cliquee para Agregar passkey",
+		"appVersion": {
+			"descriptionLatestVersion": "Usted actualmente usando la última versión $t(common.walletName) {{react_app_version}}",
+			"descriptionOldVersion": "Usted actualmente está usando la versión wwWallet {{react_app_version}}.<br/> <strong>Una nueva versión está disponible.</strong> ¡Por favor <reloadButton>refresh</reloadButton> para actualizar!"
+		},
+		"appearance": {
+			"colorScheme": {
+				"dark": "Oscuro",
+				"description": "Seleccione si la apariencia debe ser clara o oscura, o siga los ajustes de su dispositivo.",
+				"light": "Claro",
+				"system": "Sistema",
+				"title": "Esquema de Color"
+			},
+			"title": "Apariencia"
+		},
+		"deleteAccount": {
+			"buttonText": "Borrar su cuenta",
+			"deleteButtonTitleLocked": "Usted no puede borrar su cuenta mientras esté bloqueada",
+			"description": "Cuando usted borre su cuenta, no hay forma de volver atrás. Por favor esté seguro.",
+			"message": "¿Está seguro que quiere borrar <strong>su Cuenta</strong> ?",
+			"title": "Borrar cuenta"
+		},
+		"description": "Visualizar información de su cuenta y administrar passkeys",
+		"lockSensitive": "Bloquear acciones sensibles",
+		"lockSensitiveTitle": "Cliquee para bloquear acciones sensibles",
+		"noOtherPasskeys": "No hay otras passkeys en esta cuenta.",
+		"oblivious": {
+			"description": "Seleccione una pasarela para usar Oblivious HTTP",
+			"disabled": "No usar Oblivious HTTP",
+			"gunet": "Pasarela GUnet",
+			"successMessage": "Grabado",
+			"title": "Oblivious HTTP"
+		},
+		"passkeyItem": {
+			"canEncrypt": "Puede Encriptar",
+			"canEncryptNo": "No",
+			"canEncryptYes": "Sí",
+			"cancelChangesAriaLabel": "Cancelar los cambios al passkey {{passkeyLabel}}",
+			"created": "Creado",
+			"deleteAriaLabel": "Borrar passkey {{passkeyLabel}}",
+			"deleteButtonTitleUnlocked": "Cliquee para borrar passkey {{passkeyLabel}}",
+			"lastUsed": "Usado últimamente",
+			"messageDeletePasskey": "¿Está seguro que quiere borrar el passkey <strong>{{nickname}}</strong>?",
+			"needsPrfUpgrade": "Requiere actualización",
+			"nickname": "Alias",
+			"nicknameInput": "Nuevo alias",
+			"nicknameInputAriaLabel": "Ingrese un nuevo alias para el passkey {{passkeyLabel}}",
+			"prfUpgrade": "Actualizar",
+			"prfUpgradeAriaLabel": "Actualizar passkey {{passkeyLabel}}",
+			"rename": "Renombrar",
+			"renameAriaLabel": "Renombrar passkey {{passkeyLabel}}",
+			"saveChangesAriaLabel": "Grabar cambios al passkey {{passkeyLabel}}",
+			"unnamed": "Passkey sin nombre"
+		},
+		"rememberIssuer": {
+			"description": "Fijar la duración para el acceso a emisores sin re-autenticar (sujeto a las políticas del emisor)",
+			"options": {
+				"day": "1 día",
+				"hour": "1 hora",
+				"month": "1 mes",
+				"none": "Autenticar Siempre",
+				"week": "1 semana"
+			},
+			"successMessage": "Grabado"
+		},
+		"title": {
+			"appVersion": "Versión de la App",
+			"confirmDeletePopup": "¿Está Usted Seguro?",
+			"language": "Idioma",
+			"loggedInPasskey": "Conectado con Passkey",
+			"manageAcount": "Administrar Cuenta",
+			"manageOtherPasskeys": "Administrar otras Passkeys",
+			"rememberIssuer": "Recordar Emisor"
+		},
+		"unlockPassword": {
+			"description": "´Por favor ingrese su clave para desbloquear el portadocumentos.",
+			"passwordInputAriaLabel": "Clave",
+			"passwordInputPlaceholder": "Clave",
+			"title": "Ingrese Clave"
+		},
+		"unlockSensitive": "Desbloquear acciones sensibles",
+		"unlockSensitiveTitle": "Cliquee para desbloquear acciones sensibles",
+		"upgradePrfKey": {
+			"description": "Porfavor autentíquese con el passkey \"{{passkeyLabel}}\"...",
+			"error": "<p>Algo salió mal, porfavor reintente nuevamente.</p><p>Porfavor note que usted necesita autenticarse con el passkey \"{{passkeyLabel}}\".</p>",
+			"title": "Actualizando la encriptación de la llave del passkey"
+		}
+	},
+	"parsing": {
+		"errorCouldNotParse": "La credencial no pudo ser analizada.",
+		"errorInvalidDatatype": "La credencial no pudo ser analizada.",
+		"errorMissingIssuerIdentifier": "Falta el identificador del emisor.",
+		"errorNotSupportedCredentialType": "Este tipo de credencial no es soportado."
+	},
+	"pendingTransactions": {
+		"subtitle": "Esperando que la emsión se complete",
+		"title": "{{count}} credenciales pendiente(s)",
+		"view": "Visualizar detalles"
+	},
+	"pwaInstallPrompt": {
+		"button": {
+			"closeTitle": "Cliquee para cerrar el mensaje de Instalación del PWA",
+			"install": "Instalar"
+		},
+		"message": "Disponible PWA"
+	},
+	"qrCodeScanner": {
+		"cameraPermissionAllow": "Porfavor permita usar la cámara para usar el escáner de QR.",
+		"description": "Apunte al Código QR, y usted será redirigido para comenzar con el proceso",
+		"title": "Escanear el código QR"
+	},
+	"qrShareMdoc": {
+		"communicating": "Comunicandose con el verificador...",
+		"enablePermissions": "Nosotros no pudimos acceder a las características del dispositvo que está en la cercanía. Por favor habilite los permisos de los dispositivos que están en su cercanía para realizar ajustes y reinicir la app.",
+		"nearbyVerifierRequested": "Un verificador que está en la cercanía requiere los sieguientes campos:",
+		"send": "Enviar",
+		"shareUsingQR": "Compartir usando Código QR"
+	},
+	"queryableList": {
+		"all": "Todo",
+		"recent": "Reciente"
+	},
+	"registerPasskey": {
+		"authOnceMore": "Para terminar de establecer la configuración, por favor autentíquese una vez más.",
+		"giveNickname": "Asigne a esta credencial un alias:",
+		"messageDone": "¡Casi terminado!",
+		"messageErrorTryAgain": "Algo salió mal, por favor reintente nuevamente.<br/> Por favor note que necesita usar la misma passkey que usted creó en el paso anterior.",
+		"messageInteract": "Por favor interactúe con su autenticador...",
+		"messageInteractNewPasskey": "Por favor autentíquese con el nuevo passkey...",
+		"messageSuccess": "¡Exito!",
+		"nicknameAriaLabel": "Alias para su nueva credencial",
+		"nicknamePlaceholder": "Alias de la credencial",
+		"passkeyCreated": "Su passkey ha sido creado."
+	},
+	"selectCredentialPopup": {
+		"allClaimsRequested": "El verificador ha solicitado todas las afirmaciones de su credencial.",
+		"baseTitle": "Enviar Credenciales",
+		"credentialSelectTitle": "Cliquee para seleccionar el {{friendlyName}}",
+		"nextButtonDisabledTitle": "Usted debe seleccionar una Credencial para proceder",
+		"previewDescription": "Se le solicitará que seleccione credenciales que coincida con los requerimientos abajo.",
+		"previewTitle": "Previsualizar",
+		"purpose": "Propósito: ",
+		"purposeNotSpecified": "No especificado por el verificador",
+		"qcRequest": "Esta transacción solicita la creación de certificados de firmas de acuerdo a los Términos y Condiciones (T&C) del QTSP",
+		"request": "Solicitud:",
+		"requestedCredentialsFieldsTitle": "Campos requeridos:",
+		"requestingParty": "Contraparte Solicitante: ",
+		"selectDescription": "Seleccion la Credencial que usted quiere presentar.",
+		"selectTitle": "Seleccionar",
+		"signedDocuments": "Documentos a ser Firmados: ",
+		"specificClaimsRequested": "El Verificador ha solicitado afirmaciones específicas de la credencial.",
+		"summaryDescription": "Usted está a punto de compartir <strong>solamente los siguientes campos</strong> de las credenciales seleccionadas.",
+		"summaryTitle": "Resumen",
+		"transactionDataExample": "Aceptar los términos y condiciones del ejemplo de datos de transacciones"
+	},
+	"sidebar": {
+		"navItemLogout": "Desconectarse",
+		"obliviousEnabled": "Solicitudes privadas con Oblivious HTTP habilitado",
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredByAriaLabel": "Repositorio GitHub de wwWallet"
+	},
+	"syncPopup": {
+		"description": "Al parecer usted ha <strong>modificado su portadocumentos en otra sesión</strong>. Use su <strong>passkey</strong> para sincronizar su portadocumentos.",
+		"title": "Sincronizar Portadocumentos"
+	},
+	"tourGuide": {
+		"closeTourButton": "Cerrar Tour",
+		"tourComplete": "¡Muchas gracias por completar el tour, esperamos que haya sido de ayuda!",
+		"tourStep1": "Aquí, usted puede visualizr todas las credenciales almacenadas. Cliquee la tarjeta 'Agregar Nueva Credencial' para obtener una nueva CV del Emisor disponible",
+		"tourStep2": "La página 'Credenciales' es su página de Inicio, donde usted puede administrar sus credenciales.",
+		"tourStep3": "La página 'Agregar Credenciales' permite que usted reciba credenciales de un Emisor específico",
+		"tourStep4": "Cliquee este botón para escanear un códifo QR para enviar o recibir credenciales.",
+		"tourStep5": "Use la página 'Enviar Credenciales' para selecciona un verificador para compartir sus credenciales.",
+		"tourStep6": "En la página 'Historia', usted puede visualizar los detalles de las trasmisiones de credenciales, incluyendo cuando y a que verificadores éstos fueron enviados.",
+		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings."
+	},
+	"updateNotification": {
+		"description": "¡Una Nueva Versión está disponible!"
+	},
+	"viewSelect": {
+		"aria": {
+			"menuLabel": "Opciones de visualización de credencial",
+			"option": "Visualizar: {{label}}",
+			"toggle": "Cambiar visualización"
+		},
+		"options": {
+			"horizontalSlider": "Deslizador Horizontal",
+			"list": "Lista",
+			"verticalSlider": "Deslizador Vertical"
+		},
+		"view": "View"
+	},
+	"welcomeModal": {
+		"description": "Descubra <strong> $t(common.walletName) </strong>, su herramienta más actual para administrar sus credenciales digitales. ¡Sin esfuerzo visualize, obtenga, presente y mantenga trazabilidad de todas sus credenciales!",
+		"dismissButton": "No considere",
+		"question": "¿Está listo para explorar las características de $t(common.walletName) a través un tour guiado?",
+		"startTourButton": "Comience el Tour",
+		"title": "Bienvenido a $t(common.walletName)!"
+	}
+}
