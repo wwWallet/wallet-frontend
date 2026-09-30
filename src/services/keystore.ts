@@ -681,7 +681,7 @@ async function createPrfKey(
 		promptForPrfRetry,
 	);
 	const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
-	const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
+	const hkdfInfo = new Uint8Array(new TextEncoder().encode("eDiplomas PRF"));
 	const algorithm = { name: "AES-GCM", length: 256 };
 	const deriveKeyParams = { hkdfSalt, hkdfInfo, algorithm };
 	const prfKey = await derivePrfKey(prfOutput, deriveKeyParams);
