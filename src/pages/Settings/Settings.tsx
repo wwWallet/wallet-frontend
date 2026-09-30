@@ -20,7 +20,7 @@ import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
-import { signalCurrentUserDetails, signalUnknownCredential } from '@/util-webauthn';
+import { signalAllAcceptedCredentials, signalCurrentUserDetails, signalUnknownCredential } from '@/util-webauthn';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
@@ -104,9 +104,13 @@ const Settings = () => {
 
 	const deleteAccount = async () => {
 		try {
-			const deletedCredentials = userData?.webauthnCredentials ?? [];
+			const userId = toBase64Url(new TextEncoder().encode(userData.uuid));
 			await api.del('/user/session');
-			await signalWebauthnCredentialsAfterDeletion(deletedCredentials);
+			await signalAllAcceptedCredentials({
+				rpId: WEBAUTHN_RPID,
+				userId,
+				allAcceptedCredentialIds: [],
+			});
 			const userHandleB64u = new TextEncoder().encode(userData.uuid);
 			const cachedUser = keystore.getCachedUsers()
 				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
