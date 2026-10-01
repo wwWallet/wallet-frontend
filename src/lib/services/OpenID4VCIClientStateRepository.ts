@@ -14,7 +14,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 
 	const { getCalculatedWalletState, saveCredentialIssuanceSessions } = keystore;
 	// key: sessionId
-	const sessions = useRef<Map<number, WalletStateCredentialIssuanceSession>>(null);
+	const sessions = useRef<Map<number, WalletStateCredentialIssuanceSession> | null>(null);
 	const [initialized, setInitialized] = useState<boolean>(false);
 
 	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
@@ -56,13 +56,13 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 
 	const cleanupExpired = useCallback(async (): Promise<number[]> => {
 		if (!sessions.current) {
-			return;
+			return [];
 		}
 		const rememberIssuerForSeconds = await getRememberIssuerAge();
 		console.log("Rememeber issuer for seconds = ", rememberIssuerForSeconds)
 
 		if (rememberIssuerForSeconds == null) {
-			return;
+			return [];
 		}
 		const now = Math.floor(new Date().getTime() / 1000);
 		const deletedSessions = [];
