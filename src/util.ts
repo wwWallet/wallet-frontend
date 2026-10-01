@@ -244,12 +244,11 @@ export function getElementPropValue(
 	property: string
 ): string | number | undefined {
 	let value = obj;
-	const propsArray = property.split(".");
-	while (propsArray.length) {
+	for (const prop of property.split(".")) {
 		if (!value) {
 			break;
 		}
-		value = value[propsArray.shift()];
+		value = value[prop];
 	}
 	return value;
 }
