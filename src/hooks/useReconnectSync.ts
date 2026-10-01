@@ -5,7 +5,7 @@ import type { CachedUser, LocalStorageKeystore } from '@/services/LocalStorageKe
 import { useSessionStorage } from '@/hooks/useStorage';
 
 type UseReconnectSyncArgs = {
-	isOnline: boolean,
+	isOnline: boolean | null,
 	isLoggedIn: boolean,
 	cachedUser: CachedUser | null,
 	synced: boolean,

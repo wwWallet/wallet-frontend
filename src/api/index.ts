@@ -95,7 +95,7 @@ export interface BackendApi {
 	>>;
 }
 
-export function useApi(isOnlineProp: boolean = true): BackendApi {
+export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 	const isOnline = useMemo(() => isOnlineProp === null ? true : isOnlineProp, [isOnlineProp]);
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [userHandle,] = useSessionStorage<string | null>("userHandle", null);
