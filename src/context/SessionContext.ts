@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import { createContext } from 'react';
 import { BackendApi } from '../api';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { HpkeConfig } from '@/lib/utils/ohttpHelpers';
@@ -11,7 +11,7 @@ export type SessionContextValue = {
 	obliviousKeyConfig: HpkeConfig
 };
 
-const SessionContext: React.Context<SessionContextValue> = createContext({
+const SessionContext = createContext<SessionContextValue>({
 	api: undefined,
 	isLoggedIn: false,
 	keystore: undefined,

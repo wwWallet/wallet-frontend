@@ -1,5 +1,4 @@
 import { IOpenID4VP } from "../../interfaces/IOpenID4VP";
-import type { OpenID4VPServerCredential } from "wallet-common";
 import { OpenID4VPServerAPI, OpenID4VPResponseMode } from "wallet-common";
 import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartyState";
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
@@ -77,15 +76,19 @@ export function useOpenID4VP({
 				};
 			},
 		};
-		const selectCredentialForBatch = async (batchId: number, vcEntityList: ExtendedVcEntity[]): Promise<OpenID4VPServerCredential | null> => {
+		const selectCredentialForBatch = async (batchId: number, vcEntityList: ExtendedVcEntity[]): Promise<ExtendedVcEntity | null> => {
 			const walletState = keystore.getCalculatedWalletState();
 			if (!walletState) {
 				throw new Error("Empty wallet state");
 			}
-			return getLeastUsedCredentialInstance(batchId, vcEntityList, walletState);
+			const selectedCredential = await getLeastUsedCredentialInstance(batchId, vcEntityList, walletState);
+			const batchCredential = vcEntityList.find(credential => credential.batchId === batchId);
+			return selectedCredential && batchCredential
+				? { ...batchCredential, ...selectedCredential }
+				: null;
 		};
 
-		return new OpenID4VPServerAPI<OpenID4VPServerCredential, ParsedTransactionData>({
+		return new OpenID4VPServerAPI<ExtendedVcEntity, ParsedTransactionData>({
 			httpClient: { get: httpProxy.get },
 			rpStateStore,
 			parseCredential,
