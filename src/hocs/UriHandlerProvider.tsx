@@ -223,6 +223,9 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			console.log('[Uri Handler]: check', url);
 			setUrl('');
 
+			const code = u.searchParams.get('code');
+			const requestUri = u.searchParams.get('request_uri');
+
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
 					const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer);
@@ -272,8 +275,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				})
 				return;
 			}
-			else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code'))) {
-				setUsedAuthorizationCodes((codes) => [...codes, u.searchParams.get('code')]);
+			else if (code && !usedAuthorizationCodes.includes(code)) {
+				setUsedAuthorizationCodes((codes) => [...codes, code]);
 
 				console.log("Handling authorization response...");
 				handleAuthorizationResponse(u.toString()).then(() => {
@@ -283,14 +286,14 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					console.error('Error during the handling of authorization response', err);
 				})
 			}
-			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
-				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
+			else if (u.searchParams.get('client_id') && requestUri && !usedRequestUris.includes(requestUri)) {
+				setUsedRequestUris((uriArray) => [...uriArray, requestUri]);
 				await handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
 					console.log("Result = ", result);
 					const { conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData } = result;
 					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
 					console.log("Prompting for selection..")
-					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData);
+					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData ?? undefined);
 				}).then((selection) => {
 					if (!(selection instanceof Map)) {
 						return;
