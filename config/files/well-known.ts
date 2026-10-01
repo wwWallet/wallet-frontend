@@ -52,11 +52,13 @@ function generateAndroidAssetLinks(packages: unknown): FileToWrite<AndroidAssetL
 
 		if (!pkgName || !fingerprint) continue;
 
-		if (!pkgsList.has(pkgName)) {
-			pkgsList.set(pkgName, []);
+		let fingerprints = pkgsList.get(pkgName);
+		if (!fingerprints) {
+			fingerprints = [];
+			pkgsList.set(pkgName, fingerprints);
 		}
 
-		pkgsList.get(pkgName).push(fingerprint);
+		fingerprints.push(fingerprint);
 	}
 
 	if (pkgsList.size < 1) return;
