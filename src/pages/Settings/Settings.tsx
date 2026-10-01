@@ -3,7 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
 import NotificationContext from '@/context/NotificationContext';
 
@@ -37,8 +37,7 @@ import WebauthnRegistration from './components/WebauthnRegistration';
 import WebauthnCredentialItem, { useWebauthnCredentialName } from './components/WebauthnCredentialItem';
 
 type UpgradePrfState = (
-	null
-	| {
+	{
 		state: "authenticate",
 		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 		webauthnCredential: WebauthnCredential,
@@ -48,7 +47,7 @@ type UpgradePrfState = (
 		state: "err",
 		err: any,
 		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
-		webauthnCredential: WebauthnCredential,
+		webauthnCredential?: WebauthnCredential,
 	}
 );
 
@@ -56,15 +55,15 @@ const CLEAR_CACHE_SUCCESS_QUERY_PARAM = 'cacheCleared';
 
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
-	const { api, logout, keystore } = useContext(SessionContext);
+	const { api, logout, keystore } = useSessionContext();
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const notifications = useContext(NotificationContext);
-	const [userData, setUserData] = useState<UserData>(null);
+	const [userData, setUserData] = useState<UserData | null>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
 	const [unlockInProgress, setUnlockInProgress] = useState(false);
 	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
-	const showDelete = userData?.webauthnCredentials?.length > 1;
+	const showDelete = (userData?.webauthnCredentials?.length ?? 0) > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -155,6 +154,9 @@ const Settings = () => {
 	};
 
 	const deleteAccount = async () => {
+		if (!userData) {
+			return;
+		}
 		try {
 			const userId = toBase64Url(new TextEncoder().encode(userData.uuid));
 			await api.del('/user/session');
@@ -225,6 +227,9 @@ const Settings = () => {
 			try {
 				const response = await api.get('/user/session/account-info');
 				const s = keystore.getCalculatedWalletState();
+				if (!s) {
+					return;
+				}
 				const refreshedUserData: UserData = {
 					...response.data,
 					settings: s.settings,
@@ -292,16 +297,23 @@ const Settings = () => {
 	};
 
 	const onUpgradePrfKey = async (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => {
+		if (!userData) {
+			return;
+		}
 		try {
 			const [newPrivateData, keystoreCommit] = await keystore.upgradePrfKey(
 				prfKeyInfo,
 				async () => {
 					const abortController = new AbortController();
+					const webauthnCredential = userData.webauthnCredentials.find(cred => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId));
+					if (!webauthnCredential) {
+						throw new Error("Missing WebAuthn credential for PRF key");
+					}
 					setUpgradePrfState(
 						{
 							state: "authenticate",
 							prfKeyInfo,
-							webauthnCredential: userData.webauthnCredentials.find(cred => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId)),
+							webauthnCredential,
 							abortController,
 						}
 					);
@@ -323,7 +335,12 @@ const Settings = () => {
 			}
 
 			console.error("Failed to upgrade PRF key", e);
-			setUpgradePrfState(state => ({ state: "err", err: e, prfKeyInfo, webauthnCredential: state?.webauthnCredential }));
+			setUpgradePrfState((state) => ({
+				state: "err",
+				err: e,
+				prfKeyInfo,
+				webauthnCredential: state?.webauthnCredential,
+			}));
 		}
 	};
 
@@ -342,8 +359,12 @@ const Settings = () => {
 			if (isNaN(parseInt(newMaxAge))) {
 				throw new Error("Update token max age: newMaxAge is not a number");
 			}
+			const walletState = getCalculatedWalletState();
+			if (!walletState) {
+				return;
+			}
 			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
-				...getCalculatedWalletState().settings,
+				...walletState.settings,
 				openidRefreshTokenMaxAgeInSeconds: newMaxAge,
 			});
 			await api.updatePrivateData(newPrivateData);
@@ -365,8 +386,12 @@ const Settings = () => {
 			if (!['true', 'false'].includes(useOblivious)) {
 				throw new Error("Update useOblivious: invalid value");
 			}
+			const walletState = getCalculatedWalletState();
+			if (!walletState) {
+				return;
+			}
 			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
-				...getCalculatedWalletState().settings,
+				...walletState.settings,
 				useOblivious: useOblivious.toString(),
 			});
 			await api.updatePrivateData(newPrivateData);
@@ -642,12 +667,14 @@ const Settings = () => {
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button
-									variant='primary'
-									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-								>
-									{t('common.tryAgain')}
-								</Button>
+								{upgradePrfState?.state === "err" && (
+									<Button
+										variant='primary'
+										onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
+									>
+										{t('common.tryAgain')}
+									</Button>
+								)}
 							</div>
 						</>
 					}

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useContext, useRef, useCallback, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
-import SessionContext from "../context/SessionContext";
+import { useSessionContext } from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
 import type { OpenidCredentialIssuerMetadata } from "wallet-common";
-import OpenID4VCIContext from "../context/OpenID4VCIContext";
-import OpenID4VPContext from "../context/OpenID4VPContext";
+import { useOpenID4VCIContext } from "../context/OpenID4VCIContext";
+import { useOpenID4VPContext } from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import SyncNotificationContext from "@/context/SyncNotificationContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
@@ -32,15 +32,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 	const usedPreAuthorizedCodes = useRef<string[]>([]);
 
-	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore, logout } = useSessionContext();
 	const { syncPrivateData, useClearOnClearSession } = api;
 	const { getUserHandleB64u, getCachedUsers, getCalculatedWalletState } = keystore;
 
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
-	const { openID4VCI } = useContext(OpenID4VCIContext);
-	const { openID4VP } = useContext(OpenID4VPContext);
+	const { openID4VCI } = useOpenID4VCIContext();
+	const { openID4VP } = useOpenID4VPContext();
 
 	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse, requestCredentialsWithPreAuthorization } = openID4VCI;
 	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
@@ -215,6 +215,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			!handleCredentialOffer || !generateAuthorizationRequest || !handleAuthorizationResponse ||
 			!handleAuthorizationRequest || !promptForCredentialSelection || !sendAuthorizationResponse
 		) return;
+		const availableVcEntityList = vcEntityList;
 
 		async function handle(urlToCheck: string) {
 			const u = new URL(urlToCheck);
@@ -222,6 +223,9 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			// setUrl(window.location.origin);
 			console.log('[Uri Handler]: check', url);
 			setUrl('');
+
+			const code = u.searchParams.get('code');
+			const requestUri = u.searchParams.get('request_uri');
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
@@ -272,8 +276,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				})
 				return;
 			}
-			else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code'))) {
-				setUsedAuthorizationCodes((codes) => [...codes, u.searchParams.get('code')]);
+			else if (code && !usedAuthorizationCodes.includes(code)) {
+				setUsedAuthorizationCodes((codes) => [...codes, code]);
 
 				console.log("Handling authorization response...");
 				handleAuthorizationResponse(u.toString()).then(() => {
@@ -283,20 +287,20 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					console.error('Error during the handling of authorization response', err);
 				})
 			}
-			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
-				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
-				await handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
+			else if (u.searchParams.get('client_id') && requestUri && !usedRequestUris.includes(requestUri)) {
+				setUsedRequestUris((uriArray) => [...uriArray, requestUri]);
+				await handleAuthorizationRequest(u.toString(), availableVcEntityList).then((result) => {
 					console.log("Result = ", result);
 					const { conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData } = result;
 					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
 					console.log("Prompting for selection..")
-					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData);
+					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData ?? undefined);
 				}).then((selection) => {
 					if (!(selection instanceof Map)) {
 						return;
 					}
 					console.log("Selection = ", selection);
-					return sendAuthorizationResponse(selection, vcEntityList);
+					return sendAuthorizationResponse(selection, availableVcEntityList);
 
 				}).then((res) => {
 					// if (res.state === 'skipped') do nothing

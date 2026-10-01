@@ -145,8 +145,8 @@ describe("useLocalStorageKeystore", () => {
 // Exercise the private merge helper through the public hook. Crypto and storage
 // are controlled boundaries; tagged-binary serialization and React effects run normally.
 describe("unlocking with locally cached encrypted private data", () => {
-	const remote: keystoreApi.AsymmetricEncryptedContainer = { jwe: "remote", prfKeys: [] } as keystoreApi.AsymmetricEncryptedContainer;
-	const merged: keystoreApi.AsymmetricEncryptedContainer = { ...remote, jwe: "merged" };
+	const remote: keystoreApi.EncryptedContainer = { jwe: "remote", prfKeys: [] };
+	const merged = keystoreApi.assertAsymmetricEncryptedContainer({ ...remote, jwe: "merged" });
 	const credential = { id: toBase64Url(new Uint8Array([0xaa])) } as PublicKeyCredential;
 	const userHandle = new TextEncoder().encode("merge-user");
 	const user = { displayName: "Merge User", userHandle };

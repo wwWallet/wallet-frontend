@@ -89,7 +89,7 @@ function makeUseStorage<T>(
 				const listener = (event: StorageEvent) => {
 					if (event.storageArea === storage) {
 						if (event.key === name) { // Storage.setItem(name, value)
-							setValue(jsonParseTaggedBinary(event.newValue));
+							setValue(jsonParseTaggedBinary(event.newValue as string));
 
 						} else if (event.key === null) { // Storage.clear()
 							setValue(initValue);

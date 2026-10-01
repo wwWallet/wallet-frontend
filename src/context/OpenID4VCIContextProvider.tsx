@@ -1,14 +1,14 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useState, useCallback } from "react";
 import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
 import OpenID4VCIContext from "./OpenID4VCIContext";
 import IssuanceConsentPopup from "@/components/Popups/IssuanceConsentPopup";
 import MessagePopup from "@/components/Popups/MessagePopup";
-import SessionContext from "./SessionContext";
+import { useSessionContext } from "./SessionContext";
 import { useOpenID4VCIClientStateRepository } from "@/lib/services/OpenID4VCIClientStateRepository";
 
 export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren) => {
 
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn } = useSessionContext();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { isInitialized } = openID4VCIClientStateRepository;
 

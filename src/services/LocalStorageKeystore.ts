@@ -89,7 +89,7 @@ export interface LocalStorageKeystore {
 	forgetCachedUser(user: CachedUser): void,
 	getUserHandleB64u(): string | null,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
+	generateOpenid4vciProofs(requests: { nonce?: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -217,13 +217,18 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const close = useCallback(
 		async (): Promise<void> => {
 			console.log('Keystore Close');
+			if (!userHandleB64u) {
+				// Not the active tab: shared IndexedDB/localStorage belong to the active tab's session
+				setPrivateData(null);
+				return;
+			}
 			await clearPrivateData(userHandleB64u);
 			await idb.destroy();
 			setCalculatedWalletState(null);
 			clearGlobalUserHandleB64u();
 			clearGlobalTabId();
 		},
-		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, userHandleB64u],
+		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, setPrivateData, userHandleB64u],
 	);
 
 	const assertKeystoreOpen = useCallback(async (): Promise<[EncryptedContainer, CryptoKey]> => {
@@ -304,10 +309,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			queryParams.delete('user');
 			queryParams.delete('sync');
 
-			queryParams.append('user', userHandleB64u);
+			if (userHandleB64u) {
+				queryParams.append('user', userHandleB64u);
+			}
 			queryParams.append('sync', 'fail');
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
-			return null;
+			throw new Error("Failed to decrypt private data");
 		}
 	}, [assertKeystoreOpen, navigate, userHandleB64u]);
 
@@ -315,6 +322,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
 	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
 		const [privateData, mainKey] = await assertKeystoreOpen();
+		if (!userHandleB64u) {
+			throw new Error("User handle is not set");
+		}
 		const [result, [newPrivateData, newMainKey]] = await action(
 			[
 				keystore.assertAsymmetricEncryptedContainer(privateData),
@@ -475,6 +485,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 			return newEncryptedContainer;
 		}
+		throw new Error("User is not set");
 	}, [
 		setUserHandleB64u,
 		setGlobalUserHandleB64u,
@@ -556,6 +567,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[EncryptedContainer, CommitCallback]> => {
 			const [privateData, mainKey] = await assertKeystoreOpen();
+			if (!userHandleB64u) {
+				throw new Error("User handle is not set");
+			}
 			const newPrivateData = await keystore.addPrf(privateData, credential, mainKey, promptForPrfRetry);
 			return [
 				newPrivateData,
@@ -570,6 +584,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const deletePrf = useCallback(
 		(credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
+			if (!privateData || !userHandleB64u) {
+				throw new Error("Keystore is not open");
+			}
 			const newPrivateData = keystore.deletePrf(privateData, credentialId);
 			return [
 				newPrivateData,
@@ -629,6 +646,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				throw new Error("Key is already upgraded");
 
 			} else if (privateData) {
+				if (!userHandleB64u) {
+					throw new Error("User handle is not set");
+				}
 				const newPrivateData = await keystore.upgradePrfKey(privateData, null, prfKeyInfo, promptForPrfRetry);
 				return [
 					newPrivateData,
@@ -670,7 +690,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return privateData !== null && mainKey !== null;
 	}, [privateData, mainKey]);
 
-	const generateOpenid4vciProofs = useCallback(async (requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
+	const generateOpenid4vciProofs = useCallback(async (requests: { nonce?: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -741,6 +761,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	]> => {
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+		if (!calculatedWalletState) {
+			throw new Error("Calculated wallet state is not set");
+		}
 
 		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
 		for (const cred of credentialsToBeDeleted) {

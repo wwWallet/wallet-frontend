@@ -2,8 +2,8 @@ import { IOpenID4VCIHelper } from "../interfaces/IOpenID4VCIHelper";
 import { base64url, importX509, jwtVerify } from "jose";
 import { getPublicKeyFromB64Cert } from "../utils/pki";
 import { useHttpProxy } from "./HttpProxy/HttpProxy";
-import { useCallback, useContext, useMemo } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema, prependToPath } from "wallet-common"
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
@@ -15,7 +15,7 @@ type FetchParseResult<T> =
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
-	const { api } = useContext(SessionContext);
+	const { api } = useSessionContext();
 	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(
@@ -170,7 +170,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					return { metadata: verifiedMetadata };
 				} else {
 					console.warn('Signed metadata verification failed.');
-					return { metadata: null };
+					return null;
 				}
 			}
 
@@ -187,11 +187,16 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			const wellKnownOauthAuthorizationServer = ".well-known/oauth-authorization-server";
 			const wellKnownOpenidConfiguration = ".well-known/openid-configuration";
 
-			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
-			const authorizationServerIdentifierFromCredentialIssuerMetadata = metadata.authorization_servers?.length > 0 ?
-				metadata.authorization_servers[0] :
+			const credentialIssuerMetadata = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+			if (!credentialIssuerMetadata) {
+				return null;
+			}
+			const { metadata } = credentialIssuerMetadata;
+			const authorizationServers = metadata.authorization_servers ?? [];
+			const authorizationServerIdentifierFromCredentialIssuerMetadata = authorizationServers.length > 0 ?
+				authorizationServers[0] :
 				null;
-			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
+			let authzServerMetadata: OpenidAuthorizationServerMetadata | null = null;
 
 			const authorizationServerEndpointPaths = authorizationServerIdentifierFromCredentialIssuerMetadata ? [
 				prependToPath(authorizationServerIdentifierFromCredentialIssuerMetadata, wellKnownOauthAuthorizationServer),
@@ -239,6 +244,9 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			try {
 				if (!metadata) {
 					const response = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+					if (!response) {
+						return null;
+					}
 					metadata = response.metadata;
 				}
 				if (metadata.mdoc_iacas_uri) {
@@ -287,7 +295,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					// Call a callback to update state when metadata resolves.
 					onIssuerMetadataResolved?.(entity.credentialIssuerIdentifier, metadata);
 
-					const logoUris = metadata.display?.map((d: { logo?: { uri?: string } }) => d.logo?.uri).filter(Boolean) || [];
+					const logoUris = metadata.display?.map((d: { logo?: { uri?: string } }) => d.logo?.uri).filter((uri): uri is string => typeof uri === 'string') || [];
 					Object.values(metadata.credential_configurations_supported || {}).forEach((config: any) => {
 						config.display?.forEach((d: { logo?: { uri?: string } }) => d.logo?.uri && logoUris.push(d.logo.uri));
 					});

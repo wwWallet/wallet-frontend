@@ -182,6 +182,9 @@ export function getSessionTranscriptBytes(deviceEngagementBytes: Uint8Array, eRe
 }
 
 export function getDeviceEngagement(uuid: string, publicKeyJWK: JsonWebKey) {
+	if (!publicKeyJWK.x || !publicKeyJWK.y) {
+		throw new Error("EC public key JWK must include x and y");
+	}
 	const bleOptions = new Map<number, any>([
 		[0, false],
 		[1, true],

@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
-import SessionContext from './SessionContext';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useSessionContext } from './SessionContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError, VerifiableCredentialFormat, ParsedCredential } from "wallet-common";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
@@ -10,10 +10,11 @@ import { setAppBadgeCount } from '@/utils';
 import i18n from '@/i18n';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
 
 export const CredentialsContextProvider = ({ children }: React.PropsWithChildren) => {
-	const { api, keystore, isLoggedIn } = useContext(SessionContext);
+	const { api, keystore, isLoggedIn } = useSessionContext();
 	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
 	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());
 	const [currentSlide, setCurrentSlide] = useState<number>(1);
@@ -23,10 +24,10 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 	const { getCalculatedWalletState } = keystore;
 	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
 	// const engineRef = useRef<any>(null);
-	const prevIsLoggedIn = useRef<boolean>(null);
+	const prevIsLoggedIn = useRef<boolean | null>(null);
 
 	const { getExternalEntity } = api;
-	const [pendingTransactions, setPendingTransactions] = useState(null);
+	const [pendingTransactions, setPendingTransactions] = useState<WalletStateCredentialIssuanceSession[] | null>(null);
 
 	useEffect(() => {
 		if (!getCalculatedWalletState) return;
@@ -136,7 +137,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 
 		const { sdJwtVerifier, msoMdocVerifier } = engine;
 		// Filter and map the fetched list in one go
-		let filteredVcEntityList = await Promise.all(
+		const filteredVcEntityList: (ExtendedVcEntity | null)[] = await Promise.all(
 			credentials
 				.filter((credential) => {
 					// Apply filtering by batchId if provided
@@ -175,18 +176,23 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 					};
 				})
 		);
-		filteredVcEntityList = filteredVcEntityList.filter((vcEntity) => vcEntity !== null);
+		const vcEntityList = filteredVcEntityList.filter((vcEntity): vcEntity is ExtendedVcEntity => vcEntity !== null);
 
 		// Sorting by id
-		filteredVcEntityList.reverse();
-		return filteredVcEntityList;
+		vcEntityList.reverse();
+		return vcEntityList;
 	}, [getCalculatedWalletState, parseCredential, credentialEngine]);
 
 
 	const getData = useCallback(async () => {
 		try {
 			const storedCredentials = await fetchVcData();
-			if (storedCredentials != null && (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current)) {
+			if (storedCredentials === null) {
+				setVcEntityList(null);
+				credentialNumber.current = null;
+				return;
+			}
+			if (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current) {
 				setLatestCredentials(storedCredentials.length > 0 ? new Set([storedCredentials[0].batchId]) : new Set());
 				setTimeout(() => {
 					setLatestCredentials(new Set());
@@ -202,7 +208,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 				}
 				return prev;
 			});
-			credentialNumber.current = storedCredentials?.length;
+			credentialNumber.current = storedCredentials.length;
 
 		} catch (error) {
 			console.error('Failed to fetch data', error);

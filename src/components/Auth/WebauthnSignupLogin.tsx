@@ -5,7 +5,7 @@ import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import useScreenType from '@/hooks/useScreenType';
 
 import Button, { Variant } from '../../components/Buttons/Button';
@@ -19,6 +19,7 @@ import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet, X } from 'luc
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
+import type { SignupWebauthnRetryParams } from '@/api';
 
 const FormInputRow = ({
 	IconComponent,
@@ -127,18 +128,18 @@ const WebauthnSignupLogin = ({
 	setIsAccountSwitcherOpen?: (isOpen: boolean) => void,
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
-	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<((accept: boolean) => void) | null>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 
 	const { hasPolicyLinks } = usePolicyLinks();
 	const { t } = useTranslation();
-	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
+	const [retrySignupFrom, setRetrySignupFrom] = useState<SignupWebauthnRetryParams | null>(null);
 
 	const cachedUsers = keystore.getCachedUsers();
 	const loginableCachedUsers = cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0);
@@ -215,7 +216,7 @@ const WebauthnSignupLogin = ({
 				? async () => true // "Try again" already means user agreed to continue
 				: promptForPrfRetry,
 			webauthnHints,
-			retrySignupFrom,
+			retrySignupFrom ?? undefined,
 		);
 		if (result.ok) {
 			setIsAwaitingRedirect(true);
@@ -428,13 +429,13 @@ const WebauthnSignupLogin = ({
 								<div className='flex justify-center gap-4'>
 									<Button
 										id="cancel-prf-loginsignup"
-										onClick={() => resolvePrfRetryPrompt(false)}
+										onClick={() => resolvePrfRetryPrompt?.(false)}
 									>
 										{t('common.cancel')}
 									</Button>
 									<Button
 										id="continue-prf-loginsignup"
-										onClick={() => resolvePrfRetryPrompt(true)}
+										onClick={() => resolvePrfRetryPrompt?.(true)}
 										variant="primary"
 										disabled={prfRetryAccepted}
 									>
@@ -555,7 +556,7 @@ const WebauthnSignupLogin = ({
 										textSize="md"
 										additionalClassName="items-center justify-center relative"
 										disabled={!isLogin && (!isOnline || nameByteLimitReached)}
-										title={!isLogin && (!isOnline ? t("common.offlineTitle") : nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : undefined)}
+										title={!isLogin ? (!isOnline ? t("common.offlineTitle") : nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : undefined) : undefined}
 										value={hint}
 									>
 										<div className="flex flex-col">

@@ -3,8 +3,8 @@ import { cborDecode, cborEncode, DataItem, DeviceResponse, IssuerSigned } from "
 import { v4 as uuidv4 } from 'uuid';
 import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
-import { useCallback, useContext, useMemo, useRef } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo, useRef } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { VerifiableCredentialFormat } from "wallet-common";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
@@ -30,10 +30,10 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const requestedDocTypeRef = useRef<string | null>(null);
 	const requestedNamespaceRef = useRef<string | null>(null);
 	const sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
-	const skDeviceRef = useRef<CryptoKey>(null);
+	const skDeviceRef = useRef<CryptoKey | null>(null);
 	const transportRef = useRef<IBluetoothTransport | null>(null);
 
-	const { keystore, api } = useContext(SessionContext);
+	const { keystore, api } = useSessionContext();
 	const { updatePrivateData } = api;
 	const { addPresentations, generateDeviceResponseWithProximity } = keystore;
 
@@ -131,6 +131,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			deviceEngagementBytesRef.current, // DeviceEngagementBytes
 			decoded.get('eReaderKey'), // EReaderKeyBytes
 		);
+		if (!ephemeralKeyRef.current) {
+			throw new Error("Ephemeral key is not set");
+		}
 		const zab = await deriveSharedSecret(ephemeralKeyRef.current.privateKey, verifierPublicKey);
 		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytesRef.current as Uint8Array<ArrayBuffer>);
 		skDeviceRef.current = await getKey(zab, salt, "SKDevice");
@@ -162,6 +165,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			requestedNamespaceRef.current = namespace ?? null;
 
 			if (requestedDocTypeRef.current && requestedDocTypeRef.current !== credentialDocType) {
+				if (!skDeviceRef.current) {
+					throw new Error("Device encryption key is not set");
+				}
 				const emptyDeviceResponse = DeviceResponse.createSimple({ status: 0 });
 				const ivEncryption = new Uint8Array([
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
@@ -239,6 +245,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc as any, dcqlQuery, sessionTranscriptBytesRef.current);
 
 			// encrypt mdoc response
+			if (!skDeviceRef.current) {
+				throw new Error("Device encryption key is not set");
+			}
 			const ivEncryption = new Uint8Array([
 				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // identifier
 				0x00, 0x00, 0x00, 0x01 // message counter
@@ -256,7 +265,11 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			sessionDataEncodedRef.current = cborEncode(sessionData);
 
 			if (sessionDataEncodedRef.current) {
-				await transportRef.current.sendMessage(sessionDataEncodedRef.current);
+				const transport = transportRef.current;
+				if (!transport) {
+					throw new Error("Bluetooth transport is not set");
+				}
+				await transport.sendMessage(sessionDataEncodedRef.current);
 
 				const presentationSubmission = {
 					id: generateRandomIdentifier(8),

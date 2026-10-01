@@ -337,7 +337,7 @@ export const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> 
 
 export function createOperations(
 	SCHEMA_VERSION: number,
-	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy>,
+	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> | null,
 ) {
 
 	async function calculateEventHash(event: WalletSchemaCommon.WalletSessionEvent | undefined): Promise<string> {

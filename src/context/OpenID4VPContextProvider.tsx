@@ -4,13 +4,13 @@ import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import OpenID4VPContext from "./OpenID4VPContext";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
-import SessionContext from "./SessionContext";
+import { useSessionContext } from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
 
 
 export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
-	const { isLoggedIn } = useContext<any>(SessionContext);
+	const { isLoggedIn } = useSessionContext();
 
 	type CredentialSelectionOptions = {
 		conformantCredentialsMap: Map<string, string[]>,

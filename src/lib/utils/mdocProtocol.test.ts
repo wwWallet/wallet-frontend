@@ -223,7 +223,9 @@ it('can encode, encrypt, decrypt and decode an mdoc response', async () => {
 	// Verifier Side
 	const sessionDataDecoded = cborDecode<Map<string, Uint8Array>>(sessionDataEncoded);
 
-	const decryptedText = await decryptMessage(SKDevice, iv, sessionDataDecoded.get("data"), true) as Uint8Array;
+	const sessionDataPayload = sessionDataDecoded.get("data");
+	assert(sessionDataPayload);
+	const decryptedText = await decryptMessage(SKDevice, iv, sessionDataPayload, true) as Uint8Array;
 
 	// const decryptedDecodedText = cborDecode(decryptedText);
 	expect(uint8ArraytoHexString(mdocResponseEncoded)).toStrictEqual(uint8ArraytoHexString(decryptedText));

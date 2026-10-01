@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 import Button from '../../components/Buttons/Button';
 import AuthCard from '../../components/Auth/AuthCard';
@@ -13,7 +13,7 @@ import { UserLock } from 'lucide-react';
 const WebauthnLogin = ({
 	filteredUser,
 }) => {
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -101,7 +101,7 @@ const WebauthnLogin = ({
 };
 
 const LoginState = () => {
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const { isLoggedIn, keystore } = useSessionContext();
 	const { t } = useTranslation();
 	const location = useLocation();
 

@@ -11,7 +11,7 @@ export function buildCredentialRedirectPopupContent({
 	t: (key: string) => string;
 	credentialConfigurationId: string;
 	issuerMetadata: OpenidCredentialIssuerMetadata;
-	filterItemByLang: (items: any[], langKey: string) => any;
+	filterItemByLang: (items: any[] | undefined, langKey: string) => any;
 }): { title: string; message: React.ReactNode } {
 
 	const issuerDisplay = filterItemByLang(issuerMetadata?.display, 'locale');

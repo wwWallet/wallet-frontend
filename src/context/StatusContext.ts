@@ -11,10 +11,10 @@ export interface BeforeInstallPromptEvent extends Event {
 }
 
 interface StatusContextValue {
-	isOnline: boolean;
+	isOnline: boolean | null;
 	updateAvailable: boolean;
 	connectivity: Connectivity;
-	pwaInstallable: BeforeInstallPromptEvent;
+	pwaInstallable: BeforeInstallPromptEvent | null;
 	dismissPwaPrompt: () => void;
 	hidePwaPrompt: boolean;
 	updateOnlineStatus: (forceCheck?: boolean) => Promise<void>;
