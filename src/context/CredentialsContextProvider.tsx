@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
-import SessionContext from './SessionContext';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useSessionContext } from './SessionContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError, VerifiableCredentialFormat, ParsedCredential } from "wallet-common";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
@@ -13,7 +13,7 @@ type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
 
 export const CredentialsContextProvider = ({ children }: React.PropsWithChildren) => {
-	const { api, keystore, isLoggedIn } = useContext(SessionContext);
+	const { api, keystore, isLoggedIn } = useSessionContext();
 	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
 	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());
 	const [currentSlide, setCurrentSlide] = useState<number>(1);

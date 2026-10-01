@@ -11,7 +11,7 @@ import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } fr
 import { accessTokenIsValid, refreshAccessToken } from './OAuth/accessToken';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
@@ -154,7 +154,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const [issuanceFlowInProgress, setIssuanceFlowInProgress] = useState(false);
 
 	const httpProxy = useHttpProxy();
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const { credentialEngine } = useContext<any>(CredentialsContext);
 
 	const { t } = useTranslation();

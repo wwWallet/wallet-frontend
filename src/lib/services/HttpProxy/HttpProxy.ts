@@ -5,7 +5,7 @@ import StatusContext from '@/context/StatusContext';
 import { addItem, getItem } from '@/indexedDB';
 import { encryptedHttpRequest, toArrayBuffer } from '@/lib/utils/ohttpHelpers';
 import { BACKEND_URL, OHTTP_RELAY } from "@/config";
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { toU8 } from '@/util';
 
 // @ts-ignore
@@ -38,7 +38,7 @@ const parseCacheControl = (header: string) =>
 
 export function useHttpProxy(): IHttpProxy {
 	const { isOnline } = useContext(StatusContext);
-	const { obliviousKeyConfig } = useContext(SessionContext);
+	const { obliviousKeyConfig } = useSessionContext();
 
 	const isOnlineRef = useRef(isOnline);
 

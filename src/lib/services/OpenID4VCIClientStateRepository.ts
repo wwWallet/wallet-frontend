@@ -1,5 +1,5 @@
-import { useContext, useCallback, useMemo, useRef, useEffect, useState } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo, useRef, useEffect, useState } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { CurrentSchema } from "@/services/WalletStateSchema";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
@@ -10,7 +10,7 @@ type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialI
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 
 	const { getCalculatedWalletState, saveCredentialIssuanceSessions } = keystore;
 	// key: sessionId

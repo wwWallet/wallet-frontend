@@ -2,8 +2,8 @@ import { IOpenID4VCIHelper } from "../interfaces/IOpenID4VCIHelper";
 import { base64url, importX509, jwtVerify } from "jose";
 import { getPublicKeyFromB64Cert } from "../utils/pki";
 import { useHttpProxy } from "./HttpProxy/HttpProxy";
-import { useCallback, useContext, useMemo } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema, prependToPath } from "wallet-common"
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
@@ -15,7 +15,7 @@ type FetchParseResult<T> =
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
-	const { api } = useContext(SessionContext);
+	const { api } = useSessionContext();
 	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(

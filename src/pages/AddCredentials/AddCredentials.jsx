@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import { useOpenID4VCIContext } from '@/context/OpenID4VCIContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import StatusContext from '@/context/StatusContext';
 
 // Hooks
@@ -25,7 +25,7 @@ import { H1 } from '@/components/Shared/Heading';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const [issuers, setIssuers] = useState([]);
 	const [portals, setPortals] = useState([]);
 	const [recent, setRecent] = useState([]);

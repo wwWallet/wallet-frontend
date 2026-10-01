@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext, useRef, useCallback, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
-import SessionContext from "../context/SessionContext";
+import { useSessionContext } from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
 import type { OpenidCredentialIssuerMetadata } from "wallet-common";
 import { useOpenID4VCIContext } from "../context/OpenID4VCIContext";
@@ -32,7 +32,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 	const usedPreAuthorizedCodes = useRef<string[]>([]);
 
-	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore, logout } = useSessionContext();
 	const { syncPrivateData, useClearOnClearSession } = api;
 	const { getUserHandleB64u, getCachedUsers, getCalculatedWalletState } = keystore;
 

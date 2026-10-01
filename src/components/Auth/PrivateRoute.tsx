@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { withLoginRedirect } from './loginRedirect';
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactElement => {
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const { isLoggedIn, keystore } = useSessionContext();
 	const cachedUsers = keystore.getCachedUsers();
 
 	const queryParams = new URLSearchParams(window.location.search);

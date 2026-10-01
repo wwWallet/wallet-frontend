@@ -3,7 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
 
 import useScreenType from '../../hooks/useScreenType';
@@ -49,7 +49,7 @@ type UpgradePrfState = (
 
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
-	const { api, logout, keystore } = useContext(SessionContext);
+	const { api, logout, keystore } = useSessionContext();
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();

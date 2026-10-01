@@ -5,7 +5,7 @@ import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import useScreenType from '@/hooks/useScreenType';
 
 import Button, { Variant } from '../../components/Buttons/Button';
@@ -127,7 +127,7 @@ const WebauthnSignupLogin = ({
 	setIsAccountSwitcherOpen?: (isOpen: boolean) => void,
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);

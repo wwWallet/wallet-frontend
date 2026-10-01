@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { AppError } from '@/errors';
@@ -25,7 +25,7 @@ const WebauthnRegistration = ({
 	onSuccess: () => void,
 }) => {
 	const { isOnline } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [name, setName] = useState("");

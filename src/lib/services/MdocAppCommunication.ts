@@ -3,8 +3,8 @@ import { cborDecode, cborEncode, DataItem, DeviceResponse, IssuerSigned } from "
 import { v4 as uuidv4 } from 'uuid';
 import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
-import { useCallback, useContext, useMemo, useRef } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo, useRef } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { VerifiableCredentialFormat } from "wallet-common";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
@@ -33,7 +33,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const skDeviceRef = useRef<CryptoKey>(null);
 	const transportRef = useRef<IBluetoothTransport | null>(null);
 
-	const { keystore, api } = useContext(SessionContext);
+	const { keystore, api } = useSessionContext();
 	const { updatePrivateData } = api;
 	const { addPresentations, generateDeviceResponseWithProximity } = keystore;
 

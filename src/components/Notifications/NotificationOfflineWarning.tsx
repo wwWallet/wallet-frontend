@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import SyncNotificationContext from '@/context/SyncNotificationContext';
 import { useSessionStorage } from '@/hooks/useStorage';
 import { TriangleAlert, X } from 'lucide-react';
@@ -12,7 +12,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 	useTranslation(); // This ensures reactivity to language changes
 
 	const { isOnline } = useContext(StatusContext);
-	const { api } = useContext(SessionContext);
+	const { api } = useSessionContext();
 
 	const { pendingResync, showSyncNotification } = useContext(SyncNotificationContext);
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));

@@ -4,7 +4,7 @@ import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartySta
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useSessionContext } from "@/context/SessionContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { useTranslation } from "react-i18next";
 import { ParsedTransactionData, parseTransactionDataWithUI } from "./TransactionData/parseTransactionData";
@@ -30,7 +30,7 @@ export function useOpenID4VP({
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { parseCredential } = useContext(CredentialsContext);
-	const { keystore, api } = useContext(SessionContext);
+	const { keystore, api } = useSessionContext();
 	const { t } = useTranslation();
 
 	const promptForCredentialSelection = useCallback(

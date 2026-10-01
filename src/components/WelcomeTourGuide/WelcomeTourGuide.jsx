@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import Tour from 'reactour';
 import { useTranslation } from 'react-i18next';
 
 import useScreenType from '../../hooks/useScreenType';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 import WelcomeModal from './WecomeModal';
 import Button from '../Buttons/Button';
@@ -13,7 +13,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	const [isTourOpen, setIsTourOpen] = useState(false);
 	const [isModalOpen, setIsModalOpen] = useState(true);
 	const [steps, setSteps] = useState([]);
-	const { api } = useContext(SessionContext);
+	const { api } = useSessionContext();
 	const { authenticationType, showWelcome } = api.getSession();
 	const { t } = useTranslation();
 	const screenType = useScreenType();

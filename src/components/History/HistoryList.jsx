@@ -1,12 +1,12 @@
 // components/History/HistoryList.jsx
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useScreenType from '../../hooks/useScreenType';
 import { H3 } from '../Shared/Heading';
 import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
 
 // Context
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { reverse, compareBy } from '@/util';
 
@@ -81,7 +81,7 @@ function HistoryListView({ title = '', limit = null, history = {} }) {
 }
 
 function HistoryListFetcher({ batchId = null, title = '', limit = null }) {
-	const { keystore } = useContext(SessionContext);
+	const { keystore } = useSessionContext();
 	const history = useFetchPresentations(keystore, batchId, null);
 	return <HistoryListView title={title} limit={limit} history={history} />;
 }

@@ -2,8 +2,8 @@ import { compactDecrypt, CompactDecryptResult, CompactEncrypt, CompactJWEHeaderP
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
-import { useContext, useCallback, useMemo, useRef } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo, useRef } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { OpenidCredentialIssuerMetadata } from "wallet-common";
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
 
@@ -29,7 +29,7 @@ export const compressionOptions = {
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
 	const openID4VCIHelper = useOpenID4VCIHelper();
-	const { keystore, api } = useContext(SessionContext);
+	const { keystore, api } = useSessionContext();
 
 	const credentialEndpointURLRef = useRef<string | null>(null);
 	const deferredCredentialEndpointURLRef = useRef<string | null>(null);
