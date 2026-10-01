@@ -8,7 +8,7 @@ export type SessionContextValue = {
 	isLoggedIn: boolean,
 	keystore: LocalStorageKeystore,
 	logout: () => Promise<void>,
-	obliviousKeyConfig: HpkeConfig
+	obliviousKeyConfig: HpkeConfig | null
 };
 
 const SessionContext = createContext<SessionContextValue>({
