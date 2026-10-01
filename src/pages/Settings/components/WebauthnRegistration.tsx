@@ -5,7 +5,7 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
-import { getErrorCause } from '@/util';
+import { AppError } from '@/errors';
 import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
@@ -165,9 +165,9 @@ const WebauthnRegistration = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
-				if (getErrorCause(e) === 'x-private-data-etag') {
+				if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 					// TODO: Show this error to the user
-					throw new Error("Private data version conflict", { cause: e });
+					throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
 				}
 
 			} finally {

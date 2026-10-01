@@ -9,7 +9,8 @@ import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
 import useScreenType from '../../hooks/useScreenType';
 
 import { UserData, WebauthnCredential } from '../../api/types';
-import { compareBy, getErrorCause, getErrorCauseId, toBase64Url } from '../../util';
+import { compareBy, toBase64Url } from '../../util';
+import { AppError } from '@/errors';
 import type { WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { serializePrivateData } from '../../services/keystore';
 
@@ -129,13 +130,16 @@ const Settings = () => {
 				openDeleteConfirmation();
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (getErrorCauseId(e)) {
-					case 'passkeyInvalid':
-						setUnlockMainKeyError(t('passkeyInvalid'));
+				switch (e instanceof AppError ? e.errorId : undefined) {
+					case 'canceled':
 						break;
 
-					case 'passkeyLoginFailedTryAgain':
-						setUnlockMainKeyError(t('passkeyLoginFailedTryAgain'));
+					case 'prf_retry_failed':
+						setUnlockMainKeyError(t('loginSignup.passkeyLoginFailedTryAgain'));
+						break;
+
+					case 'prf_not_supported':
+						setUnlockMainKeyError(t('loginSignup.loginKeystoreFailed'));
 						break;
 
 					default:
@@ -194,9 +198,9 @@ const Settings = () => {
 
 		} catch (e) {
 			console.error("Failed to delete WebAuthn credential", e);
-			if (getErrorCause(e) === 'x-private-data-etag') {
+			if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw new Error("Private data version conflict", { cause: e });
+				throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
 			}
 			throw e;
 		}
@@ -241,9 +245,9 @@ const Settings = () => {
 			}
 		} catch (e) {
 			console.error("Failed to upgrade PRF key", e);
-			if (getErrorCause(e) === 'x-private-data-etag') {
+			if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw new Error("Private data version conflict", { cause: e });
+				throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
 			}
 
 			console.error("Failed to upgrade PRF key", e);
