@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
-import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import { useOpenID4VCIContext } from '@/context/OpenID4VCIContext';
 import SessionContext from '@/context/SessionContext';
 import StatusContext from '@/context/StatusContext';
 
@@ -37,7 +37,7 @@ const AddCredentials = () => {
 	const [messagePopupState, setMessagePopupState] = useState(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
-	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { openID4VCI } = useOpenID4VCIContext();
 	const { vcEntityList, getData } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();
