@@ -11,6 +11,12 @@ import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { createBluetoothTransport, IBluetoothTransport } from "./bluetooth";
 import type { BluetoothConnectionResult } from "../interfaces/IBluetoothTransport";
 
+type RequestedDcqlClaim = {
+	id: string;
+	path: string[];
+	intent_to_retain: boolean;
+};
+
 export function useMdocAppCommunication(): IMdocAppCommunication {
 	const ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
 	// BLE service UUID of the current engagement. Generated per QR code and
@@ -20,7 +26,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const deviceEngagementBytesRef = useRef<any>(null);
 	const credentialRef = useRef<any>(null);
 	const sessionDataEncodedRef = useRef<Uint8Array | null>(null);
-	const requestedDcqlClaimsRef = useRef<any[]>([]);
+	const requestedDcqlClaimsRef = useRef<RequestedDcqlClaim[]>([]);
 	const requestedDocTypeRef = useRef<string | null>(null);
 	const requestedNamespaceRef = useRef<string | null>(null);
 	const sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
@@ -143,7 +149,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		const fieldKeys: string[] = [];
 		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
 		const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
-		if (decryptedVerifierData) {
+		if (decryptedVerifierData instanceof Uint8Array) {
 			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
 			const firstDocRequest = mdocRequestDecoded.get("docRequests")?.[0];
 			const itemsRequestData = firstDocRequest?.get("itemsRequest")?.data;
@@ -183,7 +189,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				return { fields: fieldKeys, credentialMatchesRequest: true, requestedDocType: requestedDocTypeRef.current, credentialDocType };
 			}
 
-			const requestedDcqlClaims = [];
+			const requestedDcqlClaims: RequestedDcqlClaim[] = [];
 			fields.forEach((value, key) => {
 				fieldKeys.push(key);
 				requestedDcqlClaims.push({

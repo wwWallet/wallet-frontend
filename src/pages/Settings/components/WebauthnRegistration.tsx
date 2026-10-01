@@ -66,7 +66,7 @@ const WebauthnRegistration = ({
 	const stateChooseName = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
-		async (webauthnHint) => {
+		async (webauthnHint: string) => {
 			setBeginData(null);
 			setIsSubmitting(true);
 			setPendingCredential(null);
@@ -121,7 +121,7 @@ const WebauthnRegistration = ({
 		setIsSubmitting(false);
 	};
 
-	const onFinish = async (event) => {
+	const onFinish = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		console.log("onFinish", event);
 

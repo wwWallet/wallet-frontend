@@ -272,8 +272,8 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			shouldUseCache: boolean,
 			onIssuerMetadataResolved?: (issuerIdentifier: string, metadata: OpenidCredentialIssuerMetadata) => void
 		) => {
-			const issuerEntities = await getIssuers().catch(() => []);
-			const certificates = [];
+			const issuerEntities = await getIssuers().catch((): Record<string, unknown>[] => []);
+			const certificates: string[] = [];
 			issuerEntities.forEach(async (entity: any) => {
 				if (!entity.credentialIssuerIdentifier) return;
 
@@ -287,9 +287,9 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					// Call a callback to update state when metadata resolves.
 					onIssuerMetadataResolved?.(entity.credentialIssuerIdentifier, metadata);
 
-					const logoUris = metadata.display?.map(d => d.logo?.uri).filter(Boolean) || [];
+					const logoUris = metadata.display?.map((d: { logo?: { uri?: string } }) => d.logo?.uri).filter(Boolean) || [];
 					Object.values(metadata.credential_configurations_supported || {}).forEach((config: any) => {
-						config.display?.forEach(d => d.logo?.uri && logoUris.push(d.logo.uri));
+						config.display?.forEach((d: { logo?: { uri?: string } }) => d.logo?.uri && logoUris.push(d.logo.uri));
 					});
 
 					logoUris.forEach(uri => httpProxy.get(uri, {}, { useCache: shouldUseCache }).catch(console.error));
@@ -297,9 +297,11 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					if (metadata.mdoc_iacas_uri) {
 						const response = await getMdocIacas(metadata.credential_issuer, metadata, shouldUseCache);
 						if (response?.iacas?.length) {
-							certificates.push(response.iacas.map(cert =>
-								`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
-							))
+							certificates.push(...response.iacas
+								.filter((cert: { certificate?: string }): cert is { certificate: string } => typeof cert.certificate === 'string')
+								.map((cert: { certificate: string }) =>
+									`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
+								))
 						}
 					}
 				} catch (error) {

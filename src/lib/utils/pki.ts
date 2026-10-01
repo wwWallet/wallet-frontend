@@ -6,7 +6,7 @@ import * as jose from 'jose';
 
 
 // Assuming `certPEM` is a PEM-encoded certificate string
-const pemToBinary = (pem) => {
+const pemToBinary = (pem: string): ArrayBuffer => {
 	const b64 = pem.replace(/(-----(BEGIN|END) CERTIFICATE-----|\s)/g, '');
 	const binaryString = atob(b64);
 	// Convert to ArrayBuffer
@@ -33,20 +33,20 @@ export async function extractSAN(pemCert: string): Promise<string[] | null> {
 	}
 	const sanExtension = cert.extensions.find(ext => ext.extnID === "2.5.29.17"); // OID for SAN
 	if (sanExtension.parsedValue['altNames']) {
-		return sanExtension.parsedValue['altNames'].map((altName) => altName.value);
+		return sanExtension.parsedValue['altNames'].map((altName: { value: string }) => altName.value);
 	}
 	return null;
 }
 
 
-export function fromPemToPKIJSCertificate(pem) {
+export function fromPemToPKIJSCertificate(pem: string): pkijs.Certificate {
 	const certBuffer = pemToBinary(pem);
 	const asn1 = fromBER(certBuffer);
 	return new pkijs.Certificate({ schema: asn1.result });
 }
 
-export function getPublicKeyFromB64Cert(certBase64) {
-	const certPEM = `-----BEGIN CERTIFICATE-----\n${certBase64.match(/.{1,64}/g).join('\n')}\n-----END CERTIFICATE-----`;
+export function getPublicKeyFromB64Cert(certBase64: string): string {
+	const certPEM = `-----BEGIN CERTIFICATE-----\n${(certBase64.match(/.{1,64}/g) ?? []).join('\n')}\n-----END CERTIFICATE-----`;
 	return certPEM;
 }
 
@@ -111,7 +111,7 @@ export async function importCert(cert: string) {
 	return importedCert;
 }
 
-export function fromDerToPKIJSCertificate(der) {
+export function fromDerToPKIJSCertificate(der: BufferSource): pkijs.Certificate {
 	const asn1 = fromBER(der);
 	return new pkijs.Certificate({ schema: asn1.result });
 }

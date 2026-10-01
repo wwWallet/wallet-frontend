@@ -89,7 +89,7 @@ export function useOpenID4VP({
 		};
 
 		return new OpenID4VPServerAPI<ExtendedVcEntity, ParsedTransactionData>({
-			httpClient: { get: httpProxy.get },
+			httpClient: { get: (url, options) => httpProxy.get(url, {}, options) },
 			rpStateStore,
 			parseCredential,
 			selectCredentialForBatch,
@@ -105,7 +105,7 @@ export function useOpenID4VP({
 				verifyRequestUriAndCerts(request_uri, response_uri, parsedHeader),
 		});
 	}, [
-		httpProxy.get,
+		httpProxy,
 		openID4VPRelyingPartyStateRepository,
 		parseCredential,
 		keystore,
@@ -128,7 +128,7 @@ export function useOpenID4VP({
 		return result;
 	}, [openID4VPServer]);
 
-	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
+	const sendAuthorizationResponse = useCallback(async (selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
 		const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
 		if (!response || !(response as any).formData) {
 			return { state: "skipped" as const };

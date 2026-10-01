@@ -552,7 +552,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 									did: user.did,
 									displayName: user.displayName,
 									privateData: user.privateData,
-									username: null,
+									username: null as string | null,
 								},
 							};
 						}

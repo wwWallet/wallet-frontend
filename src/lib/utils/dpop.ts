@@ -32,7 +32,7 @@ export async function calculateAth(accessToken: string) {
 	return base64Url;
 }
 
-function arrayBufferToBase64Url(buffer) {
+function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
 	const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 	const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 	return base64Url;

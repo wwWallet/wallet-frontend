@@ -15,7 +15,7 @@ import BottomSheet from '../Popups/BottomSheet';
 
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { ChevronLeft, KeyRoundIcon, User, Wallet, X } from 'lucide-react';
+import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
@@ -25,6 +25,11 @@ const FormInputRow = ({
 	children,
 	label,
 	name,
+}: {
+	IconComponent: LucideIcon,
+	children: React.ReactNode,
+	label: string,
+	name: string,
 }) => (
 	<div className="mb-4 relative">
 		<label className="block text-lm-gray-800 dark:text-dm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
