@@ -32,7 +32,7 @@ export async function extractSAN(pemCert: string): Promise<string[] | null> {
 		return null;
 	}
 	const sanExtension = cert.extensions.find(ext => ext.extnID === "2.5.29.17"); // OID for SAN
-	if (sanExtension.parsedValue['altNames']) {
+	if (sanExtension?.parsedValue['altNames']) {
 		return sanExtension.parsedValue['altNames'].map((altName: { value: string }) => altName.value);
 	}
 	return null;
