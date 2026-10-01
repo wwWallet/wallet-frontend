@@ -12,21 +12,38 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 	const { vcEntityList } = useContext<any>(CredentialsContext);
 	const { isLoggedIn } = useContext<any>(SessionContext);
 
-	const [popupState, setPopupState] = useState({
+	type CredentialSelectionOptions = {
+		conformantCredentialsMap: Map<string, string[]>,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData?: ParsedTransactionData[],
+	};
+
+	const [popupState, setPopupState] = useState<{
+		isOpen: boolean,
+		options: CredentialSelectionOptions | null,
+		resolve: (value: Map<string, number>) => void,
+		reject: () => void,
+	}>({
 		isOpen: false,
 		options: null,
-		resolve: (value: unknown) => { },
+		resolve: () => { },
 		reject: () => { },
 	});
 
-	const [popupConsentState, setPopupConsentState] = useState({
+	const [popupConsentState, setPopupConsentState] = useState<{
+		isOpen: boolean,
+		options: Record<string, unknown> | null,
+		resolve: (value: boolean) => void,
+		reject: () => void,
+	}>({
 		isOpen: false,
 		options: null,
-		resolve: (value: unknown) => { },
+		resolve: () => { },
 		reject: () => { },
 	});
 
-	const showPopup = useCallback((options): Promise<Map<string, number>> =>
+	const showPopup = useCallback((options: CredentialSelectionOptions): Promise<Map<string, number>> =>
 		new Promise((resolve, reject) => {
 			setPopupState({
 				isOpen: true,
@@ -36,7 +53,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 			});
 		}), []);
 
-	const showPopupConsent = useCallback((options): Promise<boolean> =>
+	const showPopupConsent = useCallback((options: Record<string, unknown>): Promise<boolean> =>
 		new Promise((resolve, reject) => {
 			setPopupConsentState({
 				isOpen: true,

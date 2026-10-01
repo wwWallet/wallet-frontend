@@ -12,14 +12,19 @@ export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren)
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { isInitialized } = openID4VCIClientStateRepository;
 
-	const [popupConsentState, setPopupConsentState] = useState({
+	const [popupConsentState, setPopupConsentState] = useState<{
+		isOpen: boolean,
+		options: Record<string, unknown> | null,
+		resolve: (value: boolean) => void,
+		reject: () => void,
+	}>({
 		isOpen: false,
 		options: null,
-		resolve: (value: unknown) => { },
+		resolve: () => { },
 		reject: () => { },
 	});
 
-	const showPopupConsent = useCallback((options): Promise<boolean> =>
+	const showPopupConsent = useCallback((options: Record<string, unknown>): Promise<boolean> =>
 		new Promise((resolve, reject) => {
 			setPopupConsentState({
 				isOpen: true,
