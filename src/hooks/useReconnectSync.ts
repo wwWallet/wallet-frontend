@@ -35,12 +35,12 @@ export function useReconnectSync({
 	const location = useLocation();
 
 	// Persisted so a reload while unresolved still reads as "pending", not fresh.
-	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(useSessionStorage('reconnectDetected', null));
+	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(useSessionStorage<boolean | null>('reconnectDetected', null));
 	const reconnectWasPendingAtMount = useRef(reconnectDetected === true).current;
 	// Once this page instance observes offline status, a later reconnect is fresh,
 	// even if an unresolved reconnect was persisted when the page first loaded.
 	const wentOfflineSinceMountRef = useRef(isOnline === false);
-	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
+	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage<boolean | null>('latestIsOnlineStatus', null));
 
 	// Which popup to show, if any -- both render the same component, they only
 	// differ in this i18n key.

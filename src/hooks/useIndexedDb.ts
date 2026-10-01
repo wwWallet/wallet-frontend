@@ -4,7 +4,7 @@ import { useMemo } from "react";
 async function openIndexedDb(
 	dbName: string,
 	version: number,
-	upgrade: (db: IDBDatabase, prevVersion: number, newVersion: number) => void,
+	upgrade: (db: IDBDatabase, prevVersion: number, newVersion: number | null) => void,
 ): Promise<IDBDatabase> {
 	return new Promise((resolve, reject) => {
 		const request = window.indexedDB.open(dbName, version);
@@ -41,7 +41,7 @@ export type DatabaseTransaction = <T>(objectStores: string[], f: TransactionFunc
 export function useIndexedDb(
 	dbName: string,
 	version: number,
-	upgrade: (db: IDBDatabase, prevVersion: number, newVersion: number) => void,
+	upgrade: (db: IDBDatabase, prevVersion: number, newVersion: number | null) => void,
 ): { read: DatabaseTransaction, write: DatabaseTransaction, destroy: () => Promise<void>} {
 	return useMemo(
 		() => {
