@@ -9,7 +9,7 @@ import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
 import useScreenType from '../../hooks/useScreenType';
 
 import { UserData, WebauthnCredential } from '../../api/types';
-import { compareBy, toBase64Url } from '../../util';
+import { compareBy, getErrorCause, getErrorCauseId, toBase64Url } from '../../util';
 import type { WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { serializePrivateData } from '../../services/keystore';
 
@@ -129,7 +129,7 @@ const Settings = () => {
 				openDeleteConfirmation();
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e?.cause?.errorId) {
+				switch (getErrorCauseId(e)) {
 					case 'passkeyInvalid':
 						setUnlockMainKeyError(t('passkeyInvalid'));
 						break;
@@ -194,7 +194,7 @@ const Settings = () => {
 
 		} catch (e) {
 			console.error("Failed to delete WebAuthn credential", e);
-			if (e?.cause === 'x-private-data-etag') {
+			if (getErrorCause(e) === 'x-private-data-etag') {
 				// TODO: Show this error to the user
 				throw new Error("Private data version conflict", { cause: e });
 			}
@@ -237,11 +237,11 @@ const Settings = () => {
 				await api.updatePrivateData(newPrivateData);
 				await keystoreCommit();
 			} catch (e) {
-				console.error("Failed to upgrade PRF key", e, e.status);
+				console.error("Failed to upgrade PRF key", e);
 			}
 		} catch (e) {
 			console.error("Failed to upgrade PRF key", e);
-			if (e?.cause === 'x-private-data-etag') {
+			if (getErrorCause(e) === 'x-private-data-etag') {
 				// TODO: Show this error to the user
 				throw new Error("Private data version conflict", { cause: e });
 			}

@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
-import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
+import { fromBase64Url, getErrorCause, getErrorCauseId, jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
@@ -263,7 +263,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				},
 			);
 		} catch (e) {
-			if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
+			if (axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) {
 				return Promise.reject({ cause: 'x-private-data-etag' });
 			}
 			throw e;
@@ -282,7 +282,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					transformResponse,
 				});
 		} catch (e) {
-			if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
+			if (axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) {
 				return Promise.reject({ cause: 'x-private-data-etag' });
 			}
 			throw e;
@@ -420,8 +420,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				return Promise.reject(updateResp);
 			}
 		} catch (e) {
-			console.error("Failed to update private data", e, e?.response?.status);
-			if ((e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) || (e.cause === 'x-private-data-etag')) {
+			console.error("Failed to update private data", e, axios.isAxiosError(e) ? e.response?.status : undefined);
+			if ((axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) || getErrorCause(e) === 'x-private-data-etag') {
 				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
 				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
 				await syncPrivateData(cachedUser);
@@ -577,8 +577,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
 								await keystoreCommit();
 							} catch (e) {
-								console.error("Failed to upgrade PRF key", e, e.status);
-								if (e?.cause === 'x-private-data-etag') {
+								console.error("Failed to upgrade PRF key", e);
+								if (getErrorCause(e) === 'x-private-data-etag') {
 									return Err('x-private-data-etag');
 								}
 								return Err('loginKeystoreFailed');
@@ -674,9 +674,10 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					}
 
 				} catch (e) {
-					if (e?.cause?.errorId === "prf_retry_failed") {
+					const errorId = getErrorCauseId(e);
+					if (errorId === "prf_retry_failed") {
 						return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
-					} else if (e?.cause?.errorId === "prf_not_supported") {
+					} else if (errorId === "prf_not_supported") {
 						return Err('passkeySignupPrfNotSupported');
 					} else {
 						return Err('passkeySignupKeystoreFailed');

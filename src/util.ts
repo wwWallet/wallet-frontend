@@ -53,6 +53,19 @@ export function fromBase64Url(s: string): Uint8Array<ArrayBuffer> {
 	return fromBase64(s.replace(/-/g, "+").replace(/_/g, "/"));
 }
 
+export function getErrorCause(error: unknown): unknown {
+	return typeof error === "object" && error !== null && "cause" in error
+		? error.cause
+		: undefined;
+}
+
+export function getErrorCauseId(error: unknown): string | undefined {
+	const cause = getErrorCause(error);
+	return typeof cause === "object" && cause !== null && "errorId" in cause && typeof cause.errorId === "string"
+		? cause.errorId
+		: undefined;
+}
+
 function replacerUint8ArrayToTaggedBase64Url(this: Record<string, unknown>, key: string, value: any): any {
 	if (this[key] instanceof Uint8Array || this[key] instanceof ArrayBuffer) {
 		return { '$b64u': toBase64Url(toU8(this[key])) };

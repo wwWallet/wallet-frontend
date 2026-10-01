@@ -5,6 +5,7 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
+import { getErrorCause } from '@/util';
 import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
@@ -95,7 +96,7 @@ const WebauthnRegistration = ({
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
-					if (e?.name !== 'AbortError') {
+					if (!(e instanceof DOMException && e.name === 'AbortError')) {
 						console.error("Failed to register", e);
 					}
 					setBeginData(null);
@@ -164,7 +165,7 @@ const WebauthnRegistration = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
-				if (e?.cause === 'x-private-data-etag') {
+				if (getErrorCause(e) === 'x-private-data-etag') {
 					// TODO: Show this error to the user
 					throw new Error("Private data version conflict", { cause: e });
 				}

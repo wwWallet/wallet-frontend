@@ -275,6 +275,7 @@ export function useHttpProxy(): IHttpProxy {
 					};
 
 				} catch (err) {
+					const errorResponse = axios.isAxiosError(err) ? err.response : undefined;
 
 					// Optionally cache failed responses
 					if (cacheOnError) {
@@ -283,9 +284,9 @@ export function useHttpProxy(): IHttpProxy {
 							cacheKey,
 							{
 								data: {
-									status: err.response?.status || 500,
-									headers: err.response?.headers || {},
-									data: err.response?.data || 'GET proxy failed',
+									status: errorResponse?.status || 500,
+									headers: errorResponse?.headers || {},
+									data: errorResponse?.data || 'GET proxy failed',
 									__error: true,
 								},
 								expiry: now + 60 * 60 * 24 * 30,
@@ -305,9 +306,9 @@ export function useHttpProxy(): IHttpProxy {
 					}
 
 					return {
-						status: err.response?.status || 500,
-						headers: err.response?.headers || {},
-						data: err.response?.data || 'GET proxy failed',
+						status: errorResponse?.status || 500,
+						headers: errorResponse?.headers || {},
+						data: errorResponse?.data || 'GET proxy failed',
 					};
 				} finally {
 					inFlightRequests.delete(cacheKey);
@@ -392,10 +393,15 @@ export function useHttpProxy(): IHttpProxy {
 			} catch (err) {
 				console.log("Post failed");
 				console.log(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+				const errorResponse = axios.isAxiosError<{
+					data?: unknown;
+					headers?: Record<string, unknown>;
+					status?: number;
+				}>(err) ? err.response?.data : undefined;
 				return {
-					data: err.response.data.data,
-					headers: err.response.data.headers,
-					status: err.response.data.status || 500,
+					data: errorResponse?.data,
+					headers: errorResponse?.headers ?? {},
+					status: errorResponse?.status || 500,
 				};
 			}
 		},
