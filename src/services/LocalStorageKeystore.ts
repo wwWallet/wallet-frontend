@@ -14,6 +14,7 @@ import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteCredentialIss
 import { UserId } from "@/api/types";
 import { getItem } from "@/indexedDB";
 import { WalletStateContainerGeneric } from "./WalletStateSchemaCommon";
+import { AppError } from "../errors";
 
 type MDoc = {
 	encode: () => Uint8Array;
@@ -229,7 +230,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		if (privateData && mainKey) {
 			return [privateData, await keystore.importMainKey(mainKey)];
 		} else {
-			throw new Error("Key store is closed.", { cause: 'keystore_closed' });
+			throw new AppError('keystore_closed', "Key store is closed.");
 		}
 	}, [privateData, mainKey]);
 
