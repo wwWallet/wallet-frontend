@@ -5,7 +5,7 @@ import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
 import type { OpenidCredentialIssuerMetadata } from "wallet-common";
 import { useOpenID4VCIContext } from "../context/OpenID4VCIContext";
-import OpenID4VPContext from "../context/OpenID4VPContext";
+import { useOpenID4VPContext } from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import SyncNotificationContext from "@/context/SyncNotificationContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
@@ -40,7 +40,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [url, setUrl] = useState(window.location.href);
 
 	const { openID4VCI } = useOpenID4VCIContext();
-	const { openID4VP } = useContext(OpenID4VPContext);
+	const { openID4VP } = useOpenID4VPContext();
 
 	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse, requestCredentialsWithPreAuthorization } = openID4VCI;
 	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
