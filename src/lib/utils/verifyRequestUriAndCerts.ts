@@ -27,7 +27,7 @@ export async function verifyRequestUriAndCerts(request_uri: string, response_uri
 			headers: {
 				Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!)
 			}
-		}).catch(() => null);
+		}).catch((): null => null);
 
 		if (!response) {
 			throw new Error("Could not get SSL certificate for " + new URL(request_uri).hostname);

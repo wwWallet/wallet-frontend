@@ -25,7 +25,7 @@ function mockPrfCredential(
 		rawId: id.buffer,
 		getClientExtensionResults: () => ({ prf: { results: { first: prfOutput.buffer } } }),
 		response: {
-			getTransports: () => [],
+			getTransports: (): AuthenticatorTransport[] => [],
 		},
 	} as unknown as PublicKeyCredential;
 }

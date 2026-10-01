@@ -365,7 +365,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			await openID4VCIClientStateRepository.updateState(flowState);
 			await openID4VCIClientStateRepository.cleanupExpired();
 
-			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+			const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
 
 			setReceivedCredentialsArray(credentialArray);
 
@@ -870,7 +870,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [commitStateChanges, openID4VCIClientStateRepository, verificationFlowInProgress, setCommitStateChanges, receivedCredentialsArray]);
 
 
-	const intervalCallback = useCallback(async () => {
+	const intervalCallback = useCallback(async (): Promise<void | null> => {
 		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress || issuanceFlowInProgress) {
 			return null;
 		}
@@ -962,7 +962,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					if (!credentialResponse?.data?.credentials) {
 						continue;
 					}
-					const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+					const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
 					if (credentialResponse?.data?.credentials) {
 						await openID4VCIClientStateRepository.updateState({
 							...pollingState,

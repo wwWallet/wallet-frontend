@@ -9,7 +9,7 @@ import { type EnvConfigMap } from '../config';
  */
 export default async function wellKnownFiles(destDir: string, config: EnvConfigMap) {
 	// Remove existing .well-known directory in dist if it exists to ensure old files are cleared out
-	await rm(resolve(destDir, '.well-known'), { recursive: true }).catch(() => null);
+	await rm(resolve(destDir, '.well-known'), { recursive: true }).catch((): null => null);
 
 	const assetLinks = generateAndroidAssetLinks(config.WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS);
 	const appLinks = generateAppleAppLinks(config.WELLKNOWN_APPLE_APPIDS);

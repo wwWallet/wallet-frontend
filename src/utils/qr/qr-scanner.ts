@@ -844,7 +844,7 @@ class QrScanner {
 			if (trustedTypesFactory && !QrScanner._trustedTypesPolicy) {
 				QrScanner._trustedTypesPolicy = trustedTypesFactory.createPolicy(
 					"qr-scanner#worker",
-					{ createScriptURL: (url) => url },
+					{ createScriptURL: (url: string) => url },
 				);
 			}
 			const workerScriptUrl = QrScanner._trustedTypesPolicy

@@ -47,10 +47,10 @@ export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren)
 			title: string,
 			description: string
 		},
-		onClose: (e) => Promise<void>
+		onClose: () => Promise<void>
 	} | null>(null);
 
-	const showMessagePopup = useCallback((message, type: 'error' | 'success' | 'info' = 'error') => {
+	const showMessagePopup = useCallback((message: { title: string, description: string }, type: 'error' | 'success' | 'info' = 'error') => {
 		setMessagePopupState((prevState) => ({
 			...prevState,
 			isOpen: true,

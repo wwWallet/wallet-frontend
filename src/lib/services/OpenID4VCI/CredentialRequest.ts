@@ -68,7 +68,7 @@ export function useCredentialRequest() {
 	}, [post]
 	);
 
-	const httpHeaders = useMemo(() => ({
+	const httpHeaders = useMemo<Record<string, string>>(() => ({
 		'Content-Type': 'application/json',
 	}), []);
 
@@ -385,7 +385,9 @@ export function useCredentialRequest() {
 
 		const credentialResponseContentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
 		if (credentialResponseEncryptionRequested && typeof credentialResponseContentType === 'string' && credentialResponseContentType.startsWith('application/jwt')) {
-			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey, compressionOptions).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
+			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey, compressionOptions)
+				.then((data): { data: CompactDecryptResult | null; err: unknown } => ({ data, err: null }))
+				.catch((err: unknown): { data: CompactDecryptResult | null; err: unknown } => ({ data: null, err }));
 			if (result.err) {
 				throw new Error("Credential Response decryption failed");
 			}

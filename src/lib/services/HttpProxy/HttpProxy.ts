@@ -118,7 +118,11 @@ export function useHttpProxy(): IHttpProxy {
 
 			const requestPromise = (async () => {
 				try {
-					let response;
+					let response: {
+						status: number;
+						headers: ResponseHeaders;
+						data: any;
+					};
 					const shouldUseOblivious = obliviousKeyConfig !== null;
 					if (shouldUseOblivious) {
 						console.log("Using oblivious");
@@ -126,16 +130,15 @@ export function useHttpProxy(): IHttpProxy {
 						if (keyConfig === null) {
 							throw new Error("Oblivious HTTP configuration error");
 						}
-						response = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
+						const encryptedResponse = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
 							method: 'GET',
 							headers,
 							url,
 						})
-						response.data = response.body;
-						if (response.data.status > 299 || response.data.status < 200) {
+						if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 							const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 							throw new AxiosError(
-								`Request failed with status code ${response.status}`,
+								`Request failed with status code ${encryptedResponse.status}`,
 								undefined,
 								{
 									headers: axiosHeaders,
@@ -144,10 +147,10 @@ export function useHttpProxy(): IHttpProxy {
 								},
 								undefined,
 								{
-									data: response,
-									status: response.status,
-									statusText: String(response.status),
-									headers: response.headers || {},
+									data: encryptedResponse,
+									status: encryptedResponse.status,
+									statusText: String(encryptedResponse.status),
+									headers: encryptedResponse.headers || {},
 									config: {
 										headers: axiosHeaders,
 										method: 'get',
@@ -158,20 +161,21 @@ export function useHttpProxy(): IHttpProxy {
 						}
 						if (isBinaryRequest) {
 							response = {
-								...response,
-								data: toArrayBuffer(response.body)
+								status: encryptedResponse.status,
+								headers: encryptedResponse.headers,
+								data: toArrayBuffer(encryptedResponse.body)
 							}
 						} else {
+							const responseHeader = encryptedResponse.headers?.['content-type'];
+							const data = responseHeader?.trim().startsWith('application/json')
+								? JSON.parse(new TextDecoder().decode(encryptedResponse.body))
+								: new TextDecoder().decode(encryptedResponse.body);
 							response = {
-								data: {...response}
+								status: encryptedResponse.status,
+								headers: encryptedResponse.headers,
+								data: { ...encryptedResponse, data }
 							};
-							const responseHeader = response?.data?.headers?.['content-type'];
 							console.log("Content-Type parsed: ", responseHeader);
-							if (responseHeader && responseHeader.trim().startsWith('application/json')) {
-								response.data.data = JSON.parse(new TextDecoder().decode(response.data.data));
-							} else {
-								response.data.data = new TextDecoder().decode(response.data.data);
-							}
 						}
 					} else {
 						response = await axios.post(`${walletBackendServerUrl}/proxy`, {
@@ -324,7 +328,7 @@ export function useHttpProxy(): IHttpProxy {
 			body: any,
 			headers: Record<string, string>
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
-			let response;
+			let response: { data: { status: number; headers: ResponseHeaders; data: unknown } };
 			try {
 				const shouldUseOblivious = obliviousKeyConfig !== null;
 				if (shouldUseOblivious) {
@@ -333,20 +337,16 @@ export function useHttpProxy(): IHttpProxy {
 					if (keyConfig === null) {
 						throw new Error("Oblivious HTTP configuration error");
 					}
-					response = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
+					const encryptedResponse = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
 						method: 'POST',
 						headers,
 						url,
 						body
 					})
-					response.data = response.body;
-					response = {
-						data: { ...response }
-					};
-					if (response.data.status > 299 || response.data.status < 200) {
+					if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 						const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 						throw new AxiosError(
-							`Request failed with status code ${response.data.status}`,
+							`Request failed with status code ${encryptedResponse.status}`,
 							undefined,
 							{
 								headers: axiosHeaders,
@@ -356,10 +356,10 @@ export function useHttpProxy(): IHttpProxy {
 							},
 							undefined,
 							{
-								data: response.data,
-								status: response.data.status,
-								statusText: String(response.data.status),
-								headers: response.data.headers || {},
+								data: encryptedResponse,
+								status: encryptedResponse.status,
+								statusText: String(encryptedResponse.status),
+								headers: encryptedResponse.headers || {},
 								config: {
 									headers: axiosHeaders,
 									method: 'post',
@@ -369,13 +369,12 @@ export function useHttpProxy(): IHttpProxy {
 							}
 						);
 					}
-					const responseHeader = response?.data?.headers?.['content-type'];
+					const responseHeader = encryptedResponse.headers?.['content-type'];
 					console.log("Content-Type parsed: ", responseHeader);
-					if (responseHeader && responseHeader.trim().startsWith('application/json')) {
-						response.data.data = JSON.parse(new TextDecoder().decode(response.data.data));
-					} else {
-						response.data.data = new TextDecoder().decode(response.data.data);
-					}
+					const data = responseHeader?.trim().startsWith('application/json')
+						? JSON.parse(new TextDecoder().decode(encryptedResponse.body))
+						: new TextDecoder().decode(encryptedResponse.body);
+					response = { data: { ...encryptedResponse, data } };
 				} else {
 					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 						headers: headers,
