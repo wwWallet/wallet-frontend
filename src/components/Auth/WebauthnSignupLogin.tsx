@@ -19,6 +19,7 @@ import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet, X } from 'luc
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
+import type { SignupWebauthnRetryParams } from '@/api';
 
 const FormInputRow = ({
 	IconComponent,
@@ -138,7 +139,7 @@ const WebauthnSignupLogin = ({
 
 	const { hasPolicyLinks } = usePolicyLinks();
 	const { t } = useTranslation();
-	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
+	const [retrySignupFrom, setRetrySignupFrom] = useState<SignupWebauthnRetryParams | null>(null);
 
 	const cachedUsers = keystore.getCachedUsers();
 	const loginableCachedUsers = cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0);
@@ -211,7 +212,7 @@ const WebauthnSignupLogin = ({
 				? async () => true // "Try again" already means user agreed to continue
 				: promptForPrfRetry,
 			webauthnHints,
-			retrySignupFrom,
+			retrySignupFrom ?? undefined,
 		);
 		if (result.ok) {
 			setIsAwaitingRedirect(true);

@@ -33,7 +33,7 @@ type SignupWebauthnError = (
 	| 'passkeySignupPrfNotSupported'
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
-type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
+export type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
 
 
 export type ClearSessionEvent = {};
