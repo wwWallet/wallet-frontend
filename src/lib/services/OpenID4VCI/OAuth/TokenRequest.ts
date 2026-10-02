@@ -212,15 +212,18 @@ export function useTokenRequest(): TokenRequestBuilder {
 		if (!tokenEndpointURL.current) {
 			throw new Error("Token endpoint is not set");
 		}
+		if (!clientId.current) {
+			throw new Error("Client ID is not set");
+		}
 
 		const as: oauth4webapi.AuthorizationServer = {
 			issuer: issuer.current ?? tokenEndpointURL.current,
 			token_endpoint: tokenEndpointURL.current,
 		};
 
-		const client: oauth4webapi.Client | null = clientId.current ? { client_id: clientId.current } : null;
+		const client: oauth4webapi.Client = { client_id: clientId.current };
 		const clientAuth = oauth4webapi.None();
-		const DPoP = client ? await getDPoPHandle(client) : null;
+		const DPoP = await getDPoPHandle(client);
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
 			[customFetch]: myCustomFetch,
@@ -232,9 +235,12 @@ export function useTokenRequest(): TokenRequestBuilder {
 			if (!preAuthorizedCode.current) {
 				throw new Error("Pre-Authorized Code not set");
 			}
+			if (!dpopParams.current) {
+				throw new Error("DPoP parameters are not set");
+			}
 			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
 				as,
-				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current },
+				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current ?? undefined },
 				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
 				options
 			);
@@ -290,7 +296,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			| typeof authorizationCodeGrantRequest
 			| typeof refreshTokenGrantRequest
 			| typeof preAuthorizedCodeGrantRequest
-			| null;
+			| null = null;
 
 		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
 			tokenRequest = authorizationCodeGrantRequest;
