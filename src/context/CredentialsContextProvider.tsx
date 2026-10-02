@@ -137,7 +137,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 
 		const { sdJwtVerifier, msoMdocVerifier } = engine;
 		// Filter and map the fetched list in one go
-		let filteredVcEntityList = await Promise.all(
+		const filteredVcEntityList: (ExtendedVcEntity | null)[] = await Promise.all(
 			credentials
 				.filter((credential) => {
 					// Apply filtering by batchId if provided
@@ -176,18 +176,23 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 					};
 				})
 		);
-		filteredVcEntityList = filteredVcEntityList.filter((vcEntity) => vcEntity !== null);
+		const vcEntityList = filteredVcEntityList.filter((vcEntity): vcEntity is ExtendedVcEntity => vcEntity !== null);
 
 		// Sorting by id
-		filteredVcEntityList.reverse();
-		return filteredVcEntityList;
+		vcEntityList.reverse();
+		return vcEntityList;
 	}, [getCalculatedWalletState, parseCredential, credentialEngine]);
 
 
 	const getData = useCallback(async () => {
 		try {
 			const storedCredentials = await fetchVcData();
-			if (storedCredentials != null && (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current)) {
+			if (storedCredentials === null) {
+				setVcEntityList(null);
+				credentialNumber.current = null;
+				return;
+			}
+			if (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current) {
 				setLatestCredentials(storedCredentials.length > 0 ? new Set([storedCredentials[0].batchId]) : new Set());
 				setTimeout(() => {
 					setLatestCredentials(new Set());
@@ -203,7 +208,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 				}
 				return prev;
 			});
-			credentialNumber.current = storedCredentials?.length;
+			credentialNumber.current = storedCredentials.length;
 
 		} catch (error) {
 			console.error('Failed to fetch data', error);

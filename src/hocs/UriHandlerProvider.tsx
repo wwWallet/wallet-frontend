@@ -215,6 +215,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			!handleCredentialOffer || !generateAuthorizationRequest || !handleAuthorizationResponse ||
 			!handleAuthorizationRequest || !promptForCredentialSelection || !sendAuthorizationResponse
 		) return;
+		const availableVcEntityList = vcEntityList;
 
 		async function handle(urlToCheck: string) {
 			const u = new URL(urlToCheck);
@@ -288,7 +289,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			}
 			else if (u.searchParams.get('client_id') && requestUri && !usedRequestUris.includes(requestUri)) {
 				setUsedRequestUris((uriArray) => [...uriArray, requestUri]);
-				await handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
+				await handleAuthorizationRequest(u.toString(), availableVcEntityList).then((result) => {
 					console.log("Result = ", result);
 					const { conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData } = result;
 					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
@@ -299,7 +300,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						return;
 					}
 					console.log("Selection = ", selection);
-					return sendAuthorizationResponse(selection, vcEntityList);
+					return sendAuthorizationResponse(selection, availableVcEntityList);
 
 				}).then((res) => {
 					// if (res.state === 'skipped') do nothing

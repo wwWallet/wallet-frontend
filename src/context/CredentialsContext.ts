@@ -25,9 +25,9 @@ export type ExtendedVcEntity = WalletStateCredential & {
 }
 
 export type CredentialsContextValue = {
-	vcEntityList: ExtendedVcEntity[];
+	vcEntityList: ExtendedVcEntity[] | null;
 	latestCredentials: Set<number>;
-	fetchVcData: (credentialId?: number) => Promise<ExtendedVcEntity[]>;
+	fetchVcData: (credentialId?: number) => Promise<ExtendedVcEntity[] | null>;
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
