@@ -19,6 +19,13 @@ const passkeyOptions = (t: (key: string) => string) => [
 	{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon },
 ];
 
+type WebauthnRegistrationBeginData = {
+	challengeId: string;
+	createOptions: CredentialCreationOptions & {
+		publicKey: PublicKeyCredentialCreationOptions;
+	};
+};
+
 const WebauthnRegistration = ({
 	onSuccess,
 }: {
@@ -26,8 +33,8 @@ const WebauthnRegistration = ({
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useSessionContext();
-	const [beginData, setBeginData] = useState(null);
-	const [pendingCredential, setPendingCredential] = useState(null);
+	const [beginData, setBeginData] = useState<WebauthnRegistrationBeginData | null>(null);
+	const [pendingCredential, setPendingCredential] = useState<PublicKeyCredential | null>(null);
 	const [name, setName] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
@@ -73,7 +80,7 @@ const WebauthnRegistration = ({
 
 			const beginResp = await api.post('/user/session/webauthn/register-begin', {});
 			console.log("begin", beginResp);
-			const beginData = beginResp.data;
+			const beginData = beginResp.data as WebauthnRegistrationBeginData;
 
 			if (beginData.challengeId) {
 				setBeginData(beginData);
@@ -87,12 +94,15 @@ const WebauthnRegistration = ({
 					publicKey: {
 						...beginData.createOptions.publicKey,
 						hints,
-						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, hints),
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection ?? {}, hints),
 					},
 				};
 
 				try {
 					const credential = await navigator.credentials.create(createOptions);
+					if (!(credential instanceof PublicKeyCredential)) {
+						throw new Error("Failed to create public key credential");
+					}
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
@@ -127,11 +137,12 @@ const WebauthnRegistration = ({
 
 		if (beginData && pendingCredential) {
 			try {
+				const response = pendingCredential.response as AuthenticatorAttestationResponse;
 				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 					pendingCredential,
 					async () => {
 						setNeedPrfRetry(true);
-						return new Promise<boolean>((resolve, reject) => {
+						return new Promise<boolean>((resolve, _reject) => {
 							setResolvePrfRetryPrompt(() => resolve);
 						}).finally(() => {
 							setNeedPrfRetry(false);
@@ -150,9 +161,9 @@ const WebauthnRegistration = ({
 						id: pendingCredential.id,
 						rawId: pendingCredential.rawId,
 						response: {
-							attestationObject: pendingCredential.response.attestationObject,
-							clientDataJSON: pendingCredential.response.clientDataJSON,
-							transports: pendingCredential.response.getTransports(),
+							attestationObject: response.attestationObject,
+							clientDataJSON: response.clientDataJSON,
+							transports: response.getTransports(),
 						},
 						authenticatorAttachment: pendingCredential.authenticatorAttachment,
 						clientExtensionResults: pendingCredential.getClientExtensionResults(),
@@ -282,7 +293,7 @@ const WebauthnRegistration = ({
 
 			<Dialog
 				open={needPrfRetry && !prfRetryAccepted}
-				onCancel={() => resolvePrfRetryPrompt(false)}
+				onCancel={() => resolvePrfRetryPrompt?.(false)}
 			>
 				<H2
 					heading={(
@@ -300,14 +311,14 @@ const WebauthnRegistration = ({
 				<div className='flex justify-center gap-2'>
 					<Button
 						id="cancel-prf-passkey-settings"
-						onClick={() => resolvePrfRetryPrompt(false)}
+						onClick={() => resolvePrfRetryPrompt?.(false)}
 					>
 						{t('common.cancel')}
 					</Button>
 
 					<Button
 						id="continue-prf-passkey-settings"
-						onClick={() => resolvePrfRetryPrompt(true)}
+						onClick={() => resolvePrfRetryPrompt?.(true)}
 						variant="primary"
 						disabled={prfRetryAccepted}
 					>
