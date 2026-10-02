@@ -24,7 +24,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 	const { getCalculatedWalletState } = keystore;
 	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
 	// const engineRef = useRef<any>(null);
-	const prevIsLoggedIn = useRef<boolean>(null);
+	const prevIsLoggedIn = useRef<boolean | null>(null);
 
 	const { getExternalEntity } = api;
 	const [pendingTransactions, setPendingTransactions] = useState<WalletStateCredentialIssuanceSession[] | null>(null);
