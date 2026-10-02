@@ -431,6 +431,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
+			if (!authzServerMetadata) {
+				throw new Error("Authorization server metadata is not set");
+			}
 
 			if (!clientId) {
 				console.error("clientId not found");
@@ -510,7 +513,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 			else { // if already generated, then reuse them
 				dpopPrivateKeyJwk = flowState.dpop.dpopPrivateKeyJwk;
-				dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk;
+				dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk ?? null;
 
 				[dpopPrivateKey] = await Promise.all([
 					jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
@@ -522,6 +525,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
 
 			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
+				if (!dpopPrivateKey || !dpopPublicKeyJwk || !dpopPrivateKeyJwk) {
+					throw new Error("DPoP keys are not set");
+				}
 				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
 				flowState.dpop = {
 					dpopAlg: 'ES256',
@@ -534,12 +540,23 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
-			tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
-			tokenRequestBuilder.setAuthorizationResponseUrl(requestCredentialsParams?.authorizationCodeGrant?.authorizationResponseUrl);
-			tokenRequestBuilder.setState(requestCredentialsParams?.authorizationCodeGrant?.state);
-			tokenRequestBuilder.setCodeVerifier(flowState?.code_verifier);
+			if (requestCredentialsParams.authorizationCodeGrant) {
+				if (!flowState.code_verifier) {
+					throw new Error("Code verifier is not set");
+				}
+				tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams.authorizationCodeGrant.code);
+				tokenRequestBuilder.setAuthorizationResponseUrl(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl);
+				tokenRequestBuilder.setState(requestCredentialsParams.authorizationCodeGrant.state);
+				tokenRequestBuilder.setCodeVerifier(flowState.code_verifier);
+			}
 
-			tokenRequestBuilder.setRefreshToken(flowState?.tokenResponse?.data?.refresh_token);
+			const refreshToken = flowState.tokenResponse?.data?.refresh_token;
+			if (requestCredentialsParams.refreshTokenGrant) {
+				if (!refreshToken) {
+					throw new Error("Refresh token is not set");
+				}
+				tokenRequestBuilder.setRefreshToken(refreshToken);
+			}
 
 			tokenRequestBuilder.setRedirectUri(redirectUri);
 
