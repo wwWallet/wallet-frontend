@@ -12,7 +12,7 @@ import { accessTokenIsValid, refreshAccessToken } from './OAuth/accessToken';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import { useSessionContext } from '@/context/SessionContext';
-import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
+import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema, OpenidCredentialIssuerMetadata } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
@@ -168,8 +168,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const credentialRequestBuilder = useCredentialRequest();
 	const deferredCredentialRequestBuilder = useCredentialRequest();
 
-	const credentialConfigurationIdRef = useRef(null);
-	const credentialIssuerMetadataRef = useRef(null);
+	const credentialConfigurationIdRef = useRef<string | null>(null);
+	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
 
 	const { getCalculatedWalletState } = keystore;
@@ -185,18 +185,27 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const temp = [...receivedCredentialsArray];
 		setReceivedCredentialsArray(null);
 		const batchId = WalletStateUtils.getRandomUint32();
+		const credentialConfigurationId = credentialConfigurationIdRef.current;
+		const credentialIssuerMetadata = credentialIssuerMetadataRef.current;
+		if (!credentialConfigurationId || !credentialIssuerMetadata) {
+			throw new Error("Credential issuer metadata is not set");
+		}
+		const credentialConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
+		if (!credentialConfiguration) {
+			throw new Error("Credential configuration is not set");
+		}
 		// wait for keystore update before commiting the new credentials
 		(async () => {
 			try {
 
 				const kidMap = await Promise.all(temp.map(async (credential, index) => {
-					if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.VC_SDJWT ||
-						credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.DC_SDJWT
+					if (credentialConfiguration.format === VerifiableCredentialFormat.VC_SDJWT ||
+						credentialConfiguration.format === VerifiableCredentialFormat.DC_SDJWT
 					) {
-						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format);
+						return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
 					}
-					else if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.MSO_MDOC) {
-						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format);
+					else if (credentialConfiguration.format === VerifiableCredentialFormat.MSO_MDOC) {
+						return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
 					}
 					else {
 						return null;
@@ -209,8 +218,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					{
 						rawCredential: temp[0],
 						credentialIssuer: {
-							credentialConfigurationId: credentialConfigurationIdRef.current,
-							credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+							credentialConfigurationId,
+							credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 						},
 					}
 				)
@@ -239,10 +248,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
 						return {
 							data: credential,
-							format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
+							format: credentialConfiguration.format,
 							kid: kidMap[index] ?? "",
-							credentialConfigurationId: credentialConfigurationIdRef.current,
-							credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+							credentialConfigurationId,
+							credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 							batchId: batchId,
 							instanceId: index,
 						}
