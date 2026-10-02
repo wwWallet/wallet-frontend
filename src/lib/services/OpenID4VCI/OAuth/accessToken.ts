@@ -5,8 +5,8 @@ import { GrantType, TokenRequestBuilder } from './TokenRequest';
 export type OAuthTokenState = {
 	access_token: string;
 	expiration_timestamp: number;
-	c_nonce?: string;
-	c_nonce_expiration_timestamp?: number;
+	c_nonce: string;
+	c_nonce_expiration_timestamp: number;
 	refresh_token?: string;
 };
 
@@ -100,6 +100,12 @@ export async function refreshAccessToken(
 	const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
 	if (!access_token) {
 		throw new Error("Missing access_token from refresh response");
+	}
+	if (!c_nonce) {
+		throw new Error("Missing c_nonce from refresh response");
+	}
+	if (typeof c_nonce_expires_in !== 'number') {
+		throw new Error("Missing c_nonce_expires_in from refresh response");
 	}
 
 	const now = context.now ?? Math.floor(Date.now() / 1000);
