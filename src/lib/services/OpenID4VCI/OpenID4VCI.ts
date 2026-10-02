@@ -448,10 +448,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					throw new Error("Using active access token: No flowstate");
 				}
 
+				const rememberIssuerAge = getRememberIssuerAge();
+				const flowStateAge = Math.floor(Date.now() / 1000) - flowState.created;
 				// if c_nonce and access_token are not expired
 				if (flowState.tokenResponse &&
 					Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.expiration_timestamp &&
-					getRememberIssuerAge() !== null && Math.floor(Date.now() / 1000) - flowState.created < getRememberIssuerAge()) {
+					rememberIssuerAge !== null && flowStateAge < rememberIssuerAge) {
 					// attempt credential request
 					if (!flowState.dpop) {
 						throw new Error("Using active access token: No dpop in flowstate");
@@ -466,7 +468,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 				// if access_token is expired
 				if (flowState.tokenResponse && Math.floor(Date.now() / 1000) > flowState.tokenResponse.data.expiration_timestamp && flowState.tokenResponse.data.refresh_token &&
-					getRememberIssuerAge() !== null && Math.floor(Date.now() / 1000) - flowState.created < getRememberIssuerAge()) {
+					rememberIssuerAge !== null && flowStateAge < rememberIssuerAge) {
 					// refresh token grant
 					await requestCredentials(credentialIssuerIdentifier, {
 						dpopNonceHeader: requestCredentialsParams.dpopNonceHeader,
@@ -565,6 +567,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			if ('error' in result) {
 				if (result.error === TokenRequestError.AUTHORIZATION_REQUIRED) {
+					if (!generateAuthorizationRequestRef.current) {
+						throw new Error("Authorization request generator is not set");
+					}
 					return generateAuthorizationRequestRef.current(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
 				}
 				throw new Error("Token request failed");
@@ -610,7 +615,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		]
 	);
 
-	const generateAuthorizationRequestRef = useRef<Function | null>(null);
+	const generateAuthorizationRequestRef = useRef<IOpenID4VCI['generateAuthorizationRequest'] | null>(null);
 
 	const handleAuthorizationResponse = useCallback(
 		async (url: string, dpopNonceHeader?: string) => {
