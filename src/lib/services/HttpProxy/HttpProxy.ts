@@ -130,11 +130,17 @@ export function useHttpProxy(): IHttpProxy {
 						if (keyConfig === null) {
 							throw new Error("Oblivious HTTP configuration error");
 						}
+						if (!OHTTP_RELAY) {
+							throw new Error("OHTTP relay is not configured");
+						}
 						const encryptedResponse = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
 							method: 'GET',
 							headers,
 							url,
 						})
+						if (!encryptedResponse) {
+							throw new Error("Encrypted HTTP request failed");
+						}
 						if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 							const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 							throw new AxiosError(
@@ -337,12 +343,18 @@ export function useHttpProxy(): IHttpProxy {
 					if (keyConfig === null) {
 						throw new Error("Oblivious HTTP configuration error");
 					}
+					if (!OHTTP_RELAY) {
+						throw new Error("OHTTP relay is not configured");
+					}
 					const encryptedResponse = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
 						method: 'POST',
 						headers,
 						url,
 						body
 					})
+					if (!encryptedResponse) {
+						throw new Error("Encrypted HTTP request failed");
+					}
 					if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 						const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 						throw new AxiosError(
@@ -376,6 +388,10 @@ export function useHttpProxy(): IHttpProxy {
 						: new TextDecoder().decode(encryptedResponse.body);
 					response = { data: { ...encryptedResponse, data } };
 				} else {
+					const appToken = sessionStorage.getItem('appToken');
+					if (!appToken) {
+						throw new Error("Missing app token");
+					}
 					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 						headers: headers,
 						url: url,
@@ -384,7 +400,7 @@ export function useHttpProxy(): IHttpProxy {
 					}, {
 						timeout: TIMEOUT,
 						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+							Authorization: 'Bearer ' + JSON.parse(appToken)
 						}
 					});
 				}
