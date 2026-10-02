@@ -261,30 +261,31 @@ export function useCredentialRequest() {
 		let credentialRequestEncryptionEnc: string | undefined;
 		let credentialRequestEncryptionZip: string | undefined;
 
-		if (credentialIssuerMetadata.metadata.credential_request_encryption) {
+		const credentialRequestEncryptionMetadata = credentialIssuerMetadata.metadata.credential_request_encryption;
+		if (credentialRequestEncryptionMetadata) {
 			credentialRequestEncryptionRequested = true;
 
-			const credentialRequestEncryptionRequired = credentialIssuerMetadata.metadata.credential_request_encryption.encryption_required;
+			const credentialRequestEncryptionRequired = credentialRequestEncryptionMetadata.encryption_required;
 
 			const credentialRequestEncryptionSupportedErrors = [];
 
 			const credentialRequestWalletSupportedAlg = ['ECDH-ES'];
-			const credentialRequestIssuerSupportedAlg = credentialIssuerMetadata.metadata.credential_request_encryption.jwks.keys.map(k => k.alg);
+			const credentialRequestIssuerSupportedAlg = credentialRequestEncryptionMetadata.jwks.keys.map(k => k.alg);
 			credentialRequestEncryptionAlg = credentialRequestWalletSupportedAlg.find(alg => credentialRequestIssuerSupportedAlg.includes(alg));
 			if (!credentialRequestEncryptionAlg) {
 				credentialRequestEncryptionSupportedErrors.push(`No supported credential_request_encryption keys found. Keys using Alg values[${credentialRequestWalletSupportedAlg.join(', ')}] are supported.`);
 			}
 
 			const credentialRequestWalletSupportedEnc = ['A128GCM', 'A256GCM'];
-			const credentialRequestIssuerSupportedEnc = credentialIssuerMetadata.metadata.credential_request_encryption.enc_values_supported;
+			const credentialRequestIssuerSupportedEnc = credentialRequestEncryptionMetadata.enc_values_supported;
 			credentialRequestEncryptionEnc = credentialRequestWalletSupportedEnc.find(enc => credentialRequestIssuerSupportedEnc.includes(enc));
 			if (!credentialRequestEncryptionEnc) {
 				credentialRequestEncryptionSupportedErrors.push(`Unsupported credential_request_encryption.enc_values_supported. [${credentialRequestWalletSupportedEnc.join(', ')}] are supported.`);
 			}
 
-			if (credentialIssuerMetadata.metadata.credential_request_encryption.zip_values_supported) {
+			if (credentialRequestEncryptionMetadata.zip_values_supported) {
 				const credentialRequestWalletSupportedZip = ['DEF'];
-				const credentialRequestIssuerSupportedZip = credentialIssuerMetadata.metadata.credential_request_encryption.zip_values_supported;
+				const credentialRequestIssuerSupportedZip = credentialRequestEncryptionMetadata.zip_values_supported;
 				credentialRequestEncryptionZip = credentialRequestWalletSupportedZip.find(zip => credentialRequestIssuerSupportedZip.includes(zip));
 				if (!credentialRequestEncryptionZip) {
 					credentialRequestEncryptionSupportedErrors.push(`Unsupported credential_request_encryption.zip_values_supported. [${credentialRequestWalletSupportedZip.join(', ')}] are supported.`);
@@ -348,6 +349,9 @@ export function useCredentialRequest() {
 		}
 
 		if (credentialResponseEncryptionRequested) {
+			if (!credentialResponseEncryptionAlg || !credentialResponseEncryptionEnc) {
+				throw new Error("Credential response encryption parameters are not set");
+			}
 
 			ephemeralKeypair = await generateKeyPair(credentialResponseEncryptionAlg);
 
@@ -366,7 +370,13 @@ export function useCredentialRequest() {
 		let credentialRequestContentType: string;
 		let credentialRequestBody: string | object;
 		if (credentialRequestEncryptionRequested) {
-			const jwk = credentialIssuerMetadata.metadata.credential_request_encryption.jwks.keys.find(k => k.alg === credentialRequestEncryptionAlg);
+			if (!credentialRequestEncryptionMetadata || !credentialRequestEncryptionAlg || !credentialRequestEncryptionEnc) {
+				throw new Error("Credential request encryption parameters are not set");
+			}
+			const jwk = credentialRequestEncryptionMetadata.jwks.keys.find(k => k.alg === credentialRequestEncryptionAlg);
+			if (!jwk) {
+				throw new Error("Credential request encryption key is not set");
+			}
 			const clientPublicKey = await importJWK(jwk, credentialRequestEncryptionAlg);
 
 			const encryptor = new CompactEncrypt(new TextEncoder().encode(JSON.stringify(credentialEndpointBody)));
@@ -397,6 +407,9 @@ export function useCredentialRequest() {
 
 		const credentialResponseContentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
 		if (credentialResponseEncryptionRequested && typeof credentialResponseContentType === 'string' && credentialResponseContentType.startsWith('application/jwt')) {
+			if (!ephemeralKeypair) {
+				throw new Error("Credential response encryption keypair is not set");
+			}
 			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey, compressionOptions)
 				.then((data): { data: CompactDecryptResult | null; err: unknown } => ({ data, err: null }))
 				.catch((err: unknown): { data: CompactDecryptResult | null; err: unknown } => ({ data: null, err }));
