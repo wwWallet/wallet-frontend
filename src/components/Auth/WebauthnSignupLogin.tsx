@@ -552,7 +552,7 @@ const WebauthnSignupLogin = ({
 										textSize="md"
 										additionalClassName="items-center justify-center relative"
 										disabled={!isLogin && (!isOnline || nameByteLimitReached)}
-										title={!isLogin && (!isOnline ? t("common.offlineTitle") : nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : undefined)}
+										title={!isLogin ? (!isOnline ? t("common.offlineTitle") : nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : undefined) : undefined}
 										value={hint}
 									>
 										<div className="flex flex-col">
