@@ -51,12 +51,12 @@ const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useSessionContext();
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
-	const [userData, setUserData] = useState<UserData>(null);
+	const [userData, setUserData] = useState<UserData | null>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
 	const [unlockInProgress, setUnlockInProgress] = useState(false);
 	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
-	const showDelete = userData?.webauthnCredentials?.length > 1;
+	const showDelete = (userData?.webauthnCredentials?.length ?? 0) > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -94,6 +94,9 @@ const Settings = () => {
 	const { getCalculatedWalletState } = keystore;
 
 	const deleteAccount = async () => {
+		if (!userData) {
+			return;
+		}
 		try {
 			await api.del('/user/session');
 			const userHandleB64u = new TextEncoder().encode(userData.uuid);
@@ -158,6 +161,9 @@ const Settings = () => {
 			try {
 				const response = await api.get('/user/session/account-info');
 				const s = keystore.getCalculatedWalletState();
+				if (!s) {
+					return;
+				}
 				const userData = {
 					...response.data,
 					settings: s.settings,
@@ -220,16 +226,23 @@ const Settings = () => {
 	};
 
 	const onUpgradePrfKey = async (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => {
+		if (!userData) {
+			return;
+		}
 		try {
 			const [newPrivateData, keystoreCommit] = await keystore.upgradePrfKey(
 				prfKeyInfo,
 				async () => {
 					const abortController = new AbortController();
+					const webauthnCredential = userData.webauthnCredentials.find(cred => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId));
+					if (!webauthnCredential) {
+						throw new Error("Missing WebAuthn credential for PRF key");
+					}
 					setUpgradePrfState(
 						{
 							state: "authenticate",
 							prfKeyInfo,
-							webauthnCredential: userData.webauthnCredentials.find(cred => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId)),
+							webauthnCredential,
 							abortController,
 						}
 					);
