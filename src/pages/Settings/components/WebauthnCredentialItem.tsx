@@ -12,7 +12,7 @@ import DeletePopup from '../../../components/Popups/DeletePopup';
 import Button from '../../../components/Buttons/Button';
 import { Edit, RefreshCcw, Trash2 } from 'lucide-react';
 
-export function useWebauthnCredentialName(credential: WebauthnCredential): string {
+export function useWebauthnCredentialName(credential?: WebauthnCredential): string {
 	const { t } = useTranslation();
 	if (credential) {
 		return credential.name || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;

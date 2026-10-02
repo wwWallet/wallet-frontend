@@ -32,8 +32,7 @@ import WebauthnRegistration from './components/WebauthnRegistration';
 import WebauthnCredentialItem, { useWebauthnCredentialName } from './components/WebauthnCredentialItem';
 
 type UpgradePrfState = (
-	null
-	| {
+	{
 		state: "authenticate",
 		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 		webauthnCredential: WebauthnCredential,
@@ -264,7 +263,12 @@ const Settings = () => {
 			}
 
 			console.error("Failed to upgrade PRF key", e);
-			setUpgradePrfState(state => ({ state: "err", err: e, prfKeyInfo, webauthnCredential: state?.webauthnCredential }));
+			setUpgradePrfState((state) => {
+				if (!state) {
+					return null;
+				}
+				return { state: "err", err: e, prfKeyInfo, webauthnCredential: state.webauthnCredential };
+			});
 		}
 	};
 
@@ -561,12 +565,14 @@ const Settings = () => {
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button
-									variant='primary'
-									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-								>
-									{t('common.tryAgain')}
-								</Button>
+								{upgradePrfState?.state === "err" && (
+									<Button
+										variant='primary'
+										onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
+									>
+										{t('common.tryAgain')}
+									</Button>
+								)}
 							</div>
 						</>
 					}
