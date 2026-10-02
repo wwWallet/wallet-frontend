@@ -532,6 +532,11 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 					}),
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAssertionResponse;
+				const responseUserHandle = response.userHandle;
+				const userHandle = responseUserHandle ?? (cachedUser ? fromBase64Url(cachedUser.userHandleB64u) : null);
+				if (!userHandle) {
+					throw new Error("User handle is not set");
+				}
 
 				try {
 					const finishResp = await (async () => {
@@ -546,7 +551,7 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 										authenticatorData: response.authenticatorData,
 										clientDataJSON: response.clientDataJSON,
 										signature: response.signature,
-										userHandle: response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u),
+										userHandle,
 									},
 									authenticatorAttachment: credential.authenticatorAttachment,
 									clientExtensionResults: credential.getClientExtensionResults(),
@@ -554,7 +559,7 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 							}));
 						}
 						else {
-							const userId = UserId.fromUserHandle(response.userHandle);
+							const userId = UserId.fromUserHandle(userHandle);
 							const user = await getItem("users", userId.id);
 							return {
 								data: {
@@ -578,9 +583,9 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 							promptForPrfRetry,
 							cachedUser || {
 								...userData,
-								// response.userHandle will always be non-null if cachedUser is
+								// responseUserHandle will always be non-null if cachedUser is
 								// null, because then allowCredentials was empty
-								userHandle: new Uint8Array(response.userHandle),
+								userHandle: new Uint8Array(responseUserHandle ?? userHandle),
 							},
 						);
 						if (privateDataUpdate) {
