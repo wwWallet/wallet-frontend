@@ -495,6 +495,9 @@ export async function unwrapKey(
 	extractable: boolean = false,
 ): Promise<CryptoKey> {
 	if (isAsymmetricWrappedKeyInfo(keyInfo)) {
+		if (!ephemeralInfo) {
+			throw new Error("Missing ephemeral encapsulation info");
+		}
 		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["decrypt", "wrapKey", "unwrapKey"]);
 	} else {
 		return await crypto.subtle.unwrapKey(
@@ -808,9 +811,16 @@ export async function unlockPrf(
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[UnlockSuccess, EncryptedContainer | null]> {
 	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
-	const mainKey = isPrfKeyV2(keyInfo)
-		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
-		: await unwrapKey(prfKey, null, keyInfo.mainKey, true);
+	let mainKey: CryptoKey;
+	if (isPrfKeyV2(keyInfo)) {
+		if (!isAsymmetricEncryptedContainer(privateData)) {
+			throw new Error("Asymmetric private data is required for PRF v2");
+		}
+		mainKey = await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"]);
+	}
+	else {
+		mainKey = await unwrapKey(prfKey, null, keyInfo.mainKey, true);
+	}
 
 	const newPrivateData = (
 		isPrfKeyV2(keyInfo)
@@ -979,6 +989,8 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 		const publicKeyJwk = await crypto.subtle.exportKey("jwk", publicKey);
 		return didUtil.createDid(publicKeyJwk as JWK);
 	}
+	const exhaustiveCheck: never = didKeyVersion;
+	throw new Error("Unsupported DID key version: " + exhaustiveCheck);
 }
 
 export async function signJwtPresentation([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
@@ -990,6 +1002,9 @@ export async function signJwtPresentation([privateData, mainKey, calculatedState
 	}
 
 	const inputJwt = await SDJwt.fromEncode(verifiableCredentials[0], hasher);
+	if (!inputJwt.jwt) {
+		throw new Error("SD-JWT payload is missing");
+	}
 	const { cnf } = inputJwt.jwt.payload as { cnf?: { jwk?: JWK } };
 
 	if (!cnf?.jwk) {
