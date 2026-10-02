@@ -101,7 +101,7 @@ export function createOperations(
 	SCHEMA_VERSION: number,
 	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy>,
 ) {
-	const v1ops = SchemaV1.createOperations(SCHEMA_VERSION, null as Record<WalletSessionEvent["type"], SchemaV1.MergeStrategy>);
+	const v1ops = SchemaV1.createOperations(SCHEMA_VERSION, null);
 	return {
 		...v1ops,
 
