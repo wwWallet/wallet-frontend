@@ -345,20 +345,23 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
-			setSessionState((prevState) => ({
+			setSessionState((prevState) => prevState ? {
 				...prevState,
 				showWelcome: showWelcome,
-			}));
+			} : null);
 		}
 	}, [sessionState, setSessionState]);
 
 	const getSession = useCallback((): SessionState => {
+		if (!sessionState) {
+			throw new Error("Session is not set");
+		}
 		return sessionState;
 	}, [sessionState]);
 
 	const isLoggedIn = useCallback((): boolean => {
-		return getSession() !== null;
-	}, [getSession]);
+		return sessionState !== null;
+	}, [sessionState]);
 
 	const clearSession = useCallback((): void => {
 		clearSessionStorage();
@@ -381,7 +384,7 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 			uuid: response.data.uuid,
 			displayName: response.data.displayName,
 			username: response.data.username,
-			webauthnCredentialCredentialId: credential?.id,
+			webauthnCredentialCredentialId: credential ? credential.id : '',
 			authenticationType,
 			showWelcome: authenticationType === 'signup' && shouldShowWelcomeOnSignup(),
 		});
