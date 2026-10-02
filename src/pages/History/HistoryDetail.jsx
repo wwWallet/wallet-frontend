@@ -1,11 +1,11 @@
 // External libraries
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // Contexts
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 // Hooks
 import useFetchPresentations from '@/hooks/useFetchPresentations';
@@ -16,7 +16,7 @@ import { H1 } from '@/components/Shared/Heading';
 
 const ActivityDetail = () => {
 	const { transactionId } = useParams();
-	const { keystore } = useContext(SessionContext);
+	const { keystore } = useSessionContext();
 	const activity = useFetchPresentations(keystore, null, transactionId);
 	const navigate = useNavigate();
 	const [selectedActivityItem, setSelectedActivityItem] = useState([]);

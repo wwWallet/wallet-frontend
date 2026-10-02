@@ -5,8 +5,8 @@ import { GrantType, TokenRequestBuilder } from './TokenRequest';
 export type OAuthTokenState = {
 	access_token: string;
 	expiration_timestamp: number;
-	c_nonce?: string;
-	c_nonce_expiration_timestamp?: number;
+	c_nonce: string;
+	c_nonce_expiration_timestamp: number;
 	refresh_token?: string;
 };
 
@@ -50,7 +50,7 @@ export async function refreshAccessToken(
 	},
 ): Promise<OAuthTokenRefreshResult> {
 	let dpop = request.dpop;
-	let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
+	let dpopPrivateKey: jose.KeyLike | null = null;
 	let dpopPrivateKeyJwk: jose.JWK | null = null;
 	let dpopPublicKeyJwk: jose.JWK | null = null;
 	const jti = generateRandomIdentifier(8);
@@ -58,10 +58,12 @@ export async function refreshAccessToken(
 	if (request.dpopSupported) {
 		if (dpop) {
 			dpopPrivateKeyJwk = dpop.dpopPrivateKeyJwk;
-			dpopPublicKeyJwk = dpop.dpopPublicKeyJwk;
-			[dpopPrivateKey] = await Promise.all([
-				jose.importJWK(dpop.dpopPrivateKeyJwk, dpop.dpopAlg),
-			]);
+			dpopPublicKeyJwk = dpop.dpopPublicKeyJwk ?? null;
+			const importedPrivateKey = await jose.importJWK(dpop.dpopPrivateKeyJwk, dpop.dpopAlg);
+			if (importedPrivateKey instanceof Uint8Array) {
+				throw new Error("DPoP private key must be asymmetric");
+			}
+			dpopPrivateKey = importedPrivateKey;
 		} else {
 			const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
 			[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
@@ -71,12 +73,15 @@ export async function refreshAccessToken(
 			dpopPrivateKey = privateKey;
 		}
 
-		await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk as jose.JWK, jti);
+		if (!dpopPrivateKey || !dpopPrivateKeyJwk || !dpopPublicKeyJwk) {
+			throw new Error("Missing DPoP key material for token refresh");
+		}
+		await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey, dpopPublicKeyJwk, jti);
 		dpop = {
 			dpopAlg: 'ES256',
 			dpopJti: jti,
-			dpopPrivateKeyJwk: dpopPrivateKeyJwk as jose.JWK,
-			dpopPublicKeyJwk: dpopPublicKeyJwk as jose.JWK,
+			dpopPrivateKeyJwk,
+			dpopPublicKeyJwk,
 		};
 	}
 
@@ -95,6 +100,12 @@ export async function refreshAccessToken(
 	const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
 	if (!access_token) {
 		throw new Error("Missing access_token from refresh response");
+	}
+	if (!c_nonce) {
+		throw new Error("Missing c_nonce from refresh response");
+	}
+	if (typeof c_nonce_expires_in !== 'number') {
+		throw new Error("Missing c_nonce_expires_in from refresh response");
 	}
 
 	const now = context.now ?? Math.floor(Date.now() / 1000);

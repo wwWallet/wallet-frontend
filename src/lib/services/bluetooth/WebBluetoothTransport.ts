@@ -78,6 +78,9 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			// browser device chooser is closed from here on
 			onDeviceSelected?.();
 			this.device.addEventListener("gattserverdisconnected", this.onDisconnected);
+			if (!this.device.gatt) {
+				throw new Error("Selected Bluetooth device does not expose GATT");
+			}
 			const connectPromise = this.device.gatt.connect();
 			this.server = await new Promise<BluetoothRemoteGATTServer>((resolve, reject) => {
 				const timeoutId = setTimeout(() => {
@@ -173,20 +176,25 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 	}
 
 	async sendMessage(payload: Uint8Array): Promise<void> {
+		const client2ServerCharacteristic = this.client2ServerCharacteristic;
+		if (!client2ServerCharacteristic) {
+			throw new Error("Bluetooth client-to-server characteristic is not initialized");
+		}
+
 		const maxPayloadPerChunk = this.chunkSize - 1;
 		let offset = 0;
 		while (payload.length - offset > maxPayloadPerChunk) {
 			const chunk = new Uint8Array(this.chunkSize);
 			chunk[0] = 1; // more chunks follow
 			chunk.set(payload.subarray(offset, offset + maxPayloadPerChunk), 1);
-			await this.client2ServerCharacteristic.writeValueWithoutResponse(chunk);
+			await client2ServerCharacteristic.writeValueWithoutResponse(chunk);
 			await new Promise((resolve) => setTimeout(resolve, 10));
 			offset += maxPayloadPerChunk;
 		}
 		const lastChunk = new Uint8Array(1 + payload.length - offset);
 		lastChunk[0] = 0; // final chunk
 		lastChunk.set(payload.subarray(offset), 1);
-		await this.client2ServerCharacteristic.writeValueWithoutResponse(lastChunk);
+		await client2ServerCharacteristic.writeValueWithoutResponse(lastChunk);
 		await new Promise((resolve) => setTimeout(resolve, 10));
 	}
 

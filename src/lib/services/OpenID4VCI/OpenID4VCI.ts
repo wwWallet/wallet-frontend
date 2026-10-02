@@ -11,7 +11,7 @@ import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } fr
 import { accessTokenIsValid, refreshAccessToken } from './OAuth/accessToken';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
@@ -154,7 +154,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const [issuanceFlowInProgress, setIssuanceFlowInProgress] = useState(false);
 
 	const httpProxy = useHttpProxy();
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const { credentialEngine } = useContext<any>(CredentialsContext);
 
 	const { t } = useTranslation();
@@ -365,7 +365,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			await openID4VCIClientStateRepository.updateState(flowState);
 			await openID4VCIClientStateRepository.cleanupExpired();
 
-			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+			const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
 
 			setReceivedCredentialsArray(credentialArray);
 
@@ -870,7 +870,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [commitStateChanges, openID4VCIClientStateRepository, verificationFlowInProgress, setCommitStateChanges, receivedCredentialsArray]);
 
 
-	const intervalCallback = useCallback(async () => {
+	const intervalCallback = useCallback(async (): Promise<void | null> => {
 		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress || issuanceFlowInProgress) {
 			return null;
 		}
@@ -962,7 +962,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					if (!credentialResponse?.data?.credentials) {
 						continue;
 					}
-					const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+					const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
 					if (credentialResponse?.data?.credentials) {
 						await openID4VCIClientStateRepository.updateState({
 							...pollingState,

@@ -5,7 +5,7 @@ export async function verifySdJwtBasedOnTrustAnchors(credential: string) {
 	const cred = credential.split('~')[0];
 
 	const { x5c } = JSON.parse(new TextDecoder().decode(jose.base64url.decode(cred.split('.')[0])))
-	const chain = x5c.map((c) => {
+	const chain = x5c.map((c: string) => {
 		const cert = fromPemToPKIJSCertificate(toPem(c));
 		return cert;
 	});

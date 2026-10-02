@@ -13,6 +13,7 @@ import { SDJwt } from "@sd-jwt/core";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 import { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
+import { AppError } from "../errors";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -65,7 +66,7 @@ export function assertAsymmetricEncryptedContainer(privateData: EncryptedContain
 	if (isAsymmetricEncryptedContainer(privateData)) {
 		return privateData;
 	} else {
-		throw new Error("Keystore must be upgraded to asymmetric format", { cause: 'keystore_not_asymmetric' });
+		throw new AppError('keystore_not_asymmetric', "Keystore must be upgraded to asymmetric format");
 	}
 }
 
@@ -653,18 +654,18 @@ async function getPrfOutput(
 				return await getPrfOutput(retryCred, prfInputs, async () => false);
 			} catch (err) {
 				if (err instanceof DOMException && err.name === "NotAllowedError") {
-					throw new Error("Failed to evaluate PRF", { cause: { errorId: "prf_retry_failed", credential, err } });
+					throw new AppError("prf_retry_failed", "Failed to evaluate PRF", { cause: { credential, err } });
 				} else {
 					throw new Error("Failed to evaluate PRF", { cause: err });
 				}
 			}
 
 		} else {
-			throw new Error("Canceled by user", { cause: { errorId: "canceled" } });
+			throw new AppError("canceled", "Canceled by user");
 		}
 
 	} else {
-		throw new Error("Browser or authenticator does not support PRF", { cause: { errorId: "prf_not_supported" } });
+		throw new AppError("prf_not_supported", "Browser or authenticator does not support PRF");
 	}
 }
 
@@ -681,7 +682,7 @@ async function createPrfKey(
 		promptForPrfRetry,
 	);
 	const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
-	const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
+	const hkdfInfo = new Uint8Array(new TextEncoder().encode("eDiplomas PRF"));
 	const algorithm = { name: "AES-GCM", length: 256 };
 	const deriveKeyParams = { hkdfSalt, hkdfInfo, algorithm };
 	const prfKey = await derivePrfKey(prfOutput, deriveKeyParams);

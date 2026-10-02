@@ -5,7 +5,7 @@ const PolicyLinks = () => {
 	const { hasPolicyLinks, policyLinksList } = usePolicyLinks();
 	const { t } = useTranslation();
 
-	if (!hasPolicyLinks) return;
+	if (!hasPolicyLinks || !policyLinksList) return;
 
 	return (
 		<span>

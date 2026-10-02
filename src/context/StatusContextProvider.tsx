@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
-import StatusContext, { Connectivity } from './StatusContext';
+import StatusContext, { BeforeInstallPromptEvent, Connectivity } from './StatusContext';
 import { useLocalStorage } from '@/hooks/useStorage';
 
 // Function to calculate speed based on RTT (lower RTT means higher speed)
@@ -44,7 +44,7 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 		Internet: null,
 		speed: null,
 	});
-	const [pwaInstallable, setPwaInstallable] = useState(null);
+	const [pwaInstallable, setPwaInstallable] = useState<BeforeInstallPromptEvent | null>(null);
 	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>("hidePwaPrompt", false);
 
 	const lastUpdateCallTime = React.useRef<number>(0);
@@ -173,9 +173,9 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 	useEffect(() => {
 		// beforeinstallprompt is triggered if browser can install pwa
 		// it will not trigger if pwa is already installed
-		const handleBeforeInstallPrompt = (event) => {
+		const handleBeforeInstallPrompt = (event: Event) => {
 			event.preventDefault();
-			setPwaInstallable(event);
+			setPwaInstallable(event as BeforeInstallPromptEvent);
 		};
 
 		// appinstaled is triggered if pwa was installed

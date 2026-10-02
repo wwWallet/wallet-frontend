@@ -1,9 +1,9 @@
 // External libraries
-import React, { useContext } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Context
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 // Hooks
 import useFetchPresentations from '@/hooks/useFetchPresentations';
@@ -15,7 +15,7 @@ import { H1 } from '@/components/Shared/Heading';
 import PageDescription from '@/components/Shared/PageDescription';
 
 const Activity = () => {
-	const { keystore } = useContext(SessionContext);
+	const { keystore } = useSessionContext();
 	const activity = useFetchPresentations(keystore);
 	const { t } = useTranslation();
 

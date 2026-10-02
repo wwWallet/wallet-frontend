@@ -85,7 +85,7 @@ afterEach(() => {
 
 const eventTarget = new EventTarget();
 
-function KeystoreProbe({ onReady }: { onReady: (keystore: LocalStorageKeystore) => void }) {
+function KeystoreProbe({ onReady }: { onReady: (keystore: LocalStorageKeystore) => void }): React.ReactElement | null {
 	onReady(useLocalStorageKeystore(eventTarget));
 	return null;
 }
@@ -153,7 +153,7 @@ describe("unlocking with locally cached encrypted private data", () => {
 	const promptForPrfRetry = vi.fn(async () => false);
 	const remoteState = CurrentSchema.WalletStateOperations.initialWalletStateContainer() as CurrentSchema.WalletStateContainer & { S: CurrentSchema.WalletState };
 	const localState = { ...remoteState, lastEventHash: "local-history" };
-	const mergedState = { ...remoteState, S: { ...remoteState.S, credentials: [] }, lastEventHash: "merged-history" };
+	const mergedState = { ...remoteState, S: { ...remoteState.S, credentials: [] as CurrentSchema.WalletState["credentials"] }, lastEventHash: "merged-history" };
 	const put = vi.fn();
 	let remoteKey: CryptoKey;
 	let oldKey: CryptoKey;

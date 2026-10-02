@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import { createContext } from 'react';
 
 export type SyncNotificationContextValue = {
 	pendingResync: boolean,
@@ -7,7 +7,7 @@ export type SyncNotificationContextValue = {
 	dismissSyncNotification: () => void,
 };
 
-const SyncNotificationContext: React.Context<SyncNotificationContextValue> = createContext({
+const SyncNotificationContext = createContext<SyncNotificationContextValue>({
 	pendingResync: false,
 	showSyncNotification: false,
 	openAuthPopup: () => { },

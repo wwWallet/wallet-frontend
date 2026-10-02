@@ -53,7 +53,7 @@ export function fromBase64Url(s: string): Uint8Array<ArrayBuffer> {
 	return fromBase64(s.replace(/-/g, "+").replace(/_/g, "/"));
 }
 
-function replacerUint8ArrayToTaggedBase64Url(key: string, value: any): any {
+function replacerUint8ArrayToTaggedBase64Url(this: Record<string, unknown>, key: string, value: any): any {
 	if (this[key] instanceof Uint8Array || this[key] instanceof ArrayBuffer) {
 		return { '$b64u': toBase64Url(toU8(this[key])) };
 	} else {
@@ -228,7 +228,7 @@ export function calculateByteSize(s: string): number {
 /** Return a shallow copy of `o` containing only the key-value pairs for which `predicate` returns `true`. */
 export function filterObject<T>(o: { [key: string]: T }, predicate: (v: T, k: string) => boolean): { [key: string]: T } {
 	return Object.entries(o).reduce(
-		(result, [k, v]) => {
+		(result: { [key: string]: T }, [k, v]) => {
 			if (predicate(v, k)) {
 				result[k] = v;
 			}
@@ -244,12 +244,11 @@ export function getElementPropValue(
 	property: string
 ): string | number | undefined {
 	let value = obj;
-	const propsArray = property.split(".");
-	while (propsArray.length) {
+	for (const prop of property.split(".")) {
 		if (!value) {
 			break;
 		}
-		value = value[propsArray.shift()];
+		value = value[prop];
 	}
 	return value;
 }

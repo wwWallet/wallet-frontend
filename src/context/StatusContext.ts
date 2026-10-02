@@ -6,11 +6,15 @@ export interface Connectivity {
 	speed: number | null;
 }
 
+export interface BeforeInstallPromptEvent extends Event {
+	prompt(): Promise<void>;
+}
+
 interface StatusContextValue {
-	isOnline: boolean;
+	isOnline: boolean | null;
 	updateAvailable: boolean;
 	connectivity: Connectivity;
-	pwaInstallable: Event;
+	pwaInstallable: BeforeInstallPromptEvent | null;
 	dismissPwaPrompt: () => void;
 	hidePwaPrompt: boolean;
 	updateOnlineStatus: (forceCheck?: boolean) => Promise<void>;

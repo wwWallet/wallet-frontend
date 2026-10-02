@@ -3,6 +3,7 @@ import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
 import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
+import { AppError } from '../errors';
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
@@ -32,7 +33,7 @@ type SignupWebauthnError = (
 	| 'passkeySignupPrfNotSupported'
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
-type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
+export type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
 
 
 export type ClearSessionEvent = {};
@@ -94,7 +95,7 @@ export interface BackendApi {
 	>>;
 }
 
-export function useApi(isOnlineProp: boolean = true): BackendApi {
+export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 	const isOnline = useMemo(() => isOnlineProp === null ? true : isOnlineProp, [isOnlineProp]);
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [userHandle,] = useSessionStorage<string | null>("userHandle", null);
@@ -108,7 +109,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	 * loaded into the keystore or successfully uploaded to the server.
 	 */
 	const getPrivateDataEtag = useCallback(() => {
-		return jsonParseTaggedBinary(localStorage.getItem('privateDataEtag'));
+		const privateDataEtag = localStorage.getItem('privateDataEtag');
+		return privateDataEtag ? jsonParseTaggedBinary(privateDataEtag) : null;
 	}, []);
 
 	const setPrivateDataEtag = useCallback((v: string) => {
@@ -217,7 +219,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			userUuid?: string,
 		},
 	): Promise<AxiosResponse> => {
-		return getWithLocalDbKey(path, sessionState?.uuid || options?.userUuid, options);
+		const dbKey = sessionState?.uuid || options?.userUuid;
+		if (!dbKey) {
+			throw new Error("User UUID is not set");
+		}
+		return getWithLocalDbKey(path, dbKey, options);
 	}, [getWithLocalDbKey, sessionState?.uuid]);
 
 	const getExternalEntity = useCallback(async (
@@ -263,8 +269,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				},
 			);
 		} catch (e) {
-			if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
-				return Promise.reject({ cause: 'x-private-data-etag' });
+			if (axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) {
+				return Promise.reject(new AppError('x-private-data-etag', 'Private data version conflict', { cause: e }));
 			}
 			throw e;
 		}
@@ -282,8 +288,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					transformResponse,
 				});
 		} catch (e) {
-			if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
-				return Promise.reject({ cause: 'x-private-data-etag' });
+			if (axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) {
+				return Promise.reject(new AppError('x-private-data-etag', 'Private data version conflict', { cause: e }));
 			}
 			throw e;
 		}
@@ -339,20 +345,23 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
-			setSessionState((prevState) => ({
+			setSessionState((prevState) => prevState ? {
 				...prevState,
 				showWelcome: showWelcome,
-			}));
+			} : null);
 		}
 	}, [sessionState, setSessionState]);
 
 	const getSession = useCallback((): SessionState => {
+		if (!sessionState) {
+			throw new Error("Session is not set");
+		}
 		return sessionState;
 	}, [sessionState]);
 
 	const isLoggedIn = useCallback((): boolean => {
-		return getSession() !== null;
-	}, [getSession]);
+		return sessionState !== null;
+	}, [sessionState]);
 
 	const clearSession = useCallback((): void => {
 		clearSessionStorage();
@@ -375,7 +384,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			uuid: response.data.uuid,
 			displayName: response.data.displayName,
 			username: response.data.username,
-			webauthnCredentialCredentialId: credential?.id,
+			webauthnCredentialCredentialId: credential ? credential.id : '',
 			authenticationType,
 			showWelcome: authenticationType === 'signup' && shouldShowWelcomeOnSignup(),
 		});
@@ -420,10 +429,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				return Promise.reject(updateResp);
 			}
 		} catch (e) {
-			console.error("Failed to update private data", e, e?.response?.status);
-			if ((e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) || (e.cause === 'x-private-data-etag')) {
+			console.error("Failed to update private data", e, axios.isAxiosError(e) ? e.response?.status : undefined);
+			if ((axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) || (e instanceof AppError && e.errorId === 'x-private-data-etag')) {
 				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
-				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
+				const cachedUser = cachedUsers?.find((u) => u.userHandleB64u === userHandle);
+				if (!cachedUser) {
+					throw new Error("Cached user is not set");
+				}
 				await syncPrivateData(cachedUser);
 				return;
 			}
@@ -520,6 +532,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					}),
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAssertionResponse;
+				const responseUserHandle = response.userHandle;
+				const userHandle = responseUserHandle ?? (cachedUser ? fromBase64Url(cachedUser.userHandleB64u) : null);
+				if (!userHandle) {
+					throw new Error("User handle is not set");
+				}
 
 				try {
 					const finishResp = await (async () => {
@@ -534,7 +551,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 										authenticatorData: response.authenticatorData,
 										clientDataJSON: response.clientDataJSON,
 										signature: response.signature,
-										userHandle: response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u),
+										userHandle,
 									},
 									authenticatorAttachment: credential.authenticatorAttachment,
 									clientExtensionResults: credential.getClientExtensionResults(),
@@ -542,7 +559,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							}));
 						}
 						else {
-							const userId = UserId.fromUserHandle(response.userHandle);
+							const userId = UserId.fromUserHandle(userHandle);
 							const user = await getItem("users", userId.id);
 							return {
 								data: {
@@ -551,7 +568,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 									did: user.did,
 									displayName: user.displayName,
 									privateData: user.privateData,
-									username: null,
+									username: null as string | null,
 								},
 							};
 						}
@@ -566,9 +583,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							promptForPrfRetry,
 							cachedUser || {
 								...userData,
-								// response.userHandle will always be non-null if cachedUser is
+								// responseUserHandle will always be non-null if cachedUser is
 								// null, because then allowCredentials was empty
-								userHandle: new Uint8Array(response.userHandle),
+								userHandle: new Uint8Array(responseUserHandle ?? userHandle),
 							},
 						);
 						if (privateDataUpdate) {
@@ -577,8 +594,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
 								await keystoreCommit();
 							} catch (e) {
-								console.error("Failed to upgrade PRF key", e, e.status);
-								if (e?.cause === 'x-private-data-etag') {
+								console.error("Failed to upgrade PRF key", e);
+								if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 									return Err('x-private-data-etag');
 								}
 								return Err('loginKeystoreFailed');
@@ -674,9 +691,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					}
 
 				} catch (e) {
-					if (e?.cause?.errorId === "prf_retry_failed") {
+					if (e instanceof AppError && e.errorId === "prf_retry_failed") {
 						return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
-					} else if (e?.cause?.errorId === "prf_not_supported") {
+					} else if (e instanceof AppError && e.errorId === "prf_not_supported") {
 						return Err('passkeySignupPrfNotSupported');
 					} else {
 						return Err('passkeySignupKeystoreFailed');

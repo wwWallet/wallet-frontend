@@ -1,5 +1,14 @@
 import { cborEncode, DataItem } from "@owf/mdoc";
 
+type BinarySource = ArrayBuffer | ArrayBufferView<ArrayBufferLike>;
+
+function toArrayBufferView(source: BinarySource): Uint8Array<ArrayBuffer> {
+	if (ArrayBuffer.isView(source)) {
+		return new Uint8Array(source.buffer, source.byteOffset, source.byteLength).slice();
+	}
+	return new Uint8Array(source);
+}
+
 export async function createSessionKey(rawPublic: ArrayBuffer, ephemeralKey: CryptoKeyPair) : Promise<CryptoKey> {
 	const importedVerifierPublicKey = await crypto.subtle.importKey(
 		"raw",
@@ -29,7 +38,7 @@ export async function createSessionKey(rawPublic: ArrayBuffer, ephemeralKey: Cry
 	return sessionKey;
 }
 
-export async function encryptMessage(sessionKey, plaintext, iv=null) {
+export async function encryptMessage(sessionKey: CryptoKey, plaintext: string, iv: Uint8Array<ArrayBuffer> | null = null) {
 	// const enc = new TextEncoder();
 	if (!iv) {
 		iv = crypto.getRandomValues(new Uint8Array(12));
@@ -52,7 +61,7 @@ export async function encryptMessage(sessionKey, plaintext, iv=null) {
 	return { iv, ciphertext };
 }
 
-export async function encryptUint8Array(sessionKey, arr, iv=null) {
+export async function encryptUint8Array(sessionKey: CryptoKey, arr: BinarySource, iv: Uint8Array<ArrayBuffer> | null = null) {
 	// const enc = new TextEncoder();
 	if (!iv) {
 		iv = crypto.getRandomValues(new Uint8Array(12));
@@ -69,22 +78,22 @@ export async function encryptUint8Array(sessionKey, arr, iv=null) {
 		sessionKey,
 		// enc.encode(plaintext)
 		// plaintext
-		arr
+		toArrayBufferView(arr)
 	);
 
 	return { iv, ciphertext };
 }
 
-export async function decryptMessage(sessionKey, iv, ciphertext, uint8 = false) {
+export async function decryptMessage(sessionKey: CryptoKey, iv: BinarySource, ciphertext: BinarySource, uint8 = false): Promise<string | Uint8Array<ArrayBuffer>> {
 	const dec = new TextDecoder();
 
 	const plaintext = await crypto.subtle.decrypt(
 		{
 			name: "AES-GCM",
-			iv: iv
+			iv: toArrayBufferView(iv)
 		},
 		sessionKey,
-		ciphertext
+		toArrayBufferView(ciphertext)
 	);
 	if (uint8) {
 		return new Uint8Array(plaintext);
@@ -93,8 +102,8 @@ export async function decryptMessage(sessionKey, iv, ciphertext, uint8 = false) 
 	}
 }
 
-export function hexToUint8Array(hexString) {
-	return Uint8Array.from(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)));
+export function hexToUint8Array(hexString: string): Uint8Array<ArrayBuffer> {
+	return Uint8Array.from((hexString.match(/.{1,2}/g) ?? []).map((byte: string) => parseInt(byte, 16)));
 }
 
 export function uint8ArrayToBase64Url(array: any) {
@@ -122,7 +131,8 @@ export function uint8ArraytoHexString(byteArray: Uint8Array): string {
 	).join('');
 }
 
-export async function deriveSKReader(sessionTranscriptBytes) {
+export async function deriveSKReader(sessionTranscriptBytes: BufferSource): Promise<void> {
+	void sessionTranscriptBytes;
 
 }
 
@@ -132,7 +142,7 @@ export async function deriveSKReader(sessionTranscriptBytes) {
 		- our ECDH private key
 		- their ECDH public key
 */
-export async function deriveSharedSecret(privateKey, publicKey) {
+export async function deriveSharedSecret(privateKey: CryptoKey, publicKey: CryptoKey): Promise<CryptoKey> {
 	const secret = await crypto.subtle.deriveBits(
 		{ name: "ECDH", public: publicKey },
 		privateKey,
@@ -148,11 +158,11 @@ export async function deriveSharedSecret(privateKey, publicKey) {
 	);
 }
 
-export async function getKey(keyMaterial, salt, info) {
+export async function getKey(keyMaterial: CryptoKey, salt: ArrayBuffer | Uint8Array<ArrayBufferLike>, info: string): Promise<CryptoKey> {
 	return await crypto.subtle.deriveKey(
 		{
 			name: "HKDF",
-			salt: salt,
+			salt: salt instanceof Uint8Array ? new Uint8Array(salt) : salt,
 			info: new TextEncoder().encode(info),
 			hash: "SHA-256",
 		},
@@ -163,15 +173,18 @@ export async function getKey(keyMaterial, salt, info) {
 	);
 }
 
-export function getSessionTranscriptBytes(deviceEngagementBytes, eReaderKeyBytes) {
-	return cborEncode(DataItem.fromData([
+export function getSessionTranscriptBytes(deviceEngagementBytes: Uint8Array, eReaderKeyBytes: Uint8Array): Uint8Array<ArrayBuffer> {
+	return new Uint8Array(cborEncode(DataItem.fromData([
 		deviceEngagementBytes, // DeviceEngagementBytes
 		eReaderKeyBytes, // EReaderKeyBytes
 		null,
-	]));
+	])));
 }
 
 export function getDeviceEngagement(uuid: string, publicKeyJWK: JsonWebKey) {
+	if (!publicKeyJWK.x || !publicKeyJWK.y) {
+		throw new Error("EC public key JWK must include x and y");
+	}
 	const bleOptions = new Map<number, any>([
 		[0, false],
 		[1, true],
@@ -190,7 +203,7 @@ export function getDeviceEngagement(uuid: string, publicKeyJWK: JsonWebKey) {
 	return themap;
 }
 
-export function uuidToUint8Array(uuid) {
+export function uuidToUint8Array(uuid: string): Uint8Array<ArrayBuffer> {
 	// Remove hyphens from the UUID string
 	const hexString = uuid.replace(/-/g, '');
 

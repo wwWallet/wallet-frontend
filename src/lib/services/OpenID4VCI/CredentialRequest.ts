@@ -2,8 +2,8 @@ import { compactDecrypt, CompactDecryptResult, CompactEncrypt, CompactJWEHeaderP
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
-import { useContext, useCallback, useMemo, useRef } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useCallback, useMemo, useRef } from "react";
+import { useSessionContext } from "@/context/SessionContext";
 import { OpenidCredentialIssuerMetadata } from "wallet-common";
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
 
@@ -29,7 +29,7 @@ export const compressionOptions = {
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
 	const openID4VCIHelper = useOpenID4VCIHelper();
-	const { keystore, api } = useContext(SessionContext);
+	const { keystore, api } = useSessionContext();
 
 	const credentialEndpointURLRef = useRef<string | null>(null);
 	const deferredCredentialEndpointURLRef = useRef<string | null>(null);
@@ -68,7 +68,7 @@ export function useCredentialRequest() {
 	}, [post]
 	);
 
-	const httpHeaders = useMemo(() => ({
+	const httpHeaders = useMemo<Record<string, string>>(() => ({
 		'Content-Type': 'application/json',
 	}), []);
 
@@ -121,8 +121,9 @@ export function useCredentialRequest() {
 		const jti = jtiRef.current;
 		const dpopNonce = dpopNonceRef.current;
 		const accessToken = accessTokenRef.current;
+		const dpopPrivateKey = dpopPrivateKeyRef.current;
 
-		if (!credentialEndpointURL || !dpopPublicKeyJwk || !jti) {
+		if (!credentialEndpointURL || !dpopPrivateKey || !dpopPublicKeyJwk || !jti) {
 			throw new Error("Missing required parameters for DPoP header");
 		}
 
@@ -132,12 +133,12 @@ export function useCredentialRequest() {
 
 
 		const credentialEndpointDPoP = await generateDPoP(
-			dpopPrivateKeyRef.current,
+			dpopPrivateKey,
 			dpopPublicKeyJwk,
 			"POST",
 			credentialEndpointURL,
-			dpopNonce,
-			accessToken
+			dpopNonce ?? undefined,
+			accessToken ?? undefined
 		);
 
 		httpHeaders['Authorization'] = `DPoP ${accessToken}`;
@@ -150,7 +151,11 @@ export function useCredentialRequest() {
 
 	const executeDeferredFetch = useCallback(async (transactionId: string): Promise<{ credentialResponse: any }> => {
 		try {
-			const credentialResponse = await httpProxy.post(deferredCredentialEndpointURLRef.current, { transaction_id: transactionId }, httpHeaders);
+			const deferredCredentialEndpointURL = deferredCredentialEndpointURLRef.current;
+			if (!deferredCredentialEndpointURL) {
+				throw new Error("Deferred credential endpoint is not set");
+			}
+			const credentialResponse = await httpProxy.post(deferredCredentialEndpointURL, { transaction_id: transactionId }, httpHeaders);
 			return { credentialResponse };
 		}
 		catch (err) {
@@ -164,11 +169,18 @@ export function useCredentialRequest() {
 		console.log("Executing credential request...");
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
+		const credentialEndpointURL = credentialEndpointURLRef.current;
+		if (!credentialIssuerIdentifier || !c_nonce || !credentialEndpointURL) {
+			throw new Error("Missing required parameters for credential request");
+		}
 
 		const [credentialIssuerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
+		if (!credentialIssuerMetadata || !clientId) {
+			throw new Error("Missing issuer metadata or client id");
+		}
 
 		const credentialEndpointBody = {} as any;
 		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size && credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE ?
@@ -249,30 +261,31 @@ export function useCredentialRequest() {
 		let credentialRequestEncryptionEnc: string | undefined;
 		let credentialRequestEncryptionZip: string | undefined;
 
-		if (credentialIssuerMetadata.metadata.credential_request_encryption) {
+		const credentialRequestEncryptionMetadata = credentialIssuerMetadata.metadata.credential_request_encryption;
+		if (credentialRequestEncryptionMetadata) {
 			credentialRequestEncryptionRequested = true;
 
-			const credentialRequestEncryptionRequired = credentialIssuerMetadata.metadata.credential_request_encryption.encryption_required;
+			const credentialRequestEncryptionRequired = credentialRequestEncryptionMetadata.encryption_required;
 
 			const credentialRequestEncryptionSupportedErrors = [];
 
 			const credentialRequestWalletSupportedAlg = ['ECDH-ES'];
-			const credentialRequestIssuerSupportedAlg = credentialIssuerMetadata.metadata.credential_request_encryption.jwks.keys.map(k => k.alg);
+			const credentialRequestIssuerSupportedAlg = credentialRequestEncryptionMetadata.jwks.keys.map(k => k.alg);
 			credentialRequestEncryptionAlg = credentialRequestWalletSupportedAlg.find(alg => credentialRequestIssuerSupportedAlg.includes(alg));
 			if (!credentialRequestEncryptionAlg) {
 				credentialRequestEncryptionSupportedErrors.push(`No supported credential_request_encryption keys found. Keys using Alg values[${credentialRequestWalletSupportedAlg.join(', ')}] are supported.`);
 			}
 
 			const credentialRequestWalletSupportedEnc = ['A128GCM', 'A256GCM'];
-			const credentialRequestIssuerSupportedEnc = credentialIssuerMetadata.metadata.credential_request_encryption.enc_values_supported;
+			const credentialRequestIssuerSupportedEnc = credentialRequestEncryptionMetadata.enc_values_supported;
 			credentialRequestEncryptionEnc = credentialRequestWalletSupportedEnc.find(enc => credentialRequestIssuerSupportedEnc.includes(enc));
 			if (!credentialRequestEncryptionEnc) {
 				credentialRequestEncryptionSupportedErrors.push(`Unsupported credential_request_encryption.enc_values_supported. [${credentialRequestWalletSupportedEnc.join(', ')}] are supported.`);
 			}
 
-			if (credentialIssuerMetadata.metadata.credential_request_encryption.zip_values_supported) {
+			if (credentialRequestEncryptionMetadata.zip_values_supported) {
 				const credentialRequestWalletSupportedZip = ['DEF'];
-				const credentialRequestIssuerSupportedZip = credentialIssuerMetadata.metadata.credential_request_encryption.zip_values_supported;
+				const credentialRequestIssuerSupportedZip = credentialRequestEncryptionMetadata.zip_values_supported;
 				credentialRequestEncryptionZip = credentialRequestWalletSupportedZip.find(zip => credentialRequestIssuerSupportedZip.includes(zip));
 				if (!credentialRequestEncryptionZip) {
 					credentialRequestEncryptionSupportedErrors.push(`Unsupported credential_request_encryption.zip_values_supported. [${credentialRequestWalletSupportedZip.join(', ')}] are supported.`);
@@ -336,6 +349,9 @@ export function useCredentialRequest() {
 		}
 
 		if (credentialResponseEncryptionRequested) {
+			if (!credentialResponseEncryptionAlg || !credentialResponseEncryptionEnc) {
+				throw new Error("Credential response encryption parameters are not set");
+			}
 
 			ephemeralKeypair = await generateKeyPair(credentialResponseEncryptionAlg);
 
@@ -354,7 +370,13 @@ export function useCredentialRequest() {
 		let credentialRequestContentType: string;
 		let credentialRequestBody: string | object;
 		if (credentialRequestEncryptionRequested) {
-			const jwk = credentialIssuerMetadata.metadata.credential_request_encryption.jwks.keys.find(k => k.alg === credentialRequestEncryptionAlg);
+			if (!credentialRequestEncryptionMetadata || !credentialRequestEncryptionAlg || !credentialRequestEncryptionEnc) {
+				throw new Error("Credential request encryption parameters are not set");
+			}
+			const jwk = credentialRequestEncryptionMetadata.jwks.keys.find(k => k.alg === credentialRequestEncryptionAlg);
+			if (!jwk) {
+				throw new Error("Credential request encryption key is not set");
+			}
 			const clientPublicKey = await importJWK(jwk, credentialRequestEncryptionAlg);
 
 			const encryptor = new CompactEncrypt(new TextEncoder().encode(JSON.stringify(credentialEndpointBody)));
@@ -380,12 +402,17 @@ export function useCredentialRequest() {
 		}
 
 		httpHeaders['Content-Type'] = credentialRequestContentType;
-		console.log(`Sending ${credentialRequestEncryptionRequested ? 'encrypted (JWT)' : 'unencrypted (JSON)'} credential request to `, credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
-		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
+		console.log(`Sending ${credentialRequestEncryptionRequested ? 'encrypted (JWT)' : 'unencrypted (JSON)'} credential request to `, credentialEndpointURL, credentialRequestBody, httpHeaders);
+		const credentialResponse = await httpProxy.post(credentialEndpointURL, credentialRequestBody, httpHeaders);
 
 		const credentialResponseContentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
 		if (credentialResponseEncryptionRequested && typeof credentialResponseContentType === 'string' && credentialResponseContentType.startsWith('application/jwt')) {
-			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey, compressionOptions).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
+			if (!ephemeralKeypair) {
+				throw new Error("Credential response encryption keypair is not set");
+			}
+			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey, compressionOptions)
+				.then((data): { data: CompactDecryptResult | null; err: unknown } => ({ data, err: null }))
+				.catch((err: unknown): { data: CompactDecryptResult | null; err: unknown } => ({ data: null, err }));
 			if (result.err) {
 				throw new Error("Credential Response decryption failed");
 			}
