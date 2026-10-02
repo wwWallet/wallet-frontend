@@ -133,7 +133,7 @@ const WebauthnSignupLogin = ({
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
-	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<((accept: boolean) => void) | null>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 
 	const { hasPolicyLinks } = usePolicyLinks();
@@ -424,13 +424,13 @@ const WebauthnSignupLogin = ({
 								<div className='flex justify-center gap-4'>
 									<Button
 										id="cancel-prf-loginsignup"
-										onClick={() => resolvePrfRetryPrompt(false)}
+										onClick={() => resolvePrfRetryPrompt?.(false)}
 									>
 										{t('common.cancel')}
 									</Button>
 									<Button
 										id="continue-prf-loginsignup"
-										onClick={() => resolvePrfRetryPrompt(true)}
+										onClick={() => resolvePrfRetryPrompt?.(true)}
 										variant="primary"
 										disabled={prfRetryAccepted}
 									>
