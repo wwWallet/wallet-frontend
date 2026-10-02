@@ -121,8 +121,9 @@ export function useCredentialRequest() {
 		const jti = jtiRef.current;
 		const dpopNonce = dpopNonceRef.current;
 		const accessToken = accessTokenRef.current;
+		const dpopPrivateKey = dpopPrivateKeyRef.current;
 
-		if (!credentialEndpointURL || !dpopPublicKeyJwk || !jti) {
+		if (!credentialEndpointURL || !dpopPrivateKey || !dpopPublicKeyJwk || !jti) {
 			throw new Error("Missing required parameters for DPoP header");
 		}
 
@@ -132,12 +133,12 @@ export function useCredentialRequest() {
 
 
 		const credentialEndpointDPoP = await generateDPoP(
-			dpopPrivateKeyRef.current,
+			dpopPrivateKey,
 			dpopPublicKeyJwk,
 			"POST",
 			credentialEndpointURL,
-			dpopNonce,
-			accessToken
+			dpopNonce ?? undefined,
+			accessToken ?? undefined
 		);
 
 		httpHeaders['Authorization'] = `DPoP ${accessToken}`;
@@ -150,7 +151,11 @@ export function useCredentialRequest() {
 
 	const executeDeferredFetch = useCallback(async (transactionId: string): Promise<{ credentialResponse: any }> => {
 		try {
-			const credentialResponse = await httpProxy.post(deferredCredentialEndpointURLRef.current, { transaction_id: transactionId }, httpHeaders);
+			const deferredCredentialEndpointURL = deferredCredentialEndpointURLRef.current;
+			if (!deferredCredentialEndpointURL) {
+				throw new Error("Deferred credential endpoint is not set");
+			}
+			const credentialResponse = await httpProxy.post(deferredCredentialEndpointURL, { transaction_id: transactionId }, httpHeaders);
 			return { credentialResponse };
 		}
 		catch (err) {
@@ -164,11 +169,18 @@ export function useCredentialRequest() {
 		console.log("Executing credential request...");
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
+		const credentialEndpointURL = credentialEndpointURLRef.current;
+		if (!credentialIssuerIdentifier || !c_nonce || !credentialEndpointURL) {
+			throw new Error("Missing required parameters for credential request");
+		}
 
 		const [credentialIssuerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
+		if (!credentialIssuerMetadata || !clientId) {
+			throw new Error("Missing issuer metadata or client id");
+		}
 
 		const credentialEndpointBody = {} as any;
 		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size && credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE ?
@@ -380,8 +392,8 @@ export function useCredentialRequest() {
 		}
 
 		httpHeaders['Content-Type'] = credentialRequestContentType;
-		console.log(`Sending ${credentialRequestEncryptionRequested ? 'encrypted (JWT)' : 'unencrypted (JSON)'} credential request to `, credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
-		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
+		console.log(`Sending ${credentialRequestEncryptionRequested ? 'encrypted (JWT)' : 'unencrypted (JSON)'} credential request to `, credentialEndpointURL, credentialRequestBody, httpHeaders);
+		const credentialResponse = await httpProxy.post(credentialEndpointURL, credentialRequestBody, httpHeaders);
 
 		const credentialResponseContentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
 		if (credentialResponseEncryptionRequested && typeof credentialResponseContentType === 'string' && credentialResponseContentType.startsWith('application/jwt')) {
