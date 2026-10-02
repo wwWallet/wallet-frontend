@@ -627,6 +627,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			if (!code) {
 				return;
 			}
+			if (!state) {
+				return;
+			}
 
 			const s = await openID4VCIClientStateRepository.getByState(state);
 			if (!s || !s.credentialIssuerIdentifier) {
@@ -665,6 +668,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const [authzServerMetadata] = await Promise.all([
 			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
 		]);
+		if (!authzServerMetadata) {
+			throw new Error("Authorization server metadata is not set");
+		}
 
 		const flowState: WalletStateCredentialIssuanceSession = {
 			sessionId: WalletStateUtils.getRandomUint32(),
