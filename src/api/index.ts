@@ -109,7 +109,8 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 	 * loaded into the keystore or successfully uploaded to the server.
 	 */
 	const getPrivateDataEtag = useCallback(() => {
-		return jsonParseTaggedBinary(localStorage.getItem('privateDataEtag'));
+		const privateDataEtag = localStorage.getItem('privateDataEtag');
+		return privateDataEtag ? jsonParseTaggedBinary(privateDataEtag) : null;
 	}, []);
 
 	const setPrivateDataEtag = useCallback((v: string) => {
@@ -218,7 +219,11 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 			userUuid?: string,
 		},
 	): Promise<AxiosResponse> => {
-		return getWithLocalDbKey(path, sessionState?.uuid || options?.userUuid, options);
+		const dbKey = sessionState?.uuid || options?.userUuid;
+		if (!dbKey) {
+			throw new Error("User UUID is not set");
+		}
+		return getWithLocalDbKey(path, dbKey, options);
 	}, [getWithLocalDbKey, sessionState?.uuid]);
 
 	const getExternalEntity = useCallback(async (
@@ -424,7 +429,10 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 			console.error("Failed to update private data", e, axios.isAxiosError(e) ? e.response?.status : undefined);
 			if ((axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) || (e instanceof AppError && e.errorId === 'x-private-data-etag')) {
 				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
-				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
+				const cachedUser = cachedUsers?.find((u) => u.userHandleB64u === userHandle);
+				if (!cachedUser) {
+					throw new Error("Cached user is not set");
+				}
 				await syncPrivateData(cachedUser);
 				return;
 			}
