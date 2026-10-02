@@ -940,11 +940,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const credsCollected = [];
 			let stateUpdated = false;
 			for (const s of sessions) {
-				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId, nextPollAt } } = s;
-				const { metadata } = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				const { created, credentialIssuerIdentifier, credentialEndpoint } = s;
+				const transactionId = credentialEndpoint?.transactionId;
+				const nextPollAt = credentialEndpoint?.nextPollAt;
 				const now = Math.floor(new Date().getTime() / 1000);
 				console.log("Transaction id: ", transactionId)
 				if (!transactionId) {
+					continue;
+				}
+				const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				const metadata = metadataResult?.metadata;
+				if (!metadata?.deferred_credential_endpoint) {
 					continue;
 				}
 				if (typeof nextPollAt === "number" && now < nextPollAt) {
@@ -983,6 +989,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				deferredCredentialRequestBuilder.setCredentialConfigurationId(pollingState.credentialConfigurationId);
 
 				if (pollingState?.dpop) {
+					if (!pollingState.dpop.dpopPublicKeyJwk) {
+						throw new Error("DPoP public key is not set");
+					}
 					const privateKey = await jose.importJWK(pollingState?.dpop.dpopPrivateKeyJwk, pollingState?.dpop.dpopAlg)
 					deferredCredentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 					deferredCredentialRequestBuilder.setDpopPublicKeyJwk(pollingState.dpop.dpopPublicKeyJwk);
