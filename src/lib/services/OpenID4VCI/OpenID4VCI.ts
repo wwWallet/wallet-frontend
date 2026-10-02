@@ -312,6 +312,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
 			]);
+			if (!credentialIssuerMetadata) {
+				throw new Error("Credential issuer metadata is not set");
+			}
 
 			// store as refs
 			credentialIssuerMetadataRef.current = credentialIssuerMetadata
@@ -328,6 +331,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			credentialRequestBuilder.setCredentialConfigurationId(flowState.credentialConfigurationId);
 
 			if (flowState?.dpop) {
+				if (!flowState.dpop.dpopPublicKeyJwk) {
+					throw new Error("DPoP public key is not set");
+				}
 				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg)
 				credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 				credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
@@ -339,6 +345,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
 				id === flowState.credentialConfigurationId
 			)[0];
+			if (!credConf) {
+				throw new Error("Credential configuration is not set");
+			}
 
 			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
 			for (const proof_type of openid4vciProofTypePrecedence) {
