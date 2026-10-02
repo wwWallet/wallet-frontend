@@ -768,7 +768,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 				catch (err) {
 					console.error(err);
-					return;
+					throw new Error("Credential offer request failed");
 				}
 			} else {
 				throw new Error("Credential offer must contain credential_offer or credential_offer_uri");
@@ -778,8 +778,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
 			]);
+			if (!credentialIssuerMetadata) {
+				throw new Error("Credential issuer metadata not found");
+			}
 
 			const selectedConfigurationId = offer.credential_configuration_ids[0];
+			if (!selectedConfigurationId) {
+				throw new Error("Credential configuration not found");
+			}
 			const selectedConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[selectedConfigurationId];
 			if (!selectedConfiguration) {
 				throw new Error("Credential configuration not found");
@@ -809,6 +815,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier)
 			]);
+			if (!credentialIssuerMetadata) {
+				throw new Error("Credential issuer metadata not found");
+			}
 			if (!credentialIssuerMetadata.metadata?.credential_configurations_supported) {
 				throw new Error("Credential configuration supported not found")
 			}
