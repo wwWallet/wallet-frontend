@@ -30,10 +30,10 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey,
 }: {
 	credential: WebauthnCredential,
-	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+	prfKeyInfo?: WebauthnPrfEncryptionKeyInfo,
 	isCurrent?: boolean,
 	onDelete?: false | (() => Promise<void>),
-	onRename: (credential: WebauthnCredential, name: string | null) => Promise<boolean>,
+	onRename: (credential: WebauthnCredential, name: string) => Promise<boolean>,
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 }) => {
 	const { isOnline } = useContext(StatusContext);
