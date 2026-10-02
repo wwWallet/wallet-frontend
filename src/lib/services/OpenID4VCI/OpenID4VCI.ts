@@ -851,9 +851,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			if (!clientId) {
 				throw new Error("Error generating Authorization Request: ClientID not found");
 			}
+			if (!authzServerMetadata || !credentialIssuerMetadata) {
+				throw new Error("Error generating Authorization Request: metadata not found");
+			}
 
 			// OID4VCI-specific logic for PAR
 			const selectedCredentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
+			if (!selectedCredentialConfigurationSupported?.scope) {
+				throw new Error("Error generating Authorization Request: credential configuration scope not found");
+			}
 			const scope = selectedCredentialConfigurationSupported.scope;
 
 			const userHandleB64u = keystore.getUserHandleB64u();
@@ -901,6 +907,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 				return { url: authorizationRequestURL.toString(), issuerMetadata: credentialIssuerMetadata.metadata, credentialConfigurationId };
 			}
+			throw new Error("Error generating Authorization Request: pushed_authorization_request_endpoint parameter not found");
 		},
 		[openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge, resumePendingCredentialIssuance, openID4VCIClientStateRepository]
 	);
