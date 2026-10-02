@@ -10,6 +10,7 @@ import { setAppBadgeCount } from '@/utils';
 import i18n from '@/i18n';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
 
 export const CredentialsContextProvider = ({ children }: React.PropsWithChildren) => {
@@ -26,7 +27,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 	const prevIsLoggedIn = useRef<boolean>(null);
 
 	const { getExternalEntity } = api;
-	const [pendingTransactions, setPendingTransactions] = useState(null);
+	const [pendingTransactions, setPendingTransactions] = useState<WalletStateCredentialIssuanceSession[] | null>(null);
 
 	useEffect(() => {
 		if (!getCalculatedWalletState) return;
