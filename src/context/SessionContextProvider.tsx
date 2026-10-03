@@ -6,7 +6,7 @@ import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorage
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
-import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
+import type { HpkeConfig } from '@/lib/utils/ohttpHelpers';
 import { OHTTP_KEY_CONFIG } from '@/config';
 import { setAppBadgeCount } from '@/utils';
 
@@ -16,6 +16,7 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 	const { getCalculatedWalletState } = keystore;
 	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
+	const [isSessionRestored, setIsSessionRestored] = useState(() => api.isLoggedIn());
 
 	const [walletStateLoaded, setWalletStateLoaded] = useState<boolean>(false);
 	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig>(null);
@@ -35,6 +36,7 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 			window.history.replaceState({}, '', window.location.pathname);
 		}
 		console.log('[Session Context] Clear Session');
+		setIsSessionRestored(false);
 		api.clearSession();
 		await setAppBadgeCount(0);
 	}, [api]);
@@ -75,6 +77,7 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 				// To use oblivious, keys must be fetched.
 				// Delay setWalletStateLoaded till then.
 				async function fetchKeyConfigAndUpdate() {
+					const { fetchKeyConfig } = await import('@/lib/utils/ohttpHelpers');
 					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
 					setObliviousKeyConfig(keyConfig);
 					setWalletStateLoaded(true);
@@ -89,11 +92,12 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 
 	const value: SessionContextValue = useMemo(() => ({
 		api,
-		isLoggedIn: isLoggedIn,
+		isLoggedIn,
+		isSessionRestored,
 		keystore,
 		logout,
 		obliviousKeyConfig
-	}), [api, keystore, logout, isLoggedIn, obliviousKeyConfig]);
+	}), [api, isLoggedIn, isSessionRestored, keystore, logout, obliviousKeyConfig]);
 
 	useEffect(() => {
 		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
