@@ -1430,7 +1430,7 @@ class QrScanner {
 		if (transfer === undefined) {
 			qrEngine.postMessage(message);
 		} else {
-			qrEngine.postMessage(message, { transfer });
+			qrEngine.postMessage(message, transfer);
 		}
 		return id;
 	}
