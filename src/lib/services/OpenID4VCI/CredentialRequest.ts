@@ -46,7 +46,7 @@ export function useCredentialRequest() {
 
 	const { post, updatePrivateData } = api;
 
-	const requestKeyAttestation = useCallback(async (jwks: JWK[], nonce: string) => {
+	const requestKeyAttestation = useCallback(async (jwks: JWK[], nonce: string | null) => {
 		try {
 			const response = await post("/wallet-provider/key-attestation/generate", {
 				jwks,
@@ -170,7 +170,7 @@ export function useCredentialRequest() {
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
 		const credentialEndpointURL = credentialEndpointURLRef.current;
-		if (!credentialIssuerIdentifier || !c_nonce || !credentialEndpointURL) {
+		if (!credentialIssuerIdentifier || !credentialEndpointURL) {
 			throw new Error("Missing required parameters for credential request");
 		}
 
@@ -187,7 +187,7 @@ export function useCredentialRequest() {
 			OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE :
 			credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 		let proofs: {
-			nonce: string,
+			nonce?: string,
 			issuer: string,
 			audience: string
 		}[] | null = null;

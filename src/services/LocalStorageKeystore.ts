@@ -89,7 +89,7 @@ export interface LocalStorageKeystore {
 	forgetCachedUser(user: CachedUser): void,
 	getUserHandleB64u(): string | null,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
+	generateOpenid4vciProofs(requests: { nonce?: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -687,7 +687,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return privateData !== null && mainKey !== null;
 	}, [privateData, mainKey]);
 
-	const generateOpenid4vciProofs = useCallback(async (requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
+	const generateOpenid4vciProofs = useCallback(async (requests: { nonce?: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,

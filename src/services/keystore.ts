@@ -1046,7 +1046,7 @@ export async function signJwtPresentation([privateData, mainKey, calculatedState
 export async function generateOpenid4vciProofs(
 	container: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
-	nonce: string,
+	nonce: string | undefined,
 	audience: string,
 	issuer: string,
 	numberOfKeyPairs: number = 1
