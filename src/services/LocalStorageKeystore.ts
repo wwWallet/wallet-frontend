@@ -643,6 +643,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				throw new Error("Key is already upgraded");
 
 			} else if (privateData) {
+				if (!userHandleB64u) {
+					throw new Error("User handle is not set");
+				}
 				const newPrivateData = await keystore.upgradePrfKey(privateData, null, prfKeyInfo, promptForPrfRetry);
 				return [
 					newPrivateData,
@@ -755,6 +758,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	]> => {
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+		if (!calculatedWalletState) {
+			throw new Error("Calculated wallet state is not set");
+		}
 
 		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
 		for (const cred of credentialsToBeDeleted) {
