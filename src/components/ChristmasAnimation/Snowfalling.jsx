@@ -1,6 +1,5 @@
+import { SNOWFLAKE_COUNT } from '@/config';
 import { useEffect, useRef, useState } from 'react';
-
-const SNOWFLAKE_COUNT = 50;
 
 const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
@@ -140,7 +139,7 @@ const Snowfalling = () => {
 		);
 	}, []);
 
-	return !isChristmasSeason ? <SnowfallCanvas /> : null;
+	return isChristmasSeason ? <SnowfallCanvas /> : null;
 };
 
 export default Snowfalling;
