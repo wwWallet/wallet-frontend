@@ -212,16 +212,13 @@ export function useTokenRequest(): TokenRequestBuilder {
 		if (!tokenEndpointURL.current) {
 			throw new Error("Token endpoint is not set");
 		}
-		if (!clientId.current) {
-			throw new Error("Client ID is not set");
-		}
 
 		const as: oauth4webapi.AuthorizationServer = {
 			issuer: issuer.current ?? tokenEndpointURL.current,
 			token_endpoint: tokenEndpointURL.current,
 		};
 
-		const client: oauth4webapi.Client = { client_id: clientId.current };
+		const client: oauth4webapi.Client = { client_id: clientId.current ?? OPENID4VCI_REDIRECT_URI };
 		const clientAuth = oauth4webapi.None();
 		const DPoP = await getDPoPHandle(client);
 
