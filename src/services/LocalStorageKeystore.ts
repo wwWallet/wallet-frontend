@@ -217,7 +217,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const close = useCallback(
 		async (): Promise<void> => {
 			console.log('Keystore Close');
-			await clearPrivateData(userHandleB64u);
+			if (userHandleB64u) {
+				await clearPrivateData(userHandleB64u);
+			}
 			await idb.destroy();
 			setCalculatedWalletState(null);
 			clearGlobalUserHandleB64u();
@@ -304,10 +306,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			queryParams.delete('user');
 			queryParams.delete('sync');
 
-			queryParams.append('user', userHandleB64u);
+			if (userHandleB64u) {
+				queryParams.append('user', userHandleB64u);
+			}
 			queryParams.append('sync', 'fail');
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
-			return null;
+			throw new Error("Failed to decrypt private data");
 		}
 	}, [assertKeystoreOpen, navigate, userHandleB64u]);
 
@@ -315,6 +319,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
 	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
 		const [privateData, mainKey] = await assertKeystoreOpen();
+		if (!userHandleB64u) {
+			throw new Error("User handle is not set");
+		}
 		const [result, [newPrivateData, newMainKey]] = await action(
 			[
 				keystore.assertAsymmetricEncryptedContainer(privateData),
