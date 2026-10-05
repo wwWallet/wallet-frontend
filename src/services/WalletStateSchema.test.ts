@@ -492,8 +492,8 @@ describe("The current WalletStateSchema version", () => {
 					events: [
 						...container1a.events,
 						{
-							...last(container2a.events),
-							parentHash: await CurrentSchema.WalletStateOperations.calculateEventHash(last(container1a.events)),
+							...lastEvent(container2a),
+							parentHash: await CurrentSchema.WalletStateOperations.calculateEventHash(lastEvent(container1a)),
 						},
 					],
 				},
@@ -528,8 +528,8 @@ describe("The current WalletStateSchema version", () => {
 					events: [
 						...container1b.events,
 						{
-							...last(container2b.events),
-							parentHash: await CurrentSchema.WalletStateOperations.calculateEventHash(last(container1b.events)),
+							...lastEvent(container2b),
+							parentHash: await CurrentSchema.WalletStateOperations.calculateEventHash(lastEvent(container1b)),
 						},
 					],
 				},
