@@ -119,7 +119,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
 
 ## ✅Pre-commit Hook
 
-We use [pre-commit](https://pre-commit.com/) to enforce our `.editorconfig` before code is committed.
+We use [pre-commit](https://pre-commit.com/) to maintain translations and enforce our `.editorconfig` before code is committed.
 
 ### One-time setup
 
@@ -130,15 +130,14 @@ pip install pre-commit       # or brew install pre-commit / pipx install pre-com
 # enable the git hook in this repo
 pre-commit install
 
-# optional: clean up the repo on demand
+# optional: run every hook on demand
 pre-commit run --all-files
-
-git add -A
 ```
 
 ### What happens on commit
 
 - Auto-fixers run (e.g. add final newlines).
+- Locale files and translation coverage badges are validated, normalized, regenerated and staged automatically. Run `npm run translations` to perform the same maintenance on demand.
 - After the auto-fixers, the editorconfig-checker runs inside Docker to validate all staged files.
 - If violations remain, fix them manually until the commit passes.
 

@@ -45,6 +45,10 @@ export const WebauthnLogin = ({
 						setError(t('loginSignup.passkeyLoginFailedServerError'));
 						break;
 
+					case 'passkeyUnknown':
+						setError(t('loginSignup.passkeyUnknown'));
+						break;
+
 					default:
 						throw result;
 				}
