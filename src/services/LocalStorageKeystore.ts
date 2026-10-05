@@ -482,6 +482,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 			return newEncryptedContainer;
 		}
+		throw new Error("User is not set");
 	}, [
 		setUserHandleB64u,
 		setGlobalUserHandleB64u,
@@ -563,6 +564,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[EncryptedContainer, CommitCallback]> => {
 			const [privateData, mainKey] = await assertKeystoreOpen();
+			if (!userHandleB64u) {
+				throw new Error("User handle is not set");
+			}
 			const newPrivateData = await keystore.addPrf(privateData, credential, mainKey, promptForPrfRetry);
 			return [
 				newPrivateData,
@@ -577,6 +581,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const deletePrf = useCallback(
 		(credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
+			if (!privateData || !userHandleB64u) {
+				throw new Error("Keystore is not open");
+			}
 			const newPrivateData = keystore.deletePrf(privateData, credentialId);
 			return [
 				newPrivateData,
