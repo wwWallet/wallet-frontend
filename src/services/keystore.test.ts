@@ -152,6 +152,9 @@ describe("The keystore", () => {
 			const { kid, publicKey: publicKeyJwk } = calculatedState.keypairs[0].keypair;
 			const publicKey = await jose.importJWK(publicKeyJwk)
 			const { protectedHeader } = await jose.jwtVerify(proof_jwts[0], publicKey, { audience: "test-audience", issuer: "test-issuer" });
+			if (!protectedHeader.jwk) {
+				assert.fail("Expected proof JWT to include a public JWK");
+			}
 			assert.equal(await jose.calculateJwkThumbprint(protectedHeader.jwk), kid);
 		};
 		it("p256-pub.", async () => test("p256-pub"));
@@ -196,9 +199,16 @@ describe("The keystore", () => {
 		const [unlocked, newPrivateData] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		assert.strictEqual(unlocked.privateData, privateData);
 		assert.isNotNull(newPrivateData);
+		if (!newPrivateData) {
+			assert.fail("Expected upgraded private data");
+		}
+		const upgradedPrfKey = newPrivateData.prfKeys.find(
+			keyInfo => byteArrayEquals(keyInfo.credentialId, credentialId));
+		if (!upgradedPrfKey) {
+			assert.fail("Expected upgraded PRF key");
+		}
 		assert.isTrue(
-			keystore.isPrfKeyV2(newPrivateData.prfKeys.find(
-				keyInfo => byteArrayEquals(keyInfo.credentialId, credentialId))),
+			keystore.isPrfKeyV2(upgradedPrfKey),
 			"Expected PRF key to be upgraded to V2 in new private data",
 		);
 
