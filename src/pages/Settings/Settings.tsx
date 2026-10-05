@@ -21,8 +21,9 @@ import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, Clock, Database, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
-import { APP_VERSION } from '@/config';
+import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
 import { clearWalletCache } from '@/services/clearWalletCache';
+import { signalAllAcceptedCredentials } from '@/util-webauthn';
 
 import Dialog from './components/Dialog';
 import SettingsSection from './components/SettingsSection';
@@ -136,9 +137,26 @@ const Settings = () => {
 
 	const { getCalculatedWalletState } = keystore;
 
+	const signalAcceptedWebauthnCredentials = async (
+		currentUserData: UserData,
+	): Promise<void> => {
+		await signalAllAcceptedCredentials({
+			rpId: WEBAUTHN_RPID,
+			userId: toBase64Url(new TextEncoder().encode(currentUserData.uuid)),
+			allAcceptedCredentialIds: currentUserData.webauthnCredentials
+				.map(credential => toBase64Url(credential.credentialId)),
+		});
+	};
+
 	const deleteAccount = async () => {
 		try {
+			const userId = toBase64Url(new TextEncoder().encode(userData.uuid));
 			await api.del('/user/session');
+			await signalAllAcceptedCredentials({
+				rpId: WEBAUTHN_RPID,
+				userId,
+				allAcceptedCredentialIds: [],
+			});
 			const userHandleB64u = new TextEncoder().encode(userData.uuid);
 			const cachedUser = keystore.getCachedUsers()
 				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
@@ -198,15 +216,17 @@ const Settings = () => {
 			try {
 				const response = await api.get('/user/session/account-info');
 				const s = keystore.getCalculatedWalletState();
-				const userData = {
+				const refreshedUserData: UserData = {
 					...response.data,
 					settings: s.settings,
 				};
-				console.log(userData);
-				setUserData(userData);
+				console.log(refreshedUserData);
+				setUserData(refreshedUserData);
 				dispatchEvent(new CustomEvent("settingsChanged"));
+				return refreshedUserData;
 			} catch (error) {
 				console.error('Failed to fetch data', error);
+				return null;
 			}
 		},
 		[
@@ -234,7 +254,10 @@ const Settings = () => {
 			} else {
 				console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
 			}
-			await refreshData();
+			const refreshedUserData = await refreshData();
+			if (deleteResp.status === 204 && refreshedUserData) {
+				await signalAcceptedWebauthnCredentials(refreshedUserData);
+			}
 
 		} catch (e) {
 			console.error("Failed to delete WebAuthn credential", e);
@@ -247,14 +270,14 @@ const Settings = () => {
 	};
 
 	const onRenameWebauthnCredential = async (credential: WebauthnCredential, name: string): Promise<boolean> => {
-		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
+		const renameResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
 			name,
 		});
 		refreshData();
-		if (deleteResp.status === 204) {
+		if (renameResp.status === 204) {
 			return true;
 		} else {
-			console.error("Failed to rename WebAuthn credential", deleteResp.status, deleteResp);
+			console.error("Failed to rename WebAuthn credential", renameResp.status, renameResp);
 			return false;
 		}
 	};

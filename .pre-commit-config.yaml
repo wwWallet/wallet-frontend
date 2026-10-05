@@ -8,6 +8,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: translations
+        name: Maintain translations
+        language: system
+        entry: bash -c 'npm run translations && git add -- src/locales translation_coverage'
+        pass_filenames: false
+        always_run: true
+
       - id: editorconfig-checker-docker
         name: Check .editorconfig rules
         language: docker_image
