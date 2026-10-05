@@ -38,7 +38,7 @@ export function useOpenID4VP({
 			conformantCredentialsMap: any,
 			verifierDomainName: string,
 			verifierPurpose: string,
-			parsedTransactionData: ParsedTransactionData[],
+			parsedTransactionData?: ParsedTransactionData[],
 		): Promise<Map<string, number>> => {
 			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData);
 		},
