@@ -122,8 +122,8 @@ describe("The current WalletStateSchema version", () => {
 				S: container.S,
 				events: [
 					...container.events,
-					container1.events[1],
-					await CurrentSchema.WalletStateOperations.reparent(container2.events[1], container1.events[1]),
+					eventAt(container1, 1),
+					await CurrentSchema.WalletStateOperations.reparent(eventAt(container2, 1), eventAt(container1, 1)),
 				],
 			});
 		}
@@ -132,22 +132,22 @@ describe("The current WalletStateSchema version", () => {
 	it("mergeEventHistories de-duplicates delete_credential events by credentialId.", async () => {
 		let container: CurrentSchema.WalletStateContainer = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 		container = await addNewCredentialEvent(container, "cred1", "", "");
-		last(container.events).timestampSeconds = 0;
+		lastEvent(container).timestampSeconds = 0;
 		container = await addNewCredentialEvent(container, "cred2", "", "");
-		last(container.events).timestampSeconds = 1;
+		lastEvent(container).timestampSeconds = 1;
 
 		const container1 = await addDeleteCredentialEvent(
 			container,
-			(container.events[0] as any).credentialId,
+			(eventAt(container, 0) as any).credentialId,
 		);
-		last(container1.events).timestampSeconds = 2;
+		lastEvent(container1).timestampSeconds = 2;
 		let container2 = await addDeleteCredentialEvent(
 			container,
-			(container.events[0] as any).credentialId,
+			(eventAt(container, 0) as any).credentialId,
 		);
-		last(container2.events).timestampSeconds = 3;
-		container2 = await addDeleteCredentialEvent(container2, (container.events[1] as any).credentialId);
-		last(container2.events).timestampSeconds = 4;
+		lastEvent(container2).timestampSeconds = 3;
+		container2 = await addDeleteCredentialEvent(container2, (eventAt(container, 1) as any).credentialId);
+		lastEvent(container2).timestampSeconds = 4;
 
 		{
 			const mergedL = await mergeEventHistories(container1, container2);
@@ -168,8 +168,8 @@ describe("The current WalletStateSchema version", () => {
 				S: container.S,
 				events: [
 					...container.events,
-					container1.events[2],
-					await CurrentSchema.WalletStateOperations.reparent(container2.events[3], container1.events[2]),
+					eventAt(container1, 2),
+					await CurrentSchema.WalletStateOperations.reparent(eventAt(container2, 3), eventAt(container1, 2)),
 				],
 			});
 		}
@@ -178,14 +178,14 @@ describe("The current WalletStateSchema version", () => {
 	it("mergeEventHistories de-duplicates new_keypair events by kid.", async () => {
 		let container: CurrentSchema.WalletStateContainer = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 		container = await addNewKeypairEvent(container, "kid0", { did: "did0" } as CredentialKeyPair);
-		last(container.events).timestampSeconds = 0;
+		lastEvent(container).timestampSeconds = 0;
 
 		const container1 = await addNewKeypairEvent(container, "kid1", { did: "did1" } as CredentialKeyPair);
-		last(container1.events).timestampSeconds = 1;
+		lastEvent(container1).timestampSeconds = 1;
 		let container2 = await addNewKeypairEvent(container, "kid2", { did: "did2" } as CredentialKeyPair);
-		last(container2.events).timestampSeconds = 2;
+		lastEvent(container2).timestampSeconds = 2;
 		container2 = await addNewKeypairEvent(container2, "kid1", { did: "did3" } as CredentialKeyPair);
-		last(container2.events).timestampSeconds = 3;
+		lastEvent(container2).timestampSeconds = 3;
 
 		{
 			const mergedL = await mergeEventHistories(container1, container2);
