@@ -948,11 +948,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				if (!transactionId) {
 					continue;
 				}
-				const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
-				const metadata = metadataResult?.metadata;
-				if (!metadata?.deferred_credential_endpoint) {
-					continue;
-				}
 				if (typeof nextPollAt === "number" && now < nextPollAt) {
 					continue;
 				}
@@ -963,6 +958,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 					});
 					stateUpdated = true;
+					continue;
+				}
+				const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				const metadata = metadataResult?.metadata;
+				if (!metadata?.deferred_credential_endpoint) {
 					continue;
 				}
 				let pollingState = s;
