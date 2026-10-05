@@ -176,10 +176,12 @@ export function useCredentialRequest() {
 
 		const [credentialIssuerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
-			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
+			proofType === "jwt"
+				? openID4VCIHelper.getClientId(credentialIssuerIdentifier)
+				: Promise.resolve(null),
 		]);
-		if (!credentialIssuerMetadata || !clientId) {
-			throw new Error("Missing issuer metadata or client id");
+		if (!credentialIssuerMetadata) {
+			throw new Error("Missing issuer metadata");
 		}
 
 		const credentialEndpointBody = {} as any;
@@ -197,6 +199,9 @@ export function useCredentialRequest() {
 
 		try {
 			if (proofType === "jwt") {
+				if (!clientId) {
+					throw new Error("Missing client id for JWT proof");
+				}
 				const inputs = [];
 				for (let i = 0; i < numberOfProofs; i++) {
 					inputs.push({
