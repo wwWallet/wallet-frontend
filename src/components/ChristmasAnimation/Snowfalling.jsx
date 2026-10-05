@@ -1,6 +1,8 @@
-import { SNOWFLAKE_COUNT } from '@/config';
-import { useEffect, useRef, useState } from 'react';
+import { SNOWFALL_DATE_RANGE } from '@/config';
+import { useEffect, useRef } from 'react';
+import { isDateInAnnualRange } from './snowfallSeason';
 
+const SNOWFLAKE_COUNT = 50;
 const randomBetween = (min, max) => Math.random() * (max - min) + min;
 
 const SnowfallCanvas = () => {
@@ -127,19 +129,12 @@ const SnowfallCanvas = () => {
 };
 
 const Snowfalling = () => {
-	const [isChristmasSeason, setIsChristmasSeason] = useState(false);
+	const isSnowfallSeason = isDateInAnnualRange(
+		new Date(),
+		SNOWFALL_DATE_RANGE,
+	);
 
-	useEffect(() => {
-		const today = new Date();
-		const month = today.getMonth();
-		const day = today.getDate();
-
-		setIsChristmasSeason(
-			(month === 11 && day >= 20) || (month === 0 && day <= 6),
-		);
-	}, []);
-
-	return isChristmasSeason ? <SnowfallCanvas /> : null;
+	return isSnowfallSeason ? <SnowfallCanvas /> : null;
 };
 
 export default Snowfalling;

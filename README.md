@@ -101,7 +101,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `SHOW_PWA_INSTALL_PROMPT`: Hide or show the PWA installation prompt on the login screen. Defaults to false if left blank or invalid.
   - `DISPLAY_CREDENTIAL_USAGES`: Hide or show the credential usage ribbon and usage count on credential cards/details. Defaults to false (hidden) if left blank or invalid.
   - `DEV_MODE`: Show development-only wallet UI, including the credential dataset view. Defaults to false (hidden) if left blank or invalid.
-  - `SNOWFLAKE_COUNT`: Quantity of snowflakes visible on screen during the festive season. Defaults to 50. Set to 0 to disable snowfalling.
+  - `SNOWFALL_DATE_RANGE`: Annual snowfall period in inclusive `DD/MM-DD/MM` format, for example `20/12-06/01`. Periods may cross the end of the year. Snowfall is disabled when left empty.
 
   **Well-known file generation:**
   - `WELLKNOWN_APPLE_APPIDS`: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
