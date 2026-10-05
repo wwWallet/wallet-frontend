@@ -101,12 +101,6 @@ export async function refreshAccessToken(
 	if (!access_token) {
 		throw new Error("Missing access_token from refresh response");
 	}
-	if (!c_nonce) {
-		throw new Error("Missing c_nonce from refresh response");
-	}
-	if (typeof c_nonce_expires_in !== 'number') {
-		throw new Error("Missing c_nonce_expires_in from refresh response");
-	}
 
 	const now = context.now ?? Math.floor(Date.now() / 1000);
 	return {
