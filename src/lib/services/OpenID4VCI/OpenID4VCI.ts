@@ -342,9 +342,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				await credentialRequestBuilder.setDpopHeader();
 			}
 
-			const [, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
-				id === flowState.credentialConfigurationId
-			)[0];
+			const credConf = credentialIssuerMetadata.metadata.credential_configurations_supported[
+				flowState.credentialConfigurationId
+			];
 			if (!credConf) {
 				throw new Error("Credential configuration is not set");
 			}
