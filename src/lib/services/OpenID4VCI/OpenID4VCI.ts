@@ -183,7 +183,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			return;
 		}
 		const temp = [...receivedCredentialsArray];
-		setReceivedCredentialsArray(null);
 		const batchId = WalletStateUtils.getRandomUint32();
 		const credentialConfigurationId = credentialConfigurationIdRef.current;
 		const credentialIssuerMetadata = credentialIssuerMetadataRef.current;
@@ -194,6 +193,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			console.error("Credential issuer metadata or configuration is not set");
 			return;
 		}
+		setReceivedCredentialsArray(null);
 		// wait for keystore update before commiting the new credentials
 		(async () => {
 			try {
@@ -1042,10 +1042,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						});
 						stateUpdated = true;
 					}
-					const [credentialIssuerMetadata] = await Promise.all([
-						openID4VCIHelper.getCredentialIssuerMetadata(s.credentialIssuerIdentifier)
-					]);
-					credentialIssuerMetadataRef.current = credentialIssuerMetadata;
+					credentialIssuerMetadataRef.current = { metadata };
 					credentialConfigurationIdRef.current = s.credentialConfigurationId;
 					// let warnings = [];
 					for (const rawCredential of credentialArray) {
