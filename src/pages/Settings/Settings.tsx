@@ -43,7 +43,7 @@ type UpgradePrfState = (
 		state: "err",
 		err: any,
 		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
-		webauthnCredential: WebauthnCredential,
+		webauthnCredential?: WebauthnCredential,
 	}
 );
 
@@ -286,12 +286,12 @@ const Settings = () => {
 			}
 
 			console.error("Failed to upgrade PRF key", e);
-			setUpgradePrfState((state) => {
-				if (!state) {
-					return null;
-				}
-				return { state: "err", err: e, prfKeyInfo, webauthnCredential: state.webauthnCredential };
-			});
+			setUpgradePrfState((state) => ({
+				state: "err",
+				err: e,
+				prfKeyInfo,
+				webauthnCredential: state?.webauthnCredential,
+			}));
 		}
 	};
 
