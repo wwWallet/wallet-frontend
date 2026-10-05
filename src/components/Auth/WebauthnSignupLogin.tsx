@@ -194,6 +194,10 @@ const WebauthnSignupLogin = ({
 					setError(t('loginSignup.passkeyLoginFailedServerError'));
 					break;
 
+				case 'passkeyUnknown':
+					setError(t('loginSignup.passkeyUnknown'));
+					break;
+
 				case 'x-private-data-etag':
 					setError(t('loginSignup.privateDataConflict'));
 					break;
