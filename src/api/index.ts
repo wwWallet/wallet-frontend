@@ -445,9 +445,6 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 			if ((axios.isAxiosError(e) && e.response?.status === 412 && e.response.headers['x-private-data-etag']) || (e instanceof AppError && e.errorId === 'x-private-data-etag')) {
 				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
 				const cachedUser = cachedUsers?.find((u) => u.userHandleB64u === userHandle);
-				if (!cachedUser) {
-					throw new Error("Cached user is not set");
-				}
 				await syncPrivateData(cachedUser);
 				return;
 			}
