@@ -1,7 +1,7 @@
 import { assert, describe, it } from "vitest";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, last } from "@/util";
 import { findMergeBase, foldNextEvent, foldOldEventsIntoBaseState, mergeEventHistories } from "./WalletStateSchema";
-import { WalletStateContainer, WalletStateOperations } from "./WalletStateSchemaVersion1";
+import { WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateSchemaVersion1";
 
 
 /**
@@ -24,6 +24,18 @@ export function fossilize(containers: { [name: string]: WalletStateContainer }) 
 		const containerJson = jsonStringifyTaggedBinary(container);
 		console.log(`const ${name}: unknown = jsonParseTaggedBinary(${JSON.stringify(containerJson)});`);
 	});
+}
+
+function eventAt(container: WalletStateContainer, index: number): WalletSessionEvent {
+	const event = container.events[index];
+	if (!event) assert.fail(`Expected event at index ${index}`);
+	return event;
+}
+
+function lastEvent(container: WalletStateContainer): WalletSessionEvent {
+	const event = last(container.events);
+	if (!event) assert.fail("Expected at least one event");
+	return event;
 }
 
 
@@ -81,9 +93,9 @@ describe("WalletStateSchemaVersion1", () => {
 		});
 
 		const merged = await mergeEventHistories(container1, container2);
-		const expectMergedEvent2_4 = await WalletStateOperations.reparent(container2.events[4], last(container1.events));
-		const expectMergedEvent2_5 = await WalletStateOperations.reparent(container2.events[5], expectMergedEvent2_4);
-		const expectMergedEvent2_3 = await WalletStateOperations.reparent(container2.events[3], expectMergedEvent2_5);
+		const expectMergedEvent2_4 = await WalletStateOperations.reparent(eventAt(container2, 4), lastEvent(container1));
+		const expectMergedEvent2_5 = await WalletStateOperations.reparent(eventAt(container2, 5), expectMergedEvent2_4);
+		const expectMergedEvent2_3 = await WalletStateOperations.reparent(eventAt(container2, 3), expectMergedEvent2_5);
 		assert.deepEqual(merged, {
 			lastEventHash: container.lastEventHash,
 			S: container.S,
@@ -421,8 +433,8 @@ describe("WalletStateSchemaVersion1", () => {
 					events: [
 						...container1a.events,
 						{
-							...last(container2a.events),
-							parentHash: await WalletStateOperations.calculateEventHash(last(container1a.events)),
+							...lastEvent(container2a),
+							parentHash: await WalletStateOperations.calculateEventHash(lastEvent(container1a)),
 						},
 					],
 				},
@@ -452,8 +464,8 @@ describe("WalletStateSchemaVersion1", () => {
 					events: [
 						...container1b.events,
 						{
-							...last(container2b.events),
-							parentHash: await WalletStateOperations.calculateEventHash(last(container1b.events)),
+							...lastEvent(container2b),
+							parentHash: await WalletStateOperations.calculateEventHash(lastEvent(container1b)),
 						},
 					],
 				},
@@ -489,7 +501,7 @@ describe("WalletStateSchemaVersion1", () => {
 		const container: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":20540829,\"parentHash\":\"\",\"timestampSeconds\":1758141068.678,\"type\":\"new_credential\",\"credentialId\":2259711124,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":1111982049,\"parentHash\":\"2ec37cd81c96cb98963f42eb6aeb297a10e4532cf749238da60f7f760e99a9b0\",\"timestampSeconds\":1758141088.678,\"type\":\"new_credential\",\"credentialId\":265213428,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[],\"presentations\":[],\"keypairs\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
 		const now = container.events[0].timestampSeconds + 10;
 
-		const folded = await foldOldEventsIntoBaseState(container, Date.now()/1000 - now);
+		const folded = await foldOldEventsIntoBaseState(container, Date.now() / 1000 - now);
 		assert.deepEqual(folded.events, container.events.slice(1));
 		assert.strictEqual(folded.lastEventHash, container.events[1].parentHash);
 	});
