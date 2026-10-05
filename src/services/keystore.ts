@@ -813,8 +813,8 @@ export async function unlockPrf(
 	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
 	let mainKey: CryptoKey;
 	if (isPrfKeyV2(keyInfo)) {
-		if (!isAsymmetricEncryptedContainer(privateData)) {
-			throw new Error("Asymmetric private data is required for PRF v2");
+		if (!privateData.mainKey) {
+			throw new Error("Main key is required for PRF v2");
 		}
 		mainKey = await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"]);
 	}
