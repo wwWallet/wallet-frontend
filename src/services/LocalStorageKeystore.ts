@@ -217,15 +217,18 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const close = useCallback(
 		async (): Promise<void> => {
 			console.log('Keystore Close');
-			if (userHandleB64u) {
-				await clearPrivateData(userHandleB64u);
+			if (!userHandleB64u) {
+				// Not the active tab: shared IndexedDB/localStorage belong to the active tab's session
+				setPrivateData(null);
+				return;
 			}
+			await clearPrivateData(userHandleB64u);
 			await idb.destroy();
 			setCalculatedWalletState(null);
 			clearGlobalUserHandleB64u();
 			clearGlobalTabId();
 		},
-		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, userHandleB64u],
+		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, setPrivateData, userHandleB64u],
 	);
 
 	const assertKeystoreOpen = useCallback(async (): Promise<[EncryptedContainer, CryptoKey]> => {
