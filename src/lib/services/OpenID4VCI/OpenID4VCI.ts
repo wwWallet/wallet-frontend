@@ -187,12 +187,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const batchId = WalletStateUtils.getRandomUint32();
 		const credentialConfigurationId = credentialConfigurationIdRef.current;
 		const credentialIssuerMetadata = credentialIssuerMetadataRef.current;
-		if (!credentialConfigurationId || !credentialIssuerMetadata) {
-			throw new Error("Credential issuer metadata is not set");
-		}
-		const credentialConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
-		if (!credentialConfiguration) {
-			throw new Error("Credential configuration is not set");
+		const credentialConfiguration = credentialConfigurationId && credentialIssuerMetadata
+			? credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId]
+			: undefined;
+		if (!credentialConfigurationId || !credentialIssuerMetadata || !credentialConfiguration) {
+			console.error("Credential issuer metadata or configuration is not set");
+			return;
 		}
 		// wait for keystore update before commiting the new credentials
 		(async () => {
