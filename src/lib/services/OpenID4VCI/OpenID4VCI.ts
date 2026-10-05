@@ -990,7 +990,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 				if (pollingState?.dpop) {
 					if (!pollingState.dpop.dpopPublicKeyJwk) {
-						throw new Error("DPoP public key is not set");
+						console.error("DPoP public key is not set");
+						continue;
 					}
 					const privateKey = await jose.importJWK(pollingState?.dpop.dpopPrivateKeyJwk, pollingState?.dpop.dpopAlg)
 					deferredCredentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
