@@ -14,7 +14,7 @@ const SettingsSelect = ({ icon, className, children, disabled, ...selectProps }:
 			</span>
 		)}
 		<select
-			className={`h-10 ${icon ? 'pl-10' : 'pl-3'} w-full pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className ?? ''}`}
+			className={`py-2 ${icon ? 'pl-10' : 'pl-3'} w-full pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-700 dark:border-dm-gray-400 dark:text-white rounded-lg shadow-xs text-sm font-medium inputDarkModeOverride appearance-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className ?? ''}`}
 			disabled={disabled}
 			{...selectProps}
 		>

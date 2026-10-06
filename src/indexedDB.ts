@@ -26,6 +26,15 @@ const stores = {
 	}),
 };
 
+/** Remove derived responses while preserving offline users and private data. */
+export async function clearIndexedDbCache(): Promise<void> {
+	await Promise.all([
+		stores.externalEntities.clear(),
+		stores.accountInfo.clear(),
+		stores.proxyCache.clear(),
+	]);
+}
+
 
 /** Paths to exclude from IndexedDB cache logic */
 export const EXCLUDED_INDEXEDDB_PATHS = new Set([
