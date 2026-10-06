@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -50,7 +50,7 @@ type UpgradePrfState = (
 	}
 );
 
-const CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY = 'clearCacheSuccessNotification';
+const CLEAR_CACHE_SUCCESS_QUERY_PARAM = 'cacheCleared';
 
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
@@ -69,16 +69,25 @@ const Settings = () => {
 	const [isClearCacheConfirmationOpen, setIsClearCacheConfirmationOpen] = useState(false);
 	const [clearCacheInProgress, setClearCacheInProgress] = useState(false);
 	const [clearCacheError, setClearCacheError] = useState(false);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const clearCacheSuccessHandled = useRef(false);
 	const screenType = useScreenType();
 
 	useEffect(() => {
-		if (!notifications || sessionStorage.getItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY) !== 'true') return;
+		if (
+			!notifications
+			|| clearCacheSuccessHandled.current
+			|| searchParams.get(CLEAR_CACHE_SUCCESS_QUERY_PARAM) !== 'true'
+		) return;
 
-		sessionStorage.removeItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY);
+		clearCacheSuccessHandled.current = true;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.delete(CLEAR_CACHE_SUCCESS_QUERY_PARAM);
+		setSearchParams(nextParams, { replace: true, preventScrollReset: true });
 		notifications.notify('success', {
 			title: t('pageSettings.clearCache.successMessage'),
 		});
-	}, [notifications, t]);
+	}, [notifications, searchParams, setSearchParams, t]);
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => {
@@ -97,8 +106,9 @@ const Settings = () => {
 		setClearCacheError(false);
 		try {
 			await clearWalletCache();
-			sessionStorage.setItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY, 'true');
-			window.location.reload();
+			const reloadUrl = new URL(window.location.href);
+			reloadUrl.searchParams.set(CLEAR_CACHE_SUCCESS_QUERY_PARAM, 'true');
+			window.location.replace(reloadUrl.href);
 		} catch (error) {
 			console.error('Failed to clear wallet cache', error);
 			setClearCacheError(true);
@@ -110,7 +120,6 @@ const Settings = () => {
 	const upgradePrfPasskeyLabel = useWebauthnCredentialName(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
-	const [searchParams, setSearchParams] = useSearchParams();
 	const requestedTab = searchParams.get('tab');
 	const activeTab = requestedTab && SETTINGS_TAB_IDS.includes(requestedTab)
 		? requestedTab
