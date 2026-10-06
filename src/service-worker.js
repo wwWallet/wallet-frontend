@@ -130,7 +130,16 @@ let isFirstVisit = false;
 
 self.addEventListener('install', (event) => {
 	isFirstVisit = !self.registration.active;
-	event.waitUntil(serveAppShell(event));
+	event.waitUntil(
+		caches.open(appShellCacheName).then((cache) =>
+			cache.add(
+				new Request(
+					new URL(`${basePath}index.html`, self.location.origin),
+					{ credentials: 'same-origin', cache: 'reload' },
+				),
+			),
+		),
+	);
 	self.skipWaiting();
 });
 
