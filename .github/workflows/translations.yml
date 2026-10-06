@@ -1,5 +1,8 @@
 name: translation-check
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches-ignore:
@@ -13,33 +16,22 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
-          node-version: 18
-          cache: 'npm'
+          node-version: 24
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Run translation check
-        run: npm run translations
-
-      - name: Commit changes if any
+      - name: Verify translations
         run: |
-          # Configure git user for CI
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          npm run translations
 
-          # Stage changes from translation coverage
-          git add translation_coverage/*.json
-
-          # If there are changes, commit and push them
-          if ! git diff --cached --exit-code; then
-            git commit -m "Update translation coverage badges [skip ci]"
-            git push
-          else
-            echo "No translation coverage changes detected."
+          if ! git diff --quiet -- src/locales translation_coverage ||
+              test -n "$(git ls-files --others --exclude-standard -- src/locales translation_coverage)"; then
+            echo "::error::Generated translation files are out of date."
+            echo "Run 'npm run translations' locally and commit the resulting changes."
+            git status --short -- src/locales translation_coverage
+            git diff -- src/locales translation_coverage
+            exit 1
           fi
