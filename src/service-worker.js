@@ -60,12 +60,14 @@ const appShellStrategy = new NetworkFirst({
 	plugins: [rejectServerErrorsPlugin],
 });
 
+const createAppShellRequest = () => new Request(
+	new URL(`${basePath}index.html`, self.location.origin),
+	{ credentials: "same-origin", cache: "reload" },
+);
+
 const serveAppShell = (event) => appShellStrategy.handle({
 	event,
-	request: new Request(
-		new URL(`${basePath}index.html`, self.location.origin),
-		{ credentials: "same-origin", cache: "reload" },
-	),
+	request: createAppShellRequest(),
 });
 
 const matchesPathPrefix = (pathname, pathPrefix) =>
@@ -132,12 +134,7 @@ self.addEventListener('install', (event) => {
 	isFirstVisit = !self.registration.active;
 	event.waitUntil(
 		caches.open(appShellCacheName).then((cache) =>
-			cache.add(
-				new Request(
-					new URL(`${basePath}index.html`, self.location.origin),
-					{ credentials: 'same-origin', cache: 'reload' },
-				),
-			),
+			cache.add(createAppShellRequest()),
 		),
 	);
 	self.skipWaiting();
