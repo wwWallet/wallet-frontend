@@ -69,7 +69,6 @@ const Settings = () => {
 	const [isClearCacheConfirmationOpen, setIsClearCacheConfirmationOpen] = useState(false);
 	const [clearCacheInProgress, setClearCacheInProgress] = useState(false);
 	const [clearCacheError, setClearCacheError] = useState(false);
-	const [cacheCleared, setCacheCleared] = useState(false);
 	const screenType = useScreenType();
 
 	useEffect(() => {
@@ -88,12 +87,10 @@ const Settings = () => {
 	};
 	const openClearCachePopup = () => {
 		setClearCacheError(false);
-		setCacheCleared(false);
 		setIsClearCacheConfirmationOpen(true);
 	};
 	const closeClearCachePopup = () => {
 		setIsClearCacheConfirmationOpen(false);
-		setCacheCleared(false);
 	};
 	const confirmClearCache = async () => {
 		setClearCacheInProgress(true);
@@ -101,9 +98,7 @@ const Settings = () => {
 		try {
 			await clearWalletCache();
 			sessionStorage.setItem(CLEAR_CACHE_SUCCESS_NOTIFICATION_KEY, 'true');
-			setCacheCleared(true);
-			// Show the result in the popup before a fresh page resets module caches and React state.
-			window.setTimeout(() => window.location.reload(), 1500);
+			window.location.reload();
 		} catch (error) {
 			console.error('Failed to clear wallet cache', error);
 			setClearCacheError(true);
@@ -600,7 +595,6 @@ const Settings = () => {
 					onClose={closeClearCachePopup}
 					onConfirm={confirmClearCache}
 					isClearing={clearCacheInProgress}
-					isCleared={cacheCleared}
 				/>
 
 				<Dialog
