@@ -16,9 +16,7 @@ vi.mock('localforage', () => ({
 	},
 }));
 
-vi.mock('@/config', () => ({ BASE_PATH: '/wallet' }));
-
-const cachedStoreNames = ['externalEntities', 'accountInfo', 'proxyCache'];
+const derivedStoreNames = ['externalEntities', 'accountInfo', 'proxyCache'];
 const preservedStoreNames = ['users', 'UserHandleToUserID'];
 
 describe('clearWalletCache', () => {
@@ -32,18 +30,23 @@ describe('clearWalletCache', () => {
 		vi.unstubAllGlobals();
 	});
 
-	it('clears derived IndexedDB stores and wallet caches, preserving users and unrelated caches', async () => {
-		const scopeUrl = new URL('/wallet/', window.location.origin).href;
-		const walletCacheNames = [
-			`workbox-precache-v2-${scopeUrl}`,
-			'app-shell:/wallet/',
+	it('clears derived data and disposable caches while preserving offline app caches', async () => {
+		const disposableCacheNames = [
 			'images',
-			'fonts',
 			'app-shell',
 			'theme',
 		];
+		const offlineCacheNames = [
+			`workbox-precache-v2-${new URL('/wallet/', window.location.origin).href}`,
+			'app-shell:/wallet/',
+			'fonts',
+		];
 		const unrelatedCacheName = 'other-app-cache';
-		const keys = vi.fn().mockResolvedValue([...walletCacheNames, unrelatedCacheName]);
+		const keys = vi.fn().mockResolvedValue([
+			...disposableCacheNames,
+			...offlineCacheNames,
+			unrelatedCacheName,
+		]);
 		const deleteCache = vi.fn().mockResolvedValue(true);
 		vi.stubGlobal('caches', {
 			keys,
@@ -55,11 +58,14 @@ describe('clearWalletCache', () => {
 		for (const name of preservedStoreNames) {
 			expect(stores.get(name)?.clear).not.toHaveBeenCalled();
 		}
-		for (const name of cachedStoreNames) {
+		for (const name of derivedStoreNames) {
 			expect(stores.get(name)?.clear).toHaveBeenCalledOnce();
 		}
 		expect(keys).toHaveBeenCalledOnce();
-		expect(deleteCache.mock.calls.map(([name]) => name)).toEqual(walletCacheNames);
+		expect(deleteCache.mock.calls.map(([name]) => name)).toEqual(disposableCacheNames);
+		for (const name of offlineCacheNames) {
+			expect(deleteCache).not.toHaveBeenCalledWith(name);
+		}
 		expect(deleteCache).not.toHaveBeenCalledWith(unrelatedCacheName);
 	});
 
@@ -68,7 +74,7 @@ describe('clearWalletCache', () => {
 
 		await clearWalletCache();
 
-		for (const name of cachedStoreNames) {
+		for (const name of derivedStoreNames) {
 			expect(stores.get(name)?.clear).toHaveBeenCalledOnce();
 		}
 	});
