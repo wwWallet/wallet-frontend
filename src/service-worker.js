@@ -44,9 +44,30 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/activity\/[^/]+$/,               // Activity detail
 ];
 
+const rejectServerErrorsPlugin = {
+	fetchDidSucceed({ response }) {
+		if (response.status >= 500) {
+			throw new Error(`App shell request failed with status ${response.status}`);
+		}
+
+		return response;
+	},
+};
+
 const appShellStrategy = new NetworkFirst({
 	cacheName: appShellCacheName,
 	networkTimeoutSeconds: 3,
+	plugins: [rejectServerErrorsPlugin],
+});
+
+const createAppShellRequest = () => new Request(
+	new URL(`${basePath}index.html`, self.location.origin),
+	{ credentials: "same-origin", cache: "reload" },
+);
+
+const serveAppShell = (event) => appShellStrategy.handle({
+	event,
+	request: createAppShellRequest(),
 });
 
 const matchesPathPrefix = (pathname, pathPrefix) =>
@@ -71,18 +92,7 @@ registerRoute(
 
 		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
-	async ({ event }) => {
-		const appShellUrl = new URL(`${basePath}index.html`, self.location.origin);
-		const appShellRequest = new Request(appShellUrl, {
-			credentials: "same-origin",
-			cache: "reload",
-		});
-
-		return appShellStrategy.handle({
-			event,
-			request: appShellRequest,
-		});
-	}
+	({ event }) => serveAppShell(event)
 );
 
 registerRoute(
@@ -122,6 +132,11 @@ let isFirstVisit = false;
 
 self.addEventListener('install', (event) => {
 	isFirstVisit = !self.registration.active;
+	event.waitUntil(
+		caches.open(appShellCacheName).then((cache) =>
+			cache.add(createAppShellRequest()),
+		),
+	);
 	self.skipWaiting();
 });
 
