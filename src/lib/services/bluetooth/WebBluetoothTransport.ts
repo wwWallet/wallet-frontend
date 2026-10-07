@@ -39,6 +39,13 @@ const STATE_START = 0x01;
 const STATE_END = 0x02;
 const GATT_CONNECT_TIMEOUT_MS = 15_000;
 
+// Some Web Bluetooth providers (e.g. the Beacio Safari extension on iOS) throttle
+// GATT operations and reject bursts with a "Rate limit exceeded" SecurityError.
+// Back off and retry the same chunk instead of aborting the whole message
+const RATE_LIMIT_MAX_RETRIES = 8;
+const RATE_LIMIT_INITIAL_BACKOFF_MS = 100;
+const RATE_LIMIT_MAX_BACKOFF_MS = 2_000;
+
 /**
  * Bluetooth transport backed by the Web Bluetooth API, for browsers without
  * the native wrapper. Implements the ISO 18013-5 BLE data retrieval GATT
@@ -179,15 +186,34 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			const chunk = new Uint8Array(this.chunkSize);
 			chunk[0] = 1; // more chunks follow
 			chunk.set(payload.subarray(offset, offset + maxPayloadPerChunk), 1);
-			await this.client2ServerCharacteristic.writeValueWithoutResponse(chunk);
+			await this.writeChunk(chunk);
+			console.log("[debug] wrote chunk at offset", offset);
 			await new Promise((resolve) => setTimeout(resolve, 10));
 			offset += maxPayloadPerChunk;
 		}
 		const lastChunk = new Uint8Array(1 + payload.length - offset);
 		lastChunk[0] = 0; // final chunk
 		lastChunk.set(payload.subarray(offset), 1);
-		await this.client2ServerCharacteristic.writeValueWithoutResponse(lastChunk);
+		await this.writeChunk(lastChunk);
+		console.log("[debug] wrote final chunk", lastChunk.length);
 		await new Promise((resolve) => setTimeout(resolve, 10));
+	}
+
+	private async writeChunk(chunk: Uint8Array<ArrayBuffer>): Promise<void> {
+		let backoffMs = RATE_LIMIT_INITIAL_BACKOFF_MS;
+		for (let attempt = 0; ; attempt++) {
+			try {
+				await this.client2ServerCharacteristic.writeValueWithoutResponse(chunk);
+				return;
+			} catch (e) {
+				if (!isRateLimitError(e) || attempt >= RATE_LIMIT_MAX_RETRIES) {
+					throw e;
+				}
+				console.log("[debug] rate limited, retrying in", backoffMs, "ms");
+				await new Promise((resolve) => setTimeout(resolve, backoffMs));
+				backoffMs = Math.min(backoffMs * 2, RATE_LIMIT_MAX_BACKOFF_MS);
+			}
+		}
 	}
 
 	async terminate(): Promise<void> {
@@ -226,4 +252,8 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			waiter.reject(new Error("Session terminated"));
 		}
 	}
+}
+
+function isRateLimitError(e: unknown): boolean {
+	return (e as DOMException)?.name === "SecurityError" && /rate limit/i.test((e as DOMException)?.message ?? "");
 }
