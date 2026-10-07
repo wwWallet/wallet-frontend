@@ -1,7 +1,11 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import useScreenType from '../../hooks/useScreenType';
 
-const PageDescription = ({ description }) => {
+interface PageDescriptionProps {
+	description: ReactNode;
+}
+
+const PageDescription = ({ description }: PageDescriptionProps) => {
 	const screenType = useScreenType();
 
 	return (
@@ -11,6 +15,6 @@ const PageDescription = ({ description }) => {
 			)}
 		</>
 	);
-}
+};
 
 export default PageDescription;
