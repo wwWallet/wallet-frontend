@@ -1,10 +1,11 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import StatusContext from '@/context/StatusContext';
 import { useSessionContext } from '@/context/SessionContext';
 import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
+import NotificationContext from '@/context/NotificationContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
@@ -15,13 +16,15 @@ import type { WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
+import ClearCachePopup from '../../components/Popups/ClearCachePopup';
 import Button from '../../components/Buttons/Button';
 import { H2 } from '../../components/Shared/Heading';
 import PageHeading from '../../components/Shared/PageHeading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
+import { Bell, Clock, Database, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
+import { clearWalletCache } from '@/services/clearWalletCache';
 import { signalAllAcceptedCredentials } from '@/util-webauthn';
 
 import Dialog from './components/Dialog';
@@ -48,10 +51,13 @@ type UpgradePrfState = (
 	}
 );
 
+const CLEAR_CACHE_SUCCESS_QUERY_PARAM = 'cacheCleared';
+
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useSessionContext();
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
+	const notifications = useContext(NotificationContext);
 	const [userData, setUserData] = useState<UserData | null>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
@@ -61,18 +67,60 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [isClearCacheConfirmationOpen, setIsClearCacheConfirmationOpen] = useState(false);
+	const [clearCacheInProgress, setClearCacheInProgress] = useState(false);
+	const [clearCacheError, setClearCacheError] = useState(false);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const clearCacheSuccessHandled = useRef(false);
 	const screenType = useScreenType();
+
+	useEffect(() => {
+		if (
+			!notifications
+			|| clearCacheSuccessHandled.current
+			|| searchParams.get(CLEAR_CACHE_SUCCESS_QUERY_PARAM) !== 'true'
+		) return;
+
+		clearCacheSuccessHandled.current = true;
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.delete(CLEAR_CACHE_SUCCESS_QUERY_PARAM);
+		setSearchParams(nextParams, { replace: true, preventScrollReset: true });
+		notifications.notify('success', {
+			title: t('pageSettings.clearCache.successMessage'),
+		});
+	}, [notifications, searchParams, setSearchParams, t]);
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => {
 		setIsDeleteConfirmationOpen(false);
 		setUnlocked(false);
 	};
+	const openClearCachePopup = () => {
+		setClearCacheError(false);
+		setIsClearCacheConfirmationOpen(true);
+	};
+	const closeClearCachePopup = () => {
+		setIsClearCacheConfirmationOpen(false);
+	};
+	const confirmClearCache = async () => {
+		setClearCacheInProgress(true);
+		setClearCacheError(false);
+		try {
+			await clearWalletCache();
+			const reloadUrl = new URL(window.location.href);
+			reloadUrl.searchParams.set(CLEAR_CACHE_SUCCESS_QUERY_PARAM, 'true');
+			window.location.replace(reloadUrl.href);
+		} catch (error) {
+			console.error('Failed to clear wallet cache', error);
+			setClearCacheError(true);
+			closeClearCachePopup();
+			setClearCacheInProgress(false);
+		}
+	};
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialName(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
 	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
-	const [searchParams, setSearchParams] = useSearchParams();
 	const requestedTab = searchParams.get('tab');
 	const activeTab = requestedTab && SETTINGS_TAB_IDS.includes(requestedTab)
 		? requestedTab
@@ -389,7 +437,7 @@ const Settings = () => {
 										<SettingsSection title={t('pageSettings.title.language')} icon={<Languages size={18} />}>
 											<SettingsRow description={t('pageSettings.language.description')}>
 												<div className="relative inline-block min-w-36 [&_select]:cursor-pointer">
-													<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none" showName={true} />
+													<LanguageSelector className="py-2 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-700 dark:border-dm-gray-400 dark:text-white rounded-lg shadow-xs text-sm font-medium inputDarkModeOverride appearance-none" showName={true} />
 												</div>
 											</SettingsRow>
 										</SettingsSection>
@@ -415,6 +463,21 @@ const Settings = () => {
 													</option>
 												</SettingsSelect>
 											</SettingsRow>
+										</SettingsSection>
+
+										<SettingsSection title={t('pageSettings.clearCache.title')} icon={<Database size={18} />}>
+											<SettingsRow description={t('pageSettings.clearCache.description')}>
+												<Button
+													id="clear-cache"
+													variant="outline"
+													onClick={openClearCachePopup}
+													disabled={!isOnline || clearCacheInProgress}
+													title={!isOnline ? t('common.offlineTitle') : undefined}
+												>
+													{t('pageSettings.clearCache.buttonText')}
+												</Button>
+											</SettingsRow>
+											{clearCacheError && <p role="alert" className="mt-3 text-sm text-lm-red dark:text-dm-red">{t('pageSettings.clearCache.errorMessage')}</p>}
 										</SettingsSection>
 
 										<SettingsSection
@@ -564,6 +627,13 @@ const Settings = () => {
 						/>
 					}
 					loading={loading}
+				/>
+
+				<ClearCachePopup
+					isOpen={isClearCacheConfirmationOpen}
+					onClose={closeClearCachePopup}
+					onConfirm={confirmClearCache}
+					isClearing={clearCacheInProgress}
 				/>
 
 				<Dialog
