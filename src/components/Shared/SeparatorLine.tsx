@@ -1,6 +1,10 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
-function SeparatorLine({ children }) {
+interface SeparatorLineProps {
+	children?: ReactNode;
+}
+
+function SeparatorLine({ children }: SeparatorLineProps) {
 	return (
 		<div className="flex items-center gap-4 text-sm font-medium text-lm-gray-600 dark:text-dm-gray-400">
 			<div aria-hidden="true" className="h-px flex-1 bg-lm-gray-400 dark:bg-dm-gray-600" />

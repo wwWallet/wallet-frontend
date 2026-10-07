@@ -1,9 +1,29 @@
 import { BASE_PATH } from './config';
+import type {
+	TrustedScriptURL,
+	TrustedTypePolicyFactory,
+	TrustedTypesWindow,
+} from 'trusted-types/lib';
 
 const swScope = BASE_PATH.replace(/\/?$/, '/');
 const swPath = `${swScope}service-worker.js`;
 
-const tt = window.trustedTypes || window.TrustedTypes;
+type WindowWithLegacyTrustedTypes = Window & Partial<TrustedTypesWindow> & {
+	TrustedTypes?: TrustedTypePolicyFactory;
+};
+
+type ServiceWorkerScriptUrl = string | URL | TrustedScriptURL;
+
+const registerServiceWorker = (
+	scriptUrl: ServiceWorkerScriptUrl,
+	options?: RegistrationOptions,
+): Promise<ServiceWorkerRegistration> => {
+	// The DOM typings do not yet include TrustedScriptURL for this browser API.
+	return navigator.serviceWorker.register(scriptUrl as unknown as string, options);
+};
+
+const trustedTypesWindow = window as WindowWithLegacyTrustedTypes;
+const tt = trustedTypesWindow.trustedTypes || trustedTypesWindow.TrustedTypes;
 
 const swPolicy = tt
 	? tt.createPolicy('sw-register', {
@@ -30,12 +50,11 @@ if ('serviceWorker' in navigator) {
 		}
 
 		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swPath) : swPath;
-		navigator.serviceWorker
-			.register(trustedSwUrl, {
-				scope: swScope,
-				// Always revalidate imports during service worker update checks.
-				updateViaCache: 'none',
-			})
+		registerServiceWorker(trustedSwUrl, {
+			scope: swScope,
+			// Always revalidate imports during service worker update checks.
+			updateViaCache: 'none',
+		})
 			.catch(err => {
 				console.error('Service worker registration failed:', err);
 			});

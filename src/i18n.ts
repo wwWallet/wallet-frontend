@@ -1,4 +1,3 @@
-// i18n.js
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as config from './config';
@@ -7,7 +6,7 @@ import enTranslation from './locales/en.json';
 import elTranslation from './locales/el.json';
 import ptTranslation from './locales/pt.json';
 
-const fallbackLng = 'en';
+const fallbackLng = 'en' as const;
 
 const resources = {
 	en: { translation: enTranslation },
@@ -16,8 +15,8 @@ const resources = {
 };
 
 if (config.WALLET_NAME) {
-	for (const lang in resources) {
-		resources[lang].translation.common.walletName = config.WALLET_NAME;
+	for (const resource of Object.values(resources)) {
+		resource.translation.common.walletName = config.WALLET_NAME;
 	}
 }
 
@@ -28,8 +27,10 @@ const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
 
 // Helper function to get only the language part and check if it exists
-export const getLanguage = (locale) =>
-	(locale && (locale.includes('-') ? locale.split('-')[0] : locale)) || undefined;
+export const getLanguage = (locale: unknown): string | undefined =>
+	typeof locale === 'string'
+		? (locale.includes('-') ? locale.split('-')[0] : locale) || undefined
+		: undefined;
 
 // Get the preferred language
 let preferredLanguage =
@@ -39,7 +40,7 @@ let preferredLanguage =
 	null;
 
 // Ensure preferred language exists in available resources
-if (!availableResources[preferredLanguage]) {
+if (!preferredLanguage || !(preferredLanguage in availableResources)) {
 	preferredLanguage = fallbackLng;
 }
 

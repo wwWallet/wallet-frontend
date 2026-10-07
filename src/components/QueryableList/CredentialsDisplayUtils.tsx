@@ -11,9 +11,9 @@ export function getCredentialType(parsedCredential: any): string {
 
 export function buildCredentialPortal(
 	portal: any,
-	filterItemByLang: (items: any[], langKey: string) => any
+	filterItemByLang: (items: any[]) => any
 ) {
-	const display = filterItemByLang(portal.display, 'locale');
+	const display = filterItemByLang(portal.display);
 	let portalUrl: URL;
 	try {
 		portalUrl = new URL(portal.url);
@@ -44,7 +44,7 @@ export function buildCredentialConfiguration(
 	key: string,
 	config: any,
 	metadata: any,
-	filterItemByLang: (items: any[], langKey: string) => any
+	filterItemByLang: (items: any[]) => any
 ): {
 	identifierField: string;
 	credentialConfigurationDisplayName: string;
@@ -54,14 +54,14 @@ export function buildCredentialConfiguration(
 	credentialIssuerIdentifier: string;
 	credentialConfiguration: any;
 } {
-	const display = filterItemByLang(config?.credential_metadata?.display, 'locale');
+	const display = filterItemByLang(config?.credential_metadata?.display);
 	const credentialDisplay = {
 		...display,
 		name: display?.name ?? key,
 		credentialConfigurationId: key,
 	};
 
-	const issuerDisplayLang = filterItemByLang(metadata.display, 'locale');
+	const issuerDisplayLang = filterItemByLang(metadata.display);
 	const issuerDisplay = {
 		name:
 			issuerDisplayLang?.name ??

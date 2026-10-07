@@ -11,14 +11,14 @@ export function buildCredentialRedirectPopupContent({
 	t: (key: string) => string;
 	credentialConfigurationId: string;
 	issuerMetadata: OpenidCredentialIssuerMetadata;
-	filterItemByLang: (items: any[] | undefined, langKey: string) => any;
+	filterItemByLang: (items: any[] | undefined) => any;
 }): { title: string; message: React.ReactNode } {
 
-	const issuerDisplay = filterItemByLang(issuerMetadata?.display, 'locale');
+	const issuerDisplay = filterItemByLang(issuerMetadata?.display);
 	const selectedCredentialConfiguration = credentialConfigurationId
 		? issuerMetadata?.credential_configurations_supported?.[credentialConfigurationId]
 		: null;
-	const credentialDisplay = filterItemByLang(selectedCredentialConfiguration?.credential_metadata?.display, 'locale');
+	const credentialDisplay = filterItemByLang(selectedCredentialConfiguration?.credential_metadata?.display);
 
 	const resolvedCredentialName = credentialDisplay?.name ?? credentialConfigurationId ?? 'Unknown';
 	const resolvedIssuerName = issuerDisplay?.name ?? (issuerMetadata?.credential_issuer ? new URL(issuerMetadata.credential_issuer).host : 'Unknown');

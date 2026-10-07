@@ -1,4 +1,14 @@
-import React from 'react';
+type CounterBadgePosition = 'inline' | 'top-right' | 'top-left';
+
+interface CounterBadgeProps {
+	count: unknown;
+	max?: number;
+	active?: boolean;
+	position?: CounterBadgePosition;
+	className?: string;
+	ariaLabel?: string;
+	title?: string;
+}
 
 /**
  * CounterBadge
@@ -15,7 +25,7 @@ export default function CounterBadge({
 	className = '',
 	ariaLabel = 'pending',
 	title, // optional: override tooltip
-}) {
+}: CounterBadgeProps) {
 	const n = typeof count === 'number' ? count : 0;
 	if (n <= 0) return null;
 

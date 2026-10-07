@@ -62,8 +62,8 @@ const Pending = () => {
 						.map(pt => {
 							const md = issuerMd[pt.credentialIssuerIdentifier];
 							const cfg = md?.credential_configurations_supported?.[pt.credentialConfigurationId];
-							const issuer = md ? filterItemByLang(md.display, "locale")?.name : null;
-							const cred = cfg ? filterItemByLang(cfg.credential_metadata.display, "locale")?.name : null;
+							const issuer = md ? filterItemByLang(md.display)?.name : null;
+							const cred = cfg ? filterItemByLang(cfg.credential_metadata.display)?.name : null;
 							return (
 								<div
 									key={pt.credentialEndpoint.transactionId}

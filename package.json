@@ -63,6 +63,7 @@
     "@types/react-modal": "^3.16.3",
     "@types/react-transition-group": "^4.4.12",
     "@types/reflect-metadata": "^0.1.0",
+    "@types/trusted-types": "^2.0.2",
     "@types/uuid": "9",
     "@vitejs/plugin-react": "^4.3.3",
     "@vitest/eslint-plugin": "^1.0.0",

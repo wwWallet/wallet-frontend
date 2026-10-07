@@ -1,16 +1,20 @@
-import React from 'react';
 import Logo from '../Logo/Logo';
 import { LoaderCircle } from 'lucide-react';
 
-const Spinner = ({ size = 'large' }) => {
+type SpinnerSize = 'large' | 'small';
 
+interface SpinnerProps {
+	size?: SpinnerSize;
+}
+
+const Spinner = ({ size = 'large' }: SpinnerProps) => {
 	const sizes = {
-		'large': {
+		large: {
 			container: 'h-32 w-32',
 			image: 'w-32',
 			opacity: 'opacity-100',
 		},
-		'small': {
+		small: {
 			container: 'h-20 w-20',
 			image: 'w-18',
 			opacity: 'opacity-75',
