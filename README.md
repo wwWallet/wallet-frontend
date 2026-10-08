@@ -196,13 +196,13 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
     </tr>
     <tr>
       <th style="display:flex;align-items:center;border:none;">
-        <img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
-        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
-        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
-        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
+        <img src="https://cdnjs.cloudflare.com/ajax/libs/browser-logos/75.0.1/chrome/chrome_24x24.png" alt="Chrome" height="24"/>
+        <img style="margin-left:5px;" src="https://cdnjs.cloudflare.com/ajax/libs/browser-logos/75.0.1/brave/brave_24x24.png" alt="Brave" height="24"/>
+        <img style="margin-left:5px;" src="https://cdnjs.cloudflare.com/ajax/libs/browser-logos/75.0.1/edge/edge_24x24.png" alt="Microsoft Edge" height="24"/>
+        <img style="margin-left:5px;" src="https://cdnjs.cloudflare.com/ajax/libs/browser-logos/75.0.1/opera/opera_24x24.png" alt="Opera" height="24"/>
       </th>
-      <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
-      <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
+      <th><img src="https://cdnjs.cloudflare.com/ajax/libs/browser-logos/75.0.1/firefox/firefox_24x24.png" alt="Firefox" height="24"/></th>
+      <th><img src="https://cdnjs.cloudflare.com/ajax/libs/browser-logos/75.0.1/safari/safari_24x24.png" alt="Safari" height="24"/></th>
     </tr>
   </thead>
   <tbody>
