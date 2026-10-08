@@ -196,7 +196,7 @@ export interface WalletStateSettings {
 	[other: string]: unknown,
 }
 
-function normalize(obj: any) {
+function normalize(obj: any): any {
 	if (Array.isArray(obj)) {
 		return obj.map(normalize);
 	} else if (obj && typeof obj === 'object' && obj.constructor === Object) {
@@ -337,7 +337,7 @@ export const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> 
 
 export function createOperations(
 	SCHEMA_VERSION: number,
-	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy>,
+	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> | null,
 ) {
 
 	async function calculateEventHash(event: WalletSchemaCommon.WalletSessionEvent | undefined): Promise<string> {

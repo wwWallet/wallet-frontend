@@ -269,10 +269,15 @@ export const encryptedHttpRequest = async (relayUrl: string, keysInfo: HpkeConfi
 		new Uint8Array(ct2)
 	)
 
+	const appToken = sessionStorage.getItem('appToken');
+	if (!appToken) {
+		throw new Error("Missing app token");
+	}
+
 	const res2 = await fetch(relayUrl, {
 		method: 'POST',
 		headers: { 'Content-Type': 'message/ohttp-req',
-			'Authorization': 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+			'Authorization': 'Bearer ' + JSON.parse(appToken)
 		},
 		body: toArrayBuffer(encapsulatedRequest) as ArrayBuffer,
 	});

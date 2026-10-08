@@ -56,10 +56,14 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^24.10.2",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.3.1",
+    "@types/react-modal": "^3.16.3",
+    "@types/react-transition-group": "^4.4.12",
     "@types/reflect-metadata": "^0.1.0",
+    "@types/uuid": "9",
     "@vitejs/plugin-react": "^4.3.3",
     "@vitest/eslint-plugin": "^1.0.0",
     "concurrently": "^9.2.3",
@@ -77,6 +81,9 @@
   },
   "engines": {
     "node": ">=24"
+  },
+  "resolutions": {
+    "@types/react": "18.3.31"
   },
   "scripts": {
     "start": "vite --no-open",

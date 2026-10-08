@@ -15,14 +15,14 @@ export function useCredentialParserRegistry(): ICredentialParserRegistry {
 		setParsers(parsers: ICredentialParser[]): void {
 			parserList.push(...parsers);
 		},
-		async parse(rawCredential: object | string) {
+		async parse(rawCredential: object | string): ReturnType<ICredentialParserRegistry['parse']> {
 			const hash = await calculateHash(JSON.stringify(rawCredential));
 			const cacheResult = parsedObjectsCache.get(hash);
 			if (cacheResult) {
 				return cacheResult;
 			}
 			for (const p of parserList) {
-				const result = await p.parse(rawCredential).catch(() => null);
+				const result = await p.parse(rawCredential).catch((): null => null);
 				if (result && 'beautifiedForm' in result) {
 					parsedObjectsCache.set(hash, result);
 					return result;

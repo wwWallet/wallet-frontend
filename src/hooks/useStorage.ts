@@ -89,7 +89,7 @@ function makeUseStorage<T>(
 				const listener = (event: StorageEvent) => {
 					if (event.storageArea === storage) {
 						if (event.key === name) { // Storage.setItem(name, value)
-							setValue(jsonParseTaggedBinary(event.newValue));
+							setValue(jsonParseTaggedBinary(event.newValue as string));
 
 						} else if (event.key === null) { // Storage.clear()
 							setValue(initValue);
@@ -110,9 +110,10 @@ function makeUseStorage<T>(
 				// Listen to synthetic events sent when a useStorage hook updates its
 				// state. This causes all useStorage instances with the same name to
 				// update their state, including the instance that caused the change.
-				const listener = (event: CustomEvent<SetValueEvent<T>>) => {
-					if (event.detail.storageArea === storage && event.detail.name === name) {
-						setValue(event.detail.value);
+				const listener: EventListener = (event) => {
+					const { detail } = event as CustomEvent<SetValueEvent<T>>;
+					if (detail.storageArea === storage && detail.name === name) {
+						setValue(detail.value);
 					}
 				};
 				window.addEventListener('useStorage.set', listener);

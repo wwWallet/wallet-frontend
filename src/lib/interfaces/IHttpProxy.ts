@@ -1,4 +1,5 @@
 export interface RequestHeaders {
+	[header: string]: string;
 }
 
 export interface ResponseHeaders {

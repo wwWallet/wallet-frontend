@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
-import OpenID4VCIContext from '@/context/OpenID4VCIContext';
-import SessionContext from '@/context/SessionContext';
+import { useOpenID4VCIContext } from '@/context/OpenID4VCIContext';
+import { useSessionContext } from '@/context/SessionContext';
 import StatusContext from '@/context/StatusContext';
 
 // Hooks
@@ -25,7 +25,7 @@ import PageHeading from '@/components/Shared/PageHeading';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const [issuers, setIssuers] = useState([]);
 	const [portals, setPortals] = useState([]);
 	const [recent, setRecent] = useState([]);
@@ -37,7 +37,7 @@ const AddCredentials = () => {
 	const [messagePopupState, setMessagePopupState] = useState(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
-	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { openID4VCI } = useOpenID4VCIContext();
 	const { vcEntityList, getData } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();

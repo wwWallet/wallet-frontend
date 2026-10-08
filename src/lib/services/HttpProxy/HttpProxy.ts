@@ -5,7 +5,7 @@ import StatusContext from '@/context/StatusContext';
 import { addItem, getItem } from '@/indexedDB';
 import { encryptedHttpRequest, toArrayBuffer } from '@/lib/utils/ohttpHelpers';
 import { BACKEND_URL, OHTTP_RELAY } from "@/config";
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { toU8 } from '@/util';
 
 // @ts-ignore
@@ -38,7 +38,7 @@ const parseCacheControl = (header: string) =>
 
 export function useHttpProxy(): IHttpProxy {
 	const { isOnline } = useContext(StatusContext);
-	const { obliviousKeyConfig } = useContext(SessionContext);
+	const { obliviousKeyConfig } = useSessionContext();
 
 	const isOnlineRef = useRef(isOnline);
 
@@ -118,7 +118,11 @@ export function useHttpProxy(): IHttpProxy {
 
 			const requestPromise = (async () => {
 				try {
-					let response;
+					let response: {
+						status: number;
+						headers: ResponseHeaders;
+						data: any;
+					};
 					const shouldUseOblivious = obliviousKeyConfig !== null;
 					if (shouldUseOblivious) {
 						console.log("Using oblivious");
@@ -126,16 +130,21 @@ export function useHttpProxy(): IHttpProxy {
 						if (keyConfig === null) {
 							throw new Error("Oblivious HTTP configuration error");
 						}
-						response = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
+						if (!OHTTP_RELAY) {
+							throw new Error("OHTTP relay is not configured");
+						}
+						const encryptedResponse = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
 							method: 'GET',
 							headers,
 							url,
 						})
-						response.data = response.body;
-						if (response.data.status > 299 || response.data.status < 200) {
+						if (!encryptedResponse) {
+							throw new Error("Encrypted HTTP request failed");
+						}
+						if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 							const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 							throw new AxiosError(
-								`Request failed with status code ${response.status}`,
+								`Request failed with status code ${encryptedResponse.status}`,
 								undefined,
 								{
 									headers: axiosHeaders,
@@ -144,10 +153,10 @@ export function useHttpProxy(): IHttpProxy {
 								},
 								undefined,
 								{
-									data: response,
-									status: response.status,
-									statusText: String(response.status),
-									headers: response.headers || {},
+									data: encryptedResponse,
+									status: encryptedResponse.status,
+									statusText: String(encryptedResponse.status),
+									headers: encryptedResponse.headers || {},
 									config: {
 										headers: axiosHeaders,
 										method: 'get',
@@ -158,20 +167,21 @@ export function useHttpProxy(): IHttpProxy {
 						}
 						if (isBinaryRequest) {
 							response = {
-								...response,
-								data: toArrayBuffer(response.body)
+								status: encryptedResponse.status,
+								headers: encryptedResponse.headers,
+								data: toArrayBuffer(encryptedResponse.body)
 							}
 						} else {
+							const responseHeader = encryptedResponse.headers?.['content-type'];
+							const data = responseHeader?.trim().startsWith('application/json')
+								? JSON.parse(new TextDecoder().decode(encryptedResponse.body))
+								: new TextDecoder().decode(encryptedResponse.body);
 							response = {
-								data: {...response}
+								status: encryptedResponse.status,
+								headers: encryptedResponse.headers,
+								data: { ...encryptedResponse, data }
 							};
-							const responseHeader = response?.data?.headers?.['content-type'];
 							console.log("Content-Type parsed: ", responseHeader);
-							if (responseHeader && responseHeader.trim().startsWith('application/json')) {
-								response.data.data = JSON.parse(new TextDecoder().decode(response.data.data));
-							} else {
-								response.data.data = new TextDecoder().decode(response.data.data);
-							}
 						}
 					} else {
 						response = await axios.post(`${walletBackendServerUrl}/proxy`, {
@@ -275,6 +285,7 @@ export function useHttpProxy(): IHttpProxy {
 					};
 
 				} catch (err) {
+					const errorResponse = axios.isAxiosError(err) ? err.response : undefined;
 
 					// Optionally cache failed responses
 					if (cacheOnError) {
@@ -283,9 +294,9 @@ export function useHttpProxy(): IHttpProxy {
 							cacheKey,
 							{
 								data: {
-									status: err.response?.status || 500,
-									headers: err.response?.headers || {},
-									data: err.response?.data || 'GET proxy failed',
+									status: errorResponse?.status || 500,
+									headers: errorResponse?.headers || {},
+									data: errorResponse?.data || 'GET proxy failed',
 									__error: true,
 								},
 								expiry: now + 60 * 60 * 24 * 30,
@@ -305,9 +316,9 @@ export function useHttpProxy(): IHttpProxy {
 					}
 
 					return {
-						status: err.response?.status || 500,
-						headers: err.response?.headers || {},
-						data: err.response?.data || 'GET proxy failed',
+						status: errorResponse?.status || 500,
+						headers: errorResponse?.headers || {},
+						data: errorResponse?.data || 'GET proxy failed',
 					};
 				} finally {
 					inFlightRequests.delete(cacheKey);
@@ -323,7 +334,7 @@ export function useHttpProxy(): IHttpProxy {
 			body: any,
 			headers: Record<string, string>
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
-			let response;
+			let response: { data: { status: number; headers: ResponseHeaders; data: unknown } };
 			try {
 				const shouldUseOblivious = obliviousKeyConfig !== null;
 				if (shouldUseOblivious) {
@@ -332,20 +343,22 @@ export function useHttpProxy(): IHttpProxy {
 					if (keyConfig === null) {
 						throw new Error("Oblivious HTTP configuration error");
 					}
-					response = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
+					if (!OHTTP_RELAY) {
+						throw new Error("OHTTP relay is not configured");
+					}
+					const encryptedResponse = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
 						method: 'POST',
 						headers,
 						url,
 						body
 					})
-					response.data = response.body;
-					response = {
-						data: { ...response }
-					};
-					if (response.data.status > 299 || response.data.status < 200) {
+					if (!encryptedResponse) {
+						throw new Error("Encrypted HTTP request failed");
+					}
+					if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 						const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 						throw new AxiosError(
-							`Request failed with status code ${response.data.status}`,
+							`Request failed with status code ${encryptedResponse.status}`,
 							undefined,
 							{
 								headers: axiosHeaders,
@@ -355,10 +368,10 @@ export function useHttpProxy(): IHttpProxy {
 							},
 							undefined,
 							{
-								data: response.data,
-								status: response.data.status,
-								statusText: String(response.data.status),
-								headers: response.data.headers || {},
+								data: encryptedResponse,
+								status: encryptedResponse.status,
+								statusText: String(encryptedResponse.status),
+								headers: encryptedResponse.headers || {},
 								config: {
 									headers: axiosHeaders,
 									method: 'post',
@@ -368,14 +381,17 @@ export function useHttpProxy(): IHttpProxy {
 							}
 						);
 					}
-					const responseHeader = response?.data?.headers?.['content-type'];
+					const responseHeader = encryptedResponse.headers?.['content-type'];
 					console.log("Content-Type parsed: ", responseHeader);
-					if (responseHeader && responseHeader.trim().startsWith('application/json')) {
-						response.data.data = JSON.parse(new TextDecoder().decode(response.data.data));
-					} else {
-						response.data.data = new TextDecoder().decode(response.data.data);
-					}
+					const data = responseHeader?.trim().startsWith('application/json')
+						? JSON.parse(new TextDecoder().decode(encryptedResponse.body))
+						: new TextDecoder().decode(encryptedResponse.body);
+					response = { data: { ...encryptedResponse, data } };
 				} else {
+					const appToken = sessionStorage.getItem('appToken');
+					if (!appToken) {
+						throw new Error("Missing app token");
+					}
 					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 						headers: headers,
 						url: url,
@@ -384,7 +400,7 @@ export function useHttpProxy(): IHttpProxy {
 					}, {
 						timeout: TIMEOUT,
 						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+							Authorization: 'Bearer ' + JSON.parse(appToken)
 						}
 					});
 				}
@@ -392,10 +408,15 @@ export function useHttpProxy(): IHttpProxy {
 			} catch (err) {
 				console.log("Post failed");
 				console.log(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+				const errorResponse = axios.isAxiosError<{
+					data?: unknown;
+					headers?: Record<string, unknown>;
+					status?: number;
+				}>(err) ? err.response?.data : undefined;
 				return {
-					data: err.response.data.data,
-					headers: err.response.data.headers,
-					status: err.response.data.status || 500,
+					data: errorResponse?.data,
+					headers: errorResponse?.headers ?? {},
+					status: errorResponse?.status || 500,
 				};
 			}
 		},

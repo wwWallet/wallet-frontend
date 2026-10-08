@@ -1,8 +1,8 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
 import { UserLock } from 'lucide-react';
@@ -11,7 +11,7 @@ export const WebauthnLogin = ({
 	filteredUser,
 	onClose,
 }) => {
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -99,7 +99,7 @@ export const WebauthnLogin = ({
 const AuthPopup = ({ descriptionKey, onClose }) => {
 	const { t } = useTranslation();
 
-	const { keystore } = useContext(SessionContext);
+	const { keystore } = useSessionContext();
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
