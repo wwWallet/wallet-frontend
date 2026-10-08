@@ -3,18 +3,26 @@ import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import { XIcon } from 'lucide-react';
 
-const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => {
+interface ConnectionStatusIconProps {
+	size?: 'normal' | 'small';
+	backgroundColor?: 'dark' | 'light';
+}
+
+const ConnectionStatusIcon = ({
+	size = 'normal',
+	backgroundColor = 'dark',
+}: ConnectionStatusIconProps) => {
 	const { connectivity } = useContext(StatusContext);
 	const { t } = useTranslation();
 
 	const quality = connectivity.speed;
-	const bars = Array.from({ length: 5 }, (_, i) => i < quality);
+	const bars = Array.from({ length: 5 }, (_, i) => quality !== null && i < quality);
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
 	const filledColor = 'bg-current';
 	const unFilledColor = 'bg-lm-gray-400 dark:bg-dm-gray-600';
 	const connectingSpinner = backgroundColor === 'light' ? 'border-lm-gray-600 dark:border-dm-gray-100' : 'border-lm-gray-100';
 
-	const qualityText = (quality) => {
+	const qualityText = (quality: number | null): string => {
 		switch (quality) {
 			case 5: return t('ConnectionStatusIcon.qualityLabels.excellent');
 			case 4: return t('ConnectionStatusIcon.qualityLabels.good');
