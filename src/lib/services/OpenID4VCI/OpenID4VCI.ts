@@ -828,6 +828,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 					state,
 					code_verifier: parRes.code_verifier,
+					dpop: parRes.dpop,
 					credentialConfigurationId,
 					created: Math.floor(Date.now() / 1000),
 				});
