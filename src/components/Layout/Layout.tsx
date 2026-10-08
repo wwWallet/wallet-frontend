@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import type { ReactNode } from 'react';
 import Sidebar from '../Layout/Navigation/Sidebar';
 import WelcomeTourGuide from '../WelcomeTourGuide/WelcomeTourGuide';
 import BottomNav from './Navigation/BottomNav';
 import Header from './Header';
 
-const Layout = ({ children }) => {
+interface LayoutProps {
+	children: ReactNode;
+}
+
+const Layout = ({ children }: LayoutProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
 

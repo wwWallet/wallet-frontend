@@ -1,5 +1,7 @@
 import React, { useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import type { Location } from 'react-router-dom';
 import useScreenType from '../../../hooks/useScreenType';
 import Logo from '../../Logo/Logo';
 import { useTranslation } from 'react-i18next';
@@ -10,8 +12,27 @@ import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
 import { Bell, History, LogOut, PlusCircle, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }) => {
+interface NavItemProps {
+	icon?: LucideIcon;
+	id: string;
+	label: string;
+	handleNavigate: (path: string) => void;
+	location: Location;
+	path: string;
+	alias?: string;
+	counter?: number;
+	notificationIcon?: ReactNode;
+	className?: string;
+}
+
+interface SidebarProps {
+	isOpen: boolean;
+	toggle: () => void;
+}
+
+const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }: NavItemProps) => {
 	const isActive = location.pathname === path || location.pathname === alias;
 
 	return (
@@ -39,7 +60,7 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 	);
 };
 
-const Sidebar = ({ isOpen, toggle }) => {
+const Sidebar = ({ isOpen, toggle }: SidebarProps) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout, obliviousKeyConfig } = useSessionContext();
 	const { pendingTransactions } = useContext(CredentialsContext);
@@ -49,11 +70,11 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
-	const handleLogout = async () => {
+	const handleLogout = async (): Promise<void> => {
 		await logout();
 	};
 
-	const handleNavigate = (path) => {
+	const handleNavigate = (path: string): void => {
 		if (location.pathname === path) {
 			if (screenType !== 'desktop') {
 				toggle();
@@ -106,10 +127,14 @@ const Sidebar = ({ isOpen, toggle }) => {
 								<ConnectionStatusIcon size='small' />
 							</div>
 							{obliviousKeyConfig !== null && (
-								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600" title={t('sidebar.obliviousEnabled')} />
+								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600">
+									<title>{t('sidebar.obliviousEnabled')}</title>
+								</ShieldHalf>
 							)}
 
-							<UserCircle className="shrink-0" size={20} title={displayName || username} />
+							<UserCircle className="shrink-0" size={20}>
+								<title>{displayName || username}</title>
+							</UserCircle>
 							<span
 								className="text-overflow-ellipsis text-sm overflow-hidden whitespace-nowrap"
 								title={displayName || username}

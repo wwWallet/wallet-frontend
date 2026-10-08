@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import Logo from '../Logo/Logo';
 
-const Header = () => {
+const Header = (): React.ReactElement | null => {
 	const { t } = useTranslation();
 	const { pathname } = useLocation();
 
