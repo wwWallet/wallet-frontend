@@ -4,10 +4,30 @@ import { compareBy, reverse } from '../util';
 // Context
 import CredentialsContext from '@/context/CredentialsContext';
 
-import { CredentialVerificationError, VerifiableCredentialFormat } from "wallet-common";
+import { CredentialVerificationError, VerifiableCredentialFormat } from 'wallet-common';
+import type { CredentialVerifier, ParsedCredential } from 'wallet-common';
+import type { LocalStorageKeystore } from '@/services/LocalStorageKeystore';
+import type { CurrentSchema } from '@/services/WalletStateSchema';
 
-const useFetchPresentations = (keystore, batchId = null, transactionId = null) => {
-	const [history, setHistory] = useState(null);
+type WalletStatePresentation = CurrentSchema.WalletStatePresentation;
+type VerificationResult = Awaited<ReturnType<CredentialVerifier['verify']>>;
+
+export interface PresentationHistoryItem {
+	presentation: WalletStatePresentation;
+	parsedCredential: ParsedCredential | null;
+	result: VerificationResult | null;
+	isExpired: boolean;
+}
+
+export type PresentationHistory = Record<number, PresentationHistoryItem[]>;
+export type PresentationHistoryState = PresentationHistory | [] | null;
+
+const useFetchPresentations = (
+	keystore: LocalStorageKeystore,
+	batchId: string | null | undefined = null,
+	transactionId: string | null | undefined = null,
+): PresentationHistoryState => {
+	const [history, setHistory] = useState<PresentationHistoryState>(null);
 	const { parseCredential, credentialEngine } = useContext(CredentialsContext);
 
 	useEffect(() => {
@@ -15,7 +35,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 			console.log('FetchPresentations');
 			try {
 				let presentations = await keystore.getAllPresentations();
-				if (presentations.length === 0) {
+				if (!presentations || presentations.length === 0) {
 					setHistory([]);
 					return;
 				}
@@ -58,13 +78,13 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 						const firstUsedId = String(presentation.usedCredentialIds?.[0] ?? "");
 						const firstVC = credentialById.get(firstUsedId);
 
-						const parsedCredential = await parseCredential({
-							...presentation,
-							credentialConfigurationId: firstVC?.credentialConfigurationId ?? null,
-							credentialIssuerIdentifier: firstVC?.credentialIssuerIdentifier ?? null,
-						});
+						const parsedCredential = firstVC
+							? await parseCredential({ ...firstVC, data: presentation.data })
+							: null;
 
 						const result = await (async () => {
+							if (!credentialEngine) return null;
+
 							switch (parsedCredential?.metadata?.credential?.format) {
 								case VerifiableCredentialFormat.VC_SDJWT:
 									return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
@@ -82,10 +102,10 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 							parsedCredential,
 							result,
 							isExpired: result?.success === false && result.error === CredentialVerificationError.ExpiredCredential,
-						}
+						};
 					})
 				);
-				const presentationsGroupedByTransactionId = presentationsTransformed.reduce((acc, p) => {
+				const presentationsGroupedByTransactionId = presentationsTransformed.reduce<PresentationHistory>((acc, p) => {
 					acc[p.presentation.transactionId] = acc[p.presentation.transactionId] ? [...acc[p.presentation.transactionId], p] : [p];
 					return acc;
 				}, {});
