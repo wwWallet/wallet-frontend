@@ -1,7 +1,12 @@
-// useQRScanner.js
 import { useState } from 'react';
 
-export const useQRScanner = () => {
+interface QRScannerState {
+	isQRScannerOpen: boolean;
+	openQRScanner: () => void;
+	closeQRScanner: () => void;
+}
+
+export const useQRScanner = (): QRScannerState => {
 	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
 
 	const openQRScanner = () => setQRScannerOpen(true);

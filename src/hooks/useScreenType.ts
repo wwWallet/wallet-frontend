@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 
-const getScreenType = (width) => {
+export type ScreenType = 'mobile' | 'tablet' | 'desktop';
+
+const getScreenType = (width: number): ScreenType => {
 	if (width < 480) return 'mobile';
 	if (width >= 480 && width < 768) return 'tablet';
 	return 'desktop';
 };
 
-const useScreenType = () => {
+const useScreenType = (): ScreenType => {
 	const [screenType, setScreenType] = useState(getScreenType(window.innerWidth));
 
 	useEffect(() => {
