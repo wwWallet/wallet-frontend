@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({ post: vi.fn(), requestWia: vi.fn(), generateKe
 
 vi.mock("../../HttpProxy/HttpProxy", () => ({ useHttpProxy: () => ({ post: mocks.post }) }));
 vi.mock("../../WalletProvider", () => ({
-	usewalletProvider: () => ({ requestWalletInstanceAttestation: mocks.requestWia }),
+	useWalletProvider: () => ({ requestWalletInstanceAttestation: mocks.requestWia }),
 }));
 vi.mock("@/context/SessionContext", async () => {
 	const { createContext } = await import("react");

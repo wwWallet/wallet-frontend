@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo } from "react";
 import type { JWK } from "jose";
 import SessionContext from "@/context/SessionContext";
 
-export function usewalletProvider() {
+export function useWalletProvider() {
 	const { api: { post } } = useContext(SessionContext);
 
 	const requestWalletInstanceAttestation = useCallback(async (

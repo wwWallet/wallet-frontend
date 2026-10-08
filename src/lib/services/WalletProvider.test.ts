@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usewalletProvider } from "./WalletProvider";
+import { useWalletProvider } from "./WalletProvider";
 
 const mocks = vi.hoisted(() => ({ post: vi.fn() }));
 
@@ -18,7 +18,7 @@ describe("Wallet Provider WIA request", () => {
 
 	it("uses authenticated backend post with the public key, client ID and AS issuer", async () => {
 		mocks.post.mockResolvedValue({ data: { wallet_instance_attestation: "provider-signed-wia" } });
-		const { result } = renderHook(() => usewalletProvider());
+		const { result } = renderHook(() => useWalletProvider());
 		const response = await result.current.requestWalletInstanceAttestation(
 			publicJwk, "https://wallet.example/callback/", "https://as.example/tenant/",
 		);
@@ -35,7 +35,7 @@ describe("Wallet Provider WIA request", () => {
 	it.each([undefined, null, {}, { wallet_instance_attestation: "" }, { wallet_instance_attestation: 123 }])(
 		"returns null for an invalid response: %j", async data => {
 			mocks.post.mockResolvedValue({ data });
-			const { result } = renderHook(() => usewalletProvider());
+			const { result } = renderHook(() => useWalletProvider());
 			await expect(result.current.requestWalletInstanceAttestation(publicJwk, "wallet", "https://as.example"))
 				.resolves.toBeNull();
 		},
@@ -44,7 +44,7 @@ describe("Wallet Provider WIA request", () => {
 	it("returns null when the backend request fails", async () => {
 		vi.spyOn(console, "error").mockImplementation(() => {});
 		mocks.post.mockRejectedValue(new Error("Backend unavailable"));
-		const { result } = renderHook(() => usewalletProvider());
+		const { result } = renderHook(() => useWalletProvider());
 		await expect(result.current.requestWalletInstanceAttestation(publicJwk, "wallet", "https://as.example"))
 			.resolves.toBeNull();
 	});

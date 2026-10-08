@@ -4,7 +4,7 @@ import { useCallback, useContext, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
 import { MODE } from '@/config';
 import * as jose from 'jose';
-import { usewalletProvider } from '../../WalletProvider';
+import { useWalletProvider } from '../../WalletProvider';
 import type { DpopState } from './accessToken';
 import SessionContext from '@/context/SessionContext';
 import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
@@ -25,7 +25,7 @@ function normalizeHeaders(h: any): Record<string, string> {
 export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
 	const { keystore, api: { updatePrivateData } } = useContext(SessionContext);
-	const { requestWalletInstanceAttestation } = usewalletProvider();
+	const { requestWalletInstanceAttestation } = useWalletProvider();
 
 	const myCustomFetch = useMemo(() => {
 		return async (url: string, options?: RequestInit) => {
