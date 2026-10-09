@@ -1,7 +1,9 @@
 // External libraries
 import React, { useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 import { CircleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useMatch, useParams } from 'react-router-dom';
 
 // Config
@@ -10,6 +12,7 @@ import i18n from '@/i18n';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
 // Hooks
 import { useCredentialName } from '@/hooks/useCredentialName';
@@ -21,7 +24,35 @@ import CredentialImage from '@/components/Credentials/CredentialImage';
 import FullscreenPopup from '@/components/Popups/FullscreenImg';
 import PageHeading from '@/components/Shared/PageHeading';
 
-const UsageStats = ({ zeroSigCount, sigTotal, t }) => {
+type CredentialImageOrientation = 'landscape' | 'portrait';
+
+interface UsageStatsProps {
+	zeroSigCount: number | null;
+	sigTotal: number;
+	t: TFunction;
+}
+
+interface CredentialImagePreviewProps {
+	vcEntity: ExtendedVcEntity;
+	className?: string;
+	containerClassName?: string;
+	enableFullscreen?: boolean;
+	onFullscreen?: () => void;
+	ariaLabel?: string | null;
+	title?: string;
+	fixedRatioImage?: boolean;
+	preferredOrientation?: CredentialImageOrientation;
+}
+
+interface CredentialLayoutProps {
+	children: ReactNode;
+	title?: ReactNode;
+	summaryActions?: ReactNode;
+	actionsMenu?: ReactNode;
+	hideHeadingOnMobile?: boolean;
+}
+
+const UsageStats = ({ zeroSigCount, sigTotal, t }: UsageStatsProps) => {
 	if (zeroSigCount === null || !sigTotal) return null;
 
 	const usageClass =
@@ -45,7 +76,6 @@ const UsageStats = ({ zeroSigCount, sigTotal, t }) => {
 
 const CredentialImagePreview = ({
 	vcEntity,
-	showRibbon,
 	className = 'w-full object-cover',
 	containerClassName = 'w-full',
 	enableFullscreen = true,
@@ -54,7 +84,7 @@ const CredentialImagePreview = ({
 	title,
 	fixedRatioImage = false,
 	preferredOrientation = fixedRatioImage ? 'landscape' : 'portrait',
-}) => {
+}: CredentialImagePreviewProps) => {
 	const ImageContainer = enableFullscreen ? 'button' : 'div';
 
 	return (
@@ -63,14 +93,13 @@ const CredentialImagePreview = ({
 				id: 'show-full-screen-credential',
 				type: 'button',
 				onClick: onFullscreen,
-				'aria-label': ariaLabel,
+				'aria-label': ariaLabel ?? undefined,
 				title,
 			})}
 			className={`relative block rounded-xl xm:rounded-lg overflow-hidden shadow-md ${enableFullscreen ? 'transition-shadow hover:shadow-lg cursor-pointer' : ''} ${containerClassName}`}
 		>
 			<CredentialImage
 				vcEntity={vcEntity}
-				parsedCredential={vcEntity.parsedCredential}
 				className={className}
 				showRibbon={false}
 				fixedRatio={fixedRatioImage}
@@ -80,7 +109,7 @@ const CredentialImagePreview = ({
 	);
 };
 
-const CredentialLayout = ({ children, title = null, summaryActions = null, actionsMenu = null, hideHeadingOnMobile = false }) => {
+const CredentialLayout = ({ children, title = null, summaryActions = null, actionsMenu = null, hideHeadingOnMobile = false }: CredentialLayoutProps) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -131,7 +160,6 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 				<div className="md:flex-1 min-w-0 flex flex-col gap-4">
 					<CredentialImagePreview
 						vcEntity={vcEntity}
-						showRibbon
 						enableFullscreen={isCredentialRoot}
 						onFullscreen={() => setShowFullscreenImgPopup(true)}
 						ariaLabel={credentialName}
