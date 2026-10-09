@@ -1,15 +1,28 @@
 // MessagePopup.js
 import React from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import { CheckCircle, CircleAlert, Info } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const MessagePopup = ({ type, message, onClose }) => {
+export type MessagePopupType = 'error' | 'info' | 'success';
+
+interface MessagePopupProps {
+	type: MessagePopupType;
+	message?: {
+		title?: ReactNode;
+		description?: ReactNode;
+	};
+	onClose: () => void | Promise<void>;
+}
+
+const MessagePopup = ({ type, message, onClose }: MessagePopupProps) => {
 	const { title, description } = message || {};
 	const { t } = useTranslation();
 
-	const popupStyles = {
+	const popupStyles: Record<MessagePopupType, { icon: LucideIcon; color: string }> = {
 		error: {
 			icon: CircleAlert,
 			color: 'bg-lm-red dark:bg-dm-red',
