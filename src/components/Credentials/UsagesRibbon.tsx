@@ -1,8 +1,14 @@
 // UsagesRibbon.js
 import { GalleryHorizontalEnd } from 'lucide-react';
 import React from 'react';
+import type { Instance } from '@/context/CredentialsContext';
 
-const UsagesRibbon = ({ vcEntityInstances, borderColor }) => {
+interface UsagesRibbonProps {
+	vcEntityInstances?: readonly Instance[] | null;
+	borderColor?: string;
+}
+
+const UsagesRibbon = ({ vcEntityInstances, borderColor }: UsagesRibbonProps) => {
 	const zeroSigCount = vcEntityInstances?.filter(instance => instance.sigCount === 0).length || 0;
 
 	return (

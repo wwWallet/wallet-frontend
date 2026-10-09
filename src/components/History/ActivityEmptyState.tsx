@@ -3,7 +3,11 @@ import React from 'react';
 import { History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const ActivityEmptyState = ({ credentialSpecific = false }) => {
+interface ActivityEmptyStateProps {
+	credentialSpecific?: boolean;
+}
+
+const ActivityEmptyState = ({ credentialSpecific = false }: ActivityEmptyStateProps) => {
 	const { t } = useTranslation();
 	const titleKey = credentialSpecific
 		? 'pageActivity.emptyCredentialTitle'
