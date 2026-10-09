@@ -1,6 +1,8 @@
 // External libraries
 import React, { useState, useRef } from 'react';
+import type { Key, ReactNode } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperInstance } from 'swiper';
 import { useTranslation } from 'react-i18next';
 import { EffectCards, Keyboard } from 'swiper/modules';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,9 +11,27 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'swiper/css';
 import 'swiper/css/effect-cards';
 
-const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, className = '' }) => {
+interface SliderProps<T extends object> {
+	items: readonly T[];
+	renderSlideContent: (item: T, index: number) => ReactNode;
+	onSlideChange?: (index: number) => void;
+	initialSlide?: number;
+	className?: string;
+}
+
+const getSlideKey = <T extends object>(item: T, index: number): Key => {
+	if ('batchId' in item) {
+		const batchId = item.batchId;
+		if (typeof batchId === 'string' || typeof batchId === 'number') {
+			return batchId || index;
+		}
+	}
+	return index;
+};
+
+function Slider<T extends object>({ items, renderSlideContent, onSlideChange, initialSlide = 1, className = '' }: SliderProps<T>) {
 	const [currentSlide, setCurrentSlide] = useState(initialSlide);
-	const sliderRef = useRef(null);
+	const sliderRef = useRef<SwiperInstance | null>(null);
 	const { t } = useTranslation();
 
 	const handlePrev = () => sliderRef.current?.slidePrev();
@@ -34,7 +54,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 			>
 				{items.map((item, index) => (
 					<SwiperSlide
-						key={item.batchId || index}
+						key={getSlideKey(item, index)}
 						className={`rounded-xl ${Math.abs(currentSlide - (index + 1)) > 1 && 'invisible pointer-events-none'
 							} ${currentSlide === index + 1 && 'overflow-visible-force'} `}
 					>
@@ -93,6 +113,6 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 			)}
 		</div>
 	);
-};
+}
 
 export default Slider;

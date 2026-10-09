@@ -15,9 +15,29 @@ import { formatDate } from 'wallet-common';
 // Utils
 import { prettyDomain } from '@/utils';
 import Button from '../Buttons/Button';
+import type {
+	PresentationHistoryItem,
+	PresentationHistoryState,
+} from '@/hooks/useFetchPresentations';
+
+interface HistoryListViewProps {
+	title?: string;
+	limit?: number | null;
+	history?: PresentationHistoryState;
+}
+
+interface HistoryListFetcherProps {
+	batchId?: string | number | null;
+	title?: string;
+	limit?: number | null;
+}
+
+interface HistoryListProps extends HistoryListFetcherProps {
+	history?: PresentationHistoryState;
+}
 
 /** ------------------ Pure view (NO data fetching here) ------------------ */
-function HistoryListView({ title = '', limit = null, history = {} }) {
+function HistoryListView({ title = '', limit = null, history = {} }: HistoryListViewProps) {
 	const navigate = useNavigate();
 	const screenType = useScreenType();
 
@@ -28,9 +48,9 @@ function HistoryListView({ title = '', limit = null, history = {} }) {
 	}, [history]);
 
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
-	const [selectedByTx, setSelectedByTx] = useState(null);
+	const [selectedByTx, setSelectedByTx] = useState<PresentationHistoryItem[] | null>(null);
 
-	const handleHistoryItemClick = (item) => {
+	const handleHistoryItemClick = (item: PresentationHistoryItem[]) => {
 		const transactionId = item[0].presentation.transactionId;
 		if (screenType === 'mobile') navigate(`/activity/${transactionId}`);
 		else {
@@ -80,14 +100,14 @@ function HistoryListView({ title = '', limit = null, history = {} }) {
 	);
 }
 
-function HistoryListFetcher({ batchId = null, title = '', limit = null }) {
+function HistoryListFetcher({ batchId = null, title = '', limit = null }: HistoryListFetcherProps) {
 	const { keystore } = useSessionContext();
 	const history = useFetchPresentations(keystore, batchId, null);
 	return <HistoryListView title={title} limit={limit} history={history} />;
 }
 
 /** If `history` prop is provided → no hook call. Otherwise fetcher calls the hook. */
-export default function HistoryList({ batchId = null, title = '', limit = null, history = null }) {
+export default function HistoryList({ batchId = null, title = '', limit = null, history = null }: HistoryListProps) {
 	if (history) {
 		return <HistoryListView title={title} limit={limit} history={history} />;
 	}

@@ -11,12 +11,19 @@ import useScreenType from '../../hooks/useScreenType';
 import { formatDate } from 'wallet-common';
 import { prettyDomain } from '@/utils';
 import { BookCheck } from 'lucide-react';
+import type { PresentationHistoryItem } from '@/hooks/useFetchPresentations';
 
-const HistoryDetailContent = ({ historyItem }) => {
+interface HistoryDetailContentProps {
+	historyItem: PresentationHistoryItem[];
+}
+
+const HistoryDetailContent = ({ historyItem }: HistoryDetailContentProps) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
 	const screenType = useScreenType();
 
-	const renderSlideContent = (vcEntity, index) => (
+	if (historyItem.length === 0) return null;
+
+	const renderSlideContent = (vcEntity: PresentationHistoryItem, index: number) => (
 		<div
 			key={index}
 			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"

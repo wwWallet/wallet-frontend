@@ -218,7 +218,7 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 	return formatDate(value, 'date');
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims = undefined, requested = undefined }) => {
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
 	const [fullscreenImage, setFullscreenImage] = useState(null);

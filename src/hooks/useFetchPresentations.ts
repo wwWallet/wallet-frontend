@@ -24,7 +24,7 @@ export type PresentationHistoryState = PresentationHistory | [] | null;
 
 const useFetchPresentations = (
 	keystore: LocalStorageKeystore,
-	batchId: string | null | undefined = null,
+	batchId: string | number | null | undefined = null,
 	transactionId: string | null | undefined = null,
 ): PresentationHistoryState => {
 	const [history, setHistory] = useState<PresentationHistoryState>(null);
@@ -45,8 +45,9 @@ const useFetchPresentations = (
 					allCredentials.map(c => [String(c.credentialId), c])
 				);
 
-				if (batchId) {
-					const instances = allCredentials.filter((credential) => credential.batchId === parseInt(batchId));
+				if (batchId !== null && batchId !== undefined && batchId !== '') {
+					const parsedBatchId = typeof batchId === 'number' ? batchId : Number.parseInt(batchId, 10);
+					const instances = allCredentials.filter((credential) => credential.batchId === parsedBatchId);
 					const credentialsIds = instances.map((instance) => instance.credentialId);
 
 					const transactionIds = presentations.filter((p) =>
