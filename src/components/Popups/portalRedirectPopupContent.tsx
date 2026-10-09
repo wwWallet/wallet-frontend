@@ -6,9 +6,9 @@ export function buildPortalRedirectPopupContent({
 	filterItemByLang,
 }: {
 	portal: any;
-	filterItemByLang: (items: any[], langKey: string) => any;
+	filterItemByLang: (items: any[]) => any;
 }): { title: string; message: React.ReactNode } {
-	const portalDisplay = filterItemByLang(portal.display, 'locale');
+	const portalDisplay = filterItemByLang(portal.display);
 
 	return {
 		title: portalDisplay.name,
