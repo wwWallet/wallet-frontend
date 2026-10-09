@@ -5,27 +5,19 @@ import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import OpenID4VPContext from "./OpenID4VPContext";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
 import { useSessionContext } from "./SessionContext";
-import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
 import type { ConsentPopupState, TransactionConsentOptions } from '@/types/consent';
+import type {
+	ConformantCredentialsRecord,
+	CredentialSelectionOptions,
+	CredentialSelectionPopupState,
+} from '@/types/credentialSelection';
 
 
 export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) => {
-	const { vcEntityList } = useContext<any>(CredentialsContext);
+	const { vcEntityList } = useContext(CredentialsContext);
 	const { isLoggedIn } = useSessionContext();
 
-	type CredentialSelectionOptions = {
-		conformantCredentialsMap: Map<string, string[]>,
-		verifierDomainName: string,
-		verifierPurpose: string,
-		parsedTransactionData?: ParsedTransactionData[],
-	};
-
-	const [popupState, setPopupState] = useState<{
-		isOpen: boolean,
-		options: CredentialSelectionOptions | null,
-		resolve: (value: Map<string, number>) => void,
-		reject: () => void,
-	}>({
+	const [popupState, setPopupState] = useState<CredentialSelectionPopupState>({
 		isOpen: false,
 		options: null,
 		resolve: () => { },
@@ -59,19 +51,12 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 			});
 		}), []);
 
-	const hidePopup = useCallback(() => {
-		setPopupState((prevState) => ({
-			...prevState,
-			isOpen: false,
-		}));
-	}, []);
-
 	const showCredentialSelectionPopup = useCallback(
 		async (
-			conformantCredentialsMap: Map<string, string[]>,
+			conformantCredentialsMap: ConformantCredentialsRecord,
 			verifierDomainName: string,
 			verifierPurpose: string,
-			parsedTransactionData?: ParsedTransactionData[],
+			parsedTransactionData?: CredentialSelectionOptions['parsedTransactionData'],
 		): Promise<Map<string, number>> => {
 			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData });
 		},
@@ -93,7 +78,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 			{isLoggedIn && (
 				<>
 					<GenericConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} />
-					<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} />
+					<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} vcEntityList={vcEntityList} />
 				</>
 			)}
 		</OpenID4VPContext.Provider>

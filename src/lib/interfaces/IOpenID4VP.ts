@@ -1,5 +1,6 @@
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { ParsedTransactionData } from "../services/OpenID4VP/TransactionData/parseTransactionData";
+import type { ConformantCredentialsMap, ConformantCredentialsRecord } from '@/types/credentialSelection';
 
 export type SendAuthorizationResponseResult =
 	{
@@ -12,13 +13,13 @@ export interface IOpenID4VP {
 		url: string,
 		vcEntitylist: ExtendedVcEntity[],
 	): Promise<{
-		conformantCredentialsMap: Map<string, any>,
+		conformantCredentialsMap: ConformantCredentialsMap,
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData: ParsedTransactionData[] | null,
 	}>;
 	promptForCredentialSelection(
-		conformantCredentialsMap: { [x: string]: number[] },
+		conformantCredentialsMap: ConformantCredentialsRecord,
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],

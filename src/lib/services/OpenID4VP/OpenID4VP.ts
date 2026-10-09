@@ -14,13 +14,14 @@ import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "wallet-common";
 import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
 import type { TransactionConsentOptions } from '@/types/consent';
+import type { ConformantCredentialsMap, ConformantCredentialsRecord } from '@/types/credentialSelection';
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
 	showTransactionDataConsentPopup,
 }: {
 	showCredentialSelectionPopup: (
-		conformantCredentialsMap: any,
+		conformantCredentialsMap: ConformantCredentialsRecord,
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
@@ -36,7 +37,7 @@ export function useOpenID4VP({
 
 	const promptForCredentialSelection = useCallback(
 		async (
-			conformantCredentialsMap: any,
+			conformantCredentialsMap: ConformantCredentialsRecord,
 			verifierDomainName: string,
 			verifierPurpose: string,
 			parsedTransactionData?: ParsedTransactionData[],
@@ -117,7 +118,7 @@ export function useOpenID4VP({
 		url: string,
 		vcEntityList: ExtendedVcEntity[],
 	): Promise<{
-		conformantCredentialsMap: Map<string, any>,
+		conformantCredentialsMap: ConformantCredentialsMap,
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData: ParsedTransactionData[] | null,
