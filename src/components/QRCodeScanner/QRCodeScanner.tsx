@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
@@ -8,19 +9,33 @@ import { H1 } from '../Shared/Heading';
 import Button from '../Buttons/Button';
 import { ArrowLeft, CheckCircle, QrCode, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
-const QRScanner = ({ onClose }) => {
-	const [devices, setDevices] = useState([]);
-	const webcamRef = useRef(null);
+interface QRScannerProps {
+	onClose: () => void;
+}
+
+interface ScannerDevice {
+	device: MediaDeviceInfo;
+	resolution: {
+		width: number;
+		height: number;
+		idealHeight: number;
+	};
+	facingMode: 'environment' | 'user';
+}
+
+const QRScanner = ({ onClose }: QRScannerProps) => {
+	const [devices, setDevices] = useState<ScannerDevice[]>([]);
+	const webcamRef = useRef<Webcam | null>(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const [hasCameraPermission, setHasCameraPermission] = useState(null);
+	const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
-	const handleZoomChange = (event) => {
+	const handleZoomChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const newZoomLevel = Number(event.target.value);
 		setZoomLevel(newZoomLevel);
 	};
@@ -55,20 +70,20 @@ const QRScanner = ({ onClose }) => {
 				.then(async mediaDevices => {
 					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
 
-					let bestFrontCamera = null;
-					let bestBackCamera = null;
+					let bestFrontCamera: ScannerDevice | null = null;
+					let bestBackCamera: ScannerDevice | null = null;
 
 					for (const device of videoDevices) {
 						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
 						// const isBackCamera = device.label.toLowerCase().includes('back');
-						const isBackCamera = capabilities.facingMode.includes('environment');
+						const isBackCamera = capabilities.facingMode?.includes('environment') ?? false;
 
 						const resolution = {
 							width: capabilities.width?.max || 0,
 							height: capabilities.height?.max || 0,
-							idealHeight: Math.min(capabilities.height?.max, capabilities.width.max, 1080)
+							idealHeight: Math.min(Number(capabilities.height?.max), Number(capabilities.width?.max), 1080)
 						};
 
 						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
@@ -80,7 +95,7 @@ const QRScanner = ({ onClose }) => {
 						track.stop();
 					}
 
-					const filteredDevices = [];
+					const filteredDevices: ScannerDevice[] = [];
 					if (bestFrontCamera) {
 						filteredDevices.push(bestFrontCamera);
 					}
@@ -106,7 +121,7 @@ const QRScanner = ({ onClose }) => {
 		}
 	}, [hasCameraPermission]);
 
-	const stopMediaTracks = (stream) => {
+	const stopMediaTracks = (stream: MediaStream) => {
 		stream.getTracks().forEach(track => {
 			track.stop();
 		});
