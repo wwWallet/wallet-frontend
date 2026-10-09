@@ -6,11 +6,22 @@ import { useSessionContext } from '@/context/SessionContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
 import { UserLock } from 'lucide-react';
+import type { CachedUser } from '@/services/LocalStorageKeystore';
+
+interface WebauthnLoginProps {
+	filteredUser: CachedUser;
+	onClose: () => void;
+}
+
+interface AuthPopupProps {
+	descriptionKey: string;
+	onClose: () => void;
+}
 
 export const WebauthnLogin = ({
 	filteredUser,
 	onClose,
-}) => {
+}: WebauthnLoginProps) => {
 	const { api, keystore } = useSessionContext();
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
@@ -19,7 +30,7 @@ export const WebauthnLogin = ({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
-		async (cachedUser) => {
+		async (cachedUser: CachedUser) => {
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
 				const params = new URLSearchParams(window.location.search);
@@ -57,8 +68,8 @@ export const WebauthnLogin = ({
 		[api, keystore, navigate, t],
 	);
 
-	const onLoginCachedUser = async (cachedUser) => {
-		setError();
+	const onLoginCachedUser = async (cachedUser: CachedUser) => {
+		setError('');
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
 		setIsSubmitting(false);
@@ -96,7 +107,7 @@ export const WebauthnLogin = ({
 	);
 };
 
-const AuthPopup = ({ descriptionKey, onClose }) => {
+const AuthPopup = ({ descriptionKey, onClose }: AuthPopupProps) => {
 	const { t } = useTranslation();
 
 	const { keystore } = useSessionContext();
@@ -114,8 +125,15 @@ const AuthPopup = ({ descriptionKey, onClose }) => {
 		if (state) {
 			try {
 				const decodedState = atob(state);
-				const stateObj = JSON.parse(decodedState);
-				return cachedUsers.find((u) => u.userHandleB64u === stateObj.userHandleB64u);
+				const stateObj: unknown = JSON.parse(decodedState);
+				if (
+					typeof stateObj === 'object'
+					&& stateObj !== null
+					&& 'userHandleB64u' in stateObj
+					&& typeof stateObj.userHandleB64u === 'string'
+				) {
+					return cachedUsers.find((u) => u.userHandleB64u === stateObj.userHandleB64u);
+				}
 			} catch (error) {
 				console.error('Error decoding state:', error);
 			}
@@ -125,7 +143,7 @@ const AuthPopup = ({ descriptionKey, onClose }) => {
 	const filteredUser = getFilteredUser();
 
 	if (!filteredUser) {
-		return;
+		return null;
 	}
 
 	return (
