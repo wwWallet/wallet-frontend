@@ -74,6 +74,7 @@ async function refreshAccessTokenForFlowState(
 			refreshToken: flowState.tokenResponse.data.refresh_token,
 			additionalParameters: { scope },
 			dpop: flowState.dpop,
+			walletInstanceAttestation: flowState.walletInstanceAttestation,
 			dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
 		}, {
 			tokenRequestBuilder: context.tokenRequestBuilder,
@@ -481,6 +482,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			let dpopPrivateKeyJwk: jose.JWK | null = null;
 			let dpopPublicKeyJwk: jose.JWK | null = null;
 
+			if (flowState.walletInstanceAttestation && !flowState.dpop) {
+				throw new Error("Wallet Instance Attestation is missing its bound key");
+			}
+
 			if (!flowState.dpop) { // if DPoP keys have not been generated, then generate them
 				const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
 				[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
@@ -514,6 +519,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 
 
+			tokenRequestBuilder.setWalletInstanceAttestation(flowState.walletInstanceAttestation ?? null, dpopPrivateKey as jose.KeyLike);
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
 			tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
@@ -667,6 +673,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
+		tokenRequestBuilder.setWalletInstanceAttestation(null);
 		tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
 		tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
 		if (txCode) {
@@ -829,6 +836,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					state,
 					code_verifier: parRes.code_verifier,
 					dpop: parRes.dpop,
+					walletInstanceAttestation: parRes.walletInstanceAttestation,
 					credentialConfigurationId,
 					created: Math.floor(Date.now() / 1000),
 				});

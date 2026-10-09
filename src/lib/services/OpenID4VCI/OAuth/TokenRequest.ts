@@ -2,6 +2,7 @@ import { useCallback, useRef, useMemo } from 'react';
 import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
+import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
 import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
 
@@ -32,6 +33,7 @@ export enum TokenRequestError {
 }
 
 export interface TokenRequestBuilder {
+	setWalletInstanceAttestation(attestation: string | null, privateKey?: KeyLike): void;
 	setClientId(clientIdValue: string | null): void;
 	setIssuer(issuerValue: string): void;
 	setGrantType(grant: GrantType): void;
@@ -65,7 +67,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const codeVerifier = useRef<string | null>(null);
 	const redirectUri = useRef<string | null>(null);
 	const clientId = useRef<string | null>(OPENID4VCI_REDIRECT_URI);
-	const retries = useRef<number>(0);
+	const clientAttestation = useRef<{ attestation: string; privateKey: KeyLike } | null>(null);
 	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK } | null>(null);
 	const dpopHandle = useRef<oauth4webapi.DPoPHandle | null>(null);
 
@@ -124,6 +126,13 @@ export function useTokenRequest(): TokenRequestBuilder {
 			});
 		};
 	}, [httpProxy]);
+
+	const setWalletInstanceAttestation = useCallback((attestation: string | null, privateKey?: KeyLike) => {
+		if (attestation !== null && (!attestation || !privateKey)) {
+			throw new Error("Wallet Instance Attestation requires its bound private key");
+		}
+		clientAttestation.current = attestation === null ? null : { attestation, privateKey };
+	}, []);
 
 	const setClientId = useCallback((clientIdValue: string | null) => {
 		clientId.current = clientIdValue;
@@ -207,7 +216,6 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const execute = useCallback(async (): Promise<
 		{ response: AccessToken } | { error: TokenRequestError; response?: any }
 	> => {
-		retries.current = 0;
 
 		if (!tokenEndpointURL.current) {
 			throw new Error("Token endpoint is not set");
@@ -219,7 +227,13 @@ export function useTokenRequest(): TokenRequestBuilder {
 		};
 
 		const client: oauth4webapi.Client | null = clientId.current ? { client_id: clientId.current } : null;
-		const clientAuth = oauth4webapi.None();
+		if (clientAttestation.current && (!client || grantType.current === GrantType.PRE_AUTHORIZED_CODE)) {
+			throw new Error("Attestation-based client authentication requires a client and a supported grant");
+		}
+		let attestationChallenge: string | undefined;
+		const getClientAuth = () => clientAttestation.current
+			? AttestationBasedClientAuth(clientAttestation.current.privateKey as CryptoKey, clientAttestation.current.attestation, { challenge: attestationChallenge })
+			: oauth4webapi.None();
 		const DPoP = client ? await getDPoPHandle(client) : null;
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
@@ -262,7 +276,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return oauth4webapi.authorizationCodeGrantRequest(
 				as,
 				client,
-				clientAuth,
+				getClientAuth(),
 				callbackParams,
 				redirectUri.current!,
 				codeVerifier.current,
@@ -277,7 +291,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return oauth4webapi.refreshTokenGrantRequest(
 				as,
 				client,
-				clientAuth,
+				getClientAuth(),
 				refreshToken.current,
 				{
 					...options,
@@ -324,20 +338,39 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return null;
 		};
 
-		let response = await tokenRequest();
+		let response: Response | undefined;
 		let result: any;
-		try {
-			result = await processResponse(response);
-		} catch (err) {
-			if (oauth4webapi.isDPoPNonceError(err) && retries.current < 1) {
-				retries.current += 1;
-				response = await tokenRequest();
+		let retriedAttestation = false;
+		let retriedDPoP = false;
+		// Initial request plus one retry for each independent challenge.
+		const maxAttempts = 3;
+		for (let attempt = 0; attempt < maxAttempts; attempt++) {
+			response = await tokenRequest();
+			const challenge = response.headers.get('OAuth-Client-Attestation-Challenge');
+			if (clientAttestation.current && !retriedAttestation && response.status === 400 && challenge) {
+				const body = await response.clone().json().catch(() => null);
+				if (body?.error === 'use_attestation_challenge') {
+					attestationChallenge = challenge;
+					retriedAttestation = true;
+					continue;
+				}
+			}
+			try {
 				result = await processResponse(response);
-			} else {
+				break;
+			} catch (err) {
+				if (oauth4webapi.isDPoPNonceError(err) && !retriedDPoP) {
+					retriedDPoP = true;
+					continue;
+				}
 				const normalized = normalizeError(err);
 				if (normalized) return normalized;
 				throw err;
 			}
+		}
+
+		if (!response) {
+			throw new Error("Token request did not produce a response");
 		}
 
 		if (result && typeof result === 'object' && 'error' in result) {
@@ -362,6 +395,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 	}, [getDPoPHandle, myCustomFetch]);
 
 	return useMemo(() => ({
+		setWalletInstanceAttestation,
 		setClientId,
 		setIssuer,
 		setGrantType,
@@ -378,6 +412,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		setDpopHeader,
 		execute,
 	}), [
+		setWalletInstanceAttestation,
 		setClientId,
 		setIssuer,
 		setGrantType,

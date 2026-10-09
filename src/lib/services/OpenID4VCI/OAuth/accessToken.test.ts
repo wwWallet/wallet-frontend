@@ -1,5 +1,6 @@
-import { assert, describe, it, vi } from "vitest";
+import { assert, describe, expect, it, vi } from "vitest";
 import { accessTokenIsValid, refreshAccessToken } from "./accessToken";
+import * as jose from "jose";
 import { GrantType } from "./TokenRequest";
 
 const tokenRequestBuilder = () => ({
@@ -16,6 +17,7 @@ const tokenRequestBuilder = () => ({
 	setClientId: vi.fn(),
 	setAdditionalParameters: vi.fn(),
 	setRedirectUri: vi.fn(),
+	setWalletInstanceAttestation: vi.fn(),
 	setDpopHeader: vi.fn(),
 	execute: vi.fn().mockResolvedValue({
 		response: {
@@ -57,4 +59,24 @@ describe("OAuth access token handling", () => {
 		assert.deepEqual(builder.setRefreshToken.mock.calls[0], ["old-refresh-token"]);
 		assert.deepEqual(builder.setAdditionalParameters.mock.calls[0], [{ scope: "credential-scope" }]);
 	});
+	it("forwards the saved WIA and original key during refresh", async () => {
+		const builder = tokenRequestBuilder();
+		const keys = await jose.generateKeyPair("ES256", { extractable: true });
+		const dpop = { dpopAlg: "ES256", dpopJti: "original", dpopPrivateKeyJwk: await jose.exportJWK(keys.privateKey), dpopPublicKeyJwk: await jose.exportJWK(keys.publicKey) };
+		const result = await refreshAccessToken({ tokenEndpoint: "https://issuer.example/token", issuer: "https://issuer.example",
+			clientId: "wallet", refreshToken: "refresh", walletInstanceAttestation: "saved-wia", dpop, dpopSupported: true,
+		}, { tokenRequestBuilder: builder });
+		assert.strictEqual(builder.setWalletInstanceAttestation.mock.calls[0][0], "saved-wia");
+		assert.strictEqual(builder.setWalletInstanceAttestation.mock.calls[0][1], builder.setDpopHeader.mock.calls[0][0]);
+		assert.deepEqual(result.dpop.dpopPrivateKeyJwk, dpop.dpopPrivateKeyJwk);
+	});
+
+	it("fails before sending when an attested refresh session has lost its key", async () => {
+		const builder = tokenRequestBuilder();
+		await expect(refreshAccessToken({ tokenEndpoint: "https://issuer.example/token", issuer: "https://issuer.example",
+			clientId: "wallet", refreshToken: "refresh", walletInstanceAttestation: "saved-wia",
+		}, { tokenRequestBuilder: builder })).rejects.toThrow("bound key");
+		assert.strictEqual(builder.execute.mock.calls.length, 0);
+	});
+
 });

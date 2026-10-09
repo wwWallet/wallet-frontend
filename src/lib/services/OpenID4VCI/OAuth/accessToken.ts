@@ -22,6 +22,7 @@ export type OAuthTokenRefreshRequest = {
 	issuer: string;
 	clientId: string | null;
 	refreshToken: string;
+	walletInstanceAttestation?: string;
 	additionalParameters?: Record<string, string>;
 	dpop?: DpopState;
 	dpopSupported?: boolean;
@@ -55,7 +56,11 @@ export async function refreshAccessToken(
 	let dpopPublicKeyJwk: jose.JWK | null = null;
 	const jti = generateRandomIdentifier(8);
 
-	if (request.dpopSupported) {
+	if (request.walletInstanceAttestation && !dpop) {
+		throw new Error("Wallet Instance Attestation is missing its bound key");
+	}
+
+	if (request.dpopSupported || request.walletInstanceAttestation) {
 		if (dpop) {
 			dpopPrivateKeyJwk = dpop.dpopPrivateKeyJwk;
 			dpopPublicKeyJwk = dpop.dpopPublicKeyJwk;
@@ -71,15 +76,18 @@ export async function refreshAccessToken(
 			dpopPrivateKey = privateKey;
 		}
 
-		await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk as jose.JWK, jti);
+		if (request.dpopSupported) {
+			await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk as jose.JWK, jti);
+		}
 		dpop = {
-			dpopAlg: 'ES256',
+			dpopAlg: dpop?.dpopAlg ?? 'ES256',
 			dpopJti: jti,
 			dpopPrivateKeyJwk: dpopPrivateKeyJwk as jose.JWK,
 			dpopPublicKeyJwk: dpopPublicKeyJwk as jose.JWK,
 		};
 	}
 
+	context.tokenRequestBuilder.setWalletInstanceAttestation(request.walletInstanceAttestation ?? null, dpopPrivateKey as jose.KeyLike);
 	context.tokenRequestBuilder.setTokenEndpoint(request.tokenEndpoint);
 	context.tokenRequestBuilder.setIssuer(request.issuer);
 	context.tokenRequestBuilder.setGrantType(GrantType.REFRESH);
