@@ -12,16 +12,17 @@ import useFetchPresentations from '@/hooks/useFetchPresentations';
 // Components
 import HistoryDetailContent from '@/components/History/HistoryDetailContent';
 import PageHeading from '@/components/Shared/PageHeading';
+import type { PresentationHistoryItem } from '@/hooks/useFetchPresentations';
 
 const ActivityDetail = () => {
 	const { transactionId } = useParams();
 	const { keystore } = useSessionContext();
 	const activity = useFetchPresentations(keystore, null, transactionId);
-	const [selectedActivityItem, setSelectedActivityItem] = useState([]);
+	const [selectedActivityItem, setSelectedActivityItem] = useState<PresentationHistoryItem[]>([]);
 	const { t } = useTranslation();
 
 	useEffect(() => {
-		if (transactionId && activity && Object.keys(activity).length > 0) {
+		if (transactionId && activity && !Array.isArray(activity) && Object.keys(activity).length > 0) {
 			setSelectedActivityItem(Object.values(activity)[0]);
 		}
 	}, [activity, transactionId]);

@@ -3,8 +3,17 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import CredentialImage from './CredentialImage';
 import { useCredentialName } from '@/hooks/useCredentialName';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
-const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick, fixedRatio }) => {
+interface CredentialSlideCardProps {
+	vcEntity: ExtendedVcEntity;
+	isActive: boolean;
+	latestCredentials: ReadonlySet<number>;
+	onClick: (vcEntity: ExtendedVcEntity) => void;
+	fixedRatio?: boolean;
+}
+
+const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick, fixedRatio }: CredentialSlideCardProps) => {
 	const { t } = useTranslation();
 
 	const credentialName = useCredentialName(
@@ -29,7 +38,6 @@ const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick, f
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
 				showRibbon={isActive}
-				parsedCredential={vcEntity.parsedCredential}
 				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
 					}`}
 				fixedRatio={fixedRatio}

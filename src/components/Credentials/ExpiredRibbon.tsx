@@ -1,8 +1,14 @@
 // ExpiredRibbon.js
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
-const ExpiredRibbon = ({ vcEntity, borderColor }) => {
+interface ExpiredRibbonProps {
+	vcEntity?: Pick<ExtendedVcEntity, 'isExpired'> | null;
+	borderColor?: string;
+}
+
+const ExpiredRibbon = ({ vcEntity, borderColor }: ExpiredRibbonProps) => {
 	const { t } = useTranslation();
 
 	return (

@@ -1,8 +1,9 @@
-import React from 'react'; // Make sure React is imported
-import { describe, it, expect } from 'vitest';
+import React from 'react';
+import '@testing-library/jest-dom/vitest';
+import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CredentialInfo from './CredentialInfo';
-import i18n from 'i18next'; // Assuming i18n is properly set up in your project
+import i18n from 'i18next';
 
 // Setup a baseline language for all tests if needed
 beforeEach(() => {

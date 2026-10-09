@@ -2,8 +2,14 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../Buttons/Button";
 import { History } from "lucide-react";
+import type { CredentialsContextValue } from "@/context/CredentialsContext";
 
-export default function PendingTransactionsBanner({ pendingTransactions = [], onView }) {
+interface PendingTransactionsBannerProps {
+	pendingTransactions?: CredentialsContextValue['pendingTransactions'];
+	onView: () => void;
+}
+
+export default function PendingTransactionsBanner({ pendingTransactions = [], onView }: PendingTransactionsBannerProps) {
 	const { t } = useTranslation();
 
 	const count = pendingTransactions?.length ?? 0;

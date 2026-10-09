@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import { Trash2 } from 'lucide-react';
 
+interface CredentialDeleteButtonProps {
+	onDelete: () => void;
+}
 
-const CredentialDeleteButton = ({ onDelete }) => {
+const CredentialDeleteButton = ({ onDelete }: CredentialDeleteButtonProps) => {
 	const { t } = useTranslation();
 
 	const handleClick = () => {

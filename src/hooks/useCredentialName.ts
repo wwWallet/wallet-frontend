@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 export function useCredentialName(
 	credentialNameFn?: (langs?: string[]) => Promise<string | null>,
-	credentialId?: string,
+	credentialId?: string | number,
 	preferredLangs: string[] = ['en-US']
 ): string | null {
 	const [name, setName] = useState<string | null>(null);

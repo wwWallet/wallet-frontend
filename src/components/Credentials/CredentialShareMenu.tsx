@@ -1,9 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { FocusEvent } from 'react';
 import { ChevronDown, QrCode, Share2, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '@/components/Buttons/Button';
 import BottomSheet from '@/components/Popups/BottomSheet';
 import SeparatorLine from '@/components/Shared/SeparatorLine';
+import type { Verifier } from '@/api/types';
+
+interface CredentialShareMenuProps {
+	canShareWithQr: boolean;
+	isOnline: boolean | null;
+	verifiers: readonly Verifier[];
+	onShareWithQr: () => void | Promise<void>;
+	onSelectVerifier: (verifier: Verifier) => void | Promise<void>;
+	align?: 'left' | 'right';
+	fullWidth?: boolean;
+	useBottomSheet?: boolean;
+}
 
 const CredentialShareMenu = ({
 	canShareWithQr,
@@ -14,21 +27,21 @@ const CredentialShareMenu = ({
 	align = 'right',
 	fullWidth = false,
 	useBottomSheet = false,
-}) => {
+}: CredentialShareMenuProps) => {
 	const { t } = useTranslation();
 	const [isOpen, setIsOpen] = useState(false);
-	const containerRef = useRef(null);
-	const triggerRef = useRef(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
 		if (!isOpen || useBottomSheet) return;
 
-		const closeOnOutsideClick = (event) => {
-			if (!containerRef.current?.contains(event.target)) {
+		const closeOnOutsideClick = (event: MouseEvent) => {
+			if (!containerRef.current?.contains(event.target as Node)) {
 				setIsOpen(false);
 			}
 		};
-		const closeOnEscape = (event) => {
+		const closeOnEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				event.preventDefault();
 				setIsOpen(false);
@@ -44,13 +57,13 @@ const CredentialShareMenu = ({
 		};
 	}, [isOpen, useBottomSheet]);
 
-	const closeWhenFocusLeaves = (event) => {
-		if (!containerRef.current?.contains(event.relatedTarget)) {
+	const closeWhenFocusLeaves = (event: FocusEvent<HTMLDivElement>) => {
+		if (!containerRef.current?.contains(event.relatedTarget as Node | null)) {
 			setIsOpen(false);
 		}
 	};
 
-	const selectAction = (action) => {
+	const selectAction = (action: () => void | Promise<void>) => {
 		setIsOpen(false);
 		action();
 	};

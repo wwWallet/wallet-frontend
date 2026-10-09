@@ -2,23 +2,36 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../Buttons/Button";
 import { GalleryHorizontal, GalleryVertical, Rows2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { MobileVcHomeView } from "@/context/AppSettingsContext";
 
-const viewOptions = [
+interface ViewOption {
+	value: MobileVcHomeView;
+	Icon: LucideIcon;
+	labelKey: string;
+}
+
+interface ViewSelectProps {
+	value: MobileVcHomeView;
+	onChange: (value: MobileVcHomeView) => void;
+}
+
+const viewOptions: ViewOption[] = [
 	{ value: "horizontal-slider", Icon: GalleryHorizontal, labelKey: "viewSelect.options.horizontalSlider" },
 	{ value: "vertical-slider", Icon: GalleryVertical, labelKey: "viewSelect.options.verticalSlider" },
 	{ value: "list", Icon: Rows2, labelKey: "viewSelect.options.list" },
 ];
 
-export default function ViewSelect({ value, onChange }) {
+export default function ViewSelect({ value, onChange }: ViewSelectProps) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
-	const containerRef = useRef(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	// Close on outside click
 	useEffect(() => {
 		if (!open) return;
-		const handler = (e) => {
-			if (containerRef.current?.contains(e.target)) {
+		const handler = (e: MouseEvent) => {
+			if (containerRef.current?.contains(e.target as Node)) {
 				return;
 			}
 			setOpen(false);

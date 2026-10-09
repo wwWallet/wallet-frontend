@@ -1,9 +1,14 @@
 // AddCredentialCard.js
 import { PlusCircle, QrCode } from 'lucide-react';
 import React from 'react';
+import type { MouseEventHandler } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const AddCredentialCard = ({ onClick }) => {
+interface AddCredentialCardProps {
+	onClick: MouseEventHandler<HTMLButtonElement>;
+}
+
+const AddCredentialCard = ({ onClick }: AddCredentialCardProps) => {
 	const { t } = useTranslation();
 
 	return (

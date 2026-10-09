@@ -1,16 +1,45 @@
 import { useEffect, useState } from 'react'
+import type { MouseEventHandler } from 'react';
 import ExpiredRibbon from './ExpiredRibbon';
 import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
 import { useTranslation } from 'react-i18next';
 import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
+import type { Instance } from '@/context/CredentialsContext';
+import type { CredentialClaimPath, ParsedCredential } from 'wallet-common';
+
+type CredentialImageOrientation = 'landscape' | 'portrait';
+
+interface CredentialImageEntity {
+	batchId?: number;
+	parsedCredential: ParsedCredential | null;
+	isExpired: boolean;
+}
+
+interface CredentialImageProps {
+	vcEntity?: CredentialImageEntity | null;
+	className?: string;
+	onClick?: MouseEventHandler<HTMLImageElement>;
+	showRibbon?: boolean;
+	vcEntityInstances?: readonly Instance[] | null;
+	filter?: CredentialClaimPath[] | null;
+	onLoad?: () => void;
+	borderColor?: string;
+	fixedRatio?: boolean;
+	preferredOrientation?: CredentialImageOrientation;
+}
 
 // Shared across all instances so e.g. the thumbnail and fullscreen popup reuse one resolution.
-const resolvedImageCache = new Map();
-const pendingImageRequests = new Map();
+const resolvedImageCache = new Map<string, string>();
+const pendingImageRequests = new Map<string, Promise<string>>();
 
-function getCacheKey(vcEntity, filter, preferredLangs, preferredOrientation) {
+function getCacheKey(
+	vcEntity: CredentialImageEntity | null | undefined,
+	filter: CredentialClaimPath[] | null,
+	preferredLangs: readonly string[],
+	preferredOrientation: CredentialImageOrientation,
+): string | null {
 	const batchId = vcEntity?.batchId;
 	if (batchId === undefined || batchId === null) return null;
 	const filterKey = filter ? JSON.stringify(filter) : '';
@@ -28,7 +57,7 @@ const CredentialImage = ({
 	borderColor = undefined,
 	fixedRatio = true,
 	preferredOrientation = fixedRatio ? 'landscape' : 'portrait',
-}) => {
+}: CredentialImageProps) => {
 	const { i18n } = useTranslation();
 	const preferredLangs = i18n.languages;
 
@@ -61,7 +90,7 @@ const CredentialImage = ({
 			const svgPreference = { orientation: preferredOrientation };
 			request = (async () => {
 				try {
-					const uri = await imageFn(filter ?? undefined, preferredLangs, svgPreference);
+					const uri = await imageFn(filter ?? undefined, [...preferredLangs], svgPreference);
 					return uri || DefaultCred;
 				} catch (error) {
 					console.warn('Failed to load credential image:', error);

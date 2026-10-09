@@ -3,14 +3,22 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useCredentialName } from '@/hooks/useCredentialName';
 import CredentialImage from './CredentialImage';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
-const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }) => {
+interface CredentialGridCardProps {
+	vcEntity: ExtendedVcEntity;
+	onClick: (vcEntity: ExtendedVcEntity) => void;
+	latestCredentials: ReadonlySet<number>;
+	fixedRatio?: boolean;
+}
+
+const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }: CredentialGridCardProps) => {
 	const { t } = useTranslation();
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		i18n.language
+		[i18n.language]
 	);
 
 	return (
@@ -20,7 +28,7 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }
 			className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.batchId) ? 'highlight-border fade-in' : ''
 				}`}
 			onClick={() => onClick(vcEntity)}
-			aria-label={credentialName}
+			aria-label={credentialName ?? ''}
 			title={t('pageCredentials.credentialDetailsTitle', {
 				friendlyName: credentialName,
 			})}
@@ -28,7 +36,6 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }
 			<CredentialImage
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
-				parsedCredential={vcEntity.parsedCredential}
 				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
 					}`}
 				fixedRatio={fixedRatio}
