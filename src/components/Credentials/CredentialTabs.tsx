@@ -1,6 +1,19 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 
-const CredentialTabs = ({ tabs, activeTab, onTabChange }) => {
+export interface CredentialTab {
+	icon: ReactNode;
+	label: ReactNode;
+	component: ReactNode;
+}
+
+interface CredentialTabsProps {
+	tabs: readonly CredentialTab[];
+	activeTab: number;
+	onTabChange: (index: number) => void;
+}
+
+const CredentialTabs = ({ tabs, activeTab, onTabChange }: CredentialTabsProps) => {
 	return (
 		<div className="flex space-x-4 border-b border-lm-gray-400 dark:border-dm-gray-600">
 			{tabs.map((tab, index) => (

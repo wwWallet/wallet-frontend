@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import CredentialTabs from "../../components/Credentials/CredentialTabs";
+import type { CredentialTab } from "../../components/Credentials/CredentialTabs";
 
-const CredentialTabsPanel = ({ tabs, defaultTab = 0, contentClassName = '' }) => {
+interface CredentialTabsPanelProps {
+	tabs: readonly CredentialTab[];
+	defaultTab?: number;
+	contentClassName?: string;
+}
+
+const CredentialTabsPanel = ({ tabs, defaultTab = 0, contentClassName = '' }: CredentialTabsPanelProps) => {
 	const [activeTab, setActiveTab] = useState(defaultTab);
 
 	return (
