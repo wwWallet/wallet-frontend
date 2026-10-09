@@ -2268,6 +2268,13 @@
     "@types/prop-types" "*"
     csstype "^3.2.2"
 
+"@types/reactour@1.18.5":
+  version "1.18.5"
+  resolved "https://registry.yarnpkg.com/@types/reactour/-/reactour-1.18.5.tgz#0e083ea5e08a534ab38aed74e224d696a344231a"
+  integrity sha512-Pl5yh9bXeXaFcioDk6XVmUzdJGZDAKesVmwoh2KvN/1FXSd9saN8pIprLvfspnXANMcgl3AtSlD4zs0cJIhGIw==
+  dependencies:
+    "@types/react" "*"
+
 "@types/reflect-metadata@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@types/reflect-metadata/-/reflect-metadata-0.1.0.tgz#592805bdf6d63dd7229773218afeba37ac2eab16"

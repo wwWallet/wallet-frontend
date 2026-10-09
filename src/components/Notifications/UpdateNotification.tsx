@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import StatusContext from '@/context/StatusContext';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';

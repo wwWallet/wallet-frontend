@@ -4,7 +4,13 @@ import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
 import { Handshake } from 'lucide-react';
 
-const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
+interface WelcomeModalProps {
+	isOpen: boolean;
+	onStartTour: () => void;
+	onClose: () => void;
+}
+
+const WecomeModal = ({ isOpen, onStartTour, onClose }: WelcomeModalProps) => {
 	const { t } = useTranslation();
 
 	return (

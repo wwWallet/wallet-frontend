@@ -62,6 +62,7 @@
     "@types/react-dom": "^18.3.1",
     "@types/react-modal": "^3.16.3",
     "@types/react-transition-group": "^4.4.12",
+    "@types/reactour": "1.18.5",
     "@types/reflect-metadata": "^0.1.0",
     "@types/trusted-types": "^2.0.2",
     "@types/uuid": "9",

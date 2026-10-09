@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Tour from 'reactour';
+import type { ReactourStep } from 'reactour';
 import { useTranslation } from 'react-i18next';
 
 import useScreenType from '../../hooks/useScreenType';
@@ -8,11 +9,15 @@ import { useSessionContext } from '@/context/SessionContext';
 import WelcomeModal from './WecomeModal';
 import Button from '../Buttons/Button';
 
+interface TourGuideProps {
+	toggleMenu: () => void;
+	isOpen: boolean;
+}
 
-const TourGuide = ({ toggleMenu, isOpen }) => {
+const TourGuide = ({ toggleMenu, isOpen }: TourGuideProps) => {
 	const [isTourOpen, setIsTourOpen] = useState(false);
 	const [isModalOpen, setIsModalOpen] = useState(true);
-	const [steps, setSteps] = useState([]);
+	const [steps, setSteps] = useState<ReactourStep[]>([]);
 	const { api } = useSessionContext();
 	const { authenticationType, showWelcome } = api.getSession();
 	const { t } = useTranslation();
@@ -20,18 +25,18 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 
 	useEffect(() => {
 
-		const getStepSelectorSmallScreen = (stepName) => {
+		const getStepSelectorSmallScreen = (stepName: string) => {
 			if (screenType !== 'desktop') {
 				return stepName + '-small-screen';
 			} else {
 				return stepName;
 			}
 		};
-		const commonSteps = [
+		const commonSteps: ReactourStep[] = [
 			{
 				selector: '.step-1',
 				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep1")}</p>,
-				disableInteraction: true,
+				stepInteraction: false,
 			},
 			{
 				selector: getStepSelectorSmallScreen('.step-2'),

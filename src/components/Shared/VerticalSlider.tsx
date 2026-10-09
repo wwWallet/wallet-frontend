@@ -1,17 +1,43 @@
 import React, { useMemo, useState } from 'react';
+import type { Key, ReactNode } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCreative, Mousewheel, Keyboard } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-creative';
 
-const VerticalSlider = ({
+interface VerticalSliderProps<T extends object> {
+	items: readonly T[];
+	renderSlideContent: (item: T, index: number) => ReactNode;
+	initialIndex?: number;
+	onSlideChange?: (index: number) => void;
+	padStepPx?: number;
+	padMaxPx?: number;
+}
+
+const getSlideKey = <T extends object>(item: T, index: number): Key => {
+	if ('batchId' in item) {
+		const batchId = item.batchId;
+		if (typeof batchId === 'string' || typeof batchId === 'number') {
+			return batchId;
+		}
+	}
+	if ('id' in item) {
+		const id = item.id;
+		if (typeof id === 'string' || typeof id === 'number') {
+			return id;
+		}
+	}
+	return index;
+};
+
+function VerticalSlider<T extends object>({
 	items,
 	renderSlideContent,
 	initialIndex = 0,
 	onSlideChange,
 	padStepPx = 35,
 	padMaxPx = 70,
-}) => {
+}: VerticalSliderProps<T>) {
 	const [activeIndex, setActiveIndex] = useState(initialIndex);
 
 	const paddingTop = useMemo(() => {
@@ -56,7 +82,7 @@ const VerticalSlider = ({
 
 					return (
 						<SwiperSlide
-							key={item.batchId ?? item.id ?? i}
+						key={getSlideKey(item, i)}
 							className="h-auto! flex items-center justify-center"
 							aria-hidden={isFar ? 'true' : 'false'}
 						>
@@ -82,6 +108,6 @@ const VerticalSlider = ({
 			</Swiper>
 		</div>
 	);
-};
+}
 
 export default VerticalSlider;

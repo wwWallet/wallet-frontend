@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import Button from '@/components/Buttons/Button';
 import StatusContext from '@/context/StatusContext';
 import useScreenType from '@/hooks/useScreenType';
