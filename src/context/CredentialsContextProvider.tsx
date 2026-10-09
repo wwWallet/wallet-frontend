@@ -11,9 +11,8 @@ import i18n from '@/i18n';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
-
 export const CredentialsContextProvider = ({ children }: React.PropsWithChildren) => {
-	const { api, keystore, isLoggedIn } = useContext(SessionContext);
+	const { api, keystore, isLoggedIn, isSessionRestored } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
 	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());
 	const [currentSlide, setCurrentSlide] = useState<number>(1);
@@ -22,8 +21,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 	const credentialNumber = useRef<number | null>(null)
 	const { getCalculatedWalletState } = keystore;
 	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
-	// const engineRef = useRef<any>(null);
-	const prevIsLoggedIn = useRef<boolean>(null);
+	const engineInitializationStarted = useRef(false);
 
 	const { getExternalEntity } = api;
 	const [pendingTransactions, setPendingTransactions] = useState(null);
@@ -61,17 +59,14 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 	}, [httpProxy, helper, getExternalEntity]);
 
 	useEffect(() => {
-		if (httpProxy && helper) {
-			if (prevIsLoggedIn.current === false && isLoggedIn === true) {
-				console.log("[CredentialsContext] Detected login transition, initializing without cache");
-				initializeEngine(false);
-			} else if (isLoggedIn) {
-				console.log("[CredentialsContext] Initializing on first load with cache");
-				initializeEngine(true);
-			}
+		if (!isLoggedIn || !httpProxy || !helper || engineInitializationStarted.current) {
+			return;
 		}
-		prevIsLoggedIn.current = isLoggedIn;
-	}, [isLoggedIn, httpProxy, helper, initializeEngine]);
+
+		engineInitializationStarted.current = true;
+		console.log(`[CredentialsContext] Initializing Engine ${isSessionRestored ? "with" : "without"} cache`);
+		initializeEngine(isSessionRestored);
+	}, [isLoggedIn, httpProxy, helper, initializeEngine, isSessionRestored]);
 
 
 	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {

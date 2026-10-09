@@ -7,8 +7,6 @@ import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
-import CredentialDetails from './pages/Home/CredentialDetails';
-import Register from './pages/Auth/Register';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
@@ -25,6 +23,7 @@ const ResyncNotification = React.lazy(() => import('./components/Notifications/R
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
+const CredentialDetails = React.lazy(() => import('./pages/Home/CredentialDetails'));
 const Activity = React.lazy(() => import('./pages/History/History'));
 const Pending = React.lazy(() => import('./pages/Pending/Pending'));
 const ActivityDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
@@ -34,6 +33,7 @@ const VerificationResult = React.lazy(() => import('./pages/VerificationResult/V
 
 const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
 const Login = lazyWithDelay(() => import('./pages/Auth/Login'), 200);
+const Register = React.lazy(() => import('./pages/Auth/Register'));
 const LoginState = lazyWithDelay(() => import('./pages/Auth/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
