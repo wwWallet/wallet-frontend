@@ -1,27 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { FocusEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EllipsisVertical } from 'lucide-react';
 
 // Overflow menu beside the credential's title: a trigger, and a panel holding
 // whatever actions the page puts in it. Clicking an action dismisses the panel,
 // as does clicking away or pressing Escape.
-const CredentialActionsMenu = ({ children }) => {
+interface CredentialActionsMenuProps {
+	children: ReactNode;
+}
+
+const CredentialActionsMenu = ({ children }: CredentialActionsMenuProps) => {
 	const { t } = useTranslation();
 	const [isOpen, setIsOpen] = useState(false);
-	const containerRef = useRef(null);
-	const triggerRef = useRef(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
 		if (!isOpen) {
 			return;
 		}
 
-		const closeOnOutsideClick = (event) => {
-			if (!containerRef.current?.contains(event.target)) {
+		const closeOnOutsideClick = (event: MouseEvent) => {
+			if (!containerRef.current?.contains(event.target as Node)) {
 				setIsOpen(false);
 			}
 		};
-		const closeOnEscape = (event) => {
+		const closeOnEscape = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				event.preventDefault();
 				setIsOpen(false);
@@ -36,8 +41,8 @@ const CredentialActionsMenu = ({ children }) => {
 		};
 	}, [isOpen]);
 
-	const closeWhenFocusLeaves = (event) => {
-		if (!containerRef.current?.contains(event.relatedTarget)) {
+	const closeWhenFocusLeaves = (event: FocusEvent<HTMLDivElement>) => {
+		if (!containerRef.current?.contains(event.relatedTarget as Node | null)) {
 			setIsOpen(false);
 		}
 	};
