@@ -2,19 +2,25 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { Copy } from 'lucide-react';
+import type { MouseEvent } from 'react';
+import type { ParsedCredential } from 'wallet-common';
 
-const CredentialJson = ({ parsedCredential }) => {
+interface CredentialJsonProps {
+	parsedCredential?: ParsedCredential | null;
+}
+
+const CredentialJson = ({ parsedCredential }: CredentialJsonProps) => {
 	const { t } = useTranslation();
 
 	if (!parsedCredential?.signedClaims) return null;
 
-	const handleCopy = (e) => {
+	const handleCopy = (e: MouseEvent<HTMLButtonElement>) => {
 		navigator.clipboard.writeText(
 			JSON.stringify(parsedCredential.signedClaims, null, 2)
 		);
 
-		const container = e.target.closest('.json-container');
-		if (container) {
+		const container = e.currentTarget.closest('.json-container');
+		if (container instanceof HTMLElement) {
 			container.classList.remove('animate-quick-blur');
 			void container.offsetWidth;
 			container.classList.add('animate-quick-blur');

@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate, isCborDate } from 'wallet-common';
 
 const MAX_STRING_LENGTH = 100;
 
-const JsonViewer = ({ name, value, depth = 0 }) => {
+interface JsonViewerProps {
+	name?: string;
+	value: unknown;
+	depth?: number;
+}
+
+const JsonViewer = ({ name, value, depth = 0 }: JsonViewerProps) => {
 	const { t } = useTranslation();
 	const [expanded, setExpanded] = useState(depth === 0);
 	const [showFullString, setShowFullString] = useState(false);
 
-	const isObject = (val) => val && typeof val === 'object' && !Array.isArray(val);
+	const isObject = (val: unknown): val is Record<string, unknown> => Boolean(val) && typeof val === 'object' && !Array.isArray(val);
 	const isArray = Array.isArray;
 
 	const toggleExpanded = () => setExpanded((prev) => !prev);
@@ -62,7 +69,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 		);
 	}
 
-	let displayValue = value;
+	let displayValue: ReactNode = null;
 	let valueClass = 'text-lm-green dark:text-dm-green';
 
 	if (typeof value === 'string') {
