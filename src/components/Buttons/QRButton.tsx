@@ -3,7 +3,11 @@ import Button from './Button';
 import useScreenType from '../../hooks/useScreenType';
 import { QrCode } from 'lucide-react';
 
-const QRButton = ({ openQRScanner, isSmallScreen }) => {
+interface QRButtonProps {
+	openQRScanner: () => void;
+}
+
+const QRButton = ({ openQRScanner }: QRButtonProps) => {
 	const screenType = useScreenType();
 
 	if (screenType === 'tablet') {
