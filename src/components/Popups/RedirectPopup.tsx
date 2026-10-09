@@ -1,10 +1,20 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import { ExternalLink } from 'lucide-react';
 
-const RedirectPopup = ({ loading, showLoadingAfterMs = 0, onClose, handleContinue, popupTitle, popupMessage }) => {
+interface RedirectPopupProps {
+	loading: boolean;
+	showLoadingAfterMs?: number;
+	onClose: () => void;
+	handleContinue: () => void | Promise<void>;
+	popupTitle: ReactNode;
+	popupMessage: ReactNode;
+}
+
+const RedirectPopup = ({ loading, showLoadingAfterMs = 0, onClose, handleContinue, popupTitle, popupMessage }: RedirectPopupProps) => {
 	const { t } = useTranslation();
 
 	return (
