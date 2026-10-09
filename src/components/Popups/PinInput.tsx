@@ -1,11 +1,19 @@
-// PinInput.js
 import React, { useState, useRef, useEffect } from 'react';
+import type { ClipboardEvent, Dispatch, KeyboardEvent, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import { Lock } from 'lucide-react';
+import type { TxCodeInputMetadata } from '@/lib/interfaces/IOpenID4VCI';
 
-function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 'numeric', description }) {
+interface PinInputProps extends TxCodeInputMetadata {
+	isOpen: boolean;
+	setIsOpen: Dispatch<SetStateAction<boolean>>;
+	onSubmit?: (pin: string) => void | Promise<void>;
+	onCancel?: () => void;
+}
+
+function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 'numeric', description }: PinInputProps) {
 	const [errMessage, setErrMessage] = useState('');
 	const parsedLength = Number(length);
 	const expectedLength = Number.isInteger(parsedLength) && parsedLength > 0 ? parsedLength : null;
@@ -14,9 +22,9 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 	const [isSubmitting, setSubmitting] = useState(false);
 	const { t } = useTranslation();
 
-	const inputRefs = useRef([]);
+	const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-	const trimExtraEmptyDigits = (digits) => {
+	const trimExtraEmptyDigits = (digits: string[]) => {
 		if (!expectedLength) {
 			return digits;
 		}
@@ -71,18 +79,18 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 		return null;
 	}
 
-	const handleInputKeyDownSubmit = (event) => {
+	const handleInputKeyDownSubmit = (event: KeyboardEvent<HTMLInputElement>) => {
 		if (event.key === 'Enter') {
 			handleSubmit();
 		}
 	};
 
-	const handleInputChange = (value) => {
+	const handleInputChange = (value: string) => {
 		setErrMessage('');
 		setPin([value]);
 	};
 
-	const handlePinDigitChange = (index, value) => {
+	const handlePinDigitChange = (index: number, value: string) => {
 		setErrMessage('');
 		const newPin = [...pin];
 
@@ -90,10 +98,10 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 			const pastedPin = Array.from(value);
 			const nextPin = trimExtraEmptyDigits([
 				...pastedPin,
-				...Array(Math.max(expectedLength - pastedPin.length, 0)).fill('')
+				...Array(Math.max((expectedLength ?? 0) - pastedPin.length, 0)).fill('')
 			]);
 			setPin(nextPin);
-			inputRefs.current[Math.min(pastedPin.length, Math.max(expectedLength, nextPin.length) - 1)]?.focus();
+			inputRefs.current[Math.min(pastedPin.length, Math.max(expectedLength ?? 0, nextPin.length) - 1)]?.focus();
 			return;
 		}
 
@@ -101,12 +109,12 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 		const nextPin = trimExtraEmptyDigits(newPin);
 		setPin(nextPin);
 
-		if (value && index < Math.max(expectedLength, nextPin.length) - 1) {
+		if (value && index < Math.max(expectedLength ?? 0, nextPin.length) - 1) {
 			inputRefs.current[index + 1]?.focus();
 		}
 	};
 
-	const handlePinDigitPaste = (index, event) => {
+	const handlePinDigitPaste = (index: number, event: ClipboardEvent<HTMLInputElement>) => {
 		event.preventDefault();
 		setErrMessage('');
 		const pastedPin = Array.from(event.clipboardData.getData('Text'));
@@ -120,7 +128,7 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 		});
 		const nextPin = trimExtraEmptyDigits(newPin);
 		setPin(nextPin);
-		inputRefs.current[Math.min(index + pastedPin.length, Math.max(expectedLength, nextPin.length) - 1)]?.focus();
+		inputRefs.current[Math.min(index + pastedPin.length, Math.max(expectedLength ?? 0, nextPin.length) - 1)]?.focus();
 	};
 
 	const inputCount = expectedLength ? Math.max(expectedLength, pin.length) : 0;
