@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "wallet-common";
+import type { OpenidCredentialIssuerMetadata } from "wallet-common";
 import { reverse, compareBy } from "@/util";
 import CredentialsContext from "@/context/CredentialsContext";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
@@ -15,7 +16,7 @@ const Pending = () => {
 	const helper = useOpenID4VCIHelper();
 	const filterItemByLang = useFilterItemByLang();
 
-	const [issuerMd, setIssuerMd] = useState({});
+	const [issuerMd, setIssuerMd] = useState<Record<string, OpenidCredentialIssuerMetadata>>({});
 
 	useEffect(() => {
 		if (!pendingTransactions?.length) return;
@@ -25,14 +26,14 @@ const Pending = () => {
 		Promise.all(
 			issuers.map(async id => {
 				try {
-					const { metadata } = await helper.getCredentialIssuerMetadata(id);
-					return [id, metadata];
+					const response = await helper.getCredentialIssuerMetadata(id);
+					return [id, response?.metadata ?? null] as const;
 				} catch {
-					return [id, null];
+					return [id, null] as const;
 				}
 			})
 		).then(entries => {
-			const next = {};
+			const next: Record<string, OpenidCredentialIssuerMetadata> = {};
 			for (const [id, md] of entries) if (md) next[id] = md;
 			setIssuerMd(next);
 		});
@@ -63,10 +64,10 @@ const Pending = () => {
 							const md = issuerMd[pt.credentialIssuerIdentifier];
 							const cfg = md?.credential_configurations_supported?.[pt.credentialConfigurationId];
 							const issuer = md ? filterItemByLang(md.display)?.name : null;
-							const cred = cfg ? filterItemByLang(cfg.credential_metadata.display)?.name : null;
+							const cred = cfg ? filterItemByLang(cfg.credential_metadata?.display)?.name : null;
 							return (
 								<div
-									key={pt.credentialEndpoint.transactionId}
+									key={pt.sessionId}
 									className="text-sm px-4 py-2 dark:text-dm-gray-100 shadow border border-lm-gray-400 dark:border-dm-gray-600 rounded-md w-full text-left"
 								>
 									<div className="flex gap-2 items-center">

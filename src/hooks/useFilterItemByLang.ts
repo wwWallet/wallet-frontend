@@ -5,7 +5,7 @@ import { getLanguage } from '@/i18n';
 type EmptyItem = Record<string, never>;
 
 interface LocalizedItem {
-	locale: string;
+	locale?: string;
 }
 
 export type FilterItemByLang = <T extends LocalizedItem>(
