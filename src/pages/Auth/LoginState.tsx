@@ -9,12 +9,23 @@ import AuthCard from '../../components/Auth/AuthCard';
 import checkForUpdates from '../../offlineUpdateSW';
 import { resolveLoginRedirect } from '../../components/Auth/loginRedirect';
 import { UserLock } from 'lucide-react';
+import type { CachedUser } from '@/services/LocalStorageKeystore';
+
+interface WebauthnLoginProps {
+	filteredUser: CachedUser;
+}
+
+type FilteredUserResult = [
+	filteredUser: CachedUser | null | undefined,
+	forceAuthenticate: boolean,
+	authenticated: boolean,
+];
 
 const WebauthnLogin = ({
 	filteredUser,
-}) => {
+}: WebauthnLoginProps) => {
 	const { api, keystore } = useSessionContext();
-	const [error, setError] = useState('');
+	const [error, setError] = useState<string | undefined>('');
 	const navigate = useNavigate();
 	const location = useLocation();
 	const from = location.search || '/';
@@ -23,7 +34,7 @@ const WebauthnLogin = ({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
-		async (cachedUser) => {
+		async (cachedUser: CachedUser) => {
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
 				const params = new URLSearchParams(from);
@@ -61,8 +72,8 @@ const WebauthnLogin = ({
 		[api, keystore, navigate, t, from],
 	);
 
-	const onLoginCachedUser = async (cachedUser) => {
-		setError();
+	const onLoginCachedUser = async (cachedUser: CachedUser) => {
+		setError(undefined);
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
 		setIsSubmitting(false);
@@ -108,7 +119,7 @@ const LoginState = () => {
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search || '/';
 
-	const getfilteredUser = () => {
+	const getfilteredUser = (): FilteredUserResult => {
 		const queryParams = new URLSearchParams(from);
 		const state = queryParams.get('state');
 		const user = queryParams.get('user');
@@ -120,7 +131,7 @@ const LoginState = () => {
 			try {
 				console.log('state', state);
 				const decodedState = atob(state);
-				const stateObj = JSON.parse(decodedState);
+				const stateObj = JSON.parse(decodedState) as Pick<CachedUser, 'userHandleB64u'>;
 				return [cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u), false, authenticated === 'true'];
 			} catch (error) {
 				console.error('Error decoding state:', error);

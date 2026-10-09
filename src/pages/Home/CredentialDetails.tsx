@@ -29,7 +29,7 @@ const CredentialDetails = () => {
 		<>
 			<CredentialLayout title={t('pageCredentials.datasetTitle')}>
 				{vcEntity && (
-					<CredentialJson parsedCredential={vcEntity?.parsedCredential} textAreaRows='18'/>
+					<CredentialJson parsedCredential={vcEntity?.parsedCredential} />
 				)}
 			</CredentialLayout>
 

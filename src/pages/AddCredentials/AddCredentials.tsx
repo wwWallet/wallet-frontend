@@ -1,6 +1,8 @@
 // External libraries
 import React, { useState, useEffect, useContext, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { OpenidCredentialIssuerMetadata } from 'wallet-common';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
@@ -19,22 +21,66 @@ import { buildPortalRedirectPopupContent } from '@/components/Popups/portalRedir
 
 // Components
 import MessagePopup from '@/components/Popups/MessagePopup';
+import type { MessagePopupType } from '@/components/Popups/MessagePopup';
 import RedirectPopup from '@/components/Popups/RedirectPopup';
 import QueryableList from '@/components/QueryableList/QueryableList';
 import PageHeading from '@/components/Shared/PageHeading';
+import type { CachedUser } from '@/services/LocalStorageKeystore';
+
+type CredentialConfiguration = ReturnType<typeof buildCredentialConfiguration>;
+
+interface PortalDisplay {
+	name: string;
+	description?: string;
+	locale?: string;
+	logo?: {
+		uri: string;
+		alt_text?: string;
+	};
+	background_color?: string;
+	text_color?: string;
+}
+
+interface CredentialPortal {
+	id: number;
+	url: string;
+	display?: PortalDisplay[];
+	visible: boolean;
+	identifierField: string;
+	credentialConfigurationDisplayName: string;
+	displayNode: (searchQuery: string) => ReactNode;
+}
+
+interface IssuerDirectoryEntry {
+	credentialIssuerIdentifier: string;
+	visible: boolean;
+}
+
+interface IssuerDirectoryResponse {
+	portals: Omit<CredentialPortal, 'identifierField' | 'credentialConfigurationDisplayName' | 'displayNode'>[];
+	issuers: IssuerDirectoryEntry[];
+}
+
+interface MessagePopupState {
+	type: MessagePopupType;
+	message: {
+		title: ReactNode;
+		description: ReactNode;
+	};
+}
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useSessionContext();
-	const [issuers, setIssuers] = useState([]);
-	const [portals, setPortals] = useState([]);
-	const [recent, setRecent] = useState([]);
-	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
+	const [issuers, setIssuers] = useState<OpenidCredentialIssuerMetadata[]>([]);
+	const [portals, setPortals] = useState<CredentialPortal[]>([]);
+	const [recent, setRecent] = useState<string[]>([]);
+	const [credentialConfigurations, setCredentialConfigurations] = useState<CredentialConfiguration[]>([]);
 
-	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
-	const [selectedPortal, setSelectedPortal] = useState(null);
+	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState<CredentialConfiguration | null>(null);
+	const [selectedPortal, setSelectedPortal] = useState<CredentialPortal | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [messagePopupState, setMessagePopupState] = useState(null);
+	const [messagePopupState, setMessagePopupState] = useState<MessagePopupState | null>(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useOpenID4VCIContext();
@@ -42,7 +88,7 @@ const AddCredentials = () => {
 
 	const { t } = useTranslation();
 	const filterItemByLang = useFilterItemByLang();
-	const [cachedUser, setCachedUser] = useState(null);
+	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 
 	useEffect(() => {
 		if (!keystore) {
@@ -66,8 +112,12 @@ const AddCredentials = () => {
 	}, [vcEntityList, getData]);
 
 	useEffect(() => {
+		if (!vcEntityList) {
+			return;
+		}
+
 		const fetchRecentCredConfigs = async () => {
-			vcEntityList.map(async (vcEntity, key) => {
+			vcEntityList.map(async (vcEntity) => {
 				const identifierField = JSON.stringify([vcEntity.credentialConfigurationId, vcEntity.credentialIssuerIdentifier]);
 				setRecent((currentArray) => {
 					const recentRecordExists = currentArray.some((rec) =>
@@ -83,9 +133,7 @@ const AddCredentials = () => {
 			})
 		};
 
-		if (vcEntityList) {
-			fetchRecentCredConfigs();
-		}
+		fetchRecentCredConfigs();
 	}, [vcEntityList]);
 
 	const selectedIssuer = useMemo(() => {
@@ -126,17 +174,17 @@ const AddCredentials = () => {
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
-				const { portals: fetchedPortals, issuers: fetchedIssuers } = response.data;
+				const { portals: fetchedPortals, issuers: fetchedIssuers } = response.data as IssuerDirectoryResponse;
 				setPortals(fetchedPortals
 					.filter((portal) => portal.visible)
 					.map((portal) => buildCredentialPortal(portal, filterItemByLang))
-					.filter(Boolean));
+					.filter(Boolean) as CredentialPortal[]);
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						if (!issuer.visible) {
 							return;
 						}
-						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
+						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier))!.metadata;
 						const configs = await openID4VCI.getAvailableCredentialConfigurations(issuer.credentialIssuerIdentifier);
 
 
@@ -175,23 +223,27 @@ const AddCredentials = () => {
 			}
 		};
 
-		if (openID4VCIHelper && openID4VCI && filterItemByLang) {
+		if (
+			(openID4VCIHelper as typeof openID4VCIHelper | null) &&
+			(openID4VCI as typeof openID4VCI | null) &&
+			(filterItemByLang as typeof filterItemByLang | null)
+		) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
-	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
+	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier: string | number) => {
 		const clickedPortal = portals.find((portal) => portal.identifierField === credentialConfigurationIdWithCredentialIssuerIdentifier);
 		if (clickedPortal) {
 			setSelectedPortal(clickedPortal);
 			return {};
 		}
-		const result = await api.syncPrivateData(cachedUser);
+		const result = await api.syncPrivateData(cachedUser as CachedUser | undefined);
 		if (!result.ok) {
 			return {};
 		}
-		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
+		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier as string) as [string, string];
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId && conf.credentialIssuerIdentifier === credentialIssuerIdentifier);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
@@ -224,7 +276,7 @@ const AddCredentials = () => {
 			const result = await openID4VCI.generateAuthorizationRequest(credentialIssuerIdentifier, credentialConfigurationId);
 			if ('url' in result) {
 				const { url } = result;
-				window.location.href = url;
+				window.location.href = url!;
 			}
 		} catch (err) {
 			console.error(err);
@@ -249,8 +301,8 @@ const AddCredentials = () => {
 				<PageHeading heading={t('common.navItemAddCredentials')} />
 
 				{credentialConfigurations && recent && (
-					<QueryableList
-						isOnline={isOnline}
+					<QueryableList<CredentialConfiguration | CredentialPortal>
+						isOnline={isOnline as boolean}
 						list={sortedCredentialConfigurations}
 						portalList={portals}
 						// recent={credentialConfigurations.length < 6 ? [] : recent}

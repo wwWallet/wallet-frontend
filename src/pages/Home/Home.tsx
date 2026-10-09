@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import AppSettingsContext from "@/context/AppSettingsContext";
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
+import type { MobileVcHomeView } from '@/context/AppSettingsContext';
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -39,11 +41,11 @@ const Home = () => {
 		navigate('/add');
 	};
 
-	const handleImageClick = (vcEntity) => {
+	const handleImageClick = (vcEntity: ExtendedVcEntity) => {
 		navigate(`/credential/${vcEntity.batchId}`);
 	};
 
-	const setView = (v) => {
+	const setView = (v: MobileVcHomeView) => {
 		setMobileVcHomeView(v);
 	};
 
@@ -53,11 +55,11 @@ const Home = () => {
 				<div className="px-6 sm:px-12">
 					<div className='flex items-center justify-between gap-3 mb-2'>
 						<H1 heading={t('common.navItemCredentials')} />
-						{screenType !== "desktop" && vcEntityList?.length > 1 && (
+						{screenType !== "desktop" && (vcEntityList?.length ?? 0) > 1 && (
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
-					{(pendingTransactions?.length > 0) && (
+					{((pendingTransactions?.length ?? 0) > 0) && (
 						<PendingTransactionsBanner
 							pendingTransactions={pendingTransactions}
 							onView={() => navigate('/pending')}

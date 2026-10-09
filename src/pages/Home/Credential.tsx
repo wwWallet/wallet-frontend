@@ -10,6 +10,7 @@ import i18n from '@/i18n';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 import { useSessionContext } from '@/context/SessionContext';
 import StatusContext from '@/context/StatusContext';
 
@@ -36,6 +37,14 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 import DeletePopup from '@/components/Popups/DeletePopup';
 import HistoryList from '@/components/History/HistoryList';
 import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Popups/ProximitySharingPopup';
+import type { ProximitySharingStatus } from '@/components/Popups/ProximitySharingPopup';
+import type { Verifier } from '@/api/types';
+import type { CachedUser } from '@/services/LocalStorageKeystore';
+
+interface MdocTypeDetails {
+	requestedDocType: string | null;
+	credentialDocType: string;
+}
 
 const Credential = () => {
 	const { batchId } = useParams();
@@ -48,14 +57,14 @@ const Credential = () => {
 	const isDesktop = screenType === 'desktop';
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
-	const [mdocQRStatus, setMdocQRStatus] = useState(PROXIMITY_SHARING_STATUS.SCAN);
-	const handledMdocStatusRef = useRef(null);
+	const [mdocQRStatus, setMdocQRStatus] = useState<ProximitySharingStatus>(PROXIMITY_SHARING_STATUS.SCAN);
+	const handledMdocStatusRef = useRef<ProximitySharingStatus | null>(null);
 	const shareSessionRef = useRef(0); // bumped on new shares, used to invalidate abandoned connections
 	const [shareWithQr, setShareWithQr] = useState(false);
-	const [verifiers, setVerifiers] = useState(null);
+	const [verifiers, setVerifiers] = useState<Verifier[] | null>(null);
 	const [mdocQRContent, setMdocQRContent] = useState("");
-	const [shareWithQrFilter, setShareWithQrFilter] = useState([]);
-	const [mdocTypeDetails, setMdocTypeDetails] = useState(null);
+	const [shareWithQrFilter, setShareWithQrFilter] = useState<string[]>([]);
+	const [mdocTypeDetails, setMdocTypeDetails] = useState<MdocTypeDetails | null>(null);
 	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -75,7 +84,7 @@ const Credential = () => {
 		[i18n.language]
 	);
 
-	const [cachedUser, setCachedUser] = useState(null);
+	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 
 	useEffect(() => {
 		const fetchVerifiers = async () => {
@@ -112,7 +121,7 @@ const Credential = () => {
 			setLoading(false);
 			return;
 		}
-		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId));
+		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId!));
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 
@@ -120,11 +129,11 @@ const Credential = () => {
 		setShowDeletePopup(false);
 	};
 
-	const redirectToVerifier = (verifier) => {
+	const redirectToVerifier = (verifier: Verifier) => {
 		window.location.href = verifier.url;
 	};
 
-	const shareMenu = (fullWidth = false) => {
+	const shareMenu = (fullWidth: boolean = false) => {
 		if (verifiers === null) {
 			return null;
 		}
@@ -246,7 +255,7 @@ const Credential = () => {
 	}, [mdocQRStatus, handleMdocRequest, handleMdocResponse]);
 
 	useEffect(() => {
-		async function shareEligible(vcEntity) {
+		async function shareEligible(vcEntity: ExtendedVcEntity) {
 			if (!isBluetoothTransportAvailable()) {
 				setShareWithQr(false);
 				return;
@@ -265,7 +274,7 @@ const Credential = () => {
 
 	const activityContent = (
 		<>
-			{history !== null && (history.length === 0 ? (
+			{history !== null && (Array.isArray(history) && history.length === 0 ? (
 				<ActivityEmptyState credentialSpecific />
 			) : (
 				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
