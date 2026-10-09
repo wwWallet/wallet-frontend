@@ -3,10 +3,10 @@ import { useEffect, useRef } from 'react';
 import { isDateInAnnualRange } from './snowfallSeason';
 
 const SNOWFLAKE_COUNT = 50;
-const randomBetween = (min, max) => Math.random() * (max - min) + min;
+const randomBetween = (min: number, max: number) => Math.random() * (max - min) + min;
 
 const SnowfallCanvas = () => {
-	const canvasRef = useRef(null);
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -15,7 +15,7 @@ const SnowfallCanvas = () => {
 		if (!canvas || !context) return undefined;
 
 		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-		let animationFrame;
+		let animationFrame = 0;
 		let width = 0;
 		let height = 0;
 		let previousTime = 0;
@@ -48,7 +48,7 @@ const SnowfallCanvas = () => {
 			context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 		};
 
-		const draw = (time) => {
+		const draw = (time: number) => {
 			const elapsed = Math.min((time - previousTime) / 1000, 0.05);
 			previousTime = time;
 			context.clearRect(0, 0, width, height);
