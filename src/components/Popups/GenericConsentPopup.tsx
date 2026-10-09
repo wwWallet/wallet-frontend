@@ -3,8 +3,18 @@ import PopupLayout from './PopupLayout';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import useScreenType from '../../hooks/useScreenType';
+import type {
+	ConsentPopupState,
+	SetConsentPopupState,
+	TransactionConsentOptions,
+} from '@/types/consent';
 
-function GenericConsentPopup({ popupConsentState, setPopupConsentState, showConsentPopup, hidePopupConsent }) {
+interface GenericConsentPopupProps {
+	popupConsentState: ConsentPopupState<TransactionConsentOptions>;
+	setPopupConsentState: SetConsentPopupState<TransactionConsentOptions>;
+}
+
+function GenericConsentPopup({ popupConsentState, setPopupConsentState }: GenericConsentPopupProps) {
 	const { t } = useTranslation();
 
 	const screenType = useScreenType();
@@ -50,7 +60,6 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 					<Button
 						id="cancel-select-credentials"
 						onClick={onClose}
-						className="mr-2"
 					>
 						{t('common.cancel')}
 					</Button>

@@ -13,6 +13,7 @@ import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "wallet-common";
 import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
+import type { TransactionConsentOptions } from '@/types/consent';
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
@@ -24,7 +25,7 @@ export function useOpenID4VP({
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
 	) => Promise<Map<string, number>>,
-	showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean>,
+	showTransactionDataConsentPopup: (options: TransactionConsentOptions) => Promise<boolean>,
 }): IOpenID4VP {
 
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
