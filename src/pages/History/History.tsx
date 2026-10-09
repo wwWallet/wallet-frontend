@@ -24,7 +24,7 @@ const Activity = () => {
 			<PageHeading heading={t('common.navItemActivity')} />
 			<PageDescription description={t('pageActivity.description')} />
 
-			{(activity !== null && activity.length === 0 ? (
+			{(activity !== null && Array.isArray(activity) && activity.length === 0 ? (
 				<ActivityEmptyState />
 			) : (
 				<HistoryList history={activity}/>

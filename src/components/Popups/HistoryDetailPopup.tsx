@@ -3,8 +3,15 @@ import { useTranslation } from 'react-i18next';
 import HistoryDetailContent from '../History/HistoryDetailContent';
 import PopupLayout from './PopupLayout';
 import Button from '../Buttons/Button';
+import type { PresentationHistoryItem } from '@/hooks/useFetchPresentations';
 
-const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
+interface HistoryDetailPopupProps {
+	isOpen: boolean;
+	onClose: () => void;
+	historyItem: PresentationHistoryItem[];
+}
+
+const HistoryDetailPopup = ({ isOpen, onClose, historyItem }: HistoryDetailPopupProps) => {
 	const { t } = useTranslation();
 
 	return (
