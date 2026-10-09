@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { formatDate } from 'wallet-common';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
@@ -7,8 +8,66 @@ import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
 import { isCborDate } from 'wallet-common';
+import type { TFunction } from 'i18next';
 
-const Legend = ({ showRequired, showRequested, t }) => {
+type ClaimPathSegment = string | number | null;
+type ClaimPath = ClaimPathSegment[];
+
+interface ClaimDisplay {
+	locale?: string;
+	label?: string;
+	description?: string;
+}
+
+interface DisplayClaim {
+	path: ClaimPath;
+	display?: ClaimDisplay[];
+	required?: boolean;
+}
+
+interface CredentialInfoData {
+	signedClaims?: unknown;
+	metadata?: {
+		credential?: {
+			TypeMetadata?: {
+				claims?: DisplayClaim[];
+			};
+		};
+	};
+}
+
+interface RequestedClaims {
+	fields?: Array<ClaimPath | string>;
+	display?: 'highlight' | 'hide';
+}
+
+interface CredentialInfoProps {
+	parsedCredential?: CredentialInfoData | null;
+	mainClassName?: string;
+	fallbackClaims?: DisplayClaim[];
+	requested?: RequestedClaims;
+}
+
+interface FullscreenImage {
+	src: string;
+	alt: string;
+}
+
+interface NestedClaimNode {
+	display?: { label: string; description: string };
+	value?: ReactNode | NestedClaims;
+	required?: boolean;
+}
+
+type NestedClaims = Record<string, NestedClaimNode>;
+
+interface LegendProps {
+	showRequired: boolean;
+	showRequested: boolean;
+	t: TFunction;
+}
+
+const Legend = ({ showRequired, showRequested, t }: LegendProps) => {
 	if (!showRequired && !showRequested) return null;
 	return (
 		<div
@@ -33,7 +92,7 @@ const Legend = ({ showRequired, showRequested, t }) => {
 	);
 };
 
-const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
+const getLabelAndDescriptionByLang = (displayArray: ClaimDisplay[], lang: unknown, fallbackLang: unknown) => {
 	const match =
 		displayArray.find(d => getLanguage(d.locale) === lang) ||
 		displayArray.find(d => getLanguage(d.locale) === fallbackLang) ||
@@ -45,10 +104,10 @@ const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
 	};
 };
 
-const getValueByPath = (path, obj) => {
+const getValueByPath = (path: ClaimPath, obj: unknown): unknown => {
 	if (!Array.isArray(path) || path.length === 0) return undefined;
 
-	const traverse = (segments, current) => {
+	const traverse = (segments: ClaimPath, current: unknown): unknown => {
 		if (segments.length === 0) return current;
 		const [head, ...tail] = segments;
 
@@ -64,8 +123,8 @@ const getValueByPath = (path, obj) => {
 			return Object.values(current).map(item => traverse(tail, item)).filter(v => v !== undefined);
 		}
 
-		if (current && typeof current === 'object' && head in current) {
-			return traverse(tail, current[head]);
+		if (head !== null && current && typeof current === 'object' && head in current) {
+			return traverse(tail, (current as Record<string | number, unknown>)[head]);
 		}
 		return undefined;
 	};
@@ -88,10 +147,16 @@ const getValueByPath = (path, obj) => {
 	return result;
 };
 
-const addToNestedObject = (target, path, display, value, required) => {
+const addToNestedObject = (
+	target: NestedClaims,
+	path: ClaimPath,
+	display: { label: string; description: string },
+	value: ReactNode,
+	required?: boolean,
+) => {
 	let current = target;
 	for (let i = 0; i < path.length; i++) {
-		const key = path[i] ?? '*';
+		const key = String(path[i] ?? '*');
 		if (!current[key]) current[key] = {};
 		if (i === path.length - 1) {
 			current[key].display = display;
@@ -101,14 +166,14 @@ const addToNestedObject = (target, path, display, value, required) => {
 			if (typeof current[key].value !== 'object' || current[key].value === null || React.isValidElement(current[key].value)) {
 				current[key].value = {};
 			}
-			current = current[key].value;
+			current = current[key].value as NestedClaims;
 
 		}
 	}
 };
 
-const expandDisplayClaims = (claims, signedClaims) => {
-	const expanded = [];
+const expandDisplayClaims = (claims: DisplayClaim[], signedClaims: unknown): DisplayClaim[] => {
+	const expanded: DisplayClaim[] = [];
 
 	claims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
@@ -134,15 +199,20 @@ const expandDisplayClaims = (claims, signedClaims) => {
 	return expanded;
 };
 
-const isDisplayClaim = (claim) => {
+const isDisplayClaim = (claim: DisplayClaim): boolean => {
 	if (!Array.isArray(claim.path)) return false;
 	if (!Array.isArray(claim.display)) return false;
 	return claim.display.some(d => d.locale && d.label);
 };
 
-const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
+const formatClaimValue = (
+	value: unknown,
+	imageAlt: string,
+	fullscreenTitle: string,
+	onImageClick: (image: FullscreenImage) => void,
+): ReactNode => {
 
-	const renderImg = (src) => (
+	const renderImg = (src: string) => (
 		<button
 			type="button"
 			onClick={() => onImageClick({ src, alt: imageAlt })}
@@ -158,7 +228,7 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 		</button>
 	);
 
-	const renderJson = (v) => (
+	const renderJson = (v: unknown) => (
 		<div className="w-full">
 			<div className="max-h-40 resize-y bg-white dark:bg-dm-gray-800 overflow-auto border rounded px-2 rounded-xl">
 				<JsonViewer value={v} />
@@ -218,10 +288,10 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 	return formatDate(value, 'date');
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims = undefined, requested = undefined }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims = undefined, requested = undefined }: CredentialInfoProps) => {
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
-	const [fullscreenImage, setFullscreenImage] = useState(null);
+	const [fullscreenImage, setFullscreenImage] = useState<FullscreenImage | null>(null);
 	const { language, options: { fallbackLng } } = i18n;
 
 	const requestedFields = requested?.fields ?? null;
@@ -262,7 +332,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		})
 		: [];
 
-	const nestedClaims = {};
+	const nestedClaims: NestedClaims = {};
 
 	const expandedDisplayClaims = expandDisplayClaims(filteredClaims, signedClaims);
 
@@ -279,13 +349,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
 		);
 
-	const pathKey = (path) => Array.isArray(path) ? path.join('.') : '';
+	const pathKey = (path: ClaimPath) => Array.isArray(path) ? path.join('.') : '';
 
 	const pathToClaimIdx = new Map(
 		expandedDisplayClaims.map((claim, idx) => [pathKey(claim.path), idx])
 	);
 
-	const syntheticClaims = [];
+	const syntheticClaims: DisplayClaim[] = [];
 
 	if (requestedFieldSet && requestedFields) {
 		requestedFields.forEach(field => {
@@ -353,16 +423,16 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		addToNestedObject(nestedClaims, claim.path, display, formattedValue, claim.required);
 	});
 
-	const requestedPaths = useMemo(() => {
-		if (!requestedFields) return new Set();
+	const requestedPaths = useMemo<Set<string> | null>(() => {
+		if (!requestedFields) return new Set<string>();
 		const isWildcard = requestedFields.some(p => Array.isArray(p) && p.length === 1 && p[0] === null);
-		return isWildcard ? null : new Set(
+		return isWildcard ? null : new Set<string>(
 			requestedFields.map(path => Array.isArray(path) ? path.join('.') : path)
 		);
 	}, [requestedFields]);
 
 	// Helper: is a path requested?
-	const isPathRequested = (joinedPath) => {
+	const isPathRequested = (joinedPath: string) => {
 		if (!joinedPath) return false;
 		if (!requestedPaths) return true; // wildcard => everything is requested
 		for (const req of requestedPaths) {
@@ -390,7 +460,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		return { showRequired, showRequested };
 	})();
 
-	const renderClaims = (data, currentPath = []) => {
+	const renderClaims = (data: NestedClaims, currentPath: string[] = []): ReactNode[] => {
 		return Object.entries(data ?? {}).map(([key, node]) => {
 			const label = node.display?.label || null;
 			const value = node.value;
@@ -401,17 +471,17 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 			const isRequired = requestedFields && node.required;
 			if (!node.display) {
-				return renderClaims(value, [...currentPath, key]);
+				return renderClaims(value as NestedClaims, [...currentPath, key]);
 			}
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
 					<div key={fullPath} className="w-full">
-						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
+						<details className="pl-2 py-1 rounded-md" open={isRequested || Boolean(isRequired)}>
 							<summary className="cursor-pointer font-medium text-lm-gray-900 dark:text-dm-gray-100 w-full">
 								{label}
 							</summary>
 							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-lm-gray-900 dark:border-dm-gray-100 text-lm-gray-900 dark:text-dm-gray-100">
-								{renderClaims(value, [...currentPath, key])}
+								{renderClaims(value as NestedClaims, [...currentPath, key])}
 							</div>
 						</details>
 					</div>
@@ -436,7 +506,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 						<div
 							className={
 								`text-lm-gray-900 dark:text-dm-gray-100 w-1/2 lg:w-2/3 flex justify-between items-start wrap-break-word font-normal` +
-								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
+								(typeof value === 'string' && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
 							}
 						>
 							{value}
@@ -450,9 +520,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 									{isRequested && (
 										<Send
 											size={14}
-											title="Requested by verifier"
 											className="text-lm-gray-900 dark:text-dm-gray-100 shrink-0"
-										/>
+										>
+											<title>Requested by verifier</title>
+										</Send>
 									)}
 								</div>
 							)}
