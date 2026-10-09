@@ -1,0 +1,6 @@
+coverage/
+dist/
+node_modules/
+public/
+branding/custom/
+src/locales/*.json
