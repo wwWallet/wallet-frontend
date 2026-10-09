@@ -11,6 +11,7 @@ import SyncNotificationContext from "@/context/SyncNotificationContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import AuthPopup from "@/components/Popups/AuthPopup";
 import MessagePopup from "@/components/Popups/MessagePopup";
+import type { MessagePopupType } from "@/components/Popups/MessagePopup";
 import RedirectPopup from "@/components/Popups/RedirectPopup";
 import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
 import { useReconnectSync } from "@/hooks/useReconnectSync";
@@ -51,7 +52,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [isMessagePopupOpen, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
-	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
+	const [typeMessagePopup, setTypeMessagePopup] = useState<MessagePopupType | null>(null);
 	const { t, i18n } = useTranslation();
 
 	const [redirectUri, setRedirectUri] = useState<string | null>(null);
@@ -383,7 +384,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						onCancel={cancelTxCodeInput}
 					/>
 				}
-				{isMessagePopupOpen &&
+				{isMessagePopupOpen && typeMessagePopup &&
 					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 				}
 			</Suspense>

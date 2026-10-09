@@ -4,8 +4,18 @@ import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import useScreenType from '../../hooks/useScreenType';
 import { TriangleAlert } from 'lucide-react';
+import type {
+	ConsentPopupState,
+	IssuanceConsentOptions,
+	SetConsentPopupState,
+} from '@/types/consent';
 
-function GenericConsentPopup({ popupConsentState, setPopupConsentState, showConsentPopup, hidePopupConsent }) {
+interface IssuanceConsentPopupProps {
+	popupConsentState: ConsentPopupState<IssuanceConsentOptions>;
+	setPopupConsentState: SetConsentPopupState<IssuanceConsentOptions>;
+}
+
+function IssuanceConsentPopup({ popupConsentState, setPopupConsentState }: IssuanceConsentPopupProps) {
 	const { t, i18n } = useTranslation();
 
 	const screenType = useScreenType();
@@ -54,7 +64,6 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 					<Button
 						id="cancel-select-credentials"
 						onClick={onClose}
-						className="mr-2"
 					>
 						{t('common.cancel')}
 					</Button>
@@ -74,4 +83,4 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 	);
 }
 
-export default GenericConsentPopup;
+export default IssuanceConsentPopup;

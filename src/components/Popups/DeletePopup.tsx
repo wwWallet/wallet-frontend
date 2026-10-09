@@ -1,11 +1,20 @@
 // DeletePopup.js
 import React from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import PopupLayout from './PopupLayout';
 import Button from '../Buttons/Button';
 import { Trash2 } from 'lucide-react';
 
-const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
+interface DeletePopupProps {
+	isOpen: boolean;
+	onConfirm: () => void | Promise<void>;
+	onClose: () => void;
+	message: ReactNode;
+	loading?: boolean;
+}
+
+const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }: DeletePopupProps) => {
 	const { t } = useTranslation();
 
 	return (

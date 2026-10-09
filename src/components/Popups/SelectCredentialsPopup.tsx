@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import type { TFunction } from 'i18next';
+import type { CredentialClaimPath } from 'wallet-common';
 import PopupLayout from './PopupLayout';
 import { useTranslation, Trans } from 'react-i18next';
 import CredentialImage from '../Credentials/CredentialImage';
@@ -12,6 +14,39 @@ import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
 import { prettyDomain, truncateByWords } from '@/utils';
 import { BookCheck, CheckCircle, Circle, IdCard, View } from 'lucide-react';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
+import type {
+	CredentialSelectionPopupState,
+	RequestedCredentialField,
+	SetCredentialSelectionPopupState,
+} from '@/types/credentialSelection';
+
+type ClaimPath = Array<string | number | null>;
+type SelectionMap = Record<string, number | undefined>;
+
+interface SelectableCredentialSlideCardProps {
+	vcEntity: ExtendedVcEntity;
+	isActive: boolean;
+	isSelected: boolean;
+	onClick: (batchId: number) => void;
+	borderColor?: string;
+}
+
+interface StepBarProps {
+	totalSteps: number;
+	currentStep: number;
+}
+
+interface StepTitleProps {
+	currentKey: string;
+	t: TFunction;
+}
+
+interface SelectCredentialsPopupProps {
+	popupState: CredentialSelectionPopupState;
+	setPopupState: SetCredentialSelectionPopupState;
+	vcEntityList: ExtendedVcEntity[] | null;
+}
 
 const SelectableCredentialSlideCard = ({
 	vcEntity,
@@ -19,7 +54,7 @@ const SelectableCredentialSlideCard = ({
 	isSelected,
 	onClick,
 	borderColor
-}) => {
+}: SelectableCredentialSlideCardProps) => {
 	const { t } = useTranslation();
 	const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -35,7 +70,7 @@ const SelectableCredentialSlideCard = ({
 			className="relative w-full rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={isActive ? 0 : -1}
 			onClick={() => onClick(vcEntity.batchId)}
-			aria-label={credentialName}
+			aria-label={credentialName ?? undefined}
 			title={t('selectCredentialPopup.credentialSelectTitle', {
 				friendlyName: credentialName,
 			})}
@@ -44,7 +79,6 @@ const SelectableCredentialSlideCard = ({
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
 				key={vcEntity.batchId}
-				parsedCredential={vcEntity.parsedCredential}
 				className="w-full object-cover rounded-xl"
 				showRibbon={isActive}
 				onLoad={() => setImageLoaded(true)}
@@ -76,7 +110,7 @@ const SelectableCredentialSlideCard = ({
 	);
 };
 
-const normalizePath = (path) => {
+const normalizePath = (path: ClaimPath | string): ClaimPath => {
 	if (Array.isArray(path)) return path;
 	if (typeof path === 'string' && path.startsWith('$.')) {
 		return path.slice(2).split('.');
@@ -84,7 +118,19 @@ const normalizePath = (path) => {
 	return [path];
 };
 
-const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
+const getRequestedClaimPaths = (fields: RequestedCredentialField[] | undefined): ClaimPath[] | undefined =>
+	fields?.flatMap(field => field.path ? [normalizePath(field.path)] : []);
+
+const toCredentialClaimPath = (path: ClaimPath): CredentialClaimPath =>
+	path.map(segment => segment === null ? '' : String(segment));
+
+const uniquePaths = (paths: CredentialClaimPath[]): CredentialClaimPath[] =>
+	Array.from(new Map(paths.map(path => [JSON.stringify(path), path])).values());
+
+const createSelectionMap = (selection: SelectionMap): Map<string, number> =>
+	new Map(Object.entries(selection).filter((entry): entry is [string, number] => entry[1] !== undefined));
+
+const StepBar = ({ totalSteps, currentStep }: StepBarProps) => {
 
 	return (
 		<div className="flex items-center justify-center w-full mb-2">
@@ -126,7 +172,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-const StepTitle = ({ currentKey, t }) => {
+const StepTitle = ({ currentKey, t }: StepTitleProps) => {
 	let text = t('selectCredentialPopup.selectTitle');
 
 	if (currentKey === 'preview') {
@@ -144,24 +190,23 @@ const StepTitle = ({ currentKey, t }) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
+function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: SelectCredentialsPopupProps) {
 
-	const [vcEntities, setVcEntities] = useState(null);
+	const [vcEntities, setVcEntities] = useState<ExtendedVcEntity[] | null>(null);
 	const { t } = useTranslation();
 	const rawKeys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : [], [popupState]);
 	const keys = useMemo(() => ['preview', ...rawKeys, 'summary'], [rawKeys]);
-	const stepTitles = useMemo(() => keys, [keys]);
 	const [currentIndex, setCurrentIndex] = useState(0);
-	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
+	const [currentSelectionMap, setCurrentSelectionMap] = useState<SelectionMap>({});
 	const [showFullPurpose, setShowFullPurpose] = useState(false);
-	const [selectedCredential, setSelectedCredential] = useState(null);
+	const [selectedCredential, setSelectedCredential] = useState<number | null | undefined>(null);
 	const screenType = useScreenType();
-	const [activeSlideIndexByKey, setActiveSlideIndexByKey] = useState({});
+	const [activeSlideIndexByKey, setActiveSlideIndexByKey] = useState<Record<string, number>>({});
 	const currentKey = keys[currentIndex];
 	const currentSlide = activeSlideIndexByKey[currentKey] ?? 1;
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
 
-	const handleSlideChange = (idx) => {
+	const handleSlideChange = (idx: number) => {
 		setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
 	};
 
@@ -178,13 +223,13 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [currentKey, vcEntities, currentSelectionMap]);
 
-	const requestedFieldsPerCredential = useMemo(() => {
+	const requestedFieldsPerCredential = useMemo<Record<string, RequestedCredentialField[]>>(() => {
 
 		if (!popupState?.options) return {};
 		const map = popupState.options.conformantCredentialsMap;
-		const result = {};
+		const result: Record<string, RequestedCredentialField[]> = {};
 		for (const [descriptorId, entry] of Object.entries(map)) {
-			const seen = new Set();
+			const seen = new Set<string | undefined>();
 			result[descriptorId] = (entry.requestedFields || []).filter(field => {
 				const key = field.name || field.path?.join('.');
 				if (seen.has(key)) return false;
@@ -205,10 +250,13 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	useEffect(() => {
 		const getData = async () => {
+			const options = popupState.options;
+			if (!options || !vcEntityList) return;
+
 			const currentKey = keys[currentIndex];
-			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length + 2) {
+			if (currentIndex === Object.keys(options.conformantCredentialsMap).length + 2) {
 				reinitialize();
-				popupState.resolve(new Map(Object.entries(currentSelectionMap)));
+				popupState.resolve(createSelectionMap(currentSelectionMap));
 				return;
 			}
 
@@ -220,7 +268,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 			try {
 				const filteredVcEntities = vcEntityList.filter(vcEntity =>
-					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.batchId)
+					options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.batchId)
 				);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
@@ -228,7 +276,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 		};
 
-		if (popupState?.options && vcEntityList) {
+		if (popupState.options && vcEntityList) {
 			getData();
 		}
 	}, [
@@ -255,12 +303,19 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			.map((selectedId) =>
 				vcEntityList.find((vc) => vc.batchId === selectedId)
 			)
-			.filter(Boolean);
+			.filter((vc): vc is ExtendedVcEntity => vc !== undefined);
 	}, [currentSelectionMap, vcEntityList]);
+	const currentSummaryCredential = selectedVcEntities[currentSummarySlide];
+	const currentSummaryDescriptorId = currentSummaryCredential
+		? Object.keys(currentSelectionMap).find(key => currentSelectionMap[key] === currentSummaryCredential.batchId)
+		: undefined;
+	const currentSummaryRequestedFields = currentSummaryDescriptorId
+		? getRequestedClaimPaths(requestedFieldsPerCredential[currentSummaryDescriptorId])
+		: undefined;
 
 	const goToNextSelection = () => {
 		if (keys[currentIndex] === 'summary') {
-			popupState.resolve(new Map(Object.entries(currentSelectionMap)));
+			popupState.resolve(createSelectionMap(currentSelectionMap));
 			reinitialize();
 		} else {
 			setCurrentIndex(i => i + 1);
@@ -273,7 +328,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		}
 	};
 
-	const handleClick = (batchId) => {
+	const handleClick = (batchId: number) => {
 		const descriptorId = keys[currentIndex];
 		if (selectedCredential === batchId) {
 			setSelectedCredential(null);
@@ -291,20 +346,19 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		// navigate('/');
 	}
 
-	if (!popupState?.isOpen) {
+	const options = popupState.options;
+	if (!popupState.isOpen || !options) {
 		return null;
 	};
 
 	return (
-		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0" shouldCloseOnOverlayClick={false}>
+		<PopupLayout isOpen={popupState.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0" shouldCloseOnOverlayClick={false}>
 			<div className={`${screenType === 'desktop' && 'p-4'}`}>
 
 				{keys.length > 1 && (
-					<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
+					<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} />
 				)}
-				{stepTitles && (
-					<StepTitle currentKey={keys[currentIndex]} t={t} />
-				)}
+				<StepTitle currentKey={keys[currentIndex]} t={t} />
 				<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 				{/* Preview step */}
@@ -315,19 +369,19 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</p>
 						<div className="flex flex-col gap-2">
 
-							{popupState?.options?.verifierDomainName && (
+							{options.verifierDomainName && (
 								<div className="flex flex-wrap gap-1 items-center text-sm text-lm-gray-900 dark:text-dm-gray-100">
 									<span className="text-lm-gray-900 dark:text-dm-gray-100 text-sm font-bold block">
 										{t('selectCredentialPopup.requestingParty')}
 									</span>
 									<span className="w-max font-semibold text-lm-gray-900 dark:text-dm-gray-100 rounded border border-lm-gray-400 dark:border-dm-gray-600 p-1 break-all block">
-										{prettyDomain(popupState.options.verifierDomainName)}
+										{prettyDomain(options.verifierDomainName)}
 									</span>
 								</div>
 							)}
-							{popupState.options.verifierPurpose && (() => {
-								const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
-								const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
+							{options.verifierPurpose && (() => {
+								const { text: truncatedText, truncated } = truncateByWords(options.verifierPurpose, 40);
+								const textToDisplay = showFullPurpose ? options.verifierPurpose : truncatedText;
 
 								return (
 									<p className="pd-2 text-sm text-lm-gray-900 dark:text-dm-gray-100">
@@ -352,7 +406,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								);
 							})()}
 
-							{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData, index) => {
+							{options.parsedTransactionData?.map((txData, index) => {
 								const TxComp = txData.ui;
 								return (<TxComp key={`${txData.transaction_data_b64u}-${index}`} />)
 							})}
@@ -377,7 +431,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												</span>
 											</div>
 											<p className="text-sm font-normal text-lm-gray-900 dark:text-dm-gray-100 list-disc ml-4">
-												{!fields[0].path[0] ? (
+												{!fields[0]?.path?.[0] ? (
 													<span>
 														{t('selectCredentialPopup.allClaimsRequested')}
 													</span>
@@ -432,7 +486,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
 										mainClassName={"text-xs w-full"}
 										requested={{
-											fields: requestedFieldsPerCredential[keys[currentIndex]]?.map(field => normalizePath(field.path)),
+											fields: getRequestedClaimPaths(requestedFieldsPerCredential[keys[currentIndex]]),
 											display: "highlight"
 										}}
 									/>
@@ -456,7 +510,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							/>
 						</p>
 
-						{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData, index) => {
+						{options.parsedTransactionData?.map((txData, index) => {
 							const TxComp = txData.ui;
 							return <TxComp key={`${txData.transaction_data_b64u}-${index}`} />
 						})}
@@ -470,29 +524,28 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											(key) => currentSelectionMap[key] === vcEntity.batchId
 										);
 
-										const fields = requestedFieldsPerCredential[descriptorId];
-										const hasValidPath = Array.isArray(fields) && fields[0]?.path[0];
+										const fields = descriptorId ? requestedFieldsPerCredential[descriptorId] : undefined;
+										const requestedClaimPaths = getRequestedClaimPaths(fields);
+										const hasValidPath = Boolean(fields?.[0]?.path?.[0]);
 
 										const requiredClaimPaths = (vcEntity.parsedCredential.metadata.credential?.TypeMetadata?.claims ?? [])
 											.filter(c => c?.required === true)
-											.map(c => normalizePath(c.path));
+											.map(c => normalizePath(c.path))
+											.map(toCredentialClaimPath);
 
 										// Only merge when hasValidPath is true, otherwise leave undefined
 										const filterPaths = hasValidPath
-											? Array.from(
-												new Set([
-													...fields.map(f => JSON.stringify(normalizePath(f.path))),
-													...requiredClaimPaths.map(p => JSON.stringify(p))
-												])
-											).map(p => JSON.parse(p))
+											? uniquePaths([
+												...(requestedClaimPaths ?? []).map(toCredentialClaimPath),
+												...requiredClaimPaths,
+											])
 											: undefined;
 
 										return (
 											<div className='w-full'>
-												<CredentialImage
-													vcEntity={vcEntity}
-													vcEntityInstances={vcEntity.instances}
-													parsedCredential={vcEntity.parsedCredential}
+											<CredentialImage
+												vcEntity={vcEntity}
+												vcEntityInstances={vcEntity.instances}
 													className="w-full object-cover rounded-xl"
 													showRibbon={currentSummarySlide === i}
 													filter={filterPaths}
@@ -506,19 +559,13 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									className='xm:px-4 px-16 sm:px-24 md:px-8'
 								/>
 							</div>
-							{selectedVcEntities?.[currentSummarySlide] ? (
+							{currentSummaryCredential ? (
 								<div className="flex flex-wrap justify-center items-center my-2">
 									<CredentialInfo
-										parsedCredential={selectedVcEntities[currentSummarySlide].parsedCredential}
+										parsedCredential={currentSummaryCredential.parsedCredential}
 										mainClassName="text-xs w-full"
 										requested={{
-											fields: requestedFieldsPerCredential[
-												Object.keys(currentSelectionMap).find(
-													(key) =>
-														currentSelectionMap[key] ===
-														selectedVcEntities[currentSummarySlide]?.batchId
-												)
-											]?.map((field) => normalizePath(field.path)),
+											fields: currentSummaryRequestedFields,
 											display: "hide"
 										}}
 									/>
@@ -540,7 +587,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				<Button
 					id="cancel-select-credentials"
 					onClick={onClose}
-					className="mr-2"
 				>
 					{t('common.cancel')}
 				</Button>

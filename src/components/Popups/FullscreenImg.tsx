@@ -1,9 +1,16 @@
 // FullscreenImg.js
 import React from 'react';
+import type { ReactNode } from 'react';
 import Modal from 'react-modal';
 import { XCircle } from 'lucide-react';
 
-const FullscreenImg = ({ isOpen, onClose, content }) => {
+interface FullscreenImgProps {
+	isOpen: boolean;
+	onClose: () => void;
+	content: ReactNode;
+}
+
+const FullscreenImg = ({ isOpen, onClose, content }: FullscreenImgProps) => {
 	return (
 		<Modal
 			isOpen={isOpen}

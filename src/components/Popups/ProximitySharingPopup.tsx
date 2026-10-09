@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import QRCode from 'react-qr-code';
 import { Check, CircleAlert, CircleCheckBig, LoaderCircle, LockKeyhole } from 'lucide-react';
 import { formatDate, isCborDate } from 'wallet-common';
@@ -7,6 +9,7 @@ import { getLanguage } from '@/i18n';
 import { truncateByWords } from '@/utils';
 import PopupLayout from './PopupLayout';
 import Button from '../Buttons/Button';
+import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
 const steps = ['scan', 'connect', 'review', 'share'];
 
@@ -21,17 +24,67 @@ export const PROXIMITY_SHARING_STATUS = Object.freeze({
 	CONNECTION_FAILED: 'connectionFailed',
 	CREDENTIAL_MISMATCH: 'credentialMismatch',
 	SHARING_FAILED: 'sharingFailed',
-});
+} as const);
 
-const currentStepForStatus = (status) => {
-	if ([PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING, PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST, PROXIMITY_SHARING_STATUS.CONNECTION_FAILED].includes(status)) return 1;
-	if ([PROXIMITY_SHARING_STATUS.REVIEW, PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH].includes(status)) return 2;
-	if ([PROXIMITY_SHARING_STATUS.SHARING, PROXIMITY_SHARING_STATUS.SUCCESS, PROXIMITY_SHARING_STATUS.SHARING_FAILED].includes(status)) return 3;
+export type ProximitySharingStatus = typeof PROXIMITY_SHARING_STATUS[keyof typeof PROXIMITY_SHARING_STATUS];
+
+type ClaimPathSegment = string | number | null;
+type ClaimPath = ClaimPathSegment[];
+type CredentialClaim = NonNullable<ExtendedVcEntity['parsedCredential']['metadata']['credential']['TypeMetadata']['claims']>[number];
+
+interface StructuredValueProps {
+	value: unknown;
+	label: string;
+}
+
+interface StepBarProps {
+	currentStep: number;
+	complete: boolean;
+}
+
+interface ErrorStateProps {
+	title: ReactNode;
+	description: ReactNode;
+}
+
+interface TransferProgressProps {
+	failed?: boolean;
+	itemCount: number;
+	t: TFunction;
+}
+
+interface MdocTypeDetails {
+	requestedDocType: string | null;
+	credentialDocType: string;
+}
+
+interface ProximitySharingPopupProps {
+	isOpen: boolean;
+	fullScreen: boolean;
+	status: ProximitySharingStatus;
+	qrContent: string;
+	credential?: ExtendedVcEntity | null;
+	requestedFields: string[];
+	mdocTypeDetails?: MdocTypeDetails | null;
+	bluetoothPairingCancelled: boolean;
+	requiresUserGesture: boolean;
+	onConnect: () => void | Promise<void>;
+	onConsent: () => void;
+	onCancel: () => void;
+	onClose: () => void;
+}
+
+const includesStatus = (statuses: readonly ProximitySharingStatus[], status: ProximitySharingStatus) => statuses.includes(status);
+
+const currentStepForStatus = (status: ProximitySharingStatus) => {
+	if (includesStatus([PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING, PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST, PROXIMITY_SHARING_STATUS.CONNECTION_FAILED], status)) return 1;
+	if (includesStatus([PROXIMITY_SHARING_STATUS.REVIEW, PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH], status)) return 2;
+	if (includesStatus([PROXIMITY_SHARING_STATUS.SHARING, PROXIMITY_SHARING_STATUS.SUCCESS, PROXIMITY_SHARING_STATUS.SHARING_FAILED], status)) return 3;
 	return 0;
 };
 
 // Turns identifier-style names such as `firstName` or `first_name` into readable labels.
-const formatFieldLabel = (name) => String(name)
+const formatFieldLabel = (name: unknown) => String(name)
 	.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
 	.replace(/[_-]+/g, ' ')
 	.replace(/\s+/g, ' ')
@@ -39,12 +92,12 @@ const formatFieldLabel = (name) => String(name)
 	.replace(/^./, character => character.toUpperCase());
 
 // Converts string or array paths into comparable, case- and separator-insensitive segments.
-const normalizePath = (field) => (Array.isArray(field) ? field : String(field).split('.'))
+const normalizePath = (field: unknown) => (Array.isArray(field) ? field : String(field).split('.'))
 	.filter(segment => segment !== null && segment !== undefined && segment !== '')
 	.map(segment => String(segment).replace(/[^a-z0-9]/gi, '').toLowerCase());
 
 // Used when deciding whether a claim (e.g. academicDetails.degree) belongs to a requested field (e.g. academicDetails).
-const pathsAreRelated = (left, right) => {
+const pathsAreRelated = (left: unknown, right: unknown) => {
 	const leftPath = normalizePath(left);
 	const rightPath = normalizePath(right);
 	const leftContainsRight = rightPath.length > 0 && leftPath.some((_, start) =>
@@ -55,17 +108,20 @@ const pathsAreRelated = (left, right) => {
 	return leftContainsRight || rightContainsLeft;
 };
 
-const getValueAtPath = (source, path) => path.reduce((value, segment) => {
+const getValueAtPath = (source: unknown, path: ClaimPath): unknown => path.reduce<unknown>((value, segment) => {
 	if (value instanceof Map) return value.get(segment);
-	return value?.[segment];
+	if (value !== null && typeof value === 'object') {
+		return (value as Record<string | number, unknown>)[segment ?? 'null'];
+	}
+	return undefined;
 }, source);
 
-const findValueByKey = (source, targetKey, visited = new WeakSet()) => {
+const findValueByKey = (source: unknown, targetKey: unknown, visited = new WeakSet<object>()): unknown => {
 	if (!source || typeof source !== 'object') return undefined;
 	if (visited.has(source)) return undefined;
 	visited.add(source);
 
-	const entries = source instanceof Map ? Array.from(source.entries()) : Object.entries(source);
+	const entries: Array<[unknown, unknown]> = source instanceof Map ? Array.from(source.entries()) : Object.entries(source);
 	const normalizedTargetKey = normalizePath(targetKey).at(-1);
 	const directMatch = entries.find(([key]) => normalizePath(key).at(-1) === normalizedTargetKey);
 	if (directMatch) return directMatch[1];
@@ -77,18 +133,18 @@ const findValueByKey = (source, targetKey, visited = new WeakSet()) => {
 	return undefined;
 };
 
-const imageSourceForValue = (value) => {
+const imageSourceForValue = (value: unknown): string | null => {
 	if (typeof value === 'string' && value.toLowerCase().startsWith('data:image/')) return value;
 
-	const byteEntries = value && typeof value === 'object' && !Array.isArray(value)
+	const byteEntries: Array<[string, unknown]> = value && typeof value === 'object' && !Array.isArray(value)
 		? Object.entries(value)
 		: [];
 	const isSerializedByteString = byteEntries.length > 0 && byteEntries.every(([key, byte], index) =>
-		Number(key) === index && Number.isInteger(byte) && byte >= 0 && byte <= 255);
+		Number(key) === index && typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255);
 	const bytes = value instanceof Uint8Array
 		? value
 		: isSerializedByteString
-			? new Uint8Array(byteEntries.map(([, byte]) => byte))
+			? new Uint8Array(byteEntries.map(([, byte]) => Number(byte)))
 			: null;
 	if (!bytes) return null;
 
@@ -99,7 +155,7 @@ const imageSourceForValue = (value) => {
 	return `data:image/jpeg;base64,${btoa(binary)}`;
 };
 
-const displayValue = (value) => {
+const displayValue = (value: unknown): string => {
 	if (value === undefined || value === null || value === '') return '—';
 	if (typeof value === 'boolean') return String(value);
 	if (value instanceof Map) return JSON.stringify(Object.fromEntries(value));
@@ -107,7 +163,7 @@ const displayValue = (value) => {
 	return String(value);
 };
 
-const StructuredValue = ({ value, label }) => {
+const StructuredValue = ({ value, label }: StructuredValueProps) => {
 	if (isCborDate(value)) return <span>{formatDate(value, 'date')}</span>;
 
 	const imageSource = imageSourceForValue(value);
@@ -125,7 +181,7 @@ const StructuredValue = ({ value, label }) => {
 
 		return <dl className="mt-1 space-y-1 border-l border-lm-gray-400 pl-3 dark:border-dm-gray-600">
 			{entries.map(([key, nestedValue]) => (
-				<div key={key} className="min-w-0">
+				<div key={String(key)} className="min-w-0">
 					<dt className="font-medium text-lm-gray-800 dark:text-dm-gray-200">{formatFieldLabel(key)}:</dt>
 					<dd className="ml-2 min-w-0 wrap-break-word text-lm-gray-700 dark:text-dm-gray-300">
 						<StructuredValue value={nestedValue} label={`${label} ${formatFieldLabel(key)}`} />
@@ -138,7 +194,7 @@ const StructuredValue = ({ value, label }) => {
 	return <span>{displayValue(value)}</span>;
 };
 
-const StepBar = ({ currentStep, complete }) => {
+const StepBar = ({ currentStep, complete }: StepBarProps) => {
 	const { t } = useTranslation();
 	return (
 		<ol className="flex w-full items-start" aria-label={t('qrShareMdoc.progressLabel')}>
@@ -161,13 +217,13 @@ const StepBar = ({ currentStep, complete }) => {
 	);
 };
 
-const ErrorState = ({ title, description }) => <div className="flex h-full flex-col items-center justify-center text-center">
+const ErrorState = ({ title, description }: ErrorStateProps) => <div className="flex h-full flex-col items-center justify-center text-center">
 	<CircleAlert className="text-lm-red dark:text-dm-red" size={64} strokeWidth={1.5} aria-hidden="true" />
 	<h3 className="mt-4 text-lg font-bold text-lm-red dark:text-dm-red">{title}</h3>
 	<p className="mt-2 max-w-sm text-base text-lm-gray-800 dark:text-dm-gray-200">{description}</p>
 </div>;
 
-const TransferProgress = ({ failed, itemCount, t }) => <div className="flex h-full flex-col items-center justify-center text-center">
+const TransferProgress = ({ failed = false, itemCount, t }: TransferProgressProps) => <div className="flex h-full flex-col items-center justify-center text-center">
 	{failed ? (
 		<>
 			<CircleAlert className="h-20 w-20 text-lm-red dark:text-dm-red" strokeWidth={1.5} aria-hidden="true" />
@@ -188,18 +244,18 @@ const TransferProgress = ({ failed, itemCount, t }) => <div className="flex h-fu
 	)}
 </div>;
 
-const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credential, requestedFields, mdocTypeDetails, bluetoothPairingCancelled, requiresUserGesture, onConnect, onConsent, onCancel, onClose }) => {
+const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credential, requestedFields, mdocTypeDetails, bluetoothPairingCancelled, requiresUserGesture, onConnect, onConsent, onCancel, onClose }: ProximitySharingPopupProps) => {
 	const { t, i18n } = useTranslation();
 	const [showAllNotShared, setShowAllNotShared] = useState(false);
 	const claims = credential?.parsedCredential?.metadata?.credential?.TypeMetadata?.claims ?? [];
 	const signedClaims = credential?.parsedCredential?.signedClaims;
-	const claimIsRequested = (claim) => Array.isArray(claim.path)
+	const claimIsRequested = (claim: CredentialClaim) => Array.isArray(claim.path)
 		&& requestedFields.some(field => pathsAreRelated(claim.path, field));
-	const claimForField = (field) => {
+	const claimForField = (field: string) => {
 		const normalizedField = normalizePath(field).at(-1);
 		return claims.find(claim => Array.isArray(claim.path) && normalizePath(claim.path).at(-1) === normalizedField);
 	};
-	const labelForClaim = (claim, fallback) => {
+	const labelForClaim = (claim: CredentialClaim | undefined, fallback: unknown) => {
 		const displays = claim?.display ?? [];
 		const activeLanguage = getLanguage(i18n.language);
 		const fallbackLanguage = getLanguage(i18n.options.fallbackLng);
@@ -211,7 +267,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 			?? displays[0]?.label
 			?? fallback);
 	};
-	const valueForField = (field, claim) => {
+	const valueForField = (field: unknown, claim: CredentialClaim | undefined) => {
 		const pathValue = Array.isArray(claim?.path) ? getValueAtPath(signedClaims, claim.path) : undefined;
 		return pathValue ?? findValueByKey(signedClaims, field);
 	};
@@ -227,11 +283,11 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 	const notSharedSummary = notSharedLabels.length > 0 ? notSharedLabels.join(', ') : t('qrShareMdoc.nothingElse');
 	const { text: truncatedNotShared, truncated: hasHiddenNotShared } = truncateByWords(notSharedSummary, 60);
 	const visibleNotSharedSummary = showAllNotShared ? notSharedSummary : truncatedNotShared;
-	const isLoadingStatus = [
+	const isLoadingStatus = includesStatus([
 		PROXIMITY_SHARING_STATUS.SELECTING_DEVICE,
 		PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST,
 		PROXIMITY_SHARING_STATUS.SHARING,
-	].includes(status);
+	], status);
 	return (
 		<PopupLayout isOpen={isOpen} onClose={onClose} fullScreen={fullScreen} useDefaultContentPadding={false} shouldCloseOnOverlayClick={false}>
 			<div className={`flex flex-col ${fullScreen
@@ -282,7 +338,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 						/>
 					)}
 
-					{[PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING].includes(status) && (
+					{includesStatus([PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING], status) && (
 						<div className="flex h-full flex-col items-center justify-center text-center">
 							<LoaderCircle
 								className="h-16 w-16 animate-spin text-primary dark:text-brand-light"
@@ -425,7 +481,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 					{status === PROXIMITY_SHARING_STATUS.CONNECTION_FAILED && <div className="flex w-full justify-between gap-2"><Button onClick={onClose}>{t('messagePopup.close')}</Button><Button variant="primary" onClick={onConnect}>{t('common.tryAgain')}</Button></div>}
 					{status === PROXIMITY_SHARING_STATUS.REVIEW && <div className="flex w-full justify-between gap-2"><Button onClick={onCancel}>{t('common.cancel')}</Button><Button variant="primary" onClick={onConsent}>{t('qrShareMdoc.shareItems', { count: requestedItems.length })}</Button></div>}
 					{status === PROXIMITY_SHARING_STATUS.SUCCESS && <Button variant="primary" onClick={onClose}>{t('qrShareMdoc.done')}</Button>}
-					{[PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH, PROXIMITY_SHARING_STATUS.SHARING_FAILED].includes(status) && <Button variant="primary" onClick={onClose}>{t('messagePopup.close')}</Button>}
+					{includesStatus([PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH, PROXIMITY_SHARING_STATUS.SHARING_FAILED], status) && <Button variant="primary" onClick={onClose}>{t('messagePopup.close')}</Button>}
 				</div>
 			</div>
 		</PopupLayout>
