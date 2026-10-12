@@ -206,7 +206,7 @@ export function useCredentialRequest() {
 				await keystoreCommit();
 
 				const requestKeyAttestationResponse = await requestKeyAttestation(
-					keypairs.map(({ publicKey }) => publicKey),
+					keypairs.map(({ publicKey }) => ({ ...publicKey, key_ops: ["verify"] })),
 					c_nonce,
 				);
 				if (!requestKeyAttestationResponse) {
