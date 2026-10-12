@@ -1,4 +1,3 @@
-// AddCredentialCard.js
 import { PlusCircle, QrCode } from 'lucide-react';
 import React from 'react';
 import type { MouseEventHandler } from 'react';

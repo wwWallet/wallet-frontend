@@ -1,4 +1,3 @@
-// PopupLayout.js
 import React, { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import Modal from 'react-modal';

@@ -1,4 +1,3 @@
-// FullscreenImg.js
 import React from 'react';
 import type { ReactNode } from 'react';
 import Modal from 'react-modal';

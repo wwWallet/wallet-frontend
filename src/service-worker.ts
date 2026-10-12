@@ -1,29 +1,39 @@
-
 import { clientsClaim } from "workbox-core";
+import type { FetchDidSucceedCallbackParam } from "workbox-core/types";
 import { ExpirationPlugin } from "workbox-expiration";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
+import type { PrecacheEntry } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
+import type { TrustedTypePolicyFactory } from "trusted-types/lib";
+
+type WalletServiceWorkerGlobalScope = ServiceWorkerGlobalScope & {
+	readonly trustedTypes?: TrustedTypePolicyFactory;
+	readonly __WB_MANIFEST: Array<PrecacheEntry | string>;
+	readonly __RUNTIME_PRECACHE_MANIFEST?: Array<PrecacheEntry | string>;
+};
+
+const serviceWorker = self as unknown as WalletServiceWorkerGlobalScope;
 
 // Build/injection regenerates this file; byte changes trigger a service worker update.
-const runtimePrecachePolicy = self.trustedTypes?.createPolicy("sw-register", {
+const runtimePrecachePolicy = serviceWorker.trustedTypes?.createPolicy("sw-register", {
 	createScriptURL: (url) => url,
 });
 importScripts(
-	runtimePrecachePolicy?.createScriptURL("./runtime-precache.js")
+	runtimePrecachePolicy?.createScriptURL("./runtime-precache.js") as unknown as string
 	?? "./runtime-precache.js"
 );
 
-const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
+const basePath = new URL(serviceWorker.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 const appShellCacheName = `app-shell:${basePath}`;
-const appShellBypassPaths = import.meta.env.VITE_APP_SHELL_BYPASS_PATHS;
-const runtimePrecacheManifest = self.__RUNTIME_PRECACHE_MANIFEST || [];
+const appShellBypassPaths = import.meta.env.VITE_APP_SHELL_BYPASS_PATHS as string[];
+const runtimePrecacheManifest = serviceWorker.__RUNTIME_PRECACHE_MANIFEST || [];
 
 clientsClaim();
 cleanupOutdatedCaches();
 
 precacheAndRoute([
-	...self.__WB_MANIFEST,
+	...(self as unknown as WalletServiceWorkerGlobalScope).__WB_MANIFEST,
 	...runtimePrecacheManifest,
 ]);
 
@@ -45,7 +55,7 @@ const SPA_ROUTE_ALLOWLIST = [
 ];
 
 const rejectServerErrorsPlugin = {
-	fetchDidSucceed({ response }) {
+	async fetchDidSucceed({ response }: FetchDidSucceedCallbackParam): Promise<Response> {
 		if (response.status >= 500) {
 			throw new Error(`App shell request failed with status ${response.status}`);
 		}
@@ -61,16 +71,16 @@ const appShellStrategy = new NetworkFirst({
 });
 
 const createAppShellRequest = () => new Request(
-	new URL(`${basePath}index.html`, self.location.origin),
+	new URL(`${basePath}index.html`, serviceWorker.location.origin),
 	{ credentials: "same-origin", cache: "reload" },
 );
 
-const serveAppShell = (event) => appShellStrategy.handle({
+const serveAppShell = (event: ExtendableEvent) => appShellStrategy.handle({
 	event,
 	request: createAppShellRequest(),
 });
 
-const matchesPathPrefix = (pathname, pathPrefix) =>
+const matchesPathPrefix = (pathname: string, pathPrefix: string) =>
 	pathPrefix === "/" ||
 	pathname === pathPrefix ||
 	pathname.startsWith(`${pathPrefix}/`);
@@ -130,17 +140,17 @@ registerRoute(
 
 let isFirstVisit = false;
 
-self.addEventListener('install', (event) => {
-	isFirstVisit = !self.registration.active;
+serviceWorker.addEventListener('install', (event) => {
+	isFirstVisit = !serviceWorker.registration.active;
 	event.waitUntil(
 		caches.open(appShellCacheName).then((cache) =>
 			cache.add(createAppShellRequest()),
 		),
 	);
-	self.skipWaiting();
+	serviceWorker.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
+serviceWorker.addEventListener("activate", (event) => {
 	event.waitUntil(
 		(async () => {
 			// Delete caches replaced by the scoped app shell and branding precache.
@@ -162,12 +172,12 @@ self.addEventListener("activate", (event) => {
 			}
 
 			// Claim and reload clients
-			await self.clients.claim();
+			await serviceWorker.clients.claim();
 
 			if (!isFirstVisit) {
-				const clients = await self.clients.matchAll();
+				const clients = await serviceWorker.clients.matchAll();
 				clients.forEach((client) => {
-					client.navigate(client.url);
+					(client as WindowClient).navigate(client.url);
 				});
 			}
 		})()

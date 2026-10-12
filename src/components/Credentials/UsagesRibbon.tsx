@@ -1,4 +1,3 @@
-// UsagesRibbon.js
 import { GalleryHorizontalEnd } from 'lucide-react';
 import React from 'react';
 import type { Instance } from '@/context/CredentialsContext';

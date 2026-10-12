@@ -1,4 +1,3 @@
-// App.jsx
 import React, { Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
