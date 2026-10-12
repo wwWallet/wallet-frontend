@@ -193,7 +193,8 @@ export function useCredentialRequest() {
 					})
 				}
 				proofs = inputs;
-			} else if (proofType === "attestation") {
+			}
+			else if (proofType === "attestation") {
 				if (!c_nonce) {
 					throw new Error("Cannot create a KA-bound proof without an issuer nonce");
 				}
@@ -204,11 +205,9 @@ export function useCredentialRequest() {
 				}
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
+				const publicKeys = keypairs.map(({ publicKey }) => ({ ...publicKey, key_ops: ["verify"] }));
 
-				const requestKeyAttestationResponse = await requestKeyAttestation(
-					keypairs.map(({ publicKey }) => ({ ...publicKey, key_ops: ["verify"] })),
-					c_nonce,
-				);
+				const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
 				if (!requestKeyAttestationResponse) {
 					throw new Error("Failed to get key attestation from wallet-backend-server");
 				}
