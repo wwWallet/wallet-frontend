@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useCredentialName } from '@/hooks/useCredentialName';
@@ -14,11 +14,13 @@ interface CredentialGridCardProps {
 
 const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }: CredentialGridCardProps) => {
 	const { t } = useTranslation();
+	const language = i18n.language;
+	const preferredLanguages = useMemo(() => [language], [language]);
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		[i18n.language]
+		preferredLanguages
 	);
 
 	return (
