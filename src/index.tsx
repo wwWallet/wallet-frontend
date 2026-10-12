@@ -25,7 +25,7 @@ initializeDataSource()
 	.catch((err) => console.error('Error initializing database', err));
 
 // Create root and render app
-const root = createRoot(document.getElementById('root'));
+const root = createRoot(document.getElementById('root')!);
 root.render(
 	<BrowserRouter
 		future={{

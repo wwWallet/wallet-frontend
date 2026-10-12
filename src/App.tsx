@@ -10,11 +10,14 @@ import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 import Register from './pages/Auth/Register';
 
-const lazyWithDelay = (importFunction, delay = 1000) => {
+const lazyWithDelay = <P extends object>(
+	importFunction: () => Promise<{ default: React.ComponentType<P> }>,
+	delay: number = 1000,
+): React.LazyExoticComponent<React.ComponentType<P>> => {
 	return React.lazy(() =>
 		Promise.all([
 			importFunction(),
-			new Promise((resolve) => setTimeout(resolve, delay)),
+			new Promise<void>((resolve) => setTimeout(resolve, delay)),
 		]).then(([module]) => module)
 	);
 };
