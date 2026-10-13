@@ -3,11 +3,16 @@ name: code-formatting
 
 on:
   push:
-    branches-ignore:
-      - 'tmp**'
+    branches:
+      - master
   pull_request:
     branches-ignore:
       - 'tmp**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded PR runs; let every master run finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   editorconfig:

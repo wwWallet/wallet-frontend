@@ -1,9 +1,14 @@
 name: Build Docker image
 on:
   push:
-    branches-ignore:
+    branches:
       - master
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded PR runs; let every master run finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
