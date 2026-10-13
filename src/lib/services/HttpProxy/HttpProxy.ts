@@ -355,6 +355,12 @@ export function useHttpProxy(): IHttpProxy {
 					if (!encryptedResponse) {
 						throw new Error("Encrypted HTTP request failed");
 					}
+					const responseHeader = encryptedResponse.headers?.['content-type'];
+					console.log("Content-Type parsed: ", responseHeader);
+					const data = responseHeader?.trim().startsWith('application/json')
+						? JSON.parse(new TextDecoder().decode(encryptedResponse.body))
+						: new TextDecoder().decode(encryptedResponse.body);
+					const decodedResponse = { ...encryptedResponse, data };
 					if (encryptedResponse.status > 299 || encryptedResponse.status < 200) {
 						const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 						throw new AxiosError(
@@ -368,7 +374,7 @@ export function useHttpProxy(): IHttpProxy {
 							},
 							undefined,
 							{
-								data: encryptedResponse,
+								data: decodedResponse,
 								status: encryptedResponse.status,
 								statusText: String(encryptedResponse.status),
 								headers: encryptedResponse.headers || {},
@@ -381,12 +387,7 @@ export function useHttpProxy(): IHttpProxy {
 							}
 						);
 					}
-					const responseHeader = encryptedResponse.headers?.['content-type'];
-					console.log("Content-Type parsed: ", responseHeader);
-					const data = responseHeader?.trim().startsWith('application/json')
-						? JSON.parse(new TextDecoder().decode(encryptedResponse.body))
-						: new TextDecoder().decode(encryptedResponse.body);
-					response = { data: { ...encryptedResponse, data } };
+					response = { data: decodedResponse };
 				} else {
 					const appToken = sessionStorage.getItem('appToken');
 					if (!appToken) {
