@@ -1,0 +1,7 @@
+{
+	"Exclude": [
+		"(^|/)(node_modules|dist|build|coverage|\\.nyc_output|test-results|playwright-report)/",
+		"(^|/)\\.DS_Store$",
+		"^public/"
+	]
+}
