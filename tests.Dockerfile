@@ -9,4 +9,5 @@ COPY .env.template .env
 RUN yarn install --frozen-lockfile --network-timeout 300000 --cache-folder /tmp/yarn-cache
 
 COPY . .
+RUN npm run typecheck
 RUN npm run test
