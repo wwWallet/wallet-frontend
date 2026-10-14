@@ -121,8 +121,8 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await this.terminate();
 				return "cancelled";
 			}
-			console.log(e);
-			console.log("Could not initialize Web Bluetooth client");
+			console.log("[ble | connect] Caught error", e);
+			console.log("[ble | connect] Could not initialize Web Bluetooth client");
 			await this.terminate();
 			return "failed";
 		}
@@ -187,7 +187,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			chunk[0] = 1; // more chunks follow
 			chunk.set(payload.subarray(offset, offset + maxPayloadPerChunk), 1);
 			await this.writeChunk(chunk);
-			console.log("[debug] wrote chunk at offset", offset);
+			console.log("[ble | send message] Wrote chunk at offset", offset);
 			await new Promise((resolve) => setTimeout(resolve, 10));
 			offset += maxPayloadPerChunk;
 		}
@@ -195,7 +195,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 		lastChunk[0] = 0; // final chunk
 		lastChunk.set(payload.subarray(offset), 1);
 		await this.writeChunk(lastChunk);
-		console.log("[debug] wrote final chunk", lastChunk.length);
+		console.log("[ble | send message] Wrote final chunk", lastChunk.length);
 		await new Promise((resolve) => setTimeout(resolve, 10));
 	}
 
@@ -209,7 +209,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				if (!isRateLimitError(e) || attempt >= RATE_LIMIT_MAX_RETRIES) {
 					throw e;
 				}
-				console.log("[debug] rate limited, retrying in", backoffMs, "ms");
+				console.log("[ble | write chunk] rate limited, retrying in", backoffMs, "ms");
 				await new Promise((resolve) => setTimeout(resolve, backoffMs));
 				backoffMs = Math.min(backoffMs * 2, RATE_LIMIT_MAX_BACKOFF_MS);
 			}
@@ -224,7 +224,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await new Promise((resolve) => setTimeout(resolve, 10));
 			}
 		} catch (e) {
-			console.log("Failed to signal session end", e);
+			console.log("[ble | terminate] Failed to signal session end", e);
 		}
 		try {
 			if (this.server2ClientCharacteristic && this.server?.connected) {
@@ -232,7 +232,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await this.server2ClientCharacteristic.stopNotifications();
 			}
 		} catch (e) {
-			console.log("Failed to stop notifications", e);
+			console.log("[ble - terminate] Failed to stop notifications", e);
 		}
 		if (this.device) {
 			this.device.removeEventListener("gattserverdisconnected", this.onDisconnected);
