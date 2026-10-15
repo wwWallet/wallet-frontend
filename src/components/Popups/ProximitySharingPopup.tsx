@@ -260,7 +260,9 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 		const activeLanguage = getLanguage(i18n.language);
 		const fallbackLanguage = getLanguage(i18n.options.fallbackLng);
 		const activeLanguageLabel = displays.find(display => getLanguage(display.locale) === activeLanguage)?.label;
-		const fallbackLanguageLabel = displays.find(display => getLanguage(display.locale) === fallbackLanguage)?.label;
+		const fallbackLanguageLabel = fallbackLanguage === undefined
+			? undefined
+			: displays.find(display => getLanguage(display.locale) === fallbackLanguage)?.label;
 
 		return formatFieldLabel(activeLanguageLabel
 			?? fallbackLanguageLabel
