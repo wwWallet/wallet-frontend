@@ -39,6 +39,13 @@ const STATE_START = 0x01;
 const STATE_END = 0x02;
 const GATT_CONNECT_TIMEOUT_MS = 15_000;
 
+// Some Web Bluetooth providers (e.g. the Beacio Safari extension on iOS) throttle
+// GATT operations and reject bursts with a "Rate limit exceeded" SecurityError.
+// Back off and retry the same chunk instead of aborting the whole message
+const RATE_LIMIT_MAX_RETRIES = 8;
+const RATE_LIMIT_INITIAL_BACKOFF_MS = 100;
+const RATE_LIMIT_MAX_BACKOFF_MS = 2_000;
+
 /**
  * Bluetooth transport backed by the Web Bluetooth API, for browsers without
  * the native wrapper. Implements the ISO 18013-5 BLE data retrieval GATT
@@ -48,6 +55,12 @@ const GATT_CONNECT_TIMEOUT_MS = 15_000;
  * within a user activation window (i.e. shortly after a user gesture)
  */
 export class WebBluetoothTransport implements IBluetoothTransport {
+	private ua = navigator.userAgent;
+	private readonly isIOS = /iPad|iPhone|iPod/.test(this.ua);
+	private readonly isSafari = /Safari/.test(this.ua) && !/EdgiOS|CriOS|FxiOS/.test(this.ua);
+
+	private isBeacio: boolean = this.isIOS && this.isSafari;
+
 	// Payload bytes per write, including the leading framing byte. Web Bluetooth
 	// does not expose the negotiated ATT MTU, so stay under the common minimum
 	// of larger negotiated MTUs (247 bytes => 244 usable per write)
@@ -59,6 +72,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 	private stateCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
 	private client2ServerCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
 	private server2ClientCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
+	// private maxSizeWithoutResponseSize:
 
 	// Chunks received from Server2Client notifications, waiting to be consumed
 	private pendingChunks: Uint8Array[] = [];
@@ -114,8 +128,8 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await this.terminate();
 				return "cancelled";
 			}
-			console.log(e);
-			console.log("Could not initialize Web Bluetooth client");
+			console.log("[ble | connect] Caught error", e);
+			console.log("[ble | connect] Could not initialize Web Bluetooth client");
 			await this.terminate();
 			return "failed";
 		}
@@ -179,15 +193,34 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			const chunk = new Uint8Array(this.chunkSize);
 			chunk[0] = 1; // more chunks follow
 			chunk.set(payload.subarray(offset, offset + maxPayloadPerChunk), 1);
-			await this.client2ServerCharacteristic.writeValueWithoutResponse(chunk);
+			await this.writeChunk(chunk);
+			console.log("[ble | send message] Wrote chunk at offset", offset);
 			await new Promise((resolve) => setTimeout(resolve, 10));
 			offset += maxPayloadPerChunk;
 		}
 		const lastChunk = new Uint8Array(1 + payload.length - offset);
 		lastChunk[0] = 0; // final chunk
 		lastChunk.set(payload.subarray(offset), 1);
-		await this.client2ServerCharacteristic.writeValueWithoutResponse(lastChunk);
+		await this.writeChunk(lastChunk);
+		console.log("[ble | send message] Wrote final chunk", lastChunk.length);
 		await new Promise((resolve) => setTimeout(resolve, 10));
+	}
+
+	private async writeChunk(chunk: Uint8Array<ArrayBuffer>): Promise<void> {
+		let backoffMs = RATE_LIMIT_INITIAL_BACKOFF_MS;
+		for (let attempt = 0; ; attempt++) {
+			try {
+				await this.client2ServerCharacteristic.writeValueWithoutResponse(chunk);
+				return;
+			} catch (e) {
+				if (!isRateLimitError(e) || attempt >= RATE_LIMIT_MAX_RETRIES) {
+					throw e;
+				}
+				console.log("[ble | write chunk] rate limited, retrying in", backoffMs, "ms");
+				await new Promise((resolve) => setTimeout(resolve, backoffMs));
+				backoffMs = Math.min(backoffMs * 2, RATE_LIMIT_MAX_BACKOFF_MS);
+			}
+		}
 	}
 
 	async terminate(): Promise<void> {
@@ -198,7 +231,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await new Promise((resolve) => setTimeout(resolve, 10));
 			}
 		} catch (e) {
-			console.log("Failed to signal session end", e);
+			console.log("[ble | terminate] Failed to signal session end", e);
 		}
 		try {
 			if (this.server2ClientCharacteristic && this.server?.connected) {
@@ -206,7 +239,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await this.server2ClientCharacteristic.stopNotifications();
 			}
 		} catch (e) {
-			console.log("Failed to stop notifications", e);
+			console.log("[ble | terminate] Failed to stop notifications", e);
 		}
 		if (this.device) {
 			this.device.removeEventListener("gattserverdisconnected", this.onDisconnected);
@@ -226,4 +259,8 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			waiter.reject(new Error("Session terminated"));
 		}
 	}
+}
+
+function isRateLimitError(e: unknown): boolean {
+	return (e as DOMException)?.name === "SecurityError" && /rate limit/i.test((e as DOMException)?.message ?? "");
 }
