@@ -55,6 +55,12 @@ const RATE_LIMIT_MAX_BACKOFF_MS = 2_000;
  * within a user activation window (i.e. shortly after a user gesture)
  */
 export class WebBluetoothTransport implements IBluetoothTransport {
+	private ua = navigator.userAgent;
+	private readonly isIOS = /iPad|iPhone|iPod/.test(this.ua);
+	private readonly isSafari = /Safari/.test(this.ua) && !/EdgiOS|CriOS|FxiOS/.test(this.ua);
+
+	private isBeacio: boolean = this.isIOS && this.isSafari;
+
 	// Payload bytes per write, including the leading framing byte. Web Bluetooth
 	// does not expose the negotiated ATT MTU, so stay under the common minimum
 	// of larger negotiated MTUs (247 bytes => 244 usable per write)
@@ -66,6 +72,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 	private stateCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
 	private client2ServerCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
 	private server2ClientCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
+	// private maxSizeWithoutResponseSize:
 
 	// Chunks received from Server2Client notifications, waiting to be consumed
 	private pendingChunks: Uint8Array[] = [];
@@ -232,7 +239,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await this.server2ClientCharacteristic.stopNotifications();
 			}
 		} catch (e) {
-			console.log("[ble - terminate] Failed to stop notifications", e);
+			console.log("[ble | terminate] Failed to stop notifications", e);
 		}
 		if (this.device) {
 			this.device.removeEventListener("gattserverdisconnected", this.onDisconnected);
