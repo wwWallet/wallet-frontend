@@ -8,11 +8,10 @@ import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
-import { buildOpenId4VpSessionTranscriptBytes } from "wallet-common";
 import { SDJwt } from "@sd-jwt/core";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
-import { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
+import type { MDoc } from "../utils/mdocHolderContext";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -1089,6 +1088,13 @@ export async function generateDeviceResponse(
 	handoverType: "redirect" | "dc_api" = "redirect",
 	dcApiOrigin?: string
 ): Promise<{ deviceResponseMDoc: MDoc }> {
+	const [
+		{ buildOpenId4VpSessionTranscriptBytes },
+		{ createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc },
+	] = await Promise.all([
+		import("wallet-common"),
+		import("../utils/mdocHolderContext"),
+	]);
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
@@ -1142,6 +1148,7 @@ export async function generateDeviceResponseWithProximity(
 	dcqlQuery: any,
 	sessionTranscriptBytes: any
 ): Promise<{ deviceResponseMDoc: MDoc }> {
+	const { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc } = await import("../utils/mdocHolderContext");
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 

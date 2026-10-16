@@ -1,11 +1,12 @@
 import React, { createContext } from 'react';
-import { BackendApi } from '../api';
+import type { BackendApi } from '../api';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
-import { HpkeConfig } from '@/lib/utils/ohttpHelpers';
+import type { HpkeConfig } from '@/lib/utils/ohttpHelpers';
 
 export type SessionContextValue = {
 	api: BackendApi,
 	isLoggedIn: boolean,
+	isSessionRestored: boolean,
 	keystore: LocalStorageKeystore,
 	logout: () => Promise<void>,
 	obliviousKeyConfig: HpkeConfig
@@ -14,6 +15,7 @@ export type SessionContextValue = {
 const SessionContext: React.Context<SessionContextValue> = createContext({
 	api: undefined,
 	isLoggedIn: false,
+	isSessionRestored: false,
 	keystore: undefined,
 	obliviousKeyConfig: null,
 	logout: async () => { },
