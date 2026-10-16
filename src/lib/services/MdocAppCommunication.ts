@@ -1,4 +1,4 @@
-import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
+import type { IMdocAppCommunication, MdocRequest } from "../interfaces/IMdocAppCommunication";
 import { cborDecode, cborEncode, DataItem, DeviceResponse, IssuerSigned } from "@owf/mdoc";
 import { v4 as uuidv4 } from 'uuid';
 import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
@@ -103,7 +103,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return transport.connect(serviceUuidRef.current, onDeviceSelected);
 	}, []);
 
-	const getMdocRequest = useCallback(async (): Promise<{ fields: string[]; credentialMatchesRequest: boolean; requestedDocType: string | null; credentialDocType: string }> => {
+	const getMdocRequest = useCallback(async (): Promise<MdocRequest> => {
 		let receivedMessage: Uint8Array = new Uint8Array([]);
 		if (transportRef.current) {
 			console.log("Created BLE client");

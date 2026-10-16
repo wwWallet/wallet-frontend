@@ -24,6 +24,9 @@ export type ExtendedVcEntity = WalletStateCredential & {
 	sigCount: number; // calculate usage by parsing all presentation history
 }
 
+export type ParseCredentialInput = Pick<WalletStateCredential, 'data'>
+	& Partial<Pick<WalletStateCredential, 'credentialIssuerIdentifier' | 'credentialConfigurationId'>>;
+
 export type CredentialsContextValue = {
 	vcEntityList: ExtendedVcEntity[] | null;
 	latestCredentials: Set<number>;
@@ -31,7 +34,7 @@ export type CredentialsContextValue = {
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (credential: WalletStateCredential) => Promise<ParsedCredential | null>;
+	parseCredential: (credential: ParseCredentialInput) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
 	pendingTransactions: WalletStateCredentialIssuanceSession[] | null;
 };

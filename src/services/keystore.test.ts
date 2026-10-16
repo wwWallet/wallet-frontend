@@ -159,6 +159,7 @@ describe("The keystore", () => {
 		};
 		it("p256-pub.", async () => test("p256-pub"));
 		it("jwk_jcs-pub.", async () => test("jwk_jcs-pub"));
+		it("without a DID key version.", async () => test(undefined));
 	});
 
 	describe("can generate and store new credential keypairs on request with DID key version", async () => {

@@ -6,8 +6,8 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-const applicationFiles = ['src/**/*.{js,jsx,ts,tsx}'];
-const testFiles = ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'];
+const applicationFiles = ['src/**/*.{ts,tsx}'];
+const testFiles = ['src/**/*.{test,spec}.{ts,tsx}'];
 const nodeFiles = [
 	'*.config.{js,ts}',
 	'vite.config*.ts',
@@ -123,7 +123,7 @@ export default tseslint.config(
 	},
 	{
 		files: [
-			'src/service-worker.js',
+			'src/service-worker.ts',
 		],
 		languageOptions: {
 			globals: {
@@ -133,8 +133,8 @@ export default tseslint.config(
 	},
 	{
 		files: [
-			'src/**/*worker.{js,ts}',
-			'src/**/worker.{js,ts}',
+			'src/**/*worker.ts',
+			'src/**/worker.ts',
 		],
 		languageOptions: {
 			globals: {
@@ -160,7 +160,7 @@ export default tseslint.config(
 	},
 	{
 		files: [
-			'src/utils/qr/**/*.{js,ts}',
+			'src/utils/qr/**/*.ts',
 		],
 		rules: {
 			'@typescript-eslint/no-wrapper-object-types': 'off',

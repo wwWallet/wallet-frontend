@@ -64,7 +64,7 @@ export default defineConfig(async ({ mode }) => {
 			svgr(),
 			checker({
 				eslint: {
-					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
+					lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
 					useFlatConfig: true,
 					watchPath: './src',
 				}
@@ -73,8 +73,8 @@ export default defineConfig(async ({ mode }) => {
 				registerType: 'autoUpdate',
 				injectRegister: null,
 				srcDir: 'src',
-				filename: 'service-worker.js', // Custom service worker (MUST exist in `src/`)
-				strategies: 'injectManifest', // Uses `src/service-worker.js` for caching
+				filename: 'service-worker.ts', // Custom service worker (MUST exist in `src/`)
+				strategies: 'injectManifest', // Uses `src/service-worker.ts` for caching
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,

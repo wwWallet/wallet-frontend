@@ -239,7 +239,7 @@ export async function migrateV3PrivateData(privateData: PrivateDataV2 | PrivateD
 
 export type CredentialKeyPair = {
 	kid: string,
-	did: string,
+	did?: string,
 	alg: string,
 	publicKey: JWK,
 	privateKey: JWK,
@@ -925,7 +925,7 @@ export async function updateWalletState(
 async function addNewCredentialKeypairs(
 	[privateData, mainKey]: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
-	deriveKid: (publicKey: CryptoKey, did: string) => Promise<string>,
+	deriveKid: (publicKey: CryptoKey, did: string | undefined) => Promise<string>,
 	numberOfKeyPairs: number = 1
 ): Promise<{
 	privateKeys: CryptoKey[],
@@ -981,7 +981,10 @@ async function addNewCredentialKeypairs(
 	};
 }
 
-async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Promise<string> {
+async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Promise<string | undefined> {
+	if (didKeyVersion === undefined) {
+		return undefined;
+	}
 	if (didKeyVersion === "p256-pub") {
 		const { didKeyString } = await createW3CDID(publicKey);
 		return didKeyString;

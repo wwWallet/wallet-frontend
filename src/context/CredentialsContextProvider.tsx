@@ -3,7 +3,7 @@ import { useSessionContext } from './SessionContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError, VerifiableCredentialFormat, ParsedCredential } from "wallet-common";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
-import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsContext";
+import CredentialsContext, { type ExtendedVcEntity, type Instance, type ParseCredentialInput } from "./CredentialsContext";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import { setAppBadgeCount } from '@/utils';
@@ -75,7 +75,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 	}, [isLoggedIn, httpProxy, helper, initializeEngine]);
 
 
-	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
+	const parseCredential = useCallback(async (credential: ParseCredentialInput): Promise<ParsedCredential | null> => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
@@ -84,7 +84,7 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 				data,
 				credentialIssuerIdentifier,
 				credentialConfigurationId,
-			} = vcEntity;
+			} = credential;
 
 			const result = await credentialEngine.credentialParsingEngine.parse({
 				rawCredential: data,
