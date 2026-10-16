@@ -11,7 +11,7 @@ import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTagg
 import { buildOpenId4VpSessionTranscriptBytes } from "wallet-common";
 import { SDJwt } from "@sd-jwt/core";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
+import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2 } from "./WalletStateSchema";
 import { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
 
 type WalletState = CurrentSchema.WalletState;
@@ -826,7 +826,7 @@ export async function init(
 ): Promise<UnlockSuccess> {
 	const privateData: EncryptedContainer = {
 		...keyInfo,
-		jwe: await encryptPrivateData(SchemaV3.WalletStateOperations.initialWalletStateContainer(), mainKey),
+		jwe: await encryptPrivateData(CurrentSchema.WalletStateOperations.initialWalletStateContainer(), mainKey),
 	};
 	return await unlock(mainKey, privateData);
 }

@@ -4,7 +4,8 @@ import { compareBy, last, splitWhen } from "@/util";
 import * as SchemaV1 from "./WalletStateSchemaVersion1";
 import * as SchemaV2 from "./WalletStateSchemaVersion2";
 import * as SchemaV3 from "./WalletStateSchemaVersion3";
-import * as CurrentSchema from "./WalletStateSchemaVersion3";
+import * as SchemaV4 from "./WalletStateSchemaVersion4";
+import * as CurrentSchema from "./WalletStateSchemaVersion4";
 import { WalletSessionEvent, WalletState, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { CredentialKeyPair } from "./keystore";
@@ -13,7 +14,8 @@ import { JWK } from "jose";
 export * as SchemaV1 from "./WalletStateSchemaVersion1";
 export * as SchemaV2 from "./WalletStateSchemaVersion2";
 export * as SchemaV3 from "./WalletStateSchemaVersion3";
-export * as CurrentSchema from "./WalletStateSchemaVersion3";
+export * as SchemaV4 from "./WalletStateSchemaVersion4";
+export * as CurrentSchema from "./WalletStateSchemaVersion4";
 
 
 const {
@@ -36,6 +38,8 @@ export function getSchema(schemaVersion: number): WalletStateOperations<WalletSt
 			return SchemaV2.WalletStateOperations;
 		case 3:
 			return SchemaV3.WalletStateOperations;
+		case 4:
+			return SchemaV4.WalletStateOperations;
 		default:
 			throw new Error(`Unknown schema version: ${schemaVersion}`);
 	}
@@ -227,7 +231,8 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 		transactionId?: string,
 		nextPollAt?: number,
 	},
-	created?: number
+	created?: number,
+	walletInstanceAttestation?: string,
 ): Promise<WalletStateContainer> {
 
 	await validateEventHistoryContinuity(container);
@@ -249,6 +254,7 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 				dpop,
 				firstPartyAuthorization,
 				credentialEndpoint,
+				walletInstanceAttestation,
 				created: created ?? Math.floor(Date.now() / 1000),
 			},
 		],

@@ -807,6 +807,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				issuanceSession.firstPartyAuthorization,
 				issuanceSession.credentialEndpoint,
 				issuanceSession.created,
+				issuanceSession.walletInstanceAttestation,
 			);
 		}
 		for (const sessionId of deletedSessions) {
