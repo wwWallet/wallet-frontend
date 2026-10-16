@@ -11,8 +11,8 @@ import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } fr
 import { accessTokenIsValid, refreshAccessToken } from './OAuth/accessToken';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
-import SessionContext from '@/context/SessionContext';
-import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
+import { useSessionContext } from '@/context/SessionContext';
+import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema, OpenidCredentialIssuerMetadata } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
@@ -154,7 +154,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const [issuanceFlowInProgress, setIssuanceFlowInProgress] = useState(false);
 
 	const httpProxy = useHttpProxy();
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const { credentialEngine } = useContext<any>(CredentialsContext);
 
 	const { t } = useTranslation();
@@ -168,8 +168,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const credentialRequestBuilder = useCredentialRequest();
 	const deferredCredentialRequestBuilder = useCredentialRequest();
 
-	const credentialConfigurationIdRef = useRef(null);
-	const credentialIssuerMetadataRef = useRef(null);
+	const credentialConfigurationIdRef = useRef<string | null>(null);
+	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
 
 	const { getCalculatedWalletState } = keystore;
@@ -183,20 +183,29 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			return;
 		}
 		const temp = [...receivedCredentialsArray];
-		setReceivedCredentialsArray(null);
 		const batchId = WalletStateUtils.getRandomUint32();
+		const credentialConfigurationId = credentialConfigurationIdRef.current;
+		const credentialIssuerMetadata = credentialIssuerMetadataRef.current;
+		const credentialConfiguration = credentialConfigurationId && credentialIssuerMetadata
+			? credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId]
+			: undefined;
+		if (!credentialConfigurationId || !credentialIssuerMetadata || !credentialConfiguration) {
+			console.error("Credential issuer metadata or configuration is not set");
+			return;
+		}
+		setReceivedCredentialsArray(null);
 		// wait for keystore update before commiting the new credentials
 		(async () => {
 			try {
 
 				const kidMap = await Promise.all(temp.map(async (credential, index) => {
-					if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.VC_SDJWT ||
-						credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.DC_SDJWT
+					if (credentialConfiguration.format === VerifiableCredentialFormat.VC_SDJWT ||
+						credentialConfiguration.format === VerifiableCredentialFormat.DC_SDJWT
 					) {
-						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format);
+						return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
 					}
-					else if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.MSO_MDOC) {
-						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format);
+					else if (credentialConfiguration.format === VerifiableCredentialFormat.MSO_MDOC) {
+						return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
 					}
 					else {
 						return null;
@@ -209,8 +218,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					{
 						rawCredential: temp[0],
 						credentialIssuer: {
-							credentialConfigurationId: credentialConfigurationIdRef.current,
-							credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+							credentialConfigurationId,
+							credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 						},
 					}
 				)
@@ -239,10 +248,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
 						return {
 							data: credential,
-							format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
+							format: credentialConfiguration.format,
 							kid: kidMap[index] ?? "",
-							credentialConfigurationId: credentialConfigurationIdRef.current,
-							credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+							credentialConfigurationId,
+							credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 							batchId: batchId,
 							instanceId: index,
 						}
@@ -303,6 +312,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
 			]);
+			if (!credentialIssuerMetadata) {
+				throw new Error("Credential issuer metadata is not set");
+			}
 
 			// store as refs
 			credentialIssuerMetadataRef.current = credentialIssuerMetadata
@@ -319,6 +331,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			credentialRequestBuilder.setCredentialConfigurationId(flowState.credentialConfigurationId);
 
 			if (flowState?.dpop) {
+				if (!flowState.dpop.dpopPublicKeyJwk) {
+					throw new Error("DPoP public key is not set");
+				}
 				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg)
 				credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 				credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
@@ -327,9 +342,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				await credentialRequestBuilder.setDpopHeader();
 			}
 
-			const [, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
-				id === flowState.credentialConfigurationId
-			)[0];
+			const credConf = credentialIssuerMetadata.metadata.credential_configurations_supported[
+				flowState.credentialConfigurationId
+			];
+			if (!credConf) {
+				throw new Error("Credential configuration is not set");
+			}
 
 			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
 			for (const proof_type of openid4vciProofTypePrecedence) {
@@ -365,7 +383,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			await openID4VCIClientStateRepository.updateState(flowState);
 			await openID4VCIClientStateRepository.cleanupExpired();
 
-			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+			const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
 
 			setReceivedCredentialsArray(credentialArray);
 
@@ -413,6 +431,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
+			if (!authzServerMetadata) {
+				throw new Error("Authorization server metadata is not set");
+			}
 
 			if (!clientId) {
 				console.error("clientId not found");
@@ -427,10 +448,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					throw new Error("Using active access token: No flowstate");
 				}
 
+				const rememberIssuerAge = getRememberIssuerAge();
+				const flowStateAge = Math.floor(Date.now() / 1000) - flowState.created;
 				// if c_nonce and access_token are not expired
 				if (flowState.tokenResponse &&
 					Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.expiration_timestamp &&
-					getRememberIssuerAge() !== null && Math.floor(Date.now() / 1000) - flowState.created < getRememberIssuerAge()) {
+					rememberIssuerAge !== null && flowStateAge < rememberIssuerAge) {
 					// attempt credential request
 					if (!flowState.dpop) {
 						throw new Error("Using active access token: No dpop in flowstate");
@@ -445,7 +468,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 				// if access_token is expired
 				if (flowState.tokenResponse && Math.floor(Date.now() / 1000) > flowState.tokenResponse.data.expiration_timestamp && flowState.tokenResponse.data.refresh_token &&
-					getRememberIssuerAge() !== null && Math.floor(Date.now() / 1000) - flowState.created < getRememberIssuerAge()) {
+					rememberIssuerAge !== null && flowStateAge < rememberIssuerAge) {
 					// refresh token grant
 					await requestCredentials(credentialIssuerIdentifier, {
 						dpopNonceHeader: requestCredentialsParams.dpopNonceHeader,
@@ -492,7 +515,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 			else { // if already generated, then reuse them
 				dpopPrivateKeyJwk = flowState.dpop.dpopPrivateKeyJwk;
-				dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk;
+				dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk ?? null;
 
 				[dpopPrivateKey] = await Promise.all([
 					jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
@@ -504,6 +527,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
 
 			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
+				if (!dpopPrivateKey || !dpopPublicKeyJwk || !dpopPrivateKeyJwk) {
+					throw new Error("DPoP keys are not set");
+				}
 				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
 				flowState.dpop = {
 					dpopAlg: 'ES256',
@@ -516,12 +542,23 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
-			tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
-			tokenRequestBuilder.setAuthorizationResponseUrl(requestCredentialsParams?.authorizationCodeGrant?.authorizationResponseUrl);
-			tokenRequestBuilder.setState(requestCredentialsParams?.authorizationCodeGrant?.state);
-			tokenRequestBuilder.setCodeVerifier(flowState?.code_verifier);
+			if (requestCredentialsParams.authorizationCodeGrant) {
+				if (!flowState.code_verifier) {
+					throw new Error("Code verifier is not set");
+				}
+				tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams.authorizationCodeGrant.code);
+				tokenRequestBuilder.setAuthorizationResponseUrl(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl);
+				tokenRequestBuilder.setState(requestCredentialsParams.authorizationCodeGrant.state);
+				tokenRequestBuilder.setCodeVerifier(flowState.code_verifier);
+			}
 
-			tokenRequestBuilder.setRefreshToken(flowState?.tokenResponse?.data?.refresh_token);
+			const refreshToken = flowState.tokenResponse?.data?.refresh_token;
+			if (requestCredentialsParams.refreshTokenGrant) {
+				if (!refreshToken) {
+					throw new Error("Refresh token is not set");
+				}
+				tokenRequestBuilder.setRefreshToken(refreshToken);
+			}
 
 			tokenRequestBuilder.setRedirectUri(redirectUri);
 
@@ -530,6 +567,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			if ('error' in result) {
 				if (result.error === TokenRequestError.AUTHORIZATION_REQUIRED) {
+					if (!generateAuthorizationRequestRef.current) {
+						throw new Error("Authorization request generator is not set");
+					}
 					return generateAuthorizationRequestRef.current(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
 				}
 				throw new Error("Token request failed");
@@ -575,7 +615,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		]
 	);
 
-	const generateAuthorizationRequestRef = useRef<Function | null>(null);
+	const generateAuthorizationRequestRef = useRef<IOpenID4VCI['generateAuthorizationRequest'] | null>(null);
 
 	const handleAuthorizationResponse = useCallback(
 		async (url: string, dpopNonceHeader?: string) => {
@@ -585,6 +625,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const state = parsedUrl.searchParams.get('state');
 
 			if (!code) {
+				return;
+			}
+			if (!state) {
 				return;
 			}
 
@@ -625,6 +668,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const [authzServerMetadata] = await Promise.all([
 			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
 		]);
+		if (!authzServerMetadata) {
+			throw new Error("Authorization server metadata is not set");
+		}
 
 		const flowState: WalletStateCredentialIssuanceSession = {
 			sessionId: WalletStateUtils.getRandomUint32(),
@@ -722,7 +768,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 				catch (err) {
 					console.error(err);
-					return;
+					throw new Error("Credential offer request failed");
 				}
 			} else {
 				throw new Error("Credential offer must contain credential_offer or credential_offer_uri");
@@ -732,8 +778,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
 			]);
+			if (!credentialIssuerMetadata) {
+				throw new Error("Credential issuer metadata not found");
+			}
 
 			const selectedConfigurationId = offer.credential_configuration_ids[0];
+			if (!selectedConfigurationId) {
+				throw new Error("Credential configuration not found");
+			}
 			const selectedConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[selectedConfigurationId];
 			if (!selectedConfiguration) {
 				throw new Error("Credential configuration not found");
@@ -763,6 +815,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier)
 			]);
+			if (!credentialIssuerMetadata) {
+				throw new Error("Credential issuer metadata not found");
+			}
 			if (!credentialIssuerMetadata.metadata?.credential_configurations_supported) {
 				throw new Error("Credential configuration supported not found")
 			}
@@ -796,9 +851,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			if (!clientId) {
 				throw new Error("Error generating Authorization Request: ClientID not found");
 			}
+			if (!authzServerMetadata || !credentialIssuerMetadata) {
+				throw new Error("Error generating Authorization Request: metadata not found");
+			}
 
 			// OID4VCI-specific logic for PAR
 			const selectedCredentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
+			if (!selectedCredentialConfigurationSupported?.scope) {
+				throw new Error("Error generating Authorization Request: credential configuration scope not found");
+			}
 			const scope = selectedCredentialConfigurationSupported.scope;
 
 			const userHandleB64u = keystore.getUserHandleB64u();
@@ -846,6 +907,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 				return { url: authorizationRequestURL.toString(), issuerMetadata: credentialIssuerMetadata.metadata, credentialConfigurationId };
 			}
+			throw new Error("Error generating Authorization Request: pushed_authorization_request_endpoint parameter not found");
 		},
 		[openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge, resumePendingCredentialIssuance, openID4VCIClientStateRepository]
 	);
@@ -870,7 +932,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [commitStateChanges, openID4VCIClientStateRepository, verificationFlowInProgress, setCommitStateChanges, receivedCredentialsArray]);
 
 
-	const intervalCallback = useCallback(async () => {
+	const intervalCallback = useCallback(async (): Promise<void | null> => {
 		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress || issuanceFlowInProgress) {
 			return null;
 		}
@@ -878,8 +940,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const credsCollected = [];
 			let stateUpdated = false;
 			for (const s of sessions) {
-				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId, nextPollAt } } = s;
-				const { metadata } = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				const { created, credentialIssuerIdentifier, credentialEndpoint } = s;
+				const transactionId = credentialEndpoint?.transactionId;
+				const nextPollAt = credentialEndpoint?.nextPollAt;
 				const now = Math.floor(new Date().getTime() / 1000);
 				console.log("Transaction id: ", transactionId)
 				if (!transactionId) {
@@ -895,6 +958,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 					});
 					stateUpdated = true;
+					continue;
+				}
+				const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				const metadata = metadataResult?.metadata;
+				if (!metadata?.deferred_credential_endpoint) {
 					continue;
 				}
 				let pollingState = s;
@@ -921,6 +989,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				deferredCredentialRequestBuilder.setCredentialConfigurationId(pollingState.credentialConfigurationId);
 
 				if (pollingState?.dpop) {
+					if (!pollingState.dpop.dpopPublicKeyJwk) {
+						console.error("DPoP public key is not set");
+						continue;
+					}
 					const privateKey = await jose.importJWK(pollingState?.dpop.dpopPrivateKeyJwk, pollingState?.dpop.dpopAlg)
 					deferredCredentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 					deferredCredentialRequestBuilder.setDpopPublicKeyJwk(pollingState.dpop.dpopPublicKeyJwk);
@@ -962,7 +1034,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					if (!credentialResponse?.data?.credentials) {
 						continue;
 					}
-					const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+					const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
 					if (credentialResponse?.data?.credentials) {
 						await openID4VCIClientStateRepository.updateState({
 							...pollingState,
@@ -970,10 +1042,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						});
 						stateUpdated = true;
 					}
-					const [credentialIssuerMetadata] = await Promise.all([
-						openID4VCIHelper.getCredentialIssuerMetadata(s.credentialIssuerIdentifier)
-					]);
-					credentialIssuerMetadataRef.current = credentialIssuerMetadata;
+					credentialIssuerMetadataRef.current = { metadata };
 					credentialConfigurationIdRef.current = s.credentialConfigurationId;
 					// let warnings = [];
 					for (const rawCredential of credentialArray) {

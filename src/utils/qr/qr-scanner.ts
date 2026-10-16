@@ -844,7 +844,7 @@ class QrScanner {
 			if (trustedTypesFactory && !QrScanner._trustedTypesPolicy) {
 				QrScanner._trustedTypesPolicy = trustedTypesFactory.createPolicy(
 					"qr-scanner#worker",
-					{ createScriptURL: (url) => url },
+					{ createScriptURL: (url: string) => url },
 				);
 			}
 			const workerScriptUrl = QrScanner._trustedTypesPolicy
@@ -1422,14 +1422,16 @@ class QrScanner {
 	): number {
 		if (!(qrEngine instanceof Worker)) return -1;
 		const id = QrScanner._workerMessageId++;
-		qrEngine.postMessage(
-			{
-				id,
-				type,
-				data,
-			},
-			transfer,
-		);
+		const message = {
+			id,
+			type,
+			data,
+		};
+		if (transfer === undefined) {
+			qrEngine.postMessage(message);
+		} else {
+			qrEngine.postMessage(message, transfer);
+		}
 		return id;
 	}
 }

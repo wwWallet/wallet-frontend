@@ -10,7 +10,7 @@ import i18n from '@/i18n';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import StatusContext from '@/context/StatusContext';
 
 // Hooks
@@ -39,7 +39,7 @@ import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Po
 
 const Credential = () => {
 	const { batchId } = useParams();
-	const { api, keystore } = useContext(SessionContext);
+	const { api, keystore } = useSessionContext();
 	const { isOnline } = useContext(StatusContext);
 	const history = useFetchPresentations(keystore, batchId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);

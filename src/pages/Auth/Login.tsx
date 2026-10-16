@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import useScreenType from '@/hooks/useScreenType';
 
 import Link from '../../components/Links/Link';
@@ -15,7 +15,7 @@ import { resolveLoginRedirect } from '../../components/Auth/loginRedirect';
 
 const Login = () => {
 	const { isOnline } = useContext(StatusContext);
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn } = useSessionContext();
 	const { t } = useTranslation();
 
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');

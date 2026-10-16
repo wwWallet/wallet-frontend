@@ -2,9 +2,10 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from 'rea
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
+import { AppError } from '@/errors';
 import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
@@ -18,15 +19,22 @@ const passkeyOptions = (t: (key: string) => string) => [
 	{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon },
 ];
 
+type WebauthnRegistrationBeginData = {
+	challengeId: string;
+	createOptions: CredentialCreationOptions & {
+		publicKey: PublicKeyCredentialCreationOptions;
+	};
+};
+
 const WebauthnRegistration = ({
 	onSuccess,
 }: {
 	onSuccess: () => void,
 }) => {
 	const { isOnline } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
-	const [beginData, setBeginData] = useState(null);
-	const [pendingCredential, setPendingCredential] = useState(null);
+	const { api, keystore } = useSessionContext();
+	const [beginData, setBeginData] = useState<WebauthnRegistrationBeginData | null>(null);
+	const [pendingCredential, setPendingCredential] = useState<PublicKeyCredential | null>(null);
 	const [name, setName] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
@@ -65,14 +73,14 @@ const WebauthnRegistration = ({
 	const stateChooseName = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
-		async (webauthnHint) => {
+		async (webauthnHint: string) => {
 			setBeginData(null);
 			setIsSubmitting(true);
 			setPendingCredential(null);
 
 			const beginResp = await api.post('/user/session/webauthn/register-begin', {});
 			console.log("begin", beginResp);
-			const beginData = beginResp.data;
+			const beginData = beginResp.data as WebauthnRegistrationBeginData;
 
 			if (beginData.challengeId) {
 				setBeginData(beginData);
@@ -86,16 +94,19 @@ const WebauthnRegistration = ({
 					publicKey: {
 						...beginData.createOptions.publicKey,
 						hints,
-						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, hints),
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection ?? {}, hints),
 					},
 				};
 
 				try {
 					const credential = await navigator.credentials.create(createOptions);
+					if (!(credential instanceof PublicKeyCredential)) {
+						throw new Error("Failed to create public key credential");
+					}
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
-					if (e?.name !== 'AbortError') {
+					if (!(e instanceof DOMException && e.name === 'AbortError')) {
 						console.error("Failed to register", e);
 					}
 					setBeginData(null);
@@ -120,17 +131,18 @@ const WebauthnRegistration = ({
 		setIsSubmitting(false);
 	};
 
-	const onFinish = async (event) => {
+	const onFinish = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		console.log("onFinish", event);
 
 		if (beginData && pendingCredential) {
 			try {
+				const response = pendingCredential.response as AuthenticatorAttestationResponse;
 				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 					pendingCredential,
 					async () => {
 						setNeedPrfRetry(true);
-						return new Promise<boolean>((resolve, reject) => {
+						return new Promise<boolean>((resolve, _reject) => {
 							setResolvePrfRetryPrompt(() => resolve);
 						}).finally(() => {
 							setNeedPrfRetry(false);
@@ -149,9 +161,9 @@ const WebauthnRegistration = ({
 						id: pendingCredential.id,
 						rawId: pendingCredential.rawId,
 						response: {
-							attestationObject: pendingCredential.response.attestationObject,
-							clientDataJSON: pendingCredential.response.clientDataJSON,
-							transports: pendingCredential.response.getTransports(),
+							attestationObject: response.attestationObject,
+							clientDataJSON: response.clientDataJSON,
+							transports: response.getTransports(),
 						},
 						authenticatorAttachment: pendingCredential.authenticatorAttachment,
 						clientExtensionResults: pendingCredential.getClientExtensionResults(),
@@ -164,9 +176,9 @@ const WebauthnRegistration = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
-				if (e?.cause === 'x-private-data-etag') {
+				if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 					// TODO: Show this error to the user
-					throw new Error("Private data version conflict", { cause: e });
+					throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
 				}
 
 			} finally {
@@ -281,7 +293,7 @@ const WebauthnRegistration = ({
 
 			<Dialog
 				open={needPrfRetry && !prfRetryAccepted}
-				onCancel={() => resolvePrfRetryPrompt(false)}
+				onCancel={() => resolvePrfRetryPrompt?.(false)}
 			>
 				<H2
 					heading={(
@@ -299,14 +311,14 @@ const WebauthnRegistration = ({
 				<div className='flex justify-center gap-2'>
 					<Button
 						id="cancel-prf-passkey-settings"
-						onClick={() => resolvePrfRetryPrompt(false)}
+						onClick={() => resolvePrfRetryPrompt?.(false)}
 					>
 						{t('common.cancel')}
 					</Button>
 
 					<Button
 						id="continue-prf-passkey-settings"
-						onClick={() => resolvePrfRetryPrompt(true)}
+						onClick={() => resolvePrfRetryPrompt?.(true)}
 						variant="primary"
 						disabled={prfRetryAccepted}
 					>

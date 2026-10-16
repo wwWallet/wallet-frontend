@@ -1,4 +1,4 @@
-import React, { createContext } from 'react';
+import { createContext, useContext } from 'react';
 import { BackendApi } from '../api';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { HpkeConfig } from '@/lib/utils/ohttpHelpers';
@@ -8,15 +8,17 @@ export type SessionContextValue = {
 	isLoggedIn: boolean,
 	keystore: LocalStorageKeystore,
 	logout: () => Promise<void>,
-	obliviousKeyConfig: HpkeConfig
+	obliviousKeyConfig: HpkeConfig | null
 };
 
-const SessionContext: React.Context<SessionContextValue> = createContext({
-	api: undefined,
-	isLoggedIn: false,
-	keystore: undefined,
-	obliviousKeyConfig: null,
-	logout: async () => { },
-});
+const SessionContext = createContext<SessionContextValue | undefined>(undefined);
+
+export function useSessionContext(): SessionContextValue {
+	const value = useContext(SessionContext);
+	if (value === undefined) {
+		throw new Error('useSessionContext must be used within SessionContextProvider');
+	}
+	return value;
+}
 
 export default SessionContext;

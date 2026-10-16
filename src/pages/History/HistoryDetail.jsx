@@ -1,10 +1,10 @@
 // External libraries
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 // Contexts
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 // Hooks
 import useFetchPresentations from '@/hooks/useFetchPresentations';
@@ -15,7 +15,7 @@ import PageHeading from '@/components/Shared/PageHeading';
 
 const ActivityDetail = () => {
 	const { transactionId } = useParams();
-	const { keystore } = useContext(SessionContext);
+	const { keystore } = useSessionContext();
 	const activity = useFetchPresentations(keystore, null, transactionId);
 	const [selectedActivityItem, setSelectedActivityItem] = useState([]);
 	const { t } = useTranslation();

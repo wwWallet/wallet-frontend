@@ -13,6 +13,7 @@ import { SDJwt } from "@sd-jwt/core";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 import { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
+import { AppError } from "../errors";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -65,7 +66,7 @@ export function assertAsymmetricEncryptedContainer(privateData: EncryptedContain
 	if (isAsymmetricEncryptedContainer(privateData)) {
 		return privateData;
 	} else {
-		throw new Error("Keystore must be upgraded to asymmetric format", { cause: 'keystore_not_asymmetric' });
+		throw new AppError('keystore_not_asymmetric', "Keystore must be upgraded to asymmetric format");
 	}
 }
 
@@ -494,6 +495,9 @@ export async function unwrapKey(
 	extractable: boolean = false,
 ): Promise<CryptoKey> {
 	if (isAsymmetricWrappedKeyInfo(keyInfo)) {
+		if (!ephemeralInfo) {
+			throw new Error("Missing ephemeral encapsulation info");
+		}
 		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["decrypt", "wrapKey", "unwrapKey"]);
 	} else {
 		return await crypto.subtle.unwrapKey(
@@ -653,18 +657,18 @@ async function getPrfOutput(
 				return await getPrfOutput(retryCred, prfInputs, async () => false);
 			} catch (err) {
 				if (err instanceof DOMException && err.name === "NotAllowedError") {
-					throw new Error("Failed to evaluate PRF", { cause: { errorId: "prf_retry_failed", credential, err } });
+					throw new AppError("prf_retry_failed", "Failed to evaluate PRF", { cause: { credential, err } });
 				} else {
 					throw new Error("Failed to evaluate PRF", { cause: err });
 				}
 			}
 
 		} else {
-			throw new Error("Canceled by user", { cause: { errorId: "canceled" } });
+			throw new AppError("canceled", "Canceled by user");
 		}
 
 	} else {
-		throw new Error("Browser or authenticator does not support PRF", { cause: { errorId: "prf_not_supported" } });
+		throw new AppError("prf_not_supported", "Browser or authenticator does not support PRF");
 	}
 }
 
@@ -681,7 +685,7 @@ async function createPrfKey(
 		promptForPrfRetry,
 	);
 	const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
-	const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
+	const hkdfInfo = new Uint8Array(new TextEncoder().encode("eDiplomas PRF"));
 	const algorithm = { name: "AES-GCM", length: 256 };
 	const deriveKeyParams = { hkdfSalt, hkdfInfo, algorithm };
 	const prfKey = await derivePrfKey(prfOutput, deriveKeyParams);
@@ -807,9 +811,16 @@ export async function unlockPrf(
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[UnlockSuccess, EncryptedContainer | null]> {
 	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
-	const mainKey = isPrfKeyV2(keyInfo)
-		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
-		: await unwrapKey(prfKey, null, keyInfo.mainKey, true);
+	let mainKey: CryptoKey;
+	if (isPrfKeyV2(keyInfo)) {
+		if (!privateData.mainKey) {
+			throw new Error("Main key is required for PRF v2");
+		}
+		mainKey = await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"]);
+	}
+	else {
+		mainKey = await unwrapKey(prfKey, null, keyInfo.mainKey, true);
+	}
 
 	const newPrivateData = (
 		isPrfKeyV2(keyInfo)
@@ -978,6 +989,8 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 		const publicKeyJwk = await crypto.subtle.exportKey("jwk", publicKey);
 		return didUtil.createDid(publicKeyJwk as JWK);
 	}
+	const exhaustiveCheck: never = didKeyVersion;
+	throw new Error("Unsupported DID key version: " + exhaustiveCheck);
 }
 
 export async function signJwtPresentation([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
@@ -989,6 +1002,9 @@ export async function signJwtPresentation([privateData, mainKey, calculatedState
 	}
 
 	const inputJwt = await SDJwt.fromEncode(verifiableCredentials[0], hasher);
+	if (!inputJwt.jwt) {
+		throw new Error("SD-JWT payload is missing");
+	}
 	const { cnf } = inputJwt.jwt.payload as { cnf?: { jwk?: JWK } };
 
 	if (!cnf?.jwk) {
@@ -1030,7 +1046,7 @@ export async function signJwtPresentation([privateData, mainKey, calculatedState
 export async function generateOpenid4vciProofs(
 	container: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
-	nonce: string,
+	nonce: string | undefined,
 	audience: string,
 	issuer: string,
 	numberOfKeyPairs: number = 1

@@ -3,7 +3,7 @@ import { IOpenID4VPRelyingPartyStateRepository } from "../interfaces/IOpenID4VPR
 import { OpenID4VPRelyingPartyState } from "../types/OpenID4VPRelyingPartyState";
 
 export function useOpenID4VPRelyingPartyStateRepository(): IOpenID4VPRelyingPartyStateRepository {
-	const state = useRef(null);
+	const state = useRef<OpenID4VPRelyingPartyState | null>(null);
 
 	const store = useCallback(async (s: OpenID4VPRelyingPartyState): Promise<void> => {
 		state.current = s;
@@ -14,7 +14,7 @@ export function useOpenID4VPRelyingPartyStateRepository(): IOpenID4VPRelyingPart
 		if (!s) {
 			throw new Error("No state found in memory");
 		}
-		return state.current;
+		return s;
 	}, []);
 
 	return useMemo(() => {

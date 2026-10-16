@@ -5,7 +5,7 @@ import Logo from '../../Logo/Logo';
 import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import PoweredBy from '@/components/Shared/PoweredBy';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
@@ -41,7 +41,7 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 
 const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
-	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
+	const { api, logout, obliviousKeyConfig } = useSessionContext();
 	const { pendingTransactions } = useContext(CredentialsContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();

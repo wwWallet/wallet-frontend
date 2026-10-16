@@ -120,7 +120,9 @@ const SettingsTabs = ({
 	if (activeOverflowIndex !== -1 && visibleTabs.length > 0) {
 		const [activeTabObj] = overflowTabs.splice(activeOverflowIndex, 1);
 		const displacedTab = visibleTabs.pop();
-		overflowTabs.unshift(displacedTab);
+		if (displacedTab) {
+			overflowTabs.unshift(displacedTab);
+		}
 		visibleTabs.unshift(activeTabObj);
 	}
 

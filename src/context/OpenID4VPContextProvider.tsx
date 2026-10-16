@@ -4,29 +4,46 @@ import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import OpenID4VPContext from "./OpenID4VPContext";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
-import SessionContext from "./SessionContext";
+import { useSessionContext } from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
 
 
 export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
-	const { isLoggedIn } = useContext<any>(SessionContext);
+	const { isLoggedIn } = useSessionContext();
 
-	const [popupState, setPopupState] = useState({
+	type CredentialSelectionOptions = {
+		conformantCredentialsMap: Map<string, string[]>,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData?: ParsedTransactionData[],
+	};
+
+	const [popupState, setPopupState] = useState<{
+		isOpen: boolean,
+		options: CredentialSelectionOptions | null,
+		resolve: (value: Map<string, number>) => void,
+		reject: () => void,
+	}>({
 		isOpen: false,
 		options: null,
-		resolve: (value: unknown) => { },
+		resolve: () => { },
 		reject: () => { },
 	});
 
-	const [popupConsentState, setPopupConsentState] = useState({
+	const [popupConsentState, setPopupConsentState] = useState<{
+		isOpen: boolean,
+		options: Record<string, unknown> | null,
+		resolve: (value: boolean) => void,
+		reject: () => void,
+	}>({
 		isOpen: false,
 		options: null,
-		resolve: (value: unknown) => { },
+		resolve: () => { },
 		reject: () => { },
 	});
 
-	const showPopup = useCallback((options): Promise<Map<string, number>> =>
+	const showPopup = useCallback((options: CredentialSelectionOptions): Promise<Map<string, number>> =>
 		new Promise((resolve, reject) => {
 			setPopupState({
 				isOpen: true,
@@ -36,7 +53,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 			});
 		}), []);
 
-	const showPopupConsent = useCallback((options): Promise<boolean> =>
+	const showPopupConsent = useCallback((options: Record<string, unknown>): Promise<boolean> =>
 		new Promise((resolve, reject) => {
 			setPopupConsentState({
 				isOpen: true,
