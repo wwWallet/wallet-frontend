@@ -1,7 +1,7 @@
 type CounterBadgePosition = 'inline' | 'top-right' | 'top-left';
 
 interface CounterBadgeProps {
-	count: unknown;
+	count?: number;
 	max?: number;
 	active?: boolean;
 	position?: CounterBadgePosition;
@@ -12,7 +12,7 @@ interface CounterBadgeProps {
 
 /**
  * CounterBadge
- * - Hides itself when count <= 0 or not a number
+ * - Hides itself when count is absent or <= 0
  * - Caps display with `max` (e.g., 99+)
  * - `active` toggles color scheme to match active nav items
  * - `position` lets you place it easily (e.g., absolute top-right for bottom nav)
@@ -26,7 +26,7 @@ export default function CounterBadge({
 	ariaLabel = 'pending',
 	title, // optional: override tooltip
 }: CounterBadgeProps) {
-	const n = typeof count === 'number' ? count : 0;
+	const n = count ?? 0;
 	if (n <= 0) return null;
 
 	const text = n > max ? `${max}+` : `${n}`;

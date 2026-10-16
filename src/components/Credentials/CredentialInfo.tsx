@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { formatDate } from 'wallet-common';
-import { getLanguage } from '@/i18n';
+import { fallbackLng, getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import useScreenType from '../../hooks/useScreenType';
@@ -80,7 +80,11 @@ const Legend = ({ showRequired, showRequested, t }: LegendProps) => {
 	);
 };
 
-const getLabelAndDescriptionByLang = (displayArray: ClaimDisplayEntry[], lang: unknown, fallbackLang: unknown) => {
+const getLabelAndDescriptionByLang = (
+	displayArray: ClaimDisplayEntry[],
+	lang: string | undefined,
+	fallbackLang: string | undefined,
+) => {
 	const match =
 		displayArray.find(d => getLanguage(d.locale) === lang) ||
 		displayArray.find(d => getLanguage(d.locale) === fallbackLang) ||
@@ -280,7 +284,8 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
 	const [fullscreenImage, setFullscreenImage] = useState<FullscreenImage | null>(null);
-	const { language, options: { fallbackLng } } = i18n;
+	const language = getLanguage(i18n.language);
+	const fallbackLanguage = getLanguage(fallbackLng);
 
 	const requestedFields = requested?.fields ?? null;
 	const requestedDisplay = requested?.display ?? undefined;
@@ -400,7 +405,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		const rawValue = getValueByPath(claim.path, signedClaims);
 		if (rawValue === undefined) return;
 
-		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLng);
+		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLanguage);
 		const display = { label, description };
 
 		const imageAlt = label || '';

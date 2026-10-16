@@ -383,4 +383,28 @@ describe('CredentialInfo Component', () => {
 		expect(screen.getByText('Βαθμίδα:')).toBeInTheDocument();
 		expect(screen.getByText('8')).toBeInTheDocument();
 	});
+
+	it('uses the configured fallback language when it is not the first display entry', () => {
+		const parsedCredential = {
+			signedClaims: { given_name: 'John' },
+			metadata: {
+				credential: {
+					TypeMetadata: {
+						claims: [{
+							path: ['given_name'],
+							display: [
+								{ locale: 'el', label: 'Όνομα' },
+								{ locale: 'en', label: 'Given Name' },
+							],
+						}],
+					},
+				},
+			},
+		} satisfies CredentialInfoData;
+
+		i18n.changeLanguage('pt');
+
+		render(<CredentialInfo parsedCredential={parsedCredential} />);
+		expect(screen.getByText('Given Name:')).toBeInTheDocument();
+	});
 });

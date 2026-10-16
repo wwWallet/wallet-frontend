@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getLanguage } from '@/i18n';
+import { fallbackLng, getLanguage } from '@/i18n';
 
 type EmptyItem = Record<string, never>;
 
@@ -14,8 +14,8 @@ export type FilterItemByLang = <T extends LocalizedItem>(
 
 const useFilterItemByLang = (): FilterItemByLang => {
 	const { i18n } = useTranslation();
-	const language = i18n.language;
-	const fallbackLang = i18n.options.fallbackLng;
+	const language = getLanguage(i18n.language);
+	const fallbackLanguage = getLanguage(fallbackLng);
 
 	const filterItemByLang = useCallback<FilterItemByLang>((arrayOfItems) => {
 		if (!Array.isArray(arrayOfItems) || arrayOfItems.length === 0) {
@@ -25,10 +25,10 @@ const useFilterItemByLang = (): FilterItemByLang => {
 		const getItemLanguage = (item: LocalizedItem) => getLanguage(item.locale);
 
 		const item = arrayOfItems.find(candidate => getItemLanguage(candidate) === language) ||
-			arrayOfItems.find(candidate => getItemLanguage(candidate) === fallbackLang);
+			arrayOfItems.find(candidate => getItemLanguage(candidate) === fallbackLanguage);
 
 		return item || arrayOfItems[0] || {};
-	}, [language, fallbackLang]);
+	}, [language, fallbackLanguage]);
 
 	return filterItemByLang;
 };

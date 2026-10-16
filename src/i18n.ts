@@ -6,7 +6,7 @@ import enTranslation from './locales/en.json';
 import elTranslation from './locales/el.json';
 import ptTranslation from './locales/pt.json';
 
-const fallbackLng = 'en' as const;
+export const fallbackLng = 'en' as const;
 
 const resources = {
 	en: { translation: enTranslation },
