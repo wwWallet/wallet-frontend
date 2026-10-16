@@ -1,12 +1,14 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
+import type { FilterItemByLang } from '@/hooks/useFilterItemByLang';
+import type { CredentialPortal } from '@/types/credentialPortal';
 
 export function buildPortalRedirectPopupContent({
 	portal,
 	filterItemByLang,
 }: {
-	portal: any;
-	filterItemByLang: (items: any[]) => any;
+	portal: CredentialPortal;
+	filterItemByLang: FilterItemByLang;
 }): { title: string; message: React.ReactNode } {
 	const portalDisplay = filterItemByLang(portal.display);
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
 import type { OpenidCredentialIssuerMetadata } from 'wallet-common';
+import type { FilterItemByLang } from '@/hooks/useFilterItemByLang';
 
 export function buildCredentialRedirectPopupContent({
 	t,
@@ -11,7 +12,7 @@ export function buildCredentialRedirectPopupContent({
 	t: (key: string) => string;
 	credentialConfigurationId: string;
 	issuerMetadata: OpenidCredentialIssuerMetadata;
-	filterItemByLang: (items: any[] | undefined) => any;
+	filterItemByLang: FilterItemByLang;
 }): { title: string; message: React.ReactNode } {
 
 	const issuerDisplay = filterItemByLang(issuerMetadata?.display);
@@ -22,7 +23,6 @@ export function buildCredentialRedirectPopupContent({
 
 	const resolvedCredentialName = credentialDisplay?.name ?? credentialConfigurationId ?? 'Unknown';
 	const resolvedIssuerName = issuerDisplay?.name ?? (issuerMetadata?.credential_issuer ? new URL(issuerMetadata.credential_issuer).host : 'Unknown');
-	const resolvedIssuerDescription = issuerDisplay?.description ?? '';
 	const resolvedCredentialDescription = credentialDisplay?.description ?? '';
 
 	return {
@@ -32,7 +32,7 @@ export function buildCredentialRedirectPopupContent({
 				i18nKey="redirectPopup.issuanceMessage"
 				values={{
 					issuerName: resolvedIssuerName,
-					issuerDescription: resolvedIssuerDescription ? `(${resolvedIssuerDescription})` : '',
+					issuerDescription: '',
 					credentialName: resolvedCredentialName,
 					credentialDescription: resolvedCredentialDescription ? `(${resolvedCredentialDescription})` : '',
 				}}

@@ -26,30 +26,9 @@ import RedirectPopup from '@/components/Popups/RedirectPopup';
 import QueryableList from '@/components/QueryableList/QueryableList';
 import PageHeading from '@/components/Shared/PageHeading';
 import type { CachedUser } from '@/services/LocalStorageKeystore';
+import type { CredentialPortal, CredentialPortalSource } from '@/types/credentialPortal';
 
 type CredentialConfiguration = ReturnType<typeof buildCredentialConfiguration>;
-
-interface PortalDisplay {
-	name: string;
-	description?: string;
-	locale?: string;
-	logo?: {
-		uri: string;
-		alt_text?: string;
-	};
-	background_color?: string;
-	text_color?: string;
-}
-
-interface CredentialPortal {
-	id: number;
-	url: string;
-	display?: PortalDisplay[];
-	visible: boolean;
-	identifierField: string;
-	credentialConfigurationDisplayName: string;
-	displayNode: (searchQuery: string) => ReactNode;
-}
 
 interface IssuerDirectoryEntry {
 	credentialIssuerIdentifier: string;
@@ -57,7 +36,7 @@ interface IssuerDirectoryEntry {
 }
 
 interface IssuerDirectoryResponse {
-	portals: Omit<CredentialPortal, 'identifierField' | 'credentialConfigurationDisplayName' | 'displayNode'>[];
+	portals: CredentialPortalSource[];
 	issuers: IssuerDirectoryEntry[];
 }
 
