@@ -8,41 +8,31 @@ import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
 import { isCborDate } from 'wallet-common';
-import type { ClaimPath } from 'wallet-common';
+import type { AugmentedClaimMetadataEntry, ClaimDisplayEntry, ClaimPath } from 'wallet-common';
 import type { TFunction } from 'i18next';
 
-interface ClaimDisplay {
-	locale?: string;
-	label?: string;
-	description?: string;
-}
+type ClaimPathSegments = Array<ClaimPath[number]>;
 
-interface DisplayClaim {
-	path: ClaimPath;
-	display?: ClaimDisplay[];
-	required?: boolean;
-}
-
-interface CredentialInfoData {
+export interface CredentialInfoData {
 	signedClaims?: unknown;
 	metadata?: {
 		credential?: {
 			TypeMetadata?: {
-				claims?: DisplayClaim[];
+				claims?: AugmentedClaimMetadataEntry[];
 			};
 		};
 	};
 }
 
 interface RequestedClaims {
-	fields?: Array<ClaimPath | string>;
+	fields?: Array<ClaimPathSegments | string>;
 	display?: 'highlight' | 'hide';
 }
 
 interface CredentialInfoProps {
 	parsedCredential?: CredentialInfoData | null;
 	mainClassName?: string;
-	fallbackClaims?: DisplayClaim[];
+	fallbackClaims?: AugmentedClaimMetadataEntry[];
 	requested?: RequestedClaims;
 }
 
@@ -90,7 +80,7 @@ const Legend = ({ showRequired, showRequested, t }: LegendProps) => {
 	);
 };
 
-const getLabelAndDescriptionByLang = (displayArray: ClaimDisplay[], lang: unknown, fallbackLang: unknown) => {
+const getLabelAndDescriptionByLang = (displayArray: ClaimDisplayEntry[], lang: unknown, fallbackLang: unknown) => {
 	const match =
 		displayArray.find(d => getLanguage(d.locale) === lang) ||
 		displayArray.find(d => getLanguage(d.locale) === fallbackLang) ||
@@ -102,10 +92,10 @@ const getLabelAndDescriptionByLang = (displayArray: ClaimDisplay[], lang: unknow
 	};
 };
 
-const getValueByPath = (path: ClaimPath, obj: unknown): unknown => {
+const getValueByPath = (path: ClaimPathSegments, obj: unknown): unknown => {
 	if (!Array.isArray(path) || path.length === 0) return undefined;
 
-	const traverse = (segments: ClaimPath, current: unknown): unknown => {
+	const traverse = (segments: ClaimPathSegments, current: unknown): unknown => {
 		if (segments.length === 0) return current;
 		const [head, ...tail] = segments;
 
@@ -147,7 +137,7 @@ const getValueByPath = (path: ClaimPath, obj: unknown): unknown => {
 
 const addToNestedObject = (
 	target: NestedClaims,
-	path: ClaimPath,
+	path: ClaimPathSegments,
 	display: { label: string; description: string },
 	value: ReactNode,
 	required?: boolean,
@@ -170,8 +160,8 @@ const addToNestedObject = (
 	}
 };
 
-const expandDisplayClaims = (claims: DisplayClaim[], signedClaims: unknown): DisplayClaim[] => {
-	const expanded: DisplayClaim[] = [];
+const expandDisplayClaims = (claims: AugmentedClaimMetadataEntry[], signedClaims: unknown): AugmentedClaimMetadataEntry[] => {
+	const expanded: AugmentedClaimMetadataEntry[] = [];
 
 	claims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
@@ -189,7 +179,7 @@ const expandDisplayClaims = (claims: DisplayClaim[], signedClaims: unknown): Dis
 		if (target && typeof target === 'object') {
 			const keys = Array.isArray(target) ? target.map((_, i) => i) : Object.keys(target);
 			for (const key of keys) {
-				expanded.push({ ...claim, path: [...basePath, key, ...restPath] });
+				expanded.push({ ...claim, path: [...basePath, key, ...restPath] as ClaimPath });
 			}
 		}
 	});
@@ -197,7 +187,7 @@ const expandDisplayClaims = (claims: DisplayClaim[], signedClaims: unknown): Dis
 	return expanded;
 };
 
-const isDisplayClaim = (claim: DisplayClaim): boolean => {
+const isDisplayClaim = (claim: AugmentedClaimMetadataEntry): boolean => {
 	if (!Array.isArray(claim.path)) return false;
 	if (!Array.isArray(claim.display)) return false;
 	return claim.display.some(d => d.locale && d.label);
@@ -299,7 +289,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	const claims = parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
 
 	// Define custom claims to display from signedClaims if claims is missing
-	const customClaims = fallbackClaims ? fallbackClaims :
+	const customClaims: AugmentedClaimMetadataEntry[] = fallbackClaims ? fallbackClaims :
 		[
 			{ path: ['given_name'], display: [{ locale: 'en', label: 'Given Name' }] },
 			{ path: ['family_name'], display: [{ locale: 'en', label: 'Family Name' }] },
@@ -347,17 +337,18 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
 		);
 
-	const pathKey = (path: ClaimPath) => Array.isArray(path) ? path.join('.') : '';
+	const pathKey = (path: ClaimPathSegments) => Array.isArray(path) ? path.join('.') : '';
 
 	const pathToClaimIdx = new Map(
 		expandedDisplayClaims.map((claim, idx) => [pathKey(claim.path), idx])
 	);
 
-	const syntheticClaims: DisplayClaim[] = [];
+	const syntheticClaims: AugmentedClaimMetadataEntry[] = [];
 
 	if (requestedFieldSet && requestedFields) {
 		requestedFields.forEach(field => {
 			const pathArr = Array.isArray(field) ? field : [field];
+			if (pathArr.length === 0) return;
 			const joined = pathKey(pathArr);
 			const value = getValueByPath(pathArr, signedClaims);
 
@@ -373,7 +364,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				}
 			} else if (value !== undefined) {
 				syntheticClaims.push({
-					path: pathArr,
+					path: pathArr as ClaimPath,
 					display: [{ locale: 'en', label: joined, description: '' }]
 				});
 			}

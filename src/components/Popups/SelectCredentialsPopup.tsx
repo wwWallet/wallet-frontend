@@ -112,13 +112,13 @@ const SelectableCredentialSlideCard = ({
 const normalizePath = (path: ClaimPath | string): ClaimPath => {
 	if (Array.isArray(path)) return path;
 	if (typeof path === 'string' && path.startsWith('$.')) {
-		return path.slice(2).split('.');
+		return path.slice(2).split('.') as ClaimPath;
 	}
-	return [path];
+	return [path] as ClaimPath;
 };
 
 const getRequestedClaimPaths = (fields: RequestedCredentialField[] | undefined): ClaimPath[] | undefined =>
-	fields?.flatMap(field => field.path ? [normalizePath(field.path)] : []);
+	fields?.flatMap(field => field.path?.length ? [normalizePath(field.path as ClaimPath)] : []);
 
 const toCredentialClaimPath = (path: ClaimPath): CredentialClaimPath =>
 	path.map(segment => segment === null ? '' : String(segment));

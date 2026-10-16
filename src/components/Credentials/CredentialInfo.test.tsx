@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CredentialInfo from './CredentialInfo';
+import type { CredentialInfoData } from './CredentialInfo';
 import i18n from 'i18next';
 
 // Setup a baseline language for all tests if needed
@@ -116,7 +117,7 @@ describe('CredentialInfo Component', () => {
 				}
 			}
 		}
-	}
+	} satisfies CredentialInfoData;
 
 	it('renders without crashing', () => {
 		render(<CredentialInfo />);
@@ -135,7 +136,7 @@ describe('CredentialInfo Component', () => {
 						{}
 				}
 			}
-		}
+		} satisfies CredentialInfoData;
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		expect(screen.getByTestId('credential-info')).toBeInTheDocument();
 		expect(screen.getByText('Given Name:')).toBeInTheDocument();
@@ -156,7 +157,7 @@ describe('CredentialInfo Component', () => {
 					}
 				}
 			}
-		}
+		} satisfies CredentialInfoData;
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		const firstNameElement = screen.queryByText('Given Name:');
 		expect(firstNameElement).not.toBeInTheDocument();
@@ -198,7 +199,7 @@ describe('CredentialInfo Component', () => {
 					},
 				},
 			},
-		};
+		} satisfies CredentialInfoData;
 
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		expect(screen.getByText('Person:')).toBeInTheDocument();
@@ -362,7 +363,7 @@ describe('CredentialInfo Component', () => {
 					}
 				}
 			}
-		};
+		} satisfies CredentialInfoData;
 
 		i18n.changeLanguage('el'); // Change to Italian
 
