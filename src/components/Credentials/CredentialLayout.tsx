@@ -21,10 +21,9 @@ import { useVcEntity } from '@/hooks/useVcEntity';
 
 // Components
 import CredentialImage from '@/components/Credentials/CredentialImage';
+import type { CredentialImageOrientation } from '@/components/Credentials/CredentialImage';
 import FullscreenPopup from '@/components/Popups/FullscreenImg';
 import PageHeading from '@/components/Shared/PageHeading';
-
-type CredentialImageOrientation = 'landscape' | 'portrait';
 
 interface UsageStatsProps {
 	zeroSigCount: number | null;

@@ -7,9 +7,9 @@ import { CredentialCardSkeleton } from '../Skeletons';
 import { useTranslation } from 'react-i18next';
 import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
 import type { Instance } from '@/context/CredentialsContext';
-import type { CredentialClaimPath, ParsedCredential } from 'wallet-common';
+import type { CredentialClaimPath, ParsedCredential, SvgTemplateProperties } from 'wallet-common';
 
-type CredentialImageOrientation = 'landscape' | 'portrait';
+export type CredentialImageOrientation = NonNullable<SvgTemplateProperties['orientation']>;
 
 interface CredentialImageEntity {
 	batchId?: number;
