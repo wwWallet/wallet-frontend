@@ -10,6 +10,7 @@ import { truncateByWords } from '@/utils';
 import PopupLayout from './PopupLayout';
 import Button from '../Buttons/Button';
 import type { ExtendedVcEntity } from '@/context/CredentialsContext';
+import type { MdocTypeDetails } from '@/lib/interfaces/IMdocAppCommunication';
 
 const steps = ['scan', 'connect', 'review', 'share'];
 
@@ -51,11 +52,6 @@ interface TransferProgressProps {
 	failed?: boolean;
 	itemCount: number;
 	t: TFunction;
-}
-
-interface MdocTypeDetails {
-	requestedDocType: string | null;
-	credentialDocType: string;
 }
 
 interface ProximitySharingPopupProps {

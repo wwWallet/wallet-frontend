@@ -18,6 +18,7 @@ import StatusContext from '@/context/StatusContext';
 import { useCredentialName } from '@/hooks/useCredentialName';
 import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
+import type { MdocTypeDetails } from '@/lib/interfaces/IMdocAppCommunication';
 import useScreenType from '@/hooks/useScreenType';
 import { useVcEntity } from '@/hooks/useVcEntity';
 
@@ -40,11 +41,6 @@ import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Po
 import type { ProximitySharingStatus } from '@/components/Popups/ProximitySharingPopup';
 import type { Verifier } from '@/api/types';
 import type { CachedUser } from '@/services/LocalStorageKeystore';
-
-interface MdocTypeDetails {
-	requestedDocType: string | null;
-	credentialDocType: string;
-}
 
 const Credential = () => {
 	const { batchId } = useParams();
