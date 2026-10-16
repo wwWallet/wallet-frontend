@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import type { TFunction } from 'i18next';
-import type { CredentialClaimPath } from 'wallet-common';
+import type { ClaimPath, CredentialClaimPath } from 'wallet-common';
 import PopupLayout from './PopupLayout';
 import { useTranslation, Trans } from 'react-i18next';
 import CredentialImage from '../Credentials/CredentialImage';
@@ -21,7 +21,6 @@ import type {
 	SetCredentialSelectionPopupState,
 } from '@/types/credentialSelection';
 
-type ClaimPath = Array<string | number | null>;
 type SelectionMap = Record<string, number | undefined>;
 
 interface SelectableCredentialSlideCardProps {

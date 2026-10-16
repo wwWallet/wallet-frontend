@@ -5,6 +5,7 @@ import type { TFunction } from 'i18next';
 import QRCode from 'react-qr-code';
 import { Check, CircleAlert, CircleCheckBig, LoaderCircle, LockKeyhole } from 'lucide-react';
 import { formatDate, isCborDate } from 'wallet-common';
+import type { ClaimPath } from 'wallet-common';
 import { getLanguage } from '@/i18n';
 import { truncateByWords } from '@/utils';
 import PopupLayout from './PopupLayout';
@@ -29,8 +30,6 @@ export const PROXIMITY_SHARING_STATUS = Object.freeze({
 
 export type ProximitySharingStatus = typeof PROXIMITY_SHARING_STATUS[keyof typeof PROXIMITY_SHARING_STATUS];
 
-type ClaimPathSegment = string | number | null;
-type ClaimPath = ClaimPathSegment[];
 type CredentialClaim = NonNullable<ExtendedVcEntity['parsedCredential']['metadata']['credential']['TypeMetadata']['claims']>[number];
 
 interface StructuredValueProps {

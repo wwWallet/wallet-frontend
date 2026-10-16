@@ -8,10 +8,8 @@ import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
 import { isCborDate } from 'wallet-common';
+import type { ClaimPath } from 'wallet-common';
 import type { TFunction } from 'i18next';
-
-type ClaimPathSegment = string | number | null;
-type ClaimPath = ClaimPathSegment[];
 
 interface ClaimDisplay {
 	locale?: string;
