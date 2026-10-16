@@ -1,5 +1,5 @@
 import { type ClientMetaConfig } from '../config';
-export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
+export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub" | undefined;
 
 type Config = ClientMetaConfig & Record<string, string | undefined>;
 
