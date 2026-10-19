@@ -13,6 +13,13 @@ export type BluetoothConnectionResult = "connected" | "cancelled" | "failed";
  */
 export interface IBluetoothTransport {
 	/**
+	 * Whether connect() opens a browser device-chooser dialog and must therefore
+	 * be triggered by a user gesture, only after the verifier has scanned the QR
+	 * and started advertising (e.g. Web Bluetooth)
+	 */
+	readonly requiresUserGesture: boolean;
+
+	/**
 	 * Connect to the reader advertising the given BLE service UUID.
 	 *
 	 * `onDeviceSelected` is invoked once the target device is settled and the

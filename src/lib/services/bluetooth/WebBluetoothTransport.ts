@@ -47,14 +47,15 @@ const RATE_LIMIT_INITIAL_BACKOFF_MS = 100;
 const RATE_LIMIT_MAX_BACKOFF_MS = 2_000;
 
 /**
- * Bluetooth transport backed by the Web Bluetooth API, for browsers without
- * the native wrapper. Implements the ISO 18013-5 BLE data retrieval GATT
+ * Bluetooth transport backed by the Web Bluetooth API. Implements the ISO 18013-5 BLE data retrieval GATT
  * profile in mdoc central client mode
  *
  * Note: connect() calls navigator.bluetooth.requestDevice(), which must run
  * within a user activation window (i.e. shortly after a user gesture)
  */
 export class WebBluetoothTransport implements IBluetoothTransport {
+	readonly requiresUserGesture = true;
+
 	private ua = navigator.userAgent;
 	private readonly isIOS = /iPad|iPhone|iPod/.test(this.ua);
 	private readonly isSafari = /Safari/.test(this.ua) && !/EdgiOS|CriOS|FxiOS/.test(this.ua);
