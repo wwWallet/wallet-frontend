@@ -139,7 +139,7 @@ export function usePushedAuthorizationRequest() {
 			if (!json?.request_uri) {
 				throw new Error(`PAR failed: missing request_uri. Got: ${JSON.stringify(json)}`);
 			}
-			return { request_uri: json.request_uri, code_verifier, rawResponse: json, dpop, walletInstanceAttestation };
+			return { request_uri: json.request_uri, code_verifier, rawResponse: json, dpop };
 		},
 		[myCustomFetch, requestWalletInstanceAttestation, keystore, updatePrivateData]
 	);

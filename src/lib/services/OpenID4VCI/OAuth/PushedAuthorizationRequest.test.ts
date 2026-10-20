@@ -77,7 +77,6 @@ describe("WIA retrieval before PAR", () => {
 		expect(clientId).toBe("https://wallet.example/callback/");
 		expect(issuer).toBe(metadata.issuer);
 		expect(mocks.requestWia.mock.invocationCallOrder[0]).toBeLessThan(mocks.post.mock.invocationCallOrder[0]);
-		expect(response.walletInstanceAttestation).toBe("provider-signed-wia");
 		expect(response.dpop?.dpopPublicKeyJwk).toEqual(publicJwk);
 		const privateKey = createPrivateKey({ key: response.dpop!.dpopPrivateKeyJwk, format: "jwk" });
 		const { key_ops, ...publicKeyMaterial } = publicJwk;
@@ -138,7 +137,6 @@ describe("WIA retrieval before PAR", () => {
 		expect(mocks.generateKeypairs).not.toHaveBeenCalled();
 		expect(mocks.requestWia).not.toHaveBeenCalled();
 		expect(response.dpop).toBeUndefined();
-		expect(response.walletInstanceAttestation).toBeUndefined();
 		expect(mocks.post).toHaveBeenCalledOnce();
 	});
 
