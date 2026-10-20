@@ -8,7 +8,8 @@ import { useLocation } from "react-router-dom";
 import { usePushedAuthorizationRequest } from './OAuth/PushedAuthorizationRequest';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
-import { accessTokenIsValid, refreshAccessToken } from './OAuth/accessToken';
+import { accessTokenIsValid, refreshAccessToken, requestTokenWalletInstanceAttestation, type RequestWalletInstanceAttestation } from './OAuth/accessToken';
+import { useWalletProvider } from '../WalletProvider';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
@@ -46,6 +47,7 @@ async function refreshAccessTokenForFlowState(
 		openID4VCIHelper: IOpenID4VCITokenRefreshMetadataProvider;
 		openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository;
 		tokenRequestBuilder: TokenRequestBuilder;
+		requestWalletInstanceAttestation: RequestWalletInstanceAttestation;
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
 	if (!flowState.tokenResponse?.data?.refresh_token) {
@@ -74,9 +76,11 @@ async function refreshAccessTokenForFlowState(
 			refreshToken: flowState.tokenResponse.data.refresh_token,
 			additionalParameters: { scope },
 			dpop: flowState.dpop,
+			attestationRequired: authzServerMetadata.authzServerMetadata.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth'),
 			dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
 		}, {
 			tokenRequestBuilder: context.tokenRequestBuilder,
+			requestWalletInstanceAttestation: context.requestWalletInstanceAttestation,
 		});
 
 		flowState.tokenResponse = {
@@ -113,6 +117,7 @@ async function ensureValidAccessTokenForFlowState(
 		openID4VCIHelper: IOpenID4VCITokenRefreshMetadataProvider;
 		openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository;
 		tokenRequestBuilder: TokenRequestBuilder;
+		requestWalletInstanceAttestation: RequestWalletInstanceAttestation;
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
 	if (accessTokenIsValid(flowState.tokenResponse?.data, context.now, context.refreshSkewSeconds)) {
@@ -165,6 +170,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const openID4VCIPushedAuthorizationRequest = usePushedAuthorizationRequest();
 
 	const tokenRequestBuilder = useTokenRequest();
+	const { requestWalletInstanceAttestation } = useWalletProvider();
 	const credentialRequestBuilder = useCredentialRequest();
 	const deferredCredentialRequestBuilder = useCredentialRequest();
 
@@ -481,6 +487,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			let dpopPrivateKeyJwk: jose.JWK | null = null;
 			let dpopPublicKeyJwk: jose.JWK | null = null;
 
+			const attestationRequired = authzServerMetadata.authzServerMetadata.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth');
+			if (attestationRequired && !flowState.dpop) {
+				throw new Error("Wallet Instance Attestation is missing its bound key");
+			}
+
 			if (!flowState.dpop) { // if DPoP keys have not been generated, then generate them
 				const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
 				[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
@@ -514,6 +525,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 
 
+			const walletInstanceAttestation = attestationRequired
+				? await requestTokenWalletInstanceAttestation(
+					requestWalletInstanceAttestation,
+					dpopPublicKeyJwk,
+					clientId?.client_id ?? null,
+					authzServerMetadata.authzServerMetadata.issuer)
+				: null;
+			tokenRequestBuilder.setWalletInstanceAttestation(walletInstanceAttestation, dpopPrivateKey as jose.KeyLike);
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
 			tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
@@ -571,6 +590,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			openID4VCIHelper,
 			credentialRequest,
 			tokenRequestBuilder,
+			requestWalletInstanceAttestation,
 			getRememberIssuerAge
 		]
 	);
@@ -667,6 +687,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
+		tokenRequestBuilder.setWalletInstanceAttestation(null);
 		tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
 		tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
 		if (txCode) {
@@ -828,6 +849,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 					state,
 					code_verifier: parRes.code_verifier,
+					dpop: parRes.dpop,
 					credentialConfigurationId,
 					created: Math.floor(Date.now() / 1000),
 				});
@@ -905,6 +927,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						openID4VCIHelper,
 						openID4VCIClientStateRepository,
 						tokenRequestBuilder,
+						requestWalletInstanceAttestation,
 					});
 				}
 				catch (error) {
@@ -1021,7 +1044,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		openID4VCIHelper,
 		deferredCredentialRequestBuilder,
 		credentialEngine,
-		tokenRequestBuilder
+		tokenRequestBuilder,
+		requestWalletInstanceAttestation
 	]);
 
 	useEffect(() => {
