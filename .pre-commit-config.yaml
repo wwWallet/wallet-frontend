@@ -4,7 +4,7 @@ repos:
     hooks:
       - id: end-of-file-fixer
         name: Minor auto-fixes
-        exclude: ^(?:node_modules|dist|build|public)/|^src/locales/[^/]+\.json$
+        exclude: (^|/)(node_modules|dist|build|coverage|\.nyc_output|test-results|playwright-report)/|(^|/)\.DS_Store$|^public/|^src/locales/[^/]+\.json$
 
   - repo: local
     hooks:
@@ -15,10 +15,10 @@ repos:
         pass_filenames: false
         always_run: true
 
-      - id: editorconfig-checker-docker
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v4.0.2
+    hooks:
+      - id: editorconfig-checker
         name: Check .editorconfig rules
-        language: docker_image
-        entry: mstruebing/editorconfig-checker:latest
-        args: ["ec", "-no-color"]
+        args: ["-no-color"]
         types_or: [text]
-        exclude: ^(node_modules|dist|build|public)/
