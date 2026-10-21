@@ -22,3 +22,23 @@ repos:
         name: Check .editorconfig rules
         args: ['-no-color']
         types_or: [text]
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: Check Prettier formatting
+        entry: yarn format:check
+        language: system
+        pass_filenames: false
+
+      - id: eslint
+        name: Check ESLint rules
+        entry: yarn lint
+        language: system
+        pass_filenames: false
+
+      - id: typecheck
+        name: Check TypeScript types
+        entry: yarn typecheck
+        language: system
+        pass_filenames: false

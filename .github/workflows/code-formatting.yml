@@ -33,3 +33,28 @@ jobs:
 
       - name: Check code formatting
         run: editorconfig-checker -no-color
+
+  prettier-eslint:
+    name: Check Prettier and ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: Install dependencies
+        env:
+          YARN_NETWORK_CONCURRENCY: '1'
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      - name: Check Prettier formatting
+        run: yarn format:check
+
+      - name: Check ESLint rules
+        run: yarn lint
