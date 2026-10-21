@@ -18,7 +18,7 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
 
 	const [walletStateLoaded, setWalletStateLoaded] = useState<boolean>(false);
-	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig>(null);
+	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig | null>(null);
 
 	// A unique id for each logged in tab
 	const [globalTabId] = useLocalStorage<string | null>("globalTabId", null);
@@ -75,6 +75,9 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 				// To use oblivious, keys must be fetched.
 				// Delay setWalletStateLoaded till then.
 				async function fetchKeyConfigAndUpdate() {
+					if (!OHTTP_KEY_CONFIG) {
+						throw new Error("OHTTP key config URL is not configured");
+					}
 					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
 					setObliviousKeyConfig(keyConfig);
 					setWalletStateLoaded(true);

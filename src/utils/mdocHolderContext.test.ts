@@ -21,7 +21,7 @@ const createParams = async (namedCurve: "P-256" | "P-384" | "P-521", alg: string
 		params: {
 		mdocCredential: { documents: [{ issuerSigned: createFakeCredential() }] },
 			dcqlQuery: {
-				credentials: [{ id: "mdl", meta: { doctype_value: "org.iso.18013.5.1.mDL" }, claims: [] }],
+				credentials: [{ id: "mdl", meta: { doctype_value: "org.iso.18013.5.1.mDL" }, claims: [] as unknown[] }],
 			},
 			selectedCredentialId: "mdl",
 			sessionTranscript: new Uint8Array([1, 2, 3]),

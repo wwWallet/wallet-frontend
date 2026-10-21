@@ -10,7 +10,9 @@ const SearchInput = ({ placeholder, searchCallback }: SearchInputProps) => {
 
 	const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const query = event.target.value;
-		inputRef.current.value = query;
+		if (inputRef.current) {
+			inputRef.current.value = query;
+		}
 		searchCallback && searchCallback(query);
 	};
 

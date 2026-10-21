@@ -101,7 +101,7 @@ export function createOperations(
 	SCHEMA_VERSION: number,
 	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy>,
 ) {
-	const v1ops = SchemaV1.createOperations(SCHEMA_VERSION, null as Record<WalletSessionEvent["type"], SchemaV1.MergeStrategy>);
+	const v1ops = SchemaV1.createOperations(SCHEMA_VERSION, null);
 	return {
 		...v1ops,
 
@@ -124,15 +124,15 @@ export function createOperations(
 			};
 
 			for (const event of mergedByEarlierSchemaVersions) {
-				eventsByType[event.type][0].push(event);
+				eventsByType[event.type as WalletSessionEvent["type"]][0].push(event as WalletSessionEvent);
 			}
 
 			for (const event of historyA) {
-				eventsByType[event.type][1].push(event);
+				eventsByType[event.type as WalletSessionEvent["type"]][1].push(event);
 			}
 
 			for (const event of historyB) {
-				eventsByType[event.type][2].push(event);
+				eventsByType[event.type as WalletSessionEvent["type"]][2].push(event);
 			}
 
 			let mergedEvents: WalletSessionEvent[] = [];

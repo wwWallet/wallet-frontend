@@ -1,0 +1,63 @@
+// External libraries
+import React from 'react';
+
+// Components
+import Slider from '../Shared/Slider';
+import CredentialImage from '../Credentials/CredentialImage';
+import CredentialInfo from '../Credentials/CredentialInfo';
+
+import useScreenType from '../../hooks/useScreenType';
+
+import { formatDate } from 'wallet-common';
+import { prettyDomain } from '@/utils';
+import { BookCheck } from 'lucide-react';
+import type { PresentationHistoryItem } from '@/hooks/useFetchPresentations';
+
+interface HistoryDetailContentProps {
+	historyItem: PresentationHistoryItem[];
+}
+
+const HistoryDetailContent = ({ historyItem }: HistoryDetailContentProps) => {
+	const [currentSlide, setCurrentSlide] = React.useState(1);
+	const screenType = useScreenType();
+
+	if (historyItem.length === 0) return null;
+
+	const renderSlideContent = (vcEntity: PresentationHistoryItem, index: number) => (
+		<div
+			key={index}
+			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"
+		>
+			<CredentialImage vcEntity={vcEntity} showRibbon={false} className="w-full h-full rounded-xl" />
+		</div>
+	);
+
+	return (
+		<div className="py-4 w-full">
+			<div className='flex items-center gap-2 px-2 mb-4'>
+				<BookCheck size={40} className="text-white bg-primary p-2 rounded-md shrink-0" />
+				<div>
+					<p className='font-bold text-lm-gray-900 dark:text-dm-gray-100'>{prettyDomain(historyItem[0].presentation.audience)} </p>
+					<p className='text-sm text-lm-gray-800 dark:text-dm-gray-200'>{formatDate(historyItem[0].presentation.presentationTimestampSeconds)}</p>
+				</div>
+			</div>
+			<div>
+				<Slider
+					items={historyItem} // note: a HistoryItem is an array of presentations that happened in a single OpenID4VP transaction
+					renderSlideContent={renderSlideContent}
+					onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+					className='px-2'
+				/>
+			</div>
+
+			{/* Render details of the currently selected credential */}
+			{historyItem[currentSlide - 1] && (
+				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
+					<CredentialInfo parsedCredential={historyItem[currentSlide - 1].parsedCredential} />
+				</div>
+			)}
+		</div>
+	);
+};
+
+export default HistoryDetailContent;
