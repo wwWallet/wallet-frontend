@@ -1,25 +1,50 @@
-import { useCallback, useEffect, useState, useMemo, useRef } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import * as config from "../config";
-import { useClearStorages, useLocalStorage, useSessionStorage } from "../hooks/useStorage";
-import { fromBase64Url, jsonStringifyTaggedBinary, toBase64Url } from "../util";
-import { useIndexedDb } from "../hooks/useIndexedDb";
-import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
+import * as config from '../config';
+import { useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
+import { fromBase64Url, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import { useIndexedDb } from '../hooks/useIndexedDb';
+import { useOnUserInactivity } from '../hooks/useOnUserInactivity';
 
-import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
-import { WalletStateUtils } from "./WalletStateUtils";
-import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteCredentialIssuanceSessionEvent, addDeleteKeypairEvent, addNewCredentialEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, mergeEventHistories } from "./WalletStateSchema";
-import { UserId } from "@/api/types";
-import { getItem } from "@/indexedDB";
-import { WalletStateContainerGeneric } from "./WalletStateSchemaCommon";
-import { AppError } from "../errors";
+import * as keystore from './keystore';
+import type {
+	AsymmetricEncryptedContainer,
+	AsymmetricEncryptedContainerKeys,
+	EncryptedContainer,
+	OpenedContainer,
+	PrivateData,
+	UnlockSuccess,
+	WebauthnPrfEncryptionKeyInfo,
+	WebauthnPrfSaltInfo,
+	WrappedKeyInfo,
+} from './keystore';
+import { WalletStateUtils } from './WalletStateUtils';
+import {
+	addAlterSettingsEvent,
+	addDeleteCredentialEvent,
+	addDeleteCredentialIssuanceSessionEvent,
+	addDeleteKeypairEvent,
+	addNewCredentialEvent,
+	addNewPresentationEvent,
+	addSaveCredentialIssuanceSessionEvent,
+	CurrentSchema,
+	foldOldEventsIntoBaseState,
+	foldState,
+	mergeEventHistories,
+} from './WalletStateSchema';
+import { UserId } from '@/api/types';
+import { getItem } from '@/indexedDB';
+import { WalletStateContainerGeneric } from './WalletStateSchemaCommon';
+import { AppError } from '../errors';
 
-type MDoc = {
-	encode: () => Uint8Array;
-	documents?: any[];
-} | import("@owf/mdoc").DeviceResponse | import("@owf/mdoc").Document;
+type MDoc =
+	| {
+			encode: () => Uint8Array;
+			documents?: any[];
+	  }
+	| import('@owf/mdoc').DeviceResponse
+	| import('@owf/mdoc').Document;
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
@@ -30,7 +55,7 @@ type WalletStateSettings = CurrentSchema.WalletStateSettings;
 type UserData = {
 	displayName: string;
 	userHandle: Uint8Array;
-}
+};
 
 export type CachedUser = {
 	displayName: string;
@@ -42,7 +67,7 @@ export type CachedUser = {
 	userHandleB64u: string;
 
 	prfKeys: WebauthnPrfSaltInfo[];
-}
+};
 
 export enum KeystoreEvent {
 	/** This event should be propagated to needed tabs which must clean SessionStorage. */
@@ -60,122 +85,169 @@ export function shouldMergeOpenKeystore(
 }
 
 export interface LocalStorageKeystore {
-	isOpen(): boolean,
-	close(): Promise<void>,
+	isOpen(): boolean;
+	close(): Promise<void>;
 
 	initPrf(
 		credential: PublicKeyCredential,
 		prfSalt: Uint8Array,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: UserData,
-	): Promise<EncryptedContainer>,
+	): Promise<EncryptedContainer>;
 	addPrf(
 		credential: PublicKeyCredential,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-	): Promise<[EncryptedContainer, CommitCallback]>,
-	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
+	): Promise<[EncryptedContainer, CommitCallback]>;
+	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback];
 	unlockPrf(
 		privateData: EncryptedContainer,
 		credential: PublicKeyCredential,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: CachedUser | UserData,
-	): Promise<[EncryptedContainer, CommitCallback] | null>,
-	getPrfKeyInfo(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo | undefined,
+	): Promise<[EncryptedContainer, CommitCallback] | null>;
+	getPrfKeyInfo(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo | undefined;
 	getPasswordOrPrfKeyFromSession(
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-	): Promise<[CryptoKey, WrappedKeyInfo]>,
-	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
-	getCachedUsers(): CachedUser[],
-	forgetCachedUser(user: CachedUser): void,
-	getUserHandleB64u(): string | null,
-	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProofs(requests: { nonce?: string, audience: string, issuer: string }[]): Promise<[
-		{ proof_jwts: string[] },
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
+	): Promise<[CryptoKey, WrappedKeyInfo]>;
+	upgradePrfKey(
+		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+	): Promise<[EncryptedContainer, CommitCallback]>;
+	getCachedUsers(): CachedUser[];
+	forgetCachedUser(user: CachedUser): void;
+	getUserHandleB64u(): string | null;
+	signJwtPresentation(
+		nonce: string,
+		audience: string,
+		verifiableCredentials: any[],
+		transactionDataResponseParams?: {
+			transaction_data_hashes: string[];
+			transaction_data_hashes_alg: string[];
+		},
+	): Promise<{ vpjwt: string }>;
+	generateOpenid4vciProofs(
+		requests: { nonce?: string; audience: string; issuer: string }[],
+	): Promise<[{ proof_jwts: string[] }, AsymmetricEncryptedContainer, CommitCallback]>;
 
-	generateKeypairs(n: number): Promise<[
-		{ keypairs: keystore.CredentialKeyPair[] },
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
+	generateKeypairs(
+		n: number,
+	): Promise<
+		[{ keypairs: keystore.CredentialKeyPair[] }, AsymmetricEncryptedContainer, CommitCallback]
+	>;
 
-	generateDeviceResponse(mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, nonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
-	generateDeviceResponseWithProximity(mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponse(
+		mdocCredential: MDoc,
+		dcqlQuery: any,
+		selectedCredentialId: string,
+		nonce: string,
+		clientId: string,
+		responseUri: string,
+		verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>,
+		handoverType?: 'redirect' | 'dc_api',
+		dcApiOrigin?: string,
+	): Promise<{ deviceResponseMDoc: MDoc }>;
+	generateDeviceResponseWithProximity(
+		mdocCredential: MDoc,
+		dcqlQuery: any,
+		sessionTranscriptBytes: any,
+	): Promise<{ deviceResponseMDoc: MDoc }>;
 
-	getCalculatedWalletState(): WalletState | null,
-	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
-	deleteCredentialsByBatchId(batchId: number): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
-	getAllCredentials(): Promise<WalletStateCredential[] | null>,
-	addPresentations(presentations: { transactionId: number, data: string, usedCredentialIds: number[], audience: string, }[]): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
-	getAllPresentations(): Promise<WalletStatePresentation[] | null>,
-	saveCredentialIssuanceSessions(newIssuanceSessions: WalletStateCredentialIssuanceSession[], deletedSessions: number[]): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
-	getCredentialIssuanceSessionByState(state: string): Promise<WalletStateCredentialIssuanceSession | null>,
-	alterSettings(settings: WalletStateSettings): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]>,
+	getCalculatedWalletState(): WalletState | null;
+	addCredentials(
+		credentials: {
+			data: string;
+			format: string;
+			kid: string;
+			batchId: number;
+			credentialIssuerIdentifier: string;
+			credentialConfigurationId: string;
+			instanceId: number;
+			credentialId?: number;
+		}[],
+	): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]>;
+	deleteCredentialsByBatchId(
+		batchId: number,
+	): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]>;
+	getAllCredentials(): Promise<WalletStateCredential[] | null>;
+	addPresentations(
+		presentations: {
+			transactionId: number;
+			data: string;
+			usedCredentialIds: number[];
+			audience: string;
+		}[],
+	): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]>;
+	getAllPresentations(): Promise<WalletStatePresentation[] | null>;
+	saveCredentialIssuanceSessions(
+		newIssuanceSessions: WalletStateCredentialIssuanceSession[],
+		deletedSessions: number[],
+	): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]>;
+	getCredentialIssuanceSessionByState(
+		state: string,
+	): Promise<WalletStateCredentialIssuanceSession | null>;
+	alterSettings(
+		settings: WalletStateSettings,
+	): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]>;
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
 export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageKeystore {
-	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
+	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>('cachedUsers', []);
 	const [privateData, setPrivateData] = useState<EncryptedContainer | null>(null);
 
-	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
-	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
+	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] =
+		useLocalStorage<string | null>('userHandle', null);
+	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>(
+		'userHandle',
+		null,
+	);
 
 	// A unique id for each logged in tab
-	const [globalTabId, setGlobalTabId, clearGlobalTabId] = useLocalStorage<string | null>("globalTabId", null);
-	const [tabId, setTabId, clearTabId] = useSessionStorage<string | null>("tabId", null);
+	const [globalTabId, setGlobalTabId, clearGlobalTabId] = useLocalStorage<string | null>(
+		'globalTabId',
+		null,
+	);
+	const [tabId, setTabId, clearTabId] = useSessionStorage<string | null>('tabId', null);
 
-	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
+	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>(
+		'mainKey',
+		null,
+	);
 	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletState | null>(null);
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey, clearTabId);
 
 	const navigate = useNavigate();
 
-	const idb = useIndexedDb("wallet-frontend", 3, useCallback((db, prevVersion, newVersion) => {
-		if (prevVersion < 1) {
-			const objectStore = db.createObjectStore("keys", { keyPath: "id" });
-			objectStore.createIndex("id", "id", { unique: true });
-		}
-		if (prevVersion < 2) {
-			if (db.objectStoreNames.contains("keys")) {
-				db.deleteObjectStore("keys");
+	const idb = useIndexedDb(
+		'wallet-frontend',
+		3,
+		useCallback((db, prevVersion, newVersion) => {
+			if (prevVersion < 1) {
+				const objectStore = db.createObjectStore('keys', { keyPath: 'id' });
+				objectStore.createIndex('id', 'id', { unique: true });
 			}
-		}
+			if (prevVersion < 2) {
+				if (db.objectStoreNames.contains('keys')) {
+					db.deleteObjectStore('keys');
+				}
+			}
 
-		if (prevVersion < 3) {
-			db.createObjectStore("privateData", { keyPath: "userHandle" });
-		}
-	}, []));
+			if (prevVersion < 3) {
+				db.createObjectStore('privateData', { keyPath: 'userHandle' });
+			}
+		}, []),
+	);
 
-	const readPrivateDataFromIdb = useCallback(async (userHandleB64u: string): Promise<EncryptedContainer | null> => {
-		const result = await idb.read(['privateData'], (tx) => {
-			const store = tx.objectStore("privateData");
-			return store.get(userHandleB64u);
-		});
-		return result ? result.content : null;
-	}, [idb]);
+	const readPrivateDataFromIdb = useCallback(
+		async (userHandleB64u: string): Promise<EncryptedContainer | null> => {
+			const result = await idb.read(['privateData'], (tx) => {
+				const store = tx.objectStore('privateData');
+				return store.get(userHandleB64u);
+			});
+			return result ? result.content : null;
+		},
+		[idb],
+	);
 
 	useEffect(() => {
 		if (userHandleB64u) {
@@ -184,29 +256,36 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				if (val && !cancelled) {
 					setPrivateData(val);
 				}
-			})
+			});
 			return () => {
 				cancelled = true;
 			};
 		}
 	}, [userHandleB64u, readPrivateDataFromIdb]);
 
+	const writePrivateDataOnIdb = useCallback(
+		async (privateData: EncryptedContainer | null, userHandleB64u: string) => {
+			await idb.write(['privateData'], (tx) => {
+				const store = tx.objectStore('privateData');
+				return store.put({ userHandle: userHandleB64u, content: privateData });
+			});
+		},
+		[idb],
+	);
 
-	const writePrivateDataOnIdb = useCallback(async (privateData: EncryptedContainer | null, userHandleB64u: string) => {
-		await idb.write(["privateData"], (tx) => {
-			const store = tx.objectStore("privateData");
-			return store.put({ userHandle: userHandleB64u, content: privateData });
-		})
-	}, [idb]);
-
-	const clearPrivateData = useCallback(async (userHandleB64u: string) => {
-		setPrivateData(null);
-		await writePrivateDataOnIdb(null, userHandleB64u);
-	}, [writePrivateDataOnIdb]);
+	const clearPrivateData = useCallback(
+		async (userHandleB64u: string) => {
+			setPrivateData(null);
+			await writePrivateDataOnIdb(null, userHandleB64u);
+		},
+		[writePrivateDataOnIdb],
+	);
 
 	const closeSessionTabLocal = useCallback(
 		async (preserveUrlParams: boolean = false): Promise<void> => {
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: { preserveUrlParams } }));
+			eventTarget.dispatchEvent(
+				new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: { preserveUrlParams } }),
+			);
 			setPrivateData(null);
 			setCalculatedWalletState(null);
 			clearSessionStorage();
@@ -214,39 +293,44 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[clearSessionStorage, eventTarget],
 	);
 
-	const close = useCallback(
-		async (): Promise<void> => {
-			console.log('Keystore Close');
-			if (!userHandleB64u) {
-				// Not the active tab: shared IndexedDB/localStorage belong to the active tab's session
-				setPrivateData(null);
-				return;
-			}
-			await clearPrivateData(userHandleB64u);
-			await idb.destroy();
-			setCalculatedWalletState(null);
-			clearGlobalUserHandleB64u();
-			clearGlobalTabId();
-		},
-		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, setPrivateData, userHandleB64u],
-	);
+	const close = useCallback(async (): Promise<void> => {
+		console.log('Keystore Close');
+		if (!userHandleB64u) {
+			// Not the active tab: shared IndexedDB/localStorage belong to the active tab's session
+			setPrivateData(null);
+			return;
+		}
+		await clearPrivateData(userHandleB64u);
+		await idb.destroy();
+		setCalculatedWalletState(null);
+		clearGlobalUserHandleB64u();
+		clearGlobalTabId();
+	}, [
+		idb,
+		clearGlobalUserHandleB64u,
+		clearGlobalTabId,
+		clearPrivateData,
+		setCalculatedWalletState,
+		setPrivateData,
+		userHandleB64u,
+	]);
 
 	const assertKeystoreOpen = useCallback(async (): Promise<[EncryptedContainer, CryptoKey]> => {
 		if (privateData && mainKey) {
 			return [privateData, await keystore.importMainKey(mainKey)];
 		} else {
-			throw new AppError('keystore_closed', "Key store is closed.");
+			throw new AppError('keystore_closed', 'Key store is closed.');
 		}
 	}, [privateData, mainKey]);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
-	useEffect(
-		() => {
-			if (privateData && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
-				// When PRF keys are added, deleted or edited in any tab,
-				// propagate changes to cached users
-				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
+	useEffect(() => {
+		if (privateData && userHandleB64u && userHandleB64u === globalUserHandleB64u) {
+			// When PRF keys are added, deleted or edited in any tab,
+			// propagate changes to cached users
+			setCachedUsers((cachedUsers) =>
+				cachedUsers.map((cu) => {
 					if (cu.userHandleB64u === userHandleB64u) {
 						return {
 							...cu,
@@ -259,27 +343,23 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					} else {
 						return cu;
 					}
-				}));
-			}
-		},
-		[closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
-	);
+				}),
+			);
+		}
+	}, [closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers]);
 
 	const isFirstTabIdCheck = useRef(true);
 
-	useEffect(
-		() => {
-			const wasInitialMount = isFirstTabIdCheck.current;
-			isFirstTabIdCheck.current = false;
-			if (tabId && globalTabId && (tabId !== globalTabId)) {
-				// When user logs in in any tab, log out in all other tabs.
-				// Preserve URL params only if discovered on initial mount
-				// (eg. returning from a redirect with a pending login).
-				closeSessionTabLocal(wasInitialMount);
-			}
-		},
-		[closeSessionTabLocal, tabId, globalTabId],
-	);
+	useEffect(() => {
+		const wasInitialMount = isFirstTabIdCheck.current;
+		isFirstTabIdCheck.current = false;
+		if (tabId && globalTabId && tabId !== globalTabId) {
+			// When user logs in in any tab, log out in all other tabs.
+			// Preserve URL params only if discovered on initial mount
+			// (eg. returning from a redirect with a pending login).
+			closeSessionTabLocal(wasInitialMount);
+		}
+	}, [closeSessionTabLocal, tabId, globalTabId]);
 
 	useEffect(() => {
 		const checkPrivateData = async () => {
@@ -301,10 +381,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		const [privateData, mainKey] = await assertKeystoreOpen();
 		try {
 			return await keystore.openPrivateData(mainKey, privateData);
-		}
-		catch (err) {
+		} catch (err) {
 			console.error(err);
-			console.log("Navigating to login-state to handle JWE decryption failure");
+			console.log('Navigating to login-state to handle JWE decryption failure');
 			const queryParams = new URLSearchParams(window.location.search);
 			queryParams.delete('user');
 			queryParams.delete('sync');
@@ -314,216 +393,241 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			}
 			queryParams.append('sync', 'fail');
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
-			throw new Error("Failed to decrypt private data");
+			throw new Error('Failed to decrypt private data');
 		}
 	}, [assertKeystoreOpen, navigate, userHandleB64u]);
 
-	const editPrivateData = useCallback(async <T>(
-		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
-	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
-		const [privateData, mainKey] = await assertKeystoreOpen();
-		if (!userHandleB64u) {
-			throw new Error("User handle is not set");
-		}
-		const [result, [newPrivateData, newMainKey]] = await action(
-			[
+	const editPrivateData = useCallback(
+		async <T>(
+			action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
+		): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
+			const [privateData, mainKey] = await assertKeystoreOpen();
+			if (!userHandleB64u) {
+				throw new Error('User handle is not set');
+			}
+			const [result, [newPrivateData, newMainKey]] = await action([
 				keystore.assertAsymmetricEncryptedContainer(privateData),
 				mainKey,
-			],
-		);
-		// after private data update, the calculated wallet state must be re-computed
-		const [, , newCalculatedWalletState] = await keystore.openPrivateData(newMainKey, newPrivateData);
-		return [
-			result,
-			newPrivateData,
-			async () => {
-				await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
-				setCalculatedWalletState(newCalculatedWalletState);
-				setPrivateData(newPrivateData);
-				setMainKey(await keystore.exportMainKey(newMainKey));
-			},
-		];
-	}, [setPrivateData, setMainKey, assertKeystoreOpen, userHandleB64u, writePrivateDataOnIdb]);
-
-	const finishUnlock = useCallback(async (
-		unlockSuccess: UnlockSuccess,
-		user: CachedUser | UserData | null,
-		credential: PublicKeyCredential | null,
-		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-	): Promise<keystore.EncryptedContainer> => {
-		if (user) {
-			const targetUserHandleB64u = ("prfKeys" in user
-				? user.userHandleB64u
-				: toBase64Url(user.userHandle)
+			]);
+			// after private data update, the calculated wallet state must be re-computed
+			const [, , newCalculatedWalletState] = await keystore.openPrivateData(
+				newMainKey,
+				newPrivateData,
 			);
-			let newEncryptedContainer: keystore.EncryptedContainer;
-			let newMainKeyExport: BufferSource | null = null;
-			let newCalculatedWalletState: WalletState | null = null;
+			return [
+				result,
+				newPrivateData,
+				async () => {
+					await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
+					setCalculatedWalletState(newCalculatedWalletState);
+					setPrivateData(newPrivateData);
+					setMainKey(await keystore.exportMainKey(newMainKey));
+				},
+			];
+		},
+		[setPrivateData, setMainKey, assertKeystoreOpen, userHandleB64u, writePrivateDataOnIdb],
+	);
 
-			if (shouldMergeOpenKeystore(Boolean(privateData && mainKey), userHandleB64u, targetUserHandleB64u)) {
-				const [localPrivateData, localMainKey] = await assertKeystoreOpen();
-				const [remoteContainer, remoteMainKey,] = await keystore.openPrivateData(unlockSuccess.mainKey, unlockSuccess.privateData);
-				const [localContainer, ,] = await keystore.openPrivateData(localMainKey, localPrivateData);
-				const mergedContainer = await mergeEventHistories(remoteContainer, localContainer);
-				const { newContainer } = await keystore.updateWalletState([
-					keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData),
-					remoteMainKey,
-				], mergedContainer as CurrentSchema.WalletStateContainer);
-				const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-				await writePrivateDataOnIdb(newPrivateDataEncryptedContainer, targetUserHandleB64u);
-				setPrivateData(newPrivateDataEncryptedContainer);
-				newEncryptedContainer = newPrivateDataEncryptedContainer;
-				setMainKey(await keystore.exportMainKey(newMainKey));
-				const foldedState = foldState(mergedContainer as CurrentSchema.WalletStateContainer);
-				setCalculatedWalletState(foldedState);
-			}
-			else {
-				async function mergeWithLocalEncryptedPrivateData( container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]):
-					Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+	const finishUnlock = useCallback(
+		async (
+			unlockSuccess: UnlockSuccess,
+			user: CachedUser | UserData | null,
+			credential: PublicKeyCredential | null,
+			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		): Promise<keystore.EncryptedContainer> => {
+			if (user) {
+				const targetUserHandleB64u =
+					'prfKeys' in user ? user.userHandleB64u : toBase64Url(user.userHandle);
+				let newEncryptedContainer: keystore.EncryptedContainer;
+				let newMainKeyExport: BufferSource | null = null;
+				let newCalculatedWalletState: WalletState | null = null;
 
-					const [remotePrivateData, remoteMainKey, remoteWalletState] = container;
-					const userId = UserId.fromUserHandle(new Uint8Array(fromBase64Url(targetUserHandleB64u)));
-					const localUser = await getItem("users", userId.id);
-					if (!localUser) {
-						return container;
-					}
-
-					const localPrivateData: Uint8Array = localUser.privateData;
-					const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
-					if (parsedLocalEncryptedPrivateData.jwe === remotePrivateData.jwe) {
-						return container;
-					}
-
-					const localSerialized = jsonStringifyTaggedBinary(localPrivateData);
-					const remoteSerialized = jsonStringifyTaggedBinary( keystore.serializePrivateData(remotePrivateData));
-					if (localSerialized === remoteSerialized) {
-						return container;
-					}
-
-					let localContainer: WalletStateContainerGeneric;
-					try {
-						[localContainer, ,] = await keystore.openPrivateData(
-							remoteMainKey,
-							parsedLocalEncryptedPrivateData
-						);
-					} catch (err) {
-						const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
-							k => credential && toBase64Url(k.credentialId) === credential.id
-						);
-
-						if (!credential || !hasMatchingPrfKey) {
-							console.warn("Skipping local merge sincecredential not found in stale local PRF keys and mainKey mismatched.");
-							return container;
-						}
-
-						try {
-							const [unlockPrfResult,] = await keystore.unlockPrf(
-								parsedLocalEncryptedPrivateData,
-								credential,
-								promptForPrfRetry
-							);
-							const { privateData: oldPrivateData, mainKey: oldMainKey } = unlockPrfResult;
-							[localContainer, ,] = await keystore.openPrivateData(oldMainKey, oldPrivateData);
-						} catch (prfError) {
-							console.warn("Failed to unlock local data via PRF", prfError);
-							return container;
-						}
-					}
-
-					const mergedContainer = await mergeEventHistories(remoteWalletState, localContainer);
-
-					const { newContainer } = await keystore.updateWalletState([
-						keystore.assertAsymmetricEncryptedContainer(remotePrivateData),
-						remoteMainKey,
-					], mergedContainer as CurrentSchema.WalletStateContainer);
-
+				if (
+					shouldMergeOpenKeystore(
+						Boolean(privateData && mainKey),
+						userHandleB64u,
+						targetUserHandleB64u,
+					)
+				) {
+					const [localPrivateData, localMainKey] = await assertKeystoreOpen();
+					const [remoteContainer, remoteMainKey] = await keystore.openPrivateData(
+						unlockSuccess.mainKey,
+						unlockSuccess.privateData,
+					);
+					const [localContainer, ,] = await keystore.openPrivateData(
+						localMainKey,
+						localPrivateData,
+					);
+					const mergedContainer = await mergeEventHistories(remoteContainer, localContainer);
+					const { newContainer } = await keystore.updateWalletState(
+						[keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData), remoteMainKey],
+						mergedContainer as CurrentSchema.WalletStateContainer,
+					);
 					const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-					return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
+					await writePrivateDataOnIdb(newPrivateDataEncryptedContainer, targetUserHandleB64u);
+					setPrivateData(newPrivateDataEncryptedContainer);
+					newEncryptedContainer = newPrivateDataEncryptedContainer;
+					setMainKey(await keystore.exportMainKey(newMainKey));
+					const foldedState = foldState(mergedContainer as CurrentSchema.WalletStateContainer);
+					setCalculatedWalletState(foldedState);
+				} else {
+					async function mergeWithLocalEncryptedPrivateData(
+						container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric],
+					): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+						const [remotePrivateData, remoteMainKey, remoteWalletState] = container;
+						const userId = UserId.fromUserHandle(
+							new Uint8Array(fromBase64Url(targetUserHandleB64u)),
+						);
+						const localUser = await getItem('users', userId.id);
+						if (!localUser) {
+							return container;
+						}
+
+						const localPrivateData: Uint8Array = localUser.privateData;
+						const parsedLocalEncryptedPrivateData =
+							await keystore.parsePrivateData(localPrivateData);
+						if (parsedLocalEncryptedPrivateData.jwe === remotePrivateData.jwe) {
+							return container;
+						}
+
+						const localSerialized = jsonStringifyTaggedBinary(localPrivateData);
+						const remoteSerialized = jsonStringifyTaggedBinary(
+							keystore.serializePrivateData(remotePrivateData),
+						);
+						if (localSerialized === remoteSerialized) {
+							return container;
+						}
+
+						let localContainer: WalletStateContainerGeneric;
+						try {
+							[localContainer, ,] = await keystore.openPrivateData(
+								remoteMainKey,
+								parsedLocalEncryptedPrivateData,
+							);
+						} catch (err) {
+							const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
+								(k) => credential && toBase64Url(k.credentialId) === credential.id,
+							);
+
+							if (!credential || !hasMatchingPrfKey) {
+								console.warn(
+									'Skipping local merge sincecredential not found in stale local PRF keys and mainKey mismatched.',
+								);
+								return container;
+							}
+
+							try {
+								const [unlockPrfResult] = await keystore.unlockPrf(
+									parsedLocalEncryptedPrivateData,
+									credential,
+									promptForPrfRetry,
+								);
+								const { privateData: oldPrivateData, mainKey: oldMainKey } = unlockPrfResult;
+								[localContainer, ,] = await keystore.openPrivateData(oldMainKey, oldPrivateData);
+							} catch (prfError) {
+								console.warn('Failed to unlock local data via PRF', prfError);
+								return container;
+							}
+						}
+
+						const mergedContainer = await mergeEventHistories(remoteWalletState, localContainer);
+
+						const { newContainer } = await keystore.updateWalletState(
+							[keystore.assertAsymmetricEncryptedContainer(remotePrivateData), remoteMainKey],
+							mergedContainer as CurrentSchema.WalletStateContainer,
+						);
+
+						const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
+						return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
+					}
+
+					const { privateData, mainKey } = unlockSuccess;
+					const [unlockedContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
+					const [encryptedContainer, newMainKey, decryptedWalletState] =
+						await mergeWithLocalEncryptedPrivateData([privateData, mainKey, unlockedContainer]);
+					const foldedState = foldState(decryptedWalletState as CurrentSchema.WalletStateContainer);
+					newEncryptedContainer = encryptedContainer;
+					await writePrivateDataOnIdb(encryptedContainer, targetUserHandleB64u);
+					newMainKeyExport = await keystore.exportMainKey(newMainKey);
+					newCalculatedWalletState = foldedState;
 				}
 
-				const { privateData, mainKey } = unlockSuccess;
-				const [unlockedContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
-				const [encryptedContainer, newMainKey, decryptedWalletState] = await mergeWithLocalEncryptedPrivateData([privateData, mainKey, unlockedContainer]);
-				const foldedState = foldState(decryptedWalletState as CurrentSchema.WalletStateContainer);
-				newEncryptedContainer = encryptedContainer;
-				await writePrivateDataOnIdb(encryptedContainer, targetUserHandleB64u);
-				newMainKeyExport = await keystore.exportMainKey(newMainKey);
-				newCalculatedWalletState = foldedState;
-			}
+				const newUser =
+					'prfKeys' in user
+						? user
+						: {
+								displayName: user.displayName,
+								userHandleB64u: targetUserHandleB64u,
+								prfKeys: [], // Placeholder - will be updated by useEffect above
+							};
 
-			const newUser = ("prfKeys" in user
-				? user
-				: {
-					displayName: user.displayName,
-					userHandleB64u: targetUserHandleB64u,
-					prfKeys: [], // Placeholder - will be updated by useEffect above
+				setUserHandleB64u(targetUserHandleB64u);
+
+				const newTabId = tabId ?? WalletStateUtils.getRandomUint32().toString();
+				setTabId(newTabId);
+				setGlobalTabId(newTabId);
+
+				// This must happen before setPrivateData in order to prevent the
+				// useEffect updating cachedUsers from corrupting cache entries for other
+				// users logged in in other tabs.
+				setGlobalUserHandleB64u(targetUserHandleB64u);
+
+				setCachedUsers((cachedUsers) => {
+					// Move most recently used user to front of list
+					const otherUsers = (cachedUsers || []).filter(
+						(cu) => cu.userHandleB64u !== newUser.userHandleB64u,
+					);
+					return [newUser, ...otherUsers];
+				});
+
+				if (newMainKeyExport) {
+					setPrivateData(newEncryptedContainer);
+					setMainKey(newMainKeyExport);
+					setCalculatedWalletState(newCalculatedWalletState);
 				}
-			);
 
-			setUserHandleB64u(targetUserHandleB64u);
-
-			const newTabId = tabId ?? WalletStateUtils.getRandomUint32().toString();
-			setTabId(newTabId);
-			setGlobalTabId(newTabId);
-
-			// This must happen before setPrivateData in order to prevent the
-			// useEffect updating cachedUsers from corrupting cache entries for other
-			// users logged in in other tabs.
-			setGlobalUserHandleB64u(targetUserHandleB64u);
-
-			setCachedUsers((cachedUsers) => {
-				// Move most recently used user to front of list
-				const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
-				return [newUser, ...otherUsers];
-			});
-
-			if (newMainKeyExport) {
-				setPrivateData(newEncryptedContainer);
-				setMainKey(newMainKeyExport);
-				setCalculatedWalletState(newCalculatedWalletState);
+				return newEncryptedContainer;
 			}
-
-			return newEncryptedContainer;
-		}
-		throw new Error("User is not set");
-	}, [
-		setUserHandleB64u,
-		setGlobalUserHandleB64u,
-		setCachedUsers,
-		setMainKey,
-		setPrivateData,
-		setCalculatedWalletState,
-		setTabId,
-		setGlobalTabId,
-		tabId,
-		writePrivateDataOnIdb,
-		assertKeystoreOpen,
-		privateData,
-		mainKey,
-		userHandleB64u
-	]);
-
+			throw new Error('User is not set');
+		},
+		[
+			setUserHandleB64u,
+			setGlobalUserHandleB64u,
+			setCachedUsers,
+			setMainKey,
+			setPrivateData,
+			setCalculatedWalletState,
+			setTabId,
+			setGlobalTabId,
+			tabId,
+			writePrivateDataOnIdb,
+			assertKeystoreOpen,
+			privateData,
+			mainKey,
+			userHandleB64u,
+		],
+	);
 
 	useEffect(() => {
 		// initialize calculated wallet state
 		if (mainKey && privateData && calculatedWalletState === null) {
 			openPrivateData().then(([, , newCalculatedWalletState]) => {
-
 				setCalculatedWalletState(newCalculatedWalletState);
 			});
 		}
 	}, [mainKey, privateData, calculatedWalletState, openPrivateData]);
 
-	const init = useCallback(async (
-		mainKey: CryptoKey,
-		keyInfo: AsymmetricEncryptedContainerKeys,
-		user: UserData,
-	): Promise<EncryptedContainer> => {
-		const unlocked = await keystore.init(mainKey, keyInfo);
-		const privateData = await finishUnlock(unlocked, user, null, async () => false);
-		return privateData;
-	},
-		[finishUnlock]
+	const init = useCallback(
+		async (
+			mainKey: CryptoKey,
+			keyInfo: AsymmetricEncryptedContainerKeys,
+			user: UserData,
+		): Promise<EncryptedContainer> => {
+			const unlocked = await keystore.init(mainKey, keyInfo);
+			const privateData = await finishUnlock(unlocked, user, null, async () => false);
+			return privateData;
+		},
+		[finishUnlock],
 	);
 
 	const initPrf = useCallback(
@@ -537,29 +641,34 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			const result = await init(mainKey, keyInfo, user);
 			return result;
 		},
-		[init]
+		[init],
 	);
 
 	const getPrfKeyInfo = useCallback(
 		(id: ArrayBuffer | ArrayBufferView): WebauthnPrfEncryptionKeyInfo | undefined => {
-			return privateData?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
+			return privateData?.prfKeys.find(
+				({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id),
+			);
 		},
-		[privateData]
+		[privateData],
 	);
-
 
 	const getCachedUsers = useCallback((): CachedUser[] => {
 		return [...(cachedUsers || [])];
 	}, [cachedUsers]);
 
-	const forgetCachedUser = useCallback((user: CachedUser): void => {
-		setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
-	}, [setCachedUsers]);
+	const forgetCachedUser = useCallback(
+		(user: CachedUser): void => {
+			setCachedUsers((cachedUsers) =>
+				cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u),
+			);
+		},
+		[setCachedUsers],
+	);
 
 	const getUserHandleB64u = useCallback((): string | null => {
-		return (userHandleB64u);
+		return userHandleB64u;
 	}, [userHandleB64u]);
-
 
 	const addPrf = useCallback(
 		async (
@@ -568,9 +677,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		): Promise<[EncryptedContainer, CommitCallback]> => {
 			const [privateData, mainKey] = await assertKeystoreOpen();
 			if (!userHandleB64u) {
-				throw new Error("User handle is not set");
+				throw new Error('User handle is not set');
 			}
-			const newPrivateData = await keystore.addPrf(privateData, credential, mainKey, promptForPrfRetry);
+			const newPrivateData = await keystore.addPrf(
+				privateData,
+				credential,
+				mainKey,
+				promptForPrfRetry,
+			);
 			return [
 				newPrivateData,
 				async () => {
@@ -579,13 +693,13 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				},
 			];
 		},
-		[setPrivateData, writePrivateDataOnIdb, userHandleB64u, assertKeystoreOpen]
+		[setPrivateData, writePrivateDataOnIdb, userHandleB64u, assertKeystoreOpen],
 	);
 
 	const deletePrf = useCallback(
 		(credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
 			if (!privateData || !userHandleB64u) {
-				throw new Error("Keystore is not open");
+				throw new Error('Keystore is not open');
 			}
 			const newPrivateData = keystore.deletePrf(privateData, credentialId);
 			return [
@@ -596,7 +710,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				},
 			];
 		},
-		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
+		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u],
 	);
 
 	const unlockPrf = useCallback(
@@ -606,20 +720,20 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 			user: CachedUser | UserData | null,
 		): Promise<[EncryptedContainer, CommitCallback] | null> => {
-			const [unlockPrfResult,] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
-			const updatedPrivateData = await finishUnlock(unlockPrfResult, user, credential, promptForPrfRetry);
-			return (
-				updatedPrivateData
-					?
-					[updatedPrivateData,
-						async () => {
-
-						},
-					]
-					: null
+			const [unlockPrfResult] = await keystore.unlockPrf(
+				encryptedPrivateData,
+				credential,
+				promptForPrfRetry,
 			);
+			const updatedPrivateData = await finishUnlock(
+				unlockPrfResult,
+				user,
+				credential,
+				promptForPrfRetry,
+			);
+			return updatedPrivateData ? [updatedPrivateData, async () => {}] : null;
 		},
-		[finishUnlock]
+		[finishUnlock],
 	);
 
 	const getPasswordOrPrfKeyFromSession = useCallback(
@@ -627,14 +741,13 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[CryptoKey, WrappedKeyInfo]> => {
 			if (privateData && privateData?.prfKeys?.length > 0) {
-				const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateData, null, promptForPrfRetry);
+				const [prfKey, prfKeyInfo] = await keystore.getPrfKey(privateData, null, promptForPrfRetry);
 				return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
-
 			} else {
-				throw new Error("Session not initialized");
+				throw new Error('Session not initialized');
 			}
 		},
-		[privateData]
+		[privateData],
 	);
 
 	const upgradePrfKey = useCallback(
@@ -643,13 +756,17 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[EncryptedContainer, CommitCallback]> => {
 			if (keystore.isPrfKeyV2(prfKeyInfo)) {
-				throw new Error("Key is already upgraded");
-
+				throw new Error('Key is already upgraded');
 			} else if (privateData) {
 				if (!userHandleB64u) {
-					throw new Error("User handle is not set");
+					throw new Error('User handle is not set');
 				}
-				const newPrivateData = await keystore.upgradePrfKey(privateData, null, prfKeyInfo, promptForPrfRetry);
+				const newPrivateData = await keystore.upgradePrfKey(
+					privateData,
+					null,
+					prfKeyInfo,
+					promptForPrfRetry,
+				);
 				return [
 					newPrivateData,
 					async () => {
@@ -657,265 +774,367 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 						setPrivateData(newPrivateData);
 					},
 				];
-
 			} else {
-				throw new Error("Session not initialized");
+				throw new Error('Session not initialized');
 			}
 		},
-		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
+		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u],
 	);
 
 	const signJwtPresentation = useCallback(
-		async (nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> => (
-			await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials, transactionDataResponseParams)
-		),
-		[openPrivateData]
+		async (
+			nonce: string,
+			audience: string,
+			verifiableCredentials: any[],
+			transactionDataResponseParams?: {
+				transaction_data_hashes: string[];
+				transaction_data_hashes_alg: string[];
+			},
+		): Promise<{ vpjwt: string }> =>
+			await keystore.signJwtPresentation(
+				await openPrivateData(),
+				nonce,
+				audience,
+				verifiableCredentials,
+				transactionDataResponseParams,
+			),
+		[openPrivateData],
 	);
 
 	const generateDeviceResponse = useCallback(
-		async (mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, nonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, dcqlQuery, selectedCredentialId, nonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
-		),
-		[openPrivateData]
+		async (
+			mdocCredential: MDoc,
+			dcqlQuery: any,
+			selectedCredentialId: string,
+			nonce: string,
+			clientId: string,
+			responseUri: string,
+			verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>,
+			handoverType?: 'redirect' | 'dc_api',
+			dcApiOrigin?: string,
+		): Promise<{ deviceResponseMDoc: MDoc }> =>
+			(await keystore.generateDeviceResponse(
+				await openPrivateData(),
+				mdocCredential as any,
+				dcqlQuery,
+				selectedCredentialId,
+				nonce,
+				clientId,
+				responseUri,
+				verifierEncryptionJwk,
+				handoverType,
+				dcApiOrigin,
+			)) as unknown as { deviceResponseMDoc: MDoc },
+		[openPrivateData],
 	);
 
 	const generateDeviceResponseWithProximity = useCallback(
-		async (mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, dcqlQuery, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
-		),
-		[openPrivateData]
+		async (
+			mdocCredential: MDoc,
+			dcqlQuery: any,
+			sessionTranscriptBytes: any,
+		): Promise<{ deviceResponseMDoc: MDoc }> =>
+			(await keystore.generateDeviceResponseWithProximity(
+				await openPrivateData(),
+				mdocCredential as any,
+				dcqlQuery,
+				sessionTranscriptBytes,
+			)) as unknown as { deviceResponseMDoc: MDoc },
+		[openPrivateData],
 	);
 
 	const isOpen = useCallback((): boolean => {
 		return privateData !== null && mainKey !== null;
 	}, [privateData, mainKey]);
 
-	const generateOpenid4vciProofs = useCallback(async (requests: { nonce?: string, audience: string, issuer: string }[]): Promise<[
-		{ proof_jwts: string[] },
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]> => (
-		await editPrivateData(async (originalContainer) => {
-			const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
-			return await keystore.generateOpenid4vciProofs(
-				originalContainer,
-				config.DID_KEY_VERSION,
-				nonce,
-				audience,
-				issuer,
-				requests.length
-			);
-		})
-	), [editPrivateData]);
-
-	const generateKeypairs = useCallback(
-		async (n: number): Promise<[
-			{ keypairs: keystore.CredentialKeyPair[] },
-			AsymmetricEncryptedContainer,
-			CommitCallback,
-		]> => (
+	const generateOpenid4vciProofs = useCallback(
+		async (
+			requests: { nonce?: string; audience: string; issuer: string }[],
+		): Promise<[{ proof_jwts: string[] }, AsymmetricEncryptedContainer, CommitCallback]> =>
 			await editPrivateData(async (originalContainer) => {
-				return await keystore.generateKeypairs(
+				const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
+				return await keystore.generateOpenid4vciProofs(
 					originalContainer,
 					config.DID_KEY_VERSION,
-					n
+					nonce,
+					audience,
+					issuer,
+					requests.length,
 				);
-			})
-		),
-		[editPrivateData]
+			}),
+		[editPrivateData],
 	);
 
+	const generateKeypairs = useCallback(
+		async (
+			n: number,
+		): Promise<
+			[{ keypairs: keystore.CredentialKeyPair[] }, AsymmetricEncryptedContainer, CommitCallback]
+		> =>
+			await editPrivateData(async (originalContainer) => {
+				return await keystore.generateKeypairs(originalContainer, config.DID_KEY_VERSION, n);
+			}),
+		[editPrivateData],
+	);
 
 	const getCalculatedWalletState = useCallback((): WalletState | null => {
-		return (calculatedWalletState);
+		return calculatedWalletState;
 	}, [calculatedWalletState]);
 
-	const addCredentials = useCallback(async (credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number, }[]): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]> => {
-		let [walletStateContainer, ,] = await openPrivateData();
-		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+	const addCredentials = useCallback(
+		async (
+			credentials: {
+				data: string;
+				format: string;
+				kid: string;
+				batchId: number;
+				credentialIssuerIdentifier: string;
+				credentialConfigurationId: string;
+				instanceId: number;
+				credentialId?: number;
+			}[],
+		): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]> => {
+			let [walletStateContainer, ,] = await openPrivateData();
+			walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
 
-		for (const { data, format, batchId, credentialIssuerIdentifier, kid, credentialConfigurationId, instanceId, credentialId } of credentials) {
-			walletStateContainer = await addNewCredentialEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
-		}
+			for (const {
+				data,
+				format,
+				batchId,
+				credentialIssuerIdentifier,
+				kid,
+				credentialConfigurationId,
+				instanceId,
+				credentialId,
+			} of credentials) {
+				walletStateContainer = await addNewCredentialEvent(
+					walletStateContainer,
+					data,
+					format,
+					kid,
+					batchId,
+					credentialIssuerIdentifier,
+					credentialConfigurationId,
+					instanceId,
+					credentialId,
+				);
+			}
 
-		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
-			return [{}, newContainer];
-		})
-	}, [editPrivateData, openPrivateData])
-
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(
+					originalContainer,
+					walletStateContainer,
+				);
+				return [{}, newContainer];
+			});
+		},
+		[editPrivateData, openPrivateData],
+	);
 
 	const getAllCredentials = useCallback(async (): Promise<WalletStateCredential[] | null> => {
 		return calculatedWalletState ? calculatedWalletState.credentials : null;
 	}, [calculatedWalletState]);
 
-
-	const deleteCredentialsByBatchId = useCallback(async (batchId: number): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]> => {
-		let [walletStateContainer, ,] = await openPrivateData();
-		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
-		if (!calculatedWalletState) {
-			throw new Error("Calculated wallet state is not set");
-		}
-
-		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
-		for (const cred of credentialsToBeDeleted) {
-			walletStateContainer = await addDeleteCredentialEvent(walletStateContainer, cred.credentialId);
-			// delete keypair
-			const kid = calculatedWalletState.credentials.filter((c) => c.credentialId === cred.credentialId).map((c) => c.kid)[0];
-			if (kid) {
-				walletStateContainer = await addDeleteKeypairEvent(walletStateContainer, kid);
+	const deleteCredentialsByBatchId = useCallback(
+		async (batchId: number): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]> => {
+			let [walletStateContainer, ,] = await openPrivateData();
+			walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+			if (!calculatedWalletState) {
+				throw new Error('Calculated wallet state is not set');
 			}
-		}
 
-		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
-			return [{}, newContainer];
-		});
-
-	}, [editPrivateData, openPrivateData, calculatedWalletState]);
-
-
-	const addPresentations = useCallback(async (presentations: { transactionId: number, data: string, usedCredentialIds: number[], audience: string, }[]): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]> => {
-		let [walletStateContainer, ,] = await openPrivateData();
-		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
-
-		for (const { transactionId, data, usedCredentialIds, audience } of presentations) {
-			walletStateContainer = await addNewPresentationEvent(walletStateContainer,
-				transactionId,
-				data,
-				usedCredentialIds,
-				Math.floor(new Date().getTime() / 1000),
-				audience
+			const credentialsToBeDeleted = calculatedWalletState.credentials.filter(
+				(cred) => cred.batchId === batchId,
 			);
-		}
+			for (const cred of credentialsToBeDeleted) {
+				walletStateContainer = await addDeleteCredentialEvent(
+					walletStateContainer,
+					cred.credentialId,
+				);
+				// delete keypair
+				const kid = calculatedWalletState.credentials
+					.filter((c) => c.credentialId === cred.credentialId)
+					.map((c) => c.kid)[0];
+				if (kid) {
+					walletStateContainer = await addDeleteKeypairEvent(walletStateContainer, kid);
+				}
+			}
 
-		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
-			return [{}, newContainer];
-		})
-	}, [editPrivateData, openPrivateData])
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(
+					originalContainer,
+					walletStateContainer,
+				);
+				return [{}, newContainer];
+			});
+		},
+		[editPrivateData, openPrivateData, calculatedWalletState],
+	);
+
+	const addPresentations = useCallback(
+		async (
+			presentations: {
+				transactionId: number;
+				data: string;
+				usedCredentialIds: number[];
+				audience: string;
+			}[],
+		): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]> => {
+			let [walletStateContainer, ,] = await openPrivateData();
+			walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+
+			for (const { transactionId, data, usedCredentialIds, audience } of presentations) {
+				walletStateContainer = await addNewPresentationEvent(
+					walletStateContainer,
+					transactionId,
+					data,
+					usedCredentialIds,
+					Math.floor(new Date().getTime() / 1000),
+					audience,
+				);
+			}
+
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(
+					originalContainer,
+					walletStateContainer,
+				);
+				return [{}, newContainer];
+			});
+		},
+		[editPrivateData, openPrivateData],
+	);
 	const getAllPresentations = useCallback(async (): Promise<WalletStatePresentation[] | null> => {
 		return calculatedWalletState ? calculatedWalletState.presentations : null;
 	}, [calculatedWalletState]);
 
+	const saveCredentialIssuanceSessions = useCallback(
+		async (
+			newIssuanceSessions: WalletStateCredentialIssuanceSession[],
+			deletedSessions: number[] = [],
+		): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]> => {
+			let [walletStateContainer, ,] = await openPrivateData();
+			walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
 
-	const saveCredentialIssuanceSessions = useCallback(async (newIssuanceSessions: WalletStateCredentialIssuanceSession[], deletedSessions: number[] = []): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]> => {
-		let [walletStateContainer, ,] = await openPrivateData();
-		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+			for (const issuanceSession of newIssuanceSessions) {
+				walletStateContainer = await addSaveCredentialIssuanceSessionEvent(
+					walletStateContainer,
+					issuanceSession.sessionId,
+					issuanceSession.credentialIssuerIdentifier,
+					issuanceSession.state,
+					issuanceSession.code_verifier,
+					issuanceSession.credentialConfigurationId,
+					issuanceSession.tokenResponse,
+					issuanceSession.dpop,
+					issuanceSession.firstPartyAuthorization,
+					issuanceSession.credentialEndpoint,
+					issuanceSession.created,
+				);
+			}
+			for (const sessionId of deletedSessions) {
+				walletStateContainer = await addDeleteCredentialIssuanceSessionEvent(
+					walletStateContainer,
+					sessionId,
+				);
+			}
 
-		for (const issuanceSession of newIssuanceSessions) {
-			walletStateContainer = await addSaveCredentialIssuanceSessionEvent(walletStateContainer,
-				issuanceSession.sessionId,
-				issuanceSession.credentialIssuerIdentifier,
-				issuanceSession.state,
-				issuanceSession.code_verifier,
-				issuanceSession.credentialConfigurationId,
-				issuanceSession.tokenResponse,
-				issuanceSession.dpop,
-				issuanceSession.firstPartyAuthorization,
-				issuanceSession.credentialEndpoint,
-				issuanceSession.created,
-			);
-		}
-		for (const sessionId of deletedSessions) {
-			walletStateContainer = await addDeleteCredentialIssuanceSessionEvent(walletStateContainer, sessionId);
-		}
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(
+					originalContainer,
+					walletStateContainer,
+				);
+				return [{}, newContainer];
+			});
+		},
+		[editPrivateData, openPrivateData],
+	);
 
-		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
-			return [{}, newContainer];
-		});
-	}, [editPrivateData, openPrivateData]);
+	const getCredentialIssuanceSessionByState = useCallback(
+		async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
+			return calculatedWalletState
+				? calculatedWalletState.credentialIssuanceSessions.filter(
+						(s: WalletStateCredentialIssuanceSession) => s.state === state,
+					)[0]
+				: null;
+		},
+		[calculatedWalletState],
+	);
 
-	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
-		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
-	}, [calculatedWalletState]);
+	const alterSettings = useCallback(
+		async (
+			settings: WalletStateSettings,
+		): Promise<[{}, AsymmetricEncryptedContainer, CommitCallback]> => {
+			let [walletStateContainer, ,] = await openPrivateData();
+			walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
+			walletStateContainer = await addAlterSettingsEvent(walletStateContainer, settings);
 
-	const alterSettings = useCallback(async (settings: WalletStateSettings): Promise<[
-		{},
-		AsymmetricEncryptedContainer,
-		CommitCallback,
-	]> => {
-		let [walletStateContainer, ,] = await openPrivateData();
-		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
-		walletStateContainer = await addAlterSettingsEvent(walletStateContainer, settings);
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(
+					originalContainer,
+					walletStateContainer,
+				);
+				return [{}, newContainer];
+			});
+		},
+		[editPrivateData, openPrivateData],
+	);
 
-		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
-			return [{}, newContainer];
-		});
-	}, [editPrivateData, openPrivateData]);
-
-
-	return useMemo(() => ({
-		isOpen,
-		close,
-		initPrf,
-		addPrf,
-		deletePrf,
-		unlockPrf,
-		getPrfKeyInfo,
-		getPasswordOrPrfKeyFromSession,
-		upgradePrfKey,
-		getCachedUsers,
-		forgetCachedUser,
-		getUserHandleB64u,
-		signJwtPresentation,
-		generateOpenid4vciProofs,
-		generateKeypairs,
-		generateDeviceResponse,
-		generateDeviceResponseWithProximity,
-		getCalculatedWalletState,
-		getAllCredentials,
-		addCredentials,
-		deleteCredentialsByBatchId,
-		addPresentations,
-		getAllPresentations,
-		saveCredentialIssuanceSessions,
-		getCredentialIssuanceSessionByState,
-		alterSettings,
-	}), [
-		isOpen,
-		close,
-		initPrf,
-		addPrf,
-		deletePrf,
-		unlockPrf,
-		getPrfKeyInfo,
-		getPasswordOrPrfKeyFromSession,
-		upgradePrfKey,
-		getCachedUsers,
-		forgetCachedUser,
-		getUserHandleB64u,
-		signJwtPresentation,
-		generateOpenid4vciProofs,
-		generateKeypairs,
-		generateDeviceResponse,
-		generateDeviceResponseWithProximity,
-		getCalculatedWalletState,
-		getAllCredentials,
-		addCredentials,
-		deleteCredentialsByBatchId,
-		addPresentations,
-		getAllPresentations,
-		saveCredentialIssuanceSessions,
-		getCredentialIssuanceSessionByState,
-		alterSettings,
-	]);
+	return useMemo(
+		() => ({
+			isOpen,
+			close,
+			initPrf,
+			addPrf,
+			deletePrf,
+			unlockPrf,
+			getPrfKeyInfo,
+			getPasswordOrPrfKeyFromSession,
+			upgradePrfKey,
+			getCachedUsers,
+			forgetCachedUser,
+			getUserHandleB64u,
+			signJwtPresentation,
+			generateOpenid4vciProofs,
+			generateKeypairs,
+			generateDeviceResponse,
+			generateDeviceResponseWithProximity,
+			getCalculatedWalletState,
+			getAllCredentials,
+			addCredentials,
+			deleteCredentialsByBatchId,
+			addPresentations,
+			getAllPresentations,
+			saveCredentialIssuanceSessions,
+			getCredentialIssuanceSessionByState,
+			alterSettings,
+		}),
+		[
+			isOpen,
+			close,
+			initPrf,
+			addPrf,
+			deletePrf,
+			unlockPrf,
+			getPrfKeyInfo,
+			getPasswordOrPrfKeyFromSession,
+			upgradePrfKey,
+			getCachedUsers,
+			forgetCachedUser,
+			getUserHandleB64u,
+			signJwtPresentation,
+			generateOpenid4vciProofs,
+			generateKeypairs,
+			generateDeviceResponse,
+			generateDeviceResponseWithProximity,
+			getCalculatedWalletState,
+			getAllCredentials,
+			addCredentials,
+			deleteCredentialsByBatchId,
+			addPresentations,
+			getAllPresentations,
+			saveCredentialIssuanceSessions,
+			getCredentialIssuanceSessionByState,
+			alterSettings,
+		],
+	);
 }

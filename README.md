@@ -108,15 +108,16 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS`: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
 
 - Install dependencies:
-    ```bash
-    yarn install
-    ```
+
+  ```bash
+  yarn install
+  ```
 
 - Start the development server:
 
-    ```bash
-    yarn start
-    ```
+  ```bash
+  yarn start
+  ```
 
 ## ✅Pre-commit Hook
 
@@ -398,6 +399,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
 
 **\*Notes:**
+
 - Additional information about WebAuthn browser compatibility, can be found on Yubico's [WebAuthn](https://developers.yubico.com/WebAuthn/WebAuthn_Browser_Support/) and [PRF](https://developers.yubico.com/WebAuthn/Concepts/PRF_Extension/Developers_Guide_to_PRF.html) Developers page.
 - ✅-marked scenarios have been confirmed using the latest public releases of relevant browsers, operating systems, and other dependencies at the time of testing.
 - In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.

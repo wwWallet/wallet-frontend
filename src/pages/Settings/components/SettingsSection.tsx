@@ -14,14 +14,14 @@ const SettingsSection = ({
 	card = true,
 	children,
 }: {
-	title: ReactNode,
-	icon?: ReactNode,
-	actions?: ReactNode,
-	variant?: 'default' | 'danger',
-	card?: boolean,
-	children: ReactNode,
+	title: ReactNode;
+	icon?: ReactNode;
+	actions?: ReactNode;
+	variant?: 'default' | 'danger';
+	card?: boolean;
+	children: ReactNode;
 }) => (
-	<div className='flex flex-col gap-2'>
+	<div className="flex flex-col gap-2">
 		<H2
 			hr={false}
 			heading={
@@ -37,7 +37,9 @@ const SettingsSection = ({
 			<section className={`rounded-xl border p-4 sm:p-5 shadow-xs ${variantClassName[variant]}`}>
 				{children}
 			</section>
-		) : children}
+		) : (
+			children
+		)}
 	</div>
 );
 

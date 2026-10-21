@@ -24,11 +24,20 @@ const Spinner = ({ size = 'large' }: SpinnerProps) => {
 	const currentSize = sizes[size] || sizes.large;
 
 	return (
-		<div className="flex justify-center items-center h-dvh w-dvw bg-lm-gray-200 dark:bg-dm-gray-900" role="status" aria-live="polite">
+		<div
+			className="flex justify-center items-center h-dvh w-dvw bg-lm-gray-200 dark:bg-dm-gray-900"
+			role="status"
+			aria-live="polite"
+		>
 			<div className={`relative ${currentSize.container}`}>
-				<LoaderCircle strokeWidth={1} className={`absolute rounded-full ${currentSize.container} text-brand-base dark:text-white animate-spin ${currentSize.opacity}`} />
-				<div className={`absolute inset-0 scale-60 flex items-center justify-center ${currentSize.opacity}`}>
-					<Logo clickable={false}  alt="Loading..." imgClassName={`${currentSize.image}`} />
+				<LoaderCircle
+					strokeWidth={1}
+					className={`absolute rounded-full ${currentSize.container} text-brand-base dark:text-white animate-spin ${currentSize.opacity}`}
+				/>
+				<div
+					className={`absolute inset-0 scale-60 flex items-center justify-center ${currentSize.opacity}`}
+				>
+					<Logo clickable={false} alt="Loading..." imgClassName={`${currentSize.image}`} />
 				</div>
 			</div>
 		</div>

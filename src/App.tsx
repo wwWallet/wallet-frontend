@@ -17,13 +17,17 @@ const lazyWithDelay = <P extends object>(
 		Promise.all([
 			importFunction(),
 			new Promise<void>((resolve) => setTimeout(resolve, delay)),
-		]).then(([module]) => module)
+		]).then(([module]) => module),
 	);
 };
 
 const PrivateRoute = React.lazy(() => import('./components/Auth/PrivateRoute'));
-const NotificationOfflineWarning = React.lazy(() => import('./components/Notifications/NotificationOfflineWarning'));
-const ResyncNotification = React.lazy(() => import('./components/Notifications/ResyncNotification'));
+const NotificationOfflineWarning = React.lazy(
+	() => import('./components/Notifications/NotificationOfflineWarning'),
+);
+const ResyncNotification = React.lazy(
+	() => import('./components/Notifications/ResyncNotification'),
+);
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
@@ -32,7 +36,9 @@ const Pending = React.lazy(() => import('./pages/Pending/Pending'));
 const ActivityDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const Settings = React.lazy(() => import('./pages/Settings/Settings'));
-const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
+const VerificationResult = React.lazy(
+	() => import('./pages/VerificationResult/VerificationResult'),
+);
 
 const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
 const Login = lazyWithDelay(() => import('./pages/Auth/Login'), 200);
@@ -47,19 +53,21 @@ function App() {
 			<Suspense fallback={<Spinner />}>
 				<UpdateNotification />
 				<Routes>
-					<Route element={
-						<PrivateRoute>
-							<Layout>
-								<Suspense fallback={<Spinner size='small' />}>
-									<FadeInContentTransition appear reanimateKey={location.pathname}>
-										<NotificationOfflineWarning />
-										<ResyncNotification />
-										<Outlet />
-									</FadeInContentTransition>
-								</Suspense>
-							</Layout>
-						</PrivateRoute>
-					}>
+					<Route
+						element={
+							<PrivateRoute>
+								<Layout>
+									<Suspense fallback={<Spinner size="small" />}>
+										<FadeInContentTransition appear reanimateKey={location.pathname}>
+											<NotificationOfflineWarning />
+											<ResyncNotification />
+											<Outlet />
+										</FadeInContentTransition>
+									</Suspense>
+								</Layout>
+							</PrivateRoute>
+						}
+					>
 						<Route path="/settings" element={<Settings />} />
 						<Route path="/" element={<Home />} />
 						<Route path="/credential/:batchId" element={<Credential />} />
@@ -72,11 +80,13 @@ function App() {
 						<Route path="/verification/result" element={<VerificationResult />} />
 						<Route path="/cb/*" element={<Home />} />
 					</Route>
-					<Route element={
-						<FadeInContentTransition reanimateKey={location.pathname}>
-							<Outlet />
-						</FadeInContentTransition>
-					}>
+					<Route
+						element={
+							<FadeInContentTransition reanimateKey={location.pathname}>
+								<Outlet />
+							</FadeInContentTransition>
+						}
+					>
 						<Route path="/login" element={<Login />} />
 						<Route path="/register" element={<Register />} />
 						<Route path="/login-state" element={<LoginState />} />

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
-import AppSettingsContext from "@/context/AppSettingsContext";
+import AppSettingsContext from '@/context/AppSettingsContext';
 import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 import type { MobileVcHomeView } from '@/context/AppSettingsContext';
 
@@ -28,7 +28,8 @@ import VerticalSlider from '@/components/Shared/VerticalSlider';
 import PendingTransactionsBanner from '@/components/Credentials/PendingTransactionsBanner';
 
 const Home = () => {
-	const { vcEntityList, latestCredentials, currentSlide, setCurrentSlide, pendingTransactions } = useContext(CredentialsContext);
+	const { vcEntityList, latestCredentials, currentSlide, setCurrentSlide, pendingTransactions } =
+		useContext(CredentialsContext);
 	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
 	const screenType = useScreenType();
 
@@ -53,13 +54,13 @@ const Home = () => {
 		<>
 			<div className="w-full">
 				<div className="px-6 sm:px-12">
-					<div className='flex items-center justify-between gap-3 mb-2'>
+					<div className="flex items-center justify-between gap-3 mb-2">
 						<H1 heading={t('common.navItemCredentials')} />
-						{screenType !== "desktop" && (vcEntityList?.length ?? 0) > 1 && (
+						{screenType !== 'desktop' && (vcEntityList?.length ?? 0) > 1 && (
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
-					{((pendingTransactions?.length ?? 0) > 0) && (
+					{(pendingTransactions?.length ?? 0) > 0 && (
 						<PendingTransactionsBanner
 							pendingTransactions={pendingTransactions}
 							onView={() => navigate('/pending')}
@@ -67,10 +68,12 @@ const Home = () => {
 					)}
 				</div>
 				{vcEntityList ? (
-					<div className=''>
+					<div className="">
 						{vcEntityList.length === 0 ? (
 							<div className="py-4 md:py-2 overflow-x-hidden">
-								<div className={`${screenType !== 'desktop' ? 'xm:px-6 px-8 sm:px-20' : 'px-12 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3'} `}>
+								<div
+									className={`${screenType !== 'desktop' ? 'xm:px-6 px-8 sm:px-20' : 'px-12 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3'} `}
+								>
 									<AddCredentialCard onClick={handleAddCredential} />
 								</div>
 							</div>
@@ -78,8 +81,8 @@ const Home = () => {
 							<>
 								{screenType !== 'desktop' ? (
 									<>
-										{(mobileVcHomeView === 'horizontal-slider') ? (
-											<div className='py-4 overflow-hidden'>
+										{mobileVcHomeView === 'horizontal-slider' ? (
+											<div className="py-4 overflow-hidden">
 												<Slider
 													items={vcEntityList}
 													renderSlideContent={(vcEntity, index) => (
@@ -93,10 +96,10 @@ const Home = () => {
 													)}
 													initialSlide={currentSlide}
 													onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
-													className='w-full px-8 xm:px-6 sm:px-20'
+													className="w-full px-8 xm:px-6 sm:px-20"
 												/>
 												{vcEntityList[currentSlide - 1] && (
-													<div className='px-6'>
+													<div className="px-6">
 														<HistoryList
 															batchId={vcEntityList[currentSlide - 1].batchId}
 															title={t('common.recentActivity')}
@@ -106,7 +109,7 @@ const Home = () => {
 												)}
 											</div>
 										) : mobileVcHomeView === 'vertical-slider' ? (
-											<div className='py-2 px-6 xm:px-4 sm:px-4'>
+											<div className="py-2 px-6 xm:px-4 sm:px-4">
 												<VerticalSlider
 													items={vcEntityList}
 													initialIndex={currentSlide - 1}
@@ -122,32 +125,36 @@ const Home = () => {
 													)}
 												/>
 											</div>
-										) : mobileVcHomeView === 'list' && (
-											<>
-												<div className="xm:px-6 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
-													{vcEntityList && vcEntityList.map((vcEntity) => (
-														<CredentialGridCard
-															key={vcEntity.batchId}
-															vcEntity={vcEntity}
-															latestCredentials={latestCredentials}
-															onClick={handleImageClick}
-															fixedRatio={false}
-														/>
-													))}
-												</div>
-											</>
+										) : (
+											mobileVcHomeView === 'list' && (
+												<>
+													<div className="xm:px-6 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
+														{vcEntityList &&
+															vcEntityList.map((vcEntity) => (
+																<CredentialGridCard
+																	key={vcEntity.batchId}
+																	vcEntity={vcEntity}
+																	latestCredentials={latestCredentials}
+																	onClick={handleImageClick}
+																	fixedRatio={false}
+																/>
+															))}
+													</div>
+												</>
+											)
 										)}
 									</>
 								) : (
 									<div className="px-6 sm:px-12 py-2 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
-										{vcEntityList && vcEntityList.map((vcEntity) => (
-											<CredentialGridCard
-												key={vcEntity.batchId}
-												vcEntity={vcEntity}
-												latestCredentials={latestCredentials}
-												onClick={handleImageClick}
-											/>
-										))}
+										{vcEntityList &&
+											vcEntityList.map((vcEntity) => (
+												<CredentialGridCard
+													key={vcEntity.batchId}
+													vcEntity={vcEntity}
+													latestCredentials={latestCredentials}
+													onClick={handleImageClick}
+												/>
+											))}
 										<AddCredentialCard onClick={handleAddCredential} />
 									</div>
 								)}
@@ -156,16 +163,18 @@ const Home = () => {
 					</div>
 				) : (
 					<div className="py-4 md:py-2 overflow-x-hidden">
-						<div className={`${screenType !== 'desktop' ? 'xm:px-6 px-8 sm:px-20' : 'px-12 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3'} `}>
+						<div
+							className={`${screenType !== 'desktop' ? 'xm:px-6 px-8 sm:px-20' : 'px-12 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3'} `}
+						>
 							{Array.from({ length: screenType !== 'desktop' ? 1 : 6 }).map((_, idx) => (
 								<CredentialCardSkeleton key={idx} />
 							))}
 						</div>
 					</div>
 				)}
-			</div >
+			</div>
 		</>
 	);
-}
+};
 
 export default Home;

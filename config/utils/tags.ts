@@ -1,4 +1,4 @@
-import { Tag } from "./resources";
+import { Tag } from './resources';
 import { ClientMetaConfig } from '../config';
 
 export function getTagSortingPriority(el: Element): number {
@@ -23,20 +23,18 @@ export function getTagSortingPriority(el: Element): number {
 		(tag === 'link' && rel === 'manifest') ||
 		(tag === 'meta' && name === 'theme-color') ||
 		(tag === 'link' && /theme.css/i.test(href))
-	) return 4;
+	)
+		return 4;
 
 	// description, keywords, og:*, twitter:*
 	if (tag === 'meta') {
 		if (name === 'description' || name === 'keywords') return 5;
-		if (name.startsWith('og:') || name.startsWith('twitter:') || property.startsWith('og:')) return 5;
+		if (name.startsWith('og:') || name.startsWith('twitter:') || property.startsWith('og:'))
+			return 5;
 	}
 
 	// assets
-	if (
-		(tag === 'link' && rel === 'stylesheet') ||
-		tag === 'style' ||
-		tag === 'script'
-	) return 6;
+	if ((tag === 'link' && rel === 'stylesheet') || tag === 'style' || tag === 'script') return 6;
 
 	// meta tags with name starting with www:*
 	if (tag === 'meta' && name.startsWith('www:')) return 7;
@@ -44,7 +42,11 @@ export function getTagSortingPriority(el: Element): number {
 	return 8;
 }
 
-export function insertTag(document: Document, head: HTMLHeadElement, { tag, props, textContent }: Tag): void {
+export function insertTag(
+	document: Document,
+	head: HTMLHeadElement,
+	{ tag, props, textContent }: Tag,
+): void {
 	const element = document.createElement(tag);
 	for (const [key, value] of Object.entries(props || {})) {
 		element.setAttribute(key, value ?? '');
@@ -54,7 +56,9 @@ export function insertTag(document: Document, head: HTMLHeadElement, { tag, prop
 	}
 
 	const identifyingProps = ['name', 'rel', 'property', 'media'];
-	const selectorProps = Object.entries(props || {}).filter(([key]) => identifyingProps.includes(key));
+	const selectorProps = Object.entries(props || {}).filter(([key]) =>
+		identifyingProps.includes(key),
+	);
 	const selector = `${tag}${selectorProps.map(([key, value]) => `[${key}="${value}"]`).join('')}`;
 
 	const existingElement = head.querySelector(selector);
@@ -72,6 +76,6 @@ export function configMetaTag(config: ClientMetaConfig): Tag {
 		props: {
 			name: 'www:config',
 			content: JSON.stringify(config),
-		}
-	}
+		},
+	};
 }

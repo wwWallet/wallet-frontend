@@ -1,20 +1,26 @@
-import { IOpenID4VP } from "../../interfaces/IOpenID4VP";
-import { OpenID4VPServerAPI, OpenID4VPResponseMode } from "wallet-common";
-import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartyState";
-import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
-import { useHttpProxy } from "../HttpProxy/HttpProxy";
-import { useCallback, useContext, useMemo } from "react";
-import { useSessionContext } from "@/context/SessionContext";
-import CredentialsContext from "@/context/CredentialsContext";
-import { useTranslation } from "react-i18next";
-import { ParsedTransactionData, parseTransactionDataWithUI } from "./TransactionData/parseTransactionData";
-import { ExtendedVcEntity } from "@/context/CredentialsContext";
-import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
-import { WalletStateUtils } from "@/services/WalletStateUtils";
-import { TransactionDataResponse } from "wallet-common";
-import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
+import { IOpenID4VP } from '../../interfaces/IOpenID4VP';
+import { OpenID4VPServerAPI, OpenID4VPResponseMode } from 'wallet-common';
+import { OpenID4VPRelyingPartyState } from '../../types/OpenID4VPRelyingPartyState';
+import { useOpenID4VPRelyingPartyStateRepository } from '../OpenID4VPRelyingPartyStateRepository';
+import { useHttpProxy } from '../HttpProxy/HttpProxy';
+import { useCallback, useContext, useMemo } from 'react';
+import { useSessionContext } from '@/context/SessionContext';
+import CredentialsContext from '@/context/CredentialsContext';
+import { useTranslation } from 'react-i18next';
+import {
+	ParsedTransactionData,
+	parseTransactionDataWithUI,
+} from './TransactionData/parseTransactionData';
+import { ExtendedVcEntity } from '@/context/CredentialsContext';
+import { getLeastUsedCredentialInstance } from '../CredentialBatchHelper';
+import { WalletStateUtils } from '@/services/WalletStateUtils';
+import { TransactionDataResponse } from 'wallet-common';
+import { verifyRequestUriAndCerts } from '../../utils/verifyRequestUriAndCerts';
 import type { TransactionConsentOptions } from '@/types/consent';
-import type { ConformantCredentialsMap, ConformantCredentialsRecord } from '@/types/credentialSelection';
+import type {
+	ConformantCredentialsMap,
+	ConformantCredentialsRecord,
+} from '@/types/credentialSelection';
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
@@ -25,10 +31,9 @@ export function useOpenID4VP({
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
-	) => Promise<Map<string, number>>,
-	showTransactionDataConsentPopup: (options: TransactionConsentOptions) => Promise<boolean>,
+	) => Promise<Map<string, number>>;
+	showTransactionDataConsentPopup: (options: TransactionConsentOptions) => Promise<boolean>;
 }): IOpenID4VP {
-
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { parseCredential } = useContext(CredentialsContext);
@@ -42,9 +47,14 @@ export function useOpenID4VP({
 			verifierPurpose: string,
 			parsedTransactionData?: ParsedTransactionData[],
 		): Promise<Map<string, number>> => {
-			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData);
+			return showCredentialSelectionPopup(
+				conformantCredentialsMap,
+				verifierDomainName,
+				verifierPurpose,
+				parsedTransactionData,
+			);
 		},
-		[showCredentialSelectionPopup]
+		[showCredentialSelectionPopup],
 	);
 	const openID4VPServer = useMemo(() => {
 		const lastUsedNonceStore = {
@@ -53,16 +63,18 @@ export function useOpenID4VP({
 		};
 		const rpStateStore = {
 			store: async (stateObject: any): Promise<void> => {
-				await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
-					stateObject.nonce,
-					stateObject.response_uri,
-					stateObject.client_id,
-					stateObject.state,
-					stateObject.client_metadata,
-					stateObject.response_mode as OpenID4VPResponseMode,
-					stateObject.transaction_data,
-					stateObject.dcql_query
-				));
+				await openID4VPRelyingPartyStateRepository.store(
+					new OpenID4VPRelyingPartyState(
+						stateObject.nonce,
+						stateObject.response_uri,
+						stateObject.client_id,
+						stateObject.state,
+						stateObject.client_metadata,
+						stateObject.response_mode as OpenID4VPResponseMode,
+						stateObject.transaction_data,
+						stateObject.dcql_query,
+					),
+				);
 			},
 			retrieve: async () => {
 				const stored = await openID4VPRelyingPartyStateRepository.retrieve();
@@ -78,13 +90,20 @@ export function useOpenID4VP({
 				};
 			},
 		};
-		const selectCredentialForBatch = async (batchId: number, vcEntityList: ExtendedVcEntity[]): Promise<ExtendedVcEntity | null> => {
+		const selectCredentialForBatch = async (
+			batchId: number,
+			vcEntityList: ExtendedVcEntity[],
+		): Promise<ExtendedVcEntity | null> => {
 			const walletState = keystore.getCalculatedWalletState();
 			if (!walletState) {
-				throw new Error("Empty wallet state");
+				throw new Error('Empty wallet state');
 			}
-			const selectedCredential = await getLeastUsedCredentialInstance(batchId, vcEntityList, walletState);
-			const batchCredential = vcEntityList.find(credential => credential.batchId === batchId);
+			const selectedCredential = await getLeastUsedCredentialInstance(
+				batchId,
+				vcEntityList,
+				walletState,
+			);
+			const batchCredential = vcEntityList.find((credential) => credential.batchId === batchId);
 			return selectedCredential && batchCredential
 				? { ...batchCredential, ...selectedCredential }
 				: null;
@@ -106,99 +125,98 @@ export function useOpenID4VP({
 			verifyRequestUriAndCerts: async ({ request_uri, response_uri, parsedHeader }) =>
 				verifyRequestUriAndCerts(request_uri, response_uri, parsedHeader),
 		});
-	}, [
-		httpProxy,
-		openID4VPRelyingPartyStateRepository,
-		parseCredential,
-		keystore,
-		t,
-	]);
+	}, [httpProxy, openID4VPRelyingPartyStateRepository, parseCredential, keystore, t]);
 
-	const handleAuthorizationRequest = useCallback(async (
-		url: string,
-		vcEntityList: ExtendedVcEntity[],
-	): Promise<{
-		conformantCredentialsMap: ConformantCredentialsMap,
-		verifierDomainName: string,
-		verifierPurpose: string,
-		parsedTransactionData: ParsedTransactionData[] | null,
-	}> => {
-		const result = await openID4VPServer.handleAuthorizationRequest(url, vcEntityList);
-		if ("error" in result) {
-			throw new Error(result.error);
-		}
-		return result;
-	}, [openID4VPServer]);
-
-	const sendAuthorizationResponse = useCallback(async (selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
-		const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
-		if (!response || !(response as any).formData) {
-			return { state: "skipped" as const };
-		}
-		const { formData, generatedVPs, filteredVCEntities, response_uri, client_id } = response as {
-			formData: URLSearchParams;
-			generatedVPs: string[];
-			filteredVCEntities: ExtendedVcEntity[];
-			response_uri: string;
-			client_id: string;
-		};
-
-		const transactionId = WalletStateUtils.getRandomUint32();
-		const [, newPrivateData, keystoreCommit] = await keystore.addPresentations(generatedVPs.map((vpData, index) => {
-			console.log("Presentation: ")
-
-			return {
-				transactionId: transactionId,
-				data: vpData,
-				usedCredentialIds: [filteredVCEntities[index].credentialId],
-				audience: client_id,
+	const handleAuthorizationRequest = useCallback(
+		async (
+			url: string,
+			vcEntityList: ExtendedVcEntity[],
+		): Promise<{
+			conformantCredentialsMap: ConformantCredentialsMap;
+			verifierDomainName: string;
+			verifierPurpose: string;
+			parsedTransactionData: ParsedTransactionData[] | null;
+		}> => {
+			const result = await openID4VPServer.handleAuthorizationRequest(url, vcEntityList);
+			if ('error' in result) {
+				throw new Error(result.error);
 			}
-		}));
-		await api.updatePrivateData(newPrivateData);
-		await keystoreCommit();
+			return result;
+		},
+		[openID4VPServer],
+	);
 
-		const bodyString = formData.toString();
-		console.log('bodyString: ', bodyString)
-		try {
-			const res = await httpProxy.post(response_uri, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			});
-			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
-			console.log("Direct post response = ", JSON.stringify(res.data));
-			if (responseData.presentation_during_issuance_session) {
-				// return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
-				return { state: "skipped" as const };
+	const sendAuthorizationResponse = useCallback(
+		async (selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
+			const response = await openID4VPServer.createAuthorizationResponse(
+				selectionMap,
+				vcEntityList,
+			);
+			if (!response || !(response as any).formData) {
+				return { state: 'skipped' as const };
 			}
-			if (responseData.redirect_uri) {
-				return {
-					state: "success" as const,
-					redirect_uri: responseData.redirect_uri,
+			const { formData, generatedVPs, filteredVCEntities, response_uri, client_id } = response as {
+				formData: URLSearchParams;
+				generatedVPs: string[];
+				filteredVCEntities: ExtendedVcEntity[];
+				response_uri: string;
+				client_id: string;
+			};
+
+			const transactionId = WalletStateUtils.getRandomUint32();
+			const [, newPrivateData, keystoreCommit] = await keystore.addPresentations(
+				generatedVPs.map((vpData, index) => {
+					console.log('Presentation: ');
+
+					return {
+						transactionId: transactionId,
+						data: vpData,
+						usedCredentialIds: [filteredVCEntities[index].credentialId],
+						audience: client_id,
+					};
+				}),
+			);
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+
+			const bodyString = formData.toString();
+			console.log('bodyString: ', bodyString);
+			try {
+				const res = await httpProxy.post(response_uri, formData.toString(), {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				});
+				const responseData = res.data as {
+					presentation_during_issuance_session?: string;
+					redirect_uri?: string;
 				};
+				console.log('Direct post response = ', JSON.stringify(res.data));
+				if (responseData.presentation_during_issuance_session) {
+					// return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
+					return { state: 'skipped' as const };
+				}
+				if (responseData.redirect_uri) {
+					return {
+						state: 'success' as const,
+						redirect_uri: responseData.redirect_uri,
+					};
+				}
+				if (res.status >= 400) {
+					throw new Error(`Direct post to verifier failed with status ${res.status}`);
+				}
+				return { state: 'success' as const };
+			} catch (err) {
+				console.error(err);
+				throw err;
 			}
-			if (res.status >= 400) {
-				throw new Error(`Direct post to verifier failed with status ${res.status}`);
-			}
-			return { state: "success" as const };
-		} catch (err) {
-			console.error(err);
-			throw err;
-		}
-	}, [
-		httpProxy,
-		api,
-		keystore,
-		openID4VPServer,
-	]);
+		},
+		[httpProxy, api, keystore, openID4VPServer],
+	);
 
 	return useMemo(() => {
 		return {
 			promptForCredentialSelection,
 			handleAuthorizationRequest,
 			sendAuthorizationResponse,
-		}
-	}, [
-		promptForCredentialSelection,
-		handleAuthorizationRequest,
-		sendAuthorizationResponse,
-	]);
+		};
+	}, [promptForCredentialSelection, handleAuthorizationRequest, sendAuthorizationResponse]);
 }

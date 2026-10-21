@@ -13,7 +13,15 @@ interface PinInputProps extends TxCodeInputMetadata {
 	onCancel?: () => void;
 }
 
-function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 'numeric', description }: PinInputProps) {
+function PinInput({
+	isOpen,
+	setIsOpen,
+	onSubmit,
+	onCancel,
+	length,
+	input_mode = 'numeric',
+	description,
+}: PinInputProps) {
 	const [errMessage, setErrMessage] = useState('');
 	const parsedLength = Number(length);
 	const expectedLength = Number.isInteger(parsedLength) && parsedLength > 0 ? parsedLength : null;
@@ -30,7 +38,10 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 		}
 
 		const trimmedDigits = [...digits];
-		while (trimmedDigits.length > expectedLength && trimmedDigits[trimmedDigits.length - 1] === '') {
+		while (
+			trimmedDigits.length > expectedLength &&
+			trimmedDigits[trimmedDigits.length - 1] === ''
+		) {
 			trimmedDigits.pop();
 		}
 		return trimmedDigits;
@@ -60,7 +71,10 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 
 		try {
 			const userPin = pin.join('');
-			if (!userPin || (expectedLength && pin.slice(0, expectedLength).some((digit) => digit === ''))) {
+			if (
+				!userPin ||
+				(expectedLength && pin.slice(0, expectedLength).some((digit) => digit === ''))
+			) {
 				setErrMessage(`${t('PinInputPopup.errMessage')}`);
 				return;
 			}
@@ -98,10 +112,12 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 			const pastedPin = Array.from(value);
 			const nextPin = trimExtraEmptyDigits([
 				...pastedPin,
-				...Array(Math.max((expectedLength ?? 0) - pastedPin.length, 0)).fill('')
+				...Array(Math.max((expectedLength ?? 0) - pastedPin.length, 0)).fill(''),
 			]);
 			setPin(nextPin);
-			inputRefs.current[Math.min(pastedPin.length, Math.max(expectedLength ?? 0, nextPin.length) - 1)]?.focus();
+			inputRefs.current[
+				Math.min(pastedPin.length, Math.max(expectedLength ?? 0, nextPin.length) - 1)
+			]?.focus();
 			return;
 		}
 
@@ -128,13 +144,15 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 		});
 		const nextPin = trimExtraEmptyDigits(newPin);
 		setPin(nextPin);
-		inputRefs.current[Math.min(index + pastedPin.length, Math.max(expectedLength ?? 0, nextPin.length) - 1)]?.focus();
+		inputRefs.current[
+			Math.min(index + pastedPin.length, Math.max(expectedLength ?? 0, nextPin.length) - 1)
+		]?.focus();
 	};
 
 	const inputCount = expectedLength ? Math.max(expectedLength, pin.length) : 0;
 
 	return (
-		<PopupLayout isOpen={isOpen} onClose={() => { }} shouldCloseOnOverlayClick={false}>
+		<PopupLayout isOpen={isOpen} onClose={() => {}} shouldCloseOnOverlayClick={false}>
 			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
@@ -144,11 +162,9 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 				{description || t('PinInputPopup.description')}
 			</p>
 
-			{errMessage && (
-				<p className='text-sm text-lm-red dark:text-dm-red'>{errMessage}</p>
-			)}
+			{errMessage && <p className="text-sm text-lm-red dark:text-dm-red">{errMessage}</p>}
 			{expectedLength ? (
-				<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
+				<div className="mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]">
 					{Array.from({ length: inputCount }).map((_, index) => (
 						<input
 							type="text"
@@ -169,7 +185,7 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 					))}
 				</div>
 			) : (
-				<div className='mt-4'>
+				<div className="mt-4">
 					<input
 						type="text"
 						value={pin[0] ?? ''}
@@ -187,10 +203,7 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 			)}
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button
-					id="cancel-pin-input"
-					onClick={handleCancel}
-				>
+				<Button id="cancel-pin-input" onClick={handleCancel}>
 					{t('common.cancel')}
 				</Button>
 				<Button

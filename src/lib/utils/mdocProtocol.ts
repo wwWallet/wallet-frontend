@@ -1,4 +1,4 @@
-import { cborEncode, DataItem } from "@owf/mdoc";
+import { cborEncode, DataItem } from '@owf/mdoc';
 
 type BinarySource = ArrayBuffer | ArrayBufferView<ArrayBufferLike>;
 
@@ -9,36 +9,43 @@ function toArrayBufferView(source: BinarySource): Uint8Array<ArrayBuffer> {
 	return new Uint8Array(source);
 }
 
-export async function createSessionKey(rawPublic: ArrayBuffer, ephemeralKey: CryptoKeyPair) : Promise<CryptoKey> {
+export async function createSessionKey(
+	rawPublic: ArrayBuffer,
+	ephemeralKey: CryptoKeyPair,
+): Promise<CryptoKey> {
 	const importedVerifierPublicKey = await crypto.subtle.importKey(
-		"raw",
+		'raw',
 		rawPublic,
 		{
-			name: "ECDH",
-			namedCurve: "P-256",
+			name: 'ECDH',
+			namedCurve: 'P-256',
 		},
 		true,
-		[]
+		[],
 	);
 
 	const sessionKey = await crypto.subtle.deriveKey(
 		{
-			name: "ECDH",
-			public: importedVerifierPublicKey
+			name: 'ECDH',
+			public: importedVerifierPublicKey,
 		},
 		ephemeralKey.privateKey,
 		{
-			name: "AES-GCM",
+			name: 'AES-GCM',
 			length: 256,
 		},
 		false,
-		["encrypt", "decrypt"]
+		['encrypt', 'decrypt'],
 	);
 
 	return sessionKey;
 }
 
-export async function encryptMessage(sessionKey: CryptoKey, plaintext: string, iv: Uint8Array<ArrayBuffer> | null = null) {
+export async function encryptMessage(
+	sessionKey: CryptoKey,
+	plaintext: string,
+	iv: Uint8Array<ArrayBuffer> | null = null,
+) {
 	// const enc = new TextEncoder();
 	if (!iv) {
 		iv = crypto.getRandomValues(new Uint8Array(12));
@@ -49,19 +56,23 @@ export async function encryptMessage(sessionKey: CryptoKey, plaintext: string, i
 
 	const ciphertext = await crypto.subtle.encrypt(
 		{
-			name: "AES-GCM",
-			iv: iv
+			name: 'AES-GCM',
+			iv: iv,
 		},
 		sessionKey,
 		// enc.encode(plaintext)
 		// plaintext
-		new TextEncoder().encode(plaintext)
+		new TextEncoder().encode(plaintext),
 	);
 
 	return { iv, ciphertext };
 }
 
-export async function encryptUint8Array(sessionKey: CryptoKey, arr: BinarySource, iv: Uint8Array<ArrayBuffer> | null = null) {
+export async function encryptUint8Array(
+	sessionKey: CryptoKey,
+	arr: BinarySource,
+	iv: Uint8Array<ArrayBuffer> | null = null,
+) {
 	// const enc = new TextEncoder();
 	if (!iv) {
 		iv = crypto.getRandomValues(new Uint8Array(12));
@@ -72,28 +83,33 @@ export async function encryptUint8Array(sessionKey: CryptoKey, arr: BinarySource
 
 	const ciphertext = await crypto.subtle.encrypt(
 		{
-			name: "AES-GCM",
-			iv: iv
+			name: 'AES-GCM',
+			iv: iv,
 		},
 		sessionKey,
 		// enc.encode(plaintext)
 		// plaintext
-		toArrayBufferView(arr)
+		toArrayBufferView(arr),
 	);
 
 	return { iv, ciphertext };
 }
 
-export async function decryptMessage(sessionKey: CryptoKey, iv: BinarySource, ciphertext: BinarySource, uint8 = false): Promise<string | Uint8Array<ArrayBuffer>> {
+export async function decryptMessage(
+	sessionKey: CryptoKey,
+	iv: BinarySource,
+	ciphertext: BinarySource,
+	uint8 = false,
+): Promise<string | Uint8Array<ArrayBuffer>> {
 	const dec = new TextDecoder();
 
 	const plaintext = await crypto.subtle.decrypt(
 		{
-			name: "AES-GCM",
-			iv: toArrayBufferView(iv)
+			name: 'AES-GCM',
+			iv: toArrayBufferView(iv),
 		},
 		sessionKey,
-		toArrayBufferView(ciphertext)
+		toArrayBufferView(ciphertext),
 	);
 	if (uint8) {
 		return new Uint8Array(plaintext);
@@ -103,7 +119,9 @@ export async function decryptMessage(sessionKey: CryptoKey, iv: BinarySource, ci
 }
 
 export function hexToUint8Array(hexString: string): Uint8Array<ArrayBuffer> {
-	return Uint8Array.from((hexString.match(/.{1,2}/g) ?? []).map((byte: string) => parseInt(byte, 16)));
+	return Uint8Array.from(
+		(hexString.match(/.{1,2}/g) ?? []).map((byte: string) => parseInt(byte, 16)),
+	);
 }
 
 export function uint8ArrayToBase64Url(array: any) {
@@ -126,14 +144,13 @@ export function uint8ArrayToBase64Url(array: any) {
 }
 
 export function uint8ArraytoHexString(byteArray: Uint8Array): string {
-	return Array.from(byteArray, (byte: number) =>
-		('0' + (byte & 0xFF).toString(16)).slice(-2)
-	).join('');
+	return Array.from(byteArray, (byte: number) => ('0' + (byte & 0xff).toString(16)).slice(-2)).join(
+		'',
+	);
 }
 
 export async function deriveSKReader(sessionTranscriptBytes: BufferSource): Promise<void> {
 	void sessionTranscriptBytes;
-
 }
 
 /*
@@ -142,48 +159,56 @@ export async function deriveSKReader(sessionTranscriptBytes: BufferSource): Prom
 		- our ECDH private key
 		- their ECDH public key
 */
-export async function deriveSharedSecret(privateKey: CryptoKey, publicKey: CryptoKey): Promise<CryptoKey> {
+export async function deriveSharedSecret(
+	privateKey: CryptoKey,
+	publicKey: CryptoKey,
+): Promise<CryptoKey> {
 	const secret = await crypto.subtle.deriveBits(
-		{ name: "ECDH", public: publicKey },
+		{ name: 'ECDH', public: publicKey },
 		privateKey,
-		256
+		256,
 	);
 
-	return crypto.subtle.importKey(
-		"raw",
-		secret,
-		{ name: "HKDF" },
-		false,
-		["deriveKey"]
-	);
+	return crypto.subtle.importKey('raw', secret, { name: 'HKDF' }, false, ['deriveKey']);
 }
 
-export async function getKey(keyMaterial: CryptoKey, salt: ArrayBuffer | Uint8Array<ArrayBufferLike>, info: string): Promise<CryptoKey> {
+export async function getKey(
+	keyMaterial: CryptoKey,
+	salt: ArrayBuffer | Uint8Array<ArrayBufferLike>,
+	info: string,
+): Promise<CryptoKey> {
 	return await crypto.subtle.deriveKey(
 		{
-			name: "HKDF",
+			name: 'HKDF',
 			salt: salt instanceof Uint8Array ? new Uint8Array(salt) : salt,
 			info: new TextEncoder().encode(info),
-			hash: "SHA-256",
+			hash: 'SHA-256',
 		},
 		keyMaterial,
-		{ name: "AES-GCM", length: 256 },
+		{ name: 'AES-GCM', length: 256 },
 		true,
-		["encrypt", "decrypt"]
+		['encrypt', 'decrypt'],
 	);
 }
 
-export function getSessionTranscriptBytes(deviceEngagementBytes: Uint8Array, eReaderKeyBytes: Uint8Array): Uint8Array<ArrayBuffer> {
-	return new Uint8Array(cborEncode(DataItem.fromData([
-		deviceEngagementBytes, // DeviceEngagementBytes
-		eReaderKeyBytes, // EReaderKeyBytes
-		null,
-	])));
+export function getSessionTranscriptBytes(
+	deviceEngagementBytes: Uint8Array,
+	eReaderKeyBytes: Uint8Array,
+): Uint8Array<ArrayBuffer> {
+	return new Uint8Array(
+		cborEncode(
+			DataItem.fromData([
+				deviceEngagementBytes, // DeviceEngagementBytes
+				eReaderKeyBytes, // EReaderKeyBytes
+				null,
+			]),
+		),
+	);
 }
 
 export function getDeviceEngagement(uuid: string, publicKeyJWK: JsonWebKey) {
 	if (!publicKeyJWK.x || !publicKeyJWK.y) {
-		throw new Error("EC public key JWK must include x and y");
+		throw new Error('EC public key JWK must include x and y');
 	}
 	const bleOptions = new Map<number, any>([
 		[0, false],
@@ -192,12 +217,19 @@ export function getDeviceEngagement(uuid: string, publicKeyJWK: JsonWebKey) {
 	]);
 
 	const themap = new Map<number, any>();
-	themap.set(0, "1.0");
-	//@ts-ignore
-	themap.set(1, [1, DataItem.fromData(new Map([[1, 2], [-1, 1],
+	themap.set(0, '1.0');
+	themap.set(1, [
+		1,
+		DataItem.fromData(
+			new Map<number, number | Uint8Array>([
+				[1, 2],
+				[-1, 1],
 
-	[-2, base64urlToUint8Array(publicKeyJWK.x)],
-	[-3, base64urlToUint8Array(publicKeyJWK.y)]]))])
+				[-2, base64urlToUint8Array(publicKeyJWK.x)],
+				[-3, base64urlToUint8Array(publicKeyJWK.y)],
+			]),
+		),
+	]);
 	themap.set(2, [[2, 1, bleOptions]]);
 
 	return themap;
@@ -220,7 +252,7 @@ export function uuidToUint8Array(uuid: string): Uint8Array<ArrayBuffer> {
 
 export function base64urlToUint8Array(base64url: string): Uint8Array {
 	const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/'); // Base64url to Base64
-	const binaryString = atob(base64);  // Decode base64 to binary string
+	const binaryString = atob(base64); // Decode base64 to binary string
 	const byteArray = new Uint8Array(binaryString.length); // Create a Uint8Array of the same length
 
 	// Populate the Uint8Array with byte values

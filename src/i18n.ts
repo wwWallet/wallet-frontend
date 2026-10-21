@@ -24,7 +24,9 @@ if (config.WALLET_NAME) {
 const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 
 // Only keep the fallback language if multi-language is disabled
-const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
+const availableResources = isMultiLanguageEnabled
+	? resources
+	: { [fallbackLng]: resources[fallbackLng] };
 
 // Helper function to get only the language part and check if it exists
 export const getLanguage = (locale: unknown): string | undefined =>
@@ -47,15 +49,13 @@ if (!preferredLanguage || !(preferredLanguage in availableResources)) {
 // If multi-language is disabled, force the fallback language
 const languageSetting = isMultiLanguageEnabled ? preferredLanguage : fallbackLng;
 
-i18n
-	.use(initReactI18next)
-	.init({
-		resources: availableResources,
-		fallbackLng,
-		lng: languageSetting,
-		interpolation: {
-			escapeValue: false,
-		},
-	});
+i18n.use(initReactI18next).init({
+	resources: availableResources,
+	fallbackLng,
+	lng: languageSetting,
+	interpolation: {
+		escapeValue: false,
+	},
+});
 
 export default i18n;

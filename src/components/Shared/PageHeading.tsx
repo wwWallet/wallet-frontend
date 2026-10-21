@@ -6,11 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import { H1 } from './Heading';
 
 type PageHeadingProps = {
-	heading: ReactNode,
-	actions?: ReactNode,
-	backPath?: string,
-	hideHeadingOnMobile?: boolean,
-	showBackButtonOnDesktop?: boolean,
+	heading: ReactNode;
+	actions?: ReactNode;
+	backPath?: string;
+	hideHeadingOnMobile?: boolean;
+	showBackButtonOnDesktop?: boolean;
 };
 
 const PageHeading = ({

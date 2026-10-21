@@ -29,4 +29,6 @@ export interface CredentialSelectionPopupState {
 	reject: () => void;
 }
 
-export type SetCredentialSelectionPopupState = Dispatch<SetStateAction<CredentialSelectionPopupState>>;
+export type SetCredentialSelectionPopupState = Dispatch<
+	SetStateAction<CredentialSelectionPopupState>
+>;

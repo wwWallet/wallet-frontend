@@ -64,7 +64,9 @@ const UsageStats = ({ zeroSigCount, sigTotal, t }: UsageStatsProps) => {
 			<span className="font-medium text-lm-gray-900 dark:text-dm-gray-100">
 				{t('pageCredentials.details.availableUsages')}
 			</span>
-			<span className={`inline-flex items-baseline rounded-full border px-2.5 py-0.5 font-semibold tabular-nums ${usageClass}`}>
+			<span
+				className={`inline-flex items-baseline rounded-full border px-2.5 py-0.5 font-semibold tabular-nums ${usageClass}`}
+			>
 				{zeroSigCount}
 				<span className="px-0.5 opacity-60">/</span>
 				<span className="font-normal opacity-80">{sigTotal}</span>
@@ -108,7 +110,13 @@ const CredentialImagePreview = ({
 	);
 };
 
-const CredentialLayout = ({ children, title = null, summaryActions = null, actionsMenu = null, hideHeadingOnMobile = false }: CredentialLayoutProps) => {
+const CredentialLayout = ({
+	children,
+	title = null,
+	summaryActions = null,
+	actionsMenu = null,
+	hideHeadingOnMobile = false,
+}: CredentialLayoutProps) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -117,12 +125,13 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 	const sigTotal = vcEntity?.instances?.length ?? 0;
-	const zeroSigCount = vcEntity?.instances?.filter(instance => instance.sigCount === 0).length ?? 0;
+	const zeroSigCount =
+		vcEntity?.instances?.filter((instance) => instance.sigCount === 0).length ?? 0;
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		[i18n.language]
+		[i18n.language],
 	);
 
 	const isCredentialRoot = Boolean(useMatch('/credential/:batchId'));
@@ -130,7 +139,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 
 	return (
 		<div className="px-6 sm:px-12 w-full">
-			<div className='mb-4'>
+			<div className="mb-4">
 				<PageHeading
 					heading={title}
 					actions={actionsMenu}
@@ -139,7 +148,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 					showBackButtonOnDesktop
 				/>
 			</div>
-			{ isCredentialRoot && vcEntity.isExpired && (
+			{isCredentialRoot && vcEntity.isExpired && (
 				<div
 					role="alert"
 					className="mb-4 flex items-center gap-2 rounded-xl border border-lm-red/20 bg-lm-red-light/50 p-2 shadow-md dark:border-dm-red/20 dark:bg-dm-red/5 sm:px-5"
@@ -163,14 +172,16 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 						onFullscreen={() => setShowFullscreenImgPopup(true)}
 						ariaLabel={credentialName}
 						title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName })}
-						containerClassName={`mr-auto shrink-0 ${isCredentialRoot
-							? 'w-full max-w-sm xm:max-w-none'
-							: 'w-[clamp(8rem,20%,12rem)]'}`}
+						containerClassName={`mr-auto shrink-0 ${
+							isCredentialRoot ? 'w-full max-w-sm xm:max-w-none' : 'w-[clamp(8rem,20%,12rem)]'
+						}`}
 						fixedRatioImage={screenType === 'desktop' || !isCredentialRoot}
-						preferredOrientation={screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'}
+						preferredOrientation={
+							screenType === 'desktop' || !isCredentialRoot ? 'landscape' : 'portrait'
+						}
 					/>
 					{!isCredentialRoot && (
-						<p className='truncate text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>
+						<p className="truncate text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100">
 							{credentialName}
 						</p>
 					)}
@@ -179,9 +190,7 @@ const CredentialLayout = ({ children, title = null, summaryActions = null, actio
 							<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} t={t} />
 						</div>
 					)}
-					{isCredentialRoot && summaryActions && (
-						<div>{summaryActions}</div>
-					)}
+					{isCredentialRoot && summaryActions && <div>{summaryActions}</div>}
 				</div>
 				{children}
 			</div>

@@ -1,4 +1,7 @@
-import { BluetoothConnectionResult, IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
+import {
+	BluetoothConnectionResult,
+	IBluetoothTransport,
+} from '../../interfaces/IBluetoothTransport';
 
 // Minimal Web Bluetooth typings (subset of @types/web-bluetooth).
 interface BluetoothRemoteGATTCharacteristic extends EventTarget {
@@ -30,9 +33,9 @@ interface Bluetooth {
 // ISO 18013-5 Annex A, mdoc central client mode GATT characteristics.
 // The wallet (mdoc) is the GATT client; the reader is the GATT server
 // advertising the service UUID from the device engagement.
-const CHARACTERISTIC_STATE_UUID = "00000005-a123-48ce-896b-4c76973373e6";
-const CHARACTERISTIC_CLIENT2SERVER_UUID = "00000006-a123-48ce-896b-4c76973373e6";
-const CHARACTERISTIC_SERVER2CLIENT_UUID = "00000007-a123-48ce-896b-4c76973373e6";
+const CHARACTERISTIC_STATE_UUID = '00000005-a123-48ce-896b-4c76973373e6';
+const CHARACTERISTIC_CLIENT2SERVER_UUID = '00000006-a123-48ce-896b-4c76973373e6';
+const CHARACTERISTIC_SERVER2CLIENT_UUID = '00000007-a123-48ce-896b-4c76973373e6';
 
 // State characteristic commands
 const STATE_START = 0x01;
@@ -76,13 +79,19 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 
 	// Chunks received from Server2Client notifications, waiting to be consumed
 	private pendingChunks: Uint8Array[] = [];
-	private chunkWaiter: { resolve: (chunk: Uint8Array) => void, reject: (err: Error) => void } | null = null;
+	private chunkWaiter: {
+		resolve: (chunk: Uint8Array) => void;
+		reject: (err: Error) => void;
+	} | null = null;
 
 	static isAvailable(): boolean {
-		return typeof navigator !== "undefined" && !!(navigator as any).bluetooth;
+		return typeof navigator !== 'undefined' && !!(navigator as any).bluetooth;
 	}
 
-	async connect(serviceUuid: string, onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> {
+	async connect(
+		serviceUuid: string,
+		onDeviceSelected?: () => void,
+	): Promise<BluetoothConnectionResult> {
 		try {
 			const bluetooth: Bluetooth = (navigator as any).bluetooth;
 			this.device = await bluetooth.requestDevice({
@@ -91,17 +100,15 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			});
 			// browser device chooser is closed from here on
 			onDeviceSelected?.();
-			this.device.addEventListener("gattserverdisconnected", this.onDisconnected);
+			this.device.addEventListener('gattserverdisconnected', this.onDisconnected);
 			if (!this.device.gatt) {
-				throw new Error("Selected Bluetooth device does not expose GATT");
+				throw new Error('Selected Bluetooth device does not expose GATT');
 			}
 			const connectPromise = this.device.gatt.connect();
 			this.server = await new Promise<BluetoothRemoteGATTServer>((resolve, reject) => {
 				const timeoutId = setTimeout(() => {
-					connectPromise
-						.then((server) => server.connected && server.disconnect())
-						.catch(() => {});
-					reject(new Error("Timed out connecting to the Bluetooth verifier"));
+					connectPromise.then((server) => server.connected && server.disconnect()).catch(() => {});
+					reject(new Error('Timed out connecting to the Bluetooth verifier'));
 				}, GATT_CONNECT_TIMEOUT_MS);
 				connectPromise.then(
 					(server) => {
@@ -111,30 +118,37 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 					(error) => {
 						clearTimeout(timeoutId);
 						reject(error);
-					}
+					},
 				);
 			});
 			const service = await this.server.getPrimaryService(serviceUuid);
 			this.stateCharacteristic = await service.getCharacteristic(CHARACTERISTIC_STATE_UUID);
-			this.client2ServerCharacteristic = await service.getCharacteristic(CHARACTERISTIC_CLIENT2SERVER_UUID);
-			this.server2ClientCharacteristic = await service.getCharacteristic(CHARACTERISTIC_SERVER2CLIENT_UUID);
+			this.client2ServerCharacteristic = await service.getCharacteristic(
+				CHARACTERISTIC_CLIENT2SERVER_UUID,
+			);
+			this.server2ClientCharacteristic = await service.getCharacteristic(
+				CHARACTERISTIC_SERVER2CLIENT_UUID,
+			);
 
 			await this.server2ClientCharacteristic.startNotifications();
-			this.server2ClientCharacteristic.addEventListener("characteristicvaluechanged", this.onServer2ClientNotification);
+			this.server2ClientCharacteristic.addEventListener(
+				'characteristicvaluechanged',
+				this.onServer2ClientNotification,
+			);
 
 			// Signal "Start" to the reader
 			await this.stateCharacteristic.writeValueWithoutResponse(new Uint8Array([STATE_START]));
 			await new Promise((resolve) => setTimeout(resolve, 10));
-			return "connected";
+			return 'connected';
 		} catch (e) {
-			if ((e as DOMException)?.name === "NotFoundError") {
+			if ((e as DOMException)?.name === 'NotFoundError') {
 				await this.terminate();
-				return "cancelled";
+				return 'cancelled';
 			}
-			console.log("[ble | connect] Caught error", e);
-			console.log("[ble | connect] Could not initialize Web Bluetooth client");
+			console.log('[ble | connect] Caught error', e);
+			console.log('[ble | connect] Could not initialize Web Bluetooth client');
 			await this.terminate();
-			return "failed";
+			return 'failed';
 		}
 	}
 
@@ -157,7 +171,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 		if (this.chunkWaiter) {
 			const waiter = this.chunkWaiter;
 			this.chunkWaiter = null;
-			waiter.reject(new Error("GATT server disconnected"));
+			waiter.reject(new Error('GATT server disconnected'));
 		}
 	};
 
@@ -192,7 +206,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 	async sendMessage(payload: Uint8Array): Promise<void> {
 		const client2ServerCharacteristic = this.client2ServerCharacteristic;
 		if (!client2ServerCharacteristic) {
-			throw new Error("Bluetooth client-to-server characteristic is not initialized");
+			throw new Error('Bluetooth client-to-server characteristic is not initialized');
 		}
 
 		const maxPayloadPerChunk = this.chunkSize - 1;
@@ -202,7 +216,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 			chunk[0] = 1; // more chunks follow
 			chunk.set(payload.subarray(offset, offset + maxPayloadPerChunk), 1);
 			await this.writeChunk(client2ServerCharacteristic, chunk);
-			console.log("[ble | send message] Wrote chunk at offset", offset);
+			console.log('[ble | send message] Wrote chunk at offset', offset);
 			await new Promise((resolve) => setTimeout(resolve, 10));
 			offset += maxPayloadPerChunk;
 		}
@@ -210,13 +224,13 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 		lastChunk[0] = 0; // final chunk
 		lastChunk.set(payload.subarray(offset), 1);
 		await this.writeChunk(client2ServerCharacteristic, lastChunk);
-		console.log("[ble | send message] Wrote final chunk", lastChunk.length);
+		console.log('[ble | send message] Wrote final chunk', lastChunk.length);
 		await new Promise((resolve) => setTimeout(resolve, 10));
 	}
 
 	private async writeChunk(
 		client2ServerCharacteristic: BluetoothRemoteGATTCharacteristic,
-		chunk: Uint8Array<ArrayBuffer>
+		chunk: Uint8Array<ArrayBuffer>,
 	): Promise<void> {
 		let backoffMs = RATE_LIMIT_INITIAL_BACKOFF_MS;
 		for (let attempt = 0; ; attempt++) {
@@ -227,7 +241,7 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				if (!isRateLimitError(e) || attempt >= RATE_LIMIT_MAX_RETRIES) {
 					throw e;
 				}
-				console.log("[ble | write chunk] rate limited, retrying in", backoffMs, "ms");
+				console.log('[ble | write chunk] rate limited, retrying in', backoffMs, 'ms');
 				await new Promise((resolve) => setTimeout(resolve, backoffMs));
 				backoffMs = Math.min(backoffMs * 2, RATE_LIMIT_MAX_BACKOFF_MS);
 			}
@@ -242,18 +256,21 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 				await new Promise((resolve) => setTimeout(resolve, 10));
 			}
 		} catch (e) {
-			console.log("[ble | terminate] Failed to signal session end", e);
+			console.log('[ble | terminate] Failed to signal session end', e);
 		}
 		try {
 			if (this.server2ClientCharacteristic && this.server?.connected) {
-				this.server2ClientCharacteristic.removeEventListener("characteristicvaluechanged", this.onServer2ClientNotification);
+				this.server2ClientCharacteristic.removeEventListener(
+					'characteristicvaluechanged',
+					this.onServer2ClientNotification,
+				);
 				await this.server2ClientCharacteristic.stopNotifications();
 			}
 		} catch (e) {
-			console.log("[ble | terminate] Failed to stop notifications", e);
+			console.log('[ble | terminate] Failed to stop notifications', e);
 		}
 		if (this.device) {
-			this.device.removeEventListener("gattserverdisconnected", this.onDisconnected);
+			this.device.removeEventListener('gattserverdisconnected', this.onDisconnected);
 		}
 		if (this.server?.connected) {
 			this.server.disconnect();
@@ -267,11 +284,14 @@ export class WebBluetoothTransport implements IBluetoothTransport {
 		if (this.chunkWaiter) {
 			const waiter = this.chunkWaiter;
 			this.chunkWaiter = null;
-			waiter.reject(new Error("Session terminated"));
+			waiter.reject(new Error('Session terminated'));
 		}
 	}
 }
 
 function isRateLimitError(e: unknown): boolean {
-	return (e as DOMException)?.name === "SecurityError" && /rate limit/i.test((e as DOMException)?.message ?? "");
+	return (
+		(e as DOMException)?.name === 'SecurityError' &&
+		/rate limit/i.test((e as DOMException)?.message ?? '')
+	);
 }

@@ -16,7 +16,17 @@ interface PopupLayoutProps {
 	shouldCloseOnOverlayClick?: boolean;
 }
 
-const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0, fullScreen = false, useDefaultContentPadding = true, children, padding = 'p-4', shouldCloseOnOverlayClick = true }: PopupLayoutProps) => {
+const PopupLayout = ({
+	isOpen,
+	onClose,
+	loading = false,
+	showLoadingAfterMs = 0,
+	fullScreen = false,
+	useDefaultContentPadding = true,
+	children,
+	padding = 'p-4',
+	shouldCloseOnOverlayClick = true,
+}: PopupLayoutProps) => {
 	const [showLoading, setShowLoading] = useState(false);
 
 	useEffect(() => {
@@ -57,14 +67,17 @@ const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0,
 			bodyOpenClassName="overflow-hidden"
 			shouldCloseOnOverlayClick={shouldCloseOnOverlayClick}
 		>
-
-			<div className={`${fullScreen && 'h-full'} ${fullScreen && !useDefaultContentPadding && 'flex flex-col'}`}>
-				{fullScreen &&
+			<div
+				className={`${fullScreen && 'h-full'} ${fullScreen && !useDefaultContentPadding && 'flex flex-col'}`}
+			>
+				{fullScreen && (
 					<div className={`z-60 ${!useDefaultContentPadding && 'shrink-0'}`}>
 						<Header />
 					</div>
-				}
-				<div className={`${fullScreen && 'flex flex-col justify-between'} ${fullScreen && !useDefaultContentPadding && 'min-h-0 flex-1'} ${useDefaultContentPadding && padding} ${fullScreen && useDefaultContentPadding && 'px-6 pt-3 pb-20'}`}>
+				)}
+				<div
+					className={`${fullScreen && 'flex flex-col justify-between'} ${fullScreen && !useDefaultContentPadding && 'min-h-0 flex-1'} ${useDefaultContentPadding && padding} ${fullScreen && useDefaultContentPadding && 'px-6 pt-3 pb-20'}`}
+				>
 					{children}
 				</div>
 			</div>

@@ -12,7 +12,12 @@ export const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
 /**
  * Generates a web app manifest and icons, and injects them into the build output.
  */
-export default async function brandingManifest(destDir: string, config: EnvConfigMap, tagsToInject?: Map<string, Tag>, brandingHash?: string) {
+export default async function brandingManifest(
+	destDir: string,
+	config: EnvConfigMap,
+	tagsToInject?: Map<string, Tag>,
+	brandingHash?: string,
+) {
 	const sourceDir = resolve('branding');
 
 	const icons = await generateAllIcons({
@@ -42,13 +47,13 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 		props: {
 			rel: 'manifest',
 			href: pathWithBase(config.BASE_PATH, `manifest.json?v=${manifestRevision}`),
-		}
+		},
 	});
 	tagsToInject?.set('apple-touch-icon', {
 		tag: 'link',
 		props: {
 			rel: 'apple-touch-icon',
-			href: pathWithBase(config.BASE_PATH, `icons/apple-touch-icon.png?v=${brandingHash}`)
+			href: pathWithBase(config.BASE_PATH, `icons/apple-touch-icon.png?v=${brandingHash}`),
 		},
 	});
 	tagsToInject?.set('favicon', {
@@ -60,23 +65,31 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 	});
 }
 
-export function getManifestRevision({ brandingHash, name }: { brandingHash?: string; name?: string }) {
-	return getManifestRevisionFromContent(JSON.stringify(generateManifest({
-		hash: brandingHash,
-		name,
-		icons: getManifestIconEntries({
-			manifestIconSizes: MANIFEST_ICON_SIZES,
-			brandingHash,
-		}),
-	}), null, 2));
+export function getManifestRevision({
+	brandingHash,
+	name,
+}: {
+	brandingHash?: string;
+	name?: string;
+}) {
+	return getManifestRevisionFromContent(
+		JSON.stringify(
+			generateManifest({
+				hash: brandingHash,
+				name,
+				icons: getManifestIconEntries({
+					manifestIconSizes: MANIFEST_ICON_SIZES,
+					brandingHash,
+				}),
+			}),
+			null,
+			2,
+		),
+	);
 }
 
 export function getManifestRevisionFromContent(manifestContent: string) {
-	return crypto
-		.createHash('sha256')
-		.update(manifestContent)
-		.digest('hex')
-		.slice(0, 12);
+	return crypto.createHash('sha256').update(manifestContent).digest('hex').slice(0, 12);
 }
 
 export type GenerateManifestOptions = {
@@ -97,51 +110,55 @@ export type GenerateManifestOptions = {
 /**
  * Generates a web app manifest based on provided options, including cache-busting for icons and screenshots.
  */
-function generateManifest({ hash, name, icons }: GenerateManifestOptions): Partial<ManifestOptions> {
+function generateManifest({
+	hash,
+	name,
+	icons,
+}: GenerateManifestOptions): Partial<ManifestOptions> {
 	const hashSuffix = hash ? `?v=${hash}` : '';
 
 	return {
-		'short_name': name || 'wwWallet',
-		'name': name || 'wwWallet',
-		'icons': icons,
-		'screenshots': [
+		short_name: name || 'wwWallet',
+		name: name || 'wwWallet',
+		icons: icons,
+		screenshots: [
 			{
-				'src': `screenshots/screen_mobile_1.png${hashSuffix}`,
-				'sizes': '828x1792',
-				'type': 'image/png',
-				'form_factor': 'narrow',
-				'label': 'Home screen showing navigation and a credential'
+				src: `screenshots/screen_mobile_1.png${hashSuffix}`,
+				sizes: '828x1792',
+				type: 'image/png',
+				form_factor: 'narrow',
+				label: 'Home screen showing navigation and a credential',
 			},
 			{
-				'src': `screenshots/screen_mobile_2.png${hashSuffix}`,
-				'sizes': '828x1792',
-				'type': 'image/png',
-				'form_factor': 'narrow',
-				'label': 'Credential selection view'
+				src: `screenshots/screen_mobile_2.png${hashSuffix}`,
+				sizes: '828x1792',
+				type: 'image/png',
+				form_factor: 'narrow',
+				label: 'Credential selection view',
 			},
 			{
-				'src': `screenshots/screen_tablet_1.png${hashSuffix}`,
-				'sizes': '2160x1620',
-				'type': 'image/png',
-				'form_factor': 'wide',
-				'label': 'Home screen showing navigation and a credential'
+				src: `screenshots/screen_tablet_1.png${hashSuffix}`,
+				sizes: '2160x1620',
+				type: 'image/png',
+				form_factor: 'wide',
+				label: 'Home screen showing navigation and a credential',
 			},
 			{
-				'src': `screenshots/screen_tablet_2.png${hashSuffix}`,
-				'sizes': '2160x1620',
-				'type': 'image/png',
-				'form_factor': 'wide',
-				'label': 'Credential selection view'
-			}
+				src: `screenshots/screen_tablet_2.png${hashSuffix}`,
+				sizes: '2160x1620',
+				type: 'image/png',
+				form_factor: 'wide',
+				label: 'Credential selection view',
+			},
 		],
-		'id': '/',
-		'start_url': '/',
-		'display': 'standalone',
-		'theme_color': '#0c0e11',
-		'description': `${name || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
-		'background_color': '#ffffff',
-		'scope': '/',
-		'dir': 'ltr',
-		'lang': 'en'
+		id: '/',
+		start_url: '/',
+		display: 'standalone',
+		theme_color: '#0c0e11',
+		description: `${name || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
+		background_color: '#ffffff',
+		scope: '/',
+		dir: 'ltr',
+		lang: 'en',
 	};
 }

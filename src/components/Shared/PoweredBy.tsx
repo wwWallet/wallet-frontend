@@ -21,7 +21,7 @@ const PoweredBy = ({ className, linkClassName }: PoweredByProps) => {
 							className={linkClassName}
 							aria-label={t('sidebar.poweredByAriaLabel')}
 						/>
-					)
+					),
 				}}
 			/>
 		</p>

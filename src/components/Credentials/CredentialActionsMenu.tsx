@@ -53,7 +53,7 @@ const CredentialActionsMenu = ({ children }: CredentialActionsMenuProps) => {
 				ref={triggerRef}
 				id="credential-actions-menu"
 				type="button"
-				onClick={() => setIsOpen(open => !open)}
+				onClick={() => setIsOpen((open) => !open)}
 				aria-expanded={isOpen}
 				aria-controls={isOpen ? 'credential-actions-menu-popup' : undefined}
 				aria-label={t('common.more')}

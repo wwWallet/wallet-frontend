@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-
+import { useMemo } from 'react';
 
 async function openIndexedDb(
 	dbName: string,
@@ -42,28 +41,25 @@ export function useIndexedDb(
 	dbName: string,
 	version: number,
 	upgrade: (db: IDBDatabase, prevVersion: number, newVersion: number | null) => void,
-): { read: DatabaseTransaction, write: DatabaseTransaction, destroy: () => Promise<void>} {
-	return useMemo(
-		() => {
-			const openDb = async () => await openIndexedDb(dbName, version, upgrade);
+): { read: DatabaseTransaction; write: DatabaseTransaction; destroy: () => Promise<void> } {
+	return useMemo(() => {
+		const openDb = async () => await openIndexedDb(dbName, version, upgrade);
 
-			const read: DatabaseTransaction = async (objectStores, f) => {
-				return await dbTransaction(openDb, objectStores, "readonly", f);
-			};
-			const write: DatabaseTransaction = async (objectStores, f) => {
-				return await dbTransaction(openDb, objectStores, "readwrite", f);
-			};
+		const read: DatabaseTransaction = async (objectStores, f) => {
+			return await dbTransaction(openDb, objectStores, 'readonly', f);
+		};
+		const write: DatabaseTransaction = async (objectStores, f) => {
+			return await dbTransaction(openDb, objectStores, 'readwrite', f);
+		};
 
-			const destroy = async (): Promise<void> => {
-				return new Promise((resolve, reject) => {
-					const request = window.indexedDB.deleteDatabase(dbName);
-					request.onsuccess = () => resolve();
-					request.onerror = (event) => reject(event);
-				});
-			}
+		const destroy = async (): Promise<void> => {
+			return new Promise((resolve, reject) => {
+				const request = window.indexedDB.deleteDatabase(dbName);
+				request.onsuccess = () => resolve();
+				request.onerror = (event) => reject(event);
+			});
+		};
 
-			return { read, write, destroy };
-		},
-		[dbName, version, upgrade],
-	);
+		return { read, write, destroy };
+	}, [dbName, version, upgrade]);
 }

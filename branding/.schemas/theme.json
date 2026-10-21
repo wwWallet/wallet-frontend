@@ -24,19 +24,10 @@
 					"type": "string"
 				}
 			},
-			"required": [
-				"color",
-				"colorLight",
-				"colorLighter",
-				"colorDark",
-				"colorDarker"
-			],
+			"required": ["color", "colorLight", "colorLighter", "colorDark", "colorDarker"],
 			"additionalProperties": false
 		}
 	},
-	"required": [
-		"$schema",
-		"brand"
-	],
+	"required": ["$schema", "brand"],
 	"additionalProperties": false
 }

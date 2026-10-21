@@ -21,16 +21,9 @@ const UpdateNotification = () => {
 
 	return (
 		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-lm-green dark:bg-dm-green z-50 text-white dark:text-lm-gray-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 space-x-2 animate-slide-in-up sm:animate-slide-in-down">
-			<Bell
-				size={22}
-				className="text-inherit"
-			/>
+			<Bell size={22} className="text-inherit" />
 			{t('updateNotification.description')}
-			<Button
-				id="reload-update-notification"
-				variant="outline"
-				onClick={handleReload}
-			>
+			<Button id="reload-update-notification" variant="outline" onClick={handleReload}>
 				{t('common.refresh')}
 			</Button>
 			<button

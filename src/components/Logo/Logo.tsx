@@ -14,9 +14,7 @@ interface LogoProps {
 }
 
 function getLogoUrl(type: LogoType): string {
-	return type === 'light'
-		? BRANDING.LOGO_LIGHT
-		: BRANDING.LOGO_DARK;
+	return type === 'light' ? BRANDING.LOGO_LIGHT : BRANDING.LOGO_DARK;
 }
 
 const Logo: React.FC<LogoProps> = ({
@@ -30,13 +28,14 @@ const Logo: React.FC<LogoProps> = ({
 	const { resolvedColorScheme } = useContext(AppSettingsContext);
 	const logoUrl = getLogoUrl(type ?? resolvedColorScheme);
 
-	const img = <img src={logoUrl} alt={alt || t('common.walletName')} className={imgClassName} />
+	const img = <img src={logoUrl} alt={alt || t('common.walletName')} className={imgClassName} />;
 
-	if (clickable) return (
-		<a href="/" className={aClassName} aria-label={t('common.walletName')}>
-			{img}
-		</a>
-	);
+	if (clickable)
+		return (
+			<a href="/" className={aClassName} aria-label={t('common.walletName')}>
+				{img}
+			</a>
+		);
 
 	return img;
 };

@@ -1,10 +1,9 @@
-import { JWK } from "jose";
+import { JWK } from 'jose';
 
 /**
  * serializable
  */
 export class OpenID4VCIClientState {
-
 	constructor(
 		public credentialIssuerIdentifier: string,
 		public state: string,
@@ -17,22 +16,22 @@ export class OpenID4VCIClientState {
 				c_nonce: string;
 				c_nonce_expiration_timestamp: number;
 				refresh_token?: string;
-			},
+			};
 			headers: {
-				"dpop-nonce"?: string;
-			}
+				'dpop-nonce'?: string;
+			};
 		},
 		public dpop?: {
-			dpopJti: string,
-			dpopPrivateKeyJwk: JWK,
-			dpopPublicKeyJwk?: JWK,
-			dpopAlg: string,
+			dpopJti: string;
+			dpopPrivateKeyJwk: JWK;
+			dpopPublicKeyJwk?: JWK;
+			dpopAlg: string;
 		},
 		public firstPartyAuthorization?: {
 			auth_session: string;
 		},
 		public created: number = Math.floor(Date.now() / 1000),
-	) { }
+	) {}
 
 	public serialize(): string {
 		return JSON.stringify({
@@ -47,7 +46,23 @@ export class OpenID4VCIClientState {
 	}
 
 	public static deserialize(storedValue: string): OpenID4VCIClientState {
-		const { credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created } = JSON.parse(storedValue);
-		return new OpenID4VCIClientState(credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created);
+		const {
+			credentialIssuerIdentifier,
+			state,
+			code_verifier,
+			credentialConfigurationId,
+			tokenResponse,
+			dpop,
+			created,
+		} = JSON.parse(storedValue);
+		return new OpenID4VCIClientState(
+			credentialIssuerIdentifier,
+			state,
+			code_verifier,
+			credentialConfigurationId,
+			tokenResponse,
+			dpop,
+			created,
+		);
 	}
 }

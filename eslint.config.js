@@ -41,12 +41,7 @@ const accessibilityRules = Object.fromEntries(
 
 export default defineConfig(
 	{
-		ignores: [
-			'coverage/**',
-			'dist/**',
-			'node_modules/**',
-			'public/**',
-		],
+		ignores: ['coverage/**', 'dist/**', 'node_modules/**', 'public/**'],
 	},
 	{
 		linterOptions: {
@@ -124,9 +119,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: [
-			'src/service-worker.ts',
-		],
+		files: ['src/service-worker.ts'],
 		languageOptions: {
 			globals: {
 				...globals.serviceworker,
@@ -134,10 +127,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: [
-			'src/**/*worker.ts',
-			'src/**/worker.ts',
-		],
+		files: ['src/**/*worker.ts', 'src/**/worker.ts'],
 		languageOptions: {
 			globals: {
 				...globals.worker,
@@ -161,9 +151,7 @@ export default defineConfig(
 		},
 	},
 	{
-		files: [
-			'src/utils/qr/**/*.ts',
-		],
+		files: ['src/utils/qr/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-wrapper-object-types': 'off',
 			'prefer-const': 'off',

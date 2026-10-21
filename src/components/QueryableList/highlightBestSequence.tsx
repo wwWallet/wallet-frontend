@@ -14,6 +14,6 @@ export function highlightBestSequence(text: string, search: string): React.React
 			</span>
 		) : (
 			<span key={i}>{part}</span>
-		)
+		),
 	);
 }

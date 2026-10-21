@@ -2,11 +2,17 @@ import React, { ReactNode, SelectHTMLAttributes } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface SettingsSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-	icon?: ReactNode,
-	children: ReactNode,
+	icon?: ReactNode;
+	children: ReactNode;
 }
 
-const SettingsSelect = ({ icon, className, children, disabled, ...selectProps }: SettingsSelectProps) => (
+const SettingsSelect = ({
+	icon,
+	className,
+	children,
+	disabled,
+	...selectProps
+}: SettingsSelectProps) => (
 	<div className="relative inline-block min-w-36">
 		{icon && (
 			<span className="absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none dark:text-white">

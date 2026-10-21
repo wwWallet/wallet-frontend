@@ -45,12 +45,11 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 		speed: null,
 	});
 	const [pwaInstallable, setPwaInstallable] = useState<BeforeInstallPromptEvent | null>(null);
-	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>("hidePwaPrompt", false);
+	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>('hidePwaPrompt', false);
 
 	const lastUpdateCallTime = React.useRef<number>(0);
 
 	const updateOnlineStatus = async (forceCheck = true) => {
-
 		const navigatorOnline = getNavigatorOnlineStatus();
 		const now = Date.now();
 
@@ -86,7 +85,7 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 			}
 			return internetConnection.isConnected;
 		});
-	}
+	};
 
 	useEffect(() => {
 		// Add event listeners for online/offline status
@@ -184,18 +183,18 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 			setPwaInstallable(null);
 		};
 
-		window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-		window.addEventListener("appinstalled", handleAppInstalled);
+		window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+		window.addEventListener('appinstalled', handleAppInstalled);
 
 		return () => {
-			window.removeEventListener("appinstalled", handleAppInstalled);
-			window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+			window.removeEventListener('appinstalled', handleAppInstalled);
+			window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 		};
 	}, []);
 
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
-			if (event.data?.type === "NEW_CONTENT_AVAILABLE") {
+			if (event.data?.type === 'NEW_CONTENT_AVAILABLE') {
 				if (document.hidden) {
 					window.location.reload();
 				} else {
@@ -205,25 +204,35 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 		};
 
 		if (navigator.serviceWorker) {
-			navigator.serviceWorker.addEventListener("message", handler);
+			navigator.serviceWorker.addEventListener('message', handler);
 		}
 
 		return () => {
 			if (navigator.serviceWorker) {
-				navigator.serviceWorker.removeEventListener("message", handler);
+				navigator.serviceWorker.removeEventListener('message', handler);
 			}
 		};
 	}, []);
 
 	const dismissPwaPrompt = () => {
 		setHidePwaPrompt(true);
-	}
+	};
 
 	useEffect(() => {
 		updateOnlineStatus();
 	}, []);
 	return (
-		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt }}>
+		<StatusContext.Provider
+			value={{
+				isOnline,
+				updateAvailable,
+				connectivity,
+				updateOnlineStatus,
+				pwaInstallable,
+				dismissPwaPrompt,
+				hidePwaPrompt,
+			}}
+		>
 			{children}
 		</StatusContext.Provider>
 	);

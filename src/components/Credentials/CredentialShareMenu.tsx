@@ -89,14 +89,20 @@ const CredentialShareMenu = ({
 
 			{canShareWithQr && (
 				<div className="my-1">
-					<SeparatorLine><span className="uppercase">{t('common.or')}</span></SeparatorLine>
+					<SeparatorLine>
+						<span className="uppercase">{t('common.or')}</span>
+					</SeparatorLine>
 				</div>
 			)}
 			<p className="flex items-center gap-2 px-3 pt-2 pb-1 text-sm font-base tracking-wide text-lm-gray-700 dark:text-dm-gray-300">
 				{t('credentialShareMenu.trustedVerifierHeading')}
 			</p>
 
-			<div className="max-h-60 overflow-y-auto custom-scrollbar" role="group" aria-label={t('credentialShareMenu.trustedVerifierHeading')}>
+			<div
+				className="max-h-60 overflow-y-auto custom-scrollbar"
+				role="group"
+				aria-label={t('credentialShareMenu.trustedVerifierHeading')}
+			>
 				{verifiers.map((verifier) => (
 					<button
 						id={`share-credential-verifier-${verifier.id}`}
@@ -126,7 +132,7 @@ const CredentialShareMenu = ({
 				ref={triggerRef}
 				id="share-credential-menu"
 				variant="primary"
-				size={"md"}
+				size={'md'}
 				additionalClassName={fullWidth ? 'w-full' : ''}
 				onClick={() => setIsOpen((open) => !open)}
 				ariaLabel={t('credentialShareMenu.buttonLabel')}
@@ -164,19 +170,19 @@ const CredentialShareMenu = ({
 							{t('common.cancel')}
 						</button>
 					</div>
-					<div id="share-credential-menu-popup">
+					<div id="share-credential-menu-popup">{menuContent}</div>
+				</BottomSheet>
+			) : (
+				isOpen && (
+					<div
+						id="share-credential-menu-popup"
+						role="group"
+						aria-label={t('credentialShareMenu.buttonLabel')}
+						className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} z-50 mt-2 w-[min(22rem,calc(100vw-3rem))] overflow-hidden rounded-lg border border-lm-gray-400 bg-lm-gray-100 p-1 shadow-lg dark:border-dm-gray-600 dark:bg-dm-gray-900`}
+					>
 						{menuContent}
 					</div>
-				</BottomSheet>
-			) : isOpen && (
-				<div
-					id="share-credential-menu-popup"
-					role="group"
-					aria-label={t('credentialShareMenu.buttonLabel')}
-					className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} z-50 mt-2 w-[min(22rem,calc(100vw-3rem))] overflow-hidden rounded-lg border border-lm-gray-400 bg-lm-gray-100 p-1 shadow-lg dark:border-dm-gray-600 dark:bg-dm-gray-900`}
-				>
-					{menuContent}
-				</div>
+				)
 			)}
 		</div>
 	);

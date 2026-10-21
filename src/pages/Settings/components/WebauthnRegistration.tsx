@@ -10,13 +10,21 @@ import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
 import { H2 } from '../../../components/Shared/Heading';
-import { ChevronDown, FingerprintIcon, KeyRound, LoaderCircle, Plus, ShieldCheck, SmartphoneNfcIcon } from 'lucide-react';
+import {
+	ChevronDown,
+	FingerprintIcon,
+	KeyRound,
+	LoaderCircle,
+	Plus,
+	ShieldCheck,
+	SmartphoneNfcIcon,
+} from 'lucide-react';
 import Dialog from './Dialog';
 
 const passkeyOptions = (t: (key: string) => string) => [
-	{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon },
-	{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: KeyRound },
-	{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon },
+	{ hint: 'client-device', btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon },
+	{ hint: 'security-key', btnLabel: t('common.externalPasskey'), Icon: KeyRound },
+	{ hint: 'hybrid', btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon },
 ];
 
 type WebauthnRegistrationBeginData = {
@@ -26,19 +34,17 @@ type WebauthnRegistrationBeginData = {
 	};
 };
 
-const WebauthnRegistration = ({
-	onSuccess,
-}: {
-	onSuccess: () => void,
-}) => {
+const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useSessionContext();
 	const [beginData, setBeginData] = useState<WebauthnRegistrationBeginData | null>(null);
 	const [pendingCredential, setPendingCredential] = useState<PublicKeyCredential | null>(null);
-	const [name, setName] = useState("");
+	const [name, setName] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
-	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<
+		null | ((accept: boolean) => void)
+	>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const abortControllerRef = useRef<AbortController | null>(null);
@@ -79,7 +85,7 @@ const WebauthnRegistration = ({
 			setPendingCredential(null);
 
 			const beginResp = await api.post('/user/session/webauthn/register-begin', {});
-			console.log("begin", beginResp);
+			console.log('begin', beginResp);
 			const beginData = beginResp.data as WebauthnRegistrationBeginData;
 
 			if (beginData.challengeId) {
@@ -94,20 +100,23 @@ const WebauthnRegistration = ({
 					publicKey: {
 						...beginData.createOptions.publicKey,
 						hints,
-						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection ?? {}, hints),
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(
+							beginData.createOptions.publicKey.authenticatorSelection ?? {},
+							hints,
+						),
 					},
 				};
 
 				try {
 					const credential = await navigator.credentials.create(createOptions);
 					if (!(credential instanceof PublicKeyCredential)) {
-						throw new Error("Failed to create public key credential");
+						throw new Error('Failed to create public key credential');
 					}
-					console.log("created", credential);
+					console.log('created', credential);
 					setPendingCredential(credential);
 				} catch (e) {
 					if (!(e instanceof DOMException && e.name === 'AbortError')) {
-						console.error("Failed to register", e);
+						console.error('Failed to register', e);
 					}
 					setBeginData(null);
 					setPendingCredential(null);
@@ -121,7 +130,7 @@ const WebauthnRegistration = ({
 	);
 
 	const onCancel = () => {
-		console.log("onCancel");
+		console.log('onCancel');
 		abortControllerRef.current?.abort();
 		setPendingCredential(null);
 		setBeginData(null);
@@ -133,7 +142,7 @@ const WebauthnRegistration = ({
 
 	const onFinish = async (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		console.log("onFinish", event);
+		console.log('onFinish', event);
 
 		if (beginData && pendingCredential) {
 			try {
@@ -153,39 +162,39 @@ const WebauthnRegistration = ({
 				);
 
 				setIsSubmitting(true);
-				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
-					challengeId: beginData.challengeId,
-					name,
-					credential: {
-						type: pendingCredential.type,
-						id: pendingCredential.id,
-						rawId: pendingCredential.rawId,
-						response: {
-							attestationObject: response.attestationObject,
-							clientDataJSON: response.clientDataJSON,
-							transports: response.getTransports(),
+				api.updatePrivateDataEtag(
+					await api.post('/user/session/webauthn/register-finish', {
+						challengeId: beginData.challengeId,
+						name,
+						credential: {
+							type: pendingCredential.type,
+							id: pendingCredential.id,
+							rawId: pendingCredential.rawId,
+							response: {
+								attestationObject: response.attestationObject,
+								clientDataJSON: response.clientDataJSON,
+								transports: response.getTransports(),
+							},
+							authenticatorAttachment: pendingCredential.authenticatorAttachment,
+							clientExtensionResults: pendingCredential.getClientExtensionResults(),
 						},
-						authenticatorAttachment: pendingCredential.authenticatorAttachment,
-						clientExtensionResults: pendingCredential.getClientExtensionResults(),
-					},
-					privateData: serializePrivateData(newPrivateData),
-				}));
+						privateData: serializePrivateData(newPrivateData),
+					}),
+				);
 				onSuccess();
-				setName("");
+				setName('');
 				await keystoreCommit();
-
 			} catch (e) {
-				console.error("Failed to finish registration", e);
+				console.error('Failed to finish registration', e);
 				if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 					// TODO: Show this error to the user
-					throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
+					throw new AppError('x-private-data-etag', 'Private data version conflict', { cause: e });
 				}
-
 			} finally {
 				onCancel();
 			}
 		} else {
-			console.error("Invalid state:", beginData, pendingCredential);
+			console.error('Invalid state:', beginData, pendingCredential);
 		}
 	};
 
@@ -200,8 +209,8 @@ const WebauthnRegistration = ({
 				disabled={registrationInProgress || !isOnline}
 				aria-haspopup="menu"
 				aria-expanded={menuOpen}
-				title={!isOnline ? t("common.offlineTitle") : t('pageSettings.addPasskeyTitle')}
-				className={`rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 text-sm px-2 py-2 text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 ${(registrationInProgress || !isOnline) ? 'grayscale opacity-75 cursor-not-allowed' : 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]'}`}
+				title={!isOnline ? t('common.offlineTitle') : t('pageSettings.addPasskeyTitle')}
+				className={`rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 text-sm px-2 py-2 text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2 ${registrationInProgress || !isOnline ? 'grayscale opacity-75 cursor-not-allowed' : 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]'}`}
 			>
 				<Plus size={18} />
 				{t('pageSettings.addPasskey').replace(/:$/, '')}
@@ -233,46 +242,43 @@ const WebauthnRegistration = ({
 				</div>
 			)}
 
-			<Dialog
-				open={stateChooseName}
-				onCancel={onCancel}
-			>
+			<Dialog open={stateChooseName} onCancel={onCancel}>
 				<form onSubmit={onFinish}>
-					{pendingCredential
-						? (
-							<>
-								<H2
-									heading={t('registerPasskey.messageSuccess')}
-									hr={false}
-									flexJustifyContent='center'
-								/>
-								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveName')}</p>
-								<input
-									type="text"
-									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-									aria-label={t('registerPasskey.nameAriaLabel')}
-									autoFocus={true}
-									disabled={isSubmitting}
-									onChange={(event) => setName(event.target.value)}
-									placeholder={t('registerPasskey.namePlaceholder')}
-									value={name}
-								/>
-							</>
-						)
-						: (
-							<div className="flex flex-col items-center gap-3 py-2">
-								<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
-								<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteract')}</p>
-							</div>
-						)
-					}
+					{pendingCredential ? (
+						<>
+							<H2
+								heading={t('registerPasskey.messageSuccess')}
+								hr={false}
+								flexJustifyContent="center"
+							/>
+							<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">
+								{t('registerPasskey.giveName')}
+							</p>
+							<input
+								type="text"
+								className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
+								aria-label={t('registerPasskey.nameAriaLabel')}
+								autoFocus={true}
+								disabled={isSubmitting}
+								onChange={(event) => setName(event.target.value)}
+								placeholder={t('registerPasskey.namePlaceholder')}
+								value={name}
+							/>
+						</>
+					) : (
+						<div className="flex flex-col items-center gap-3 py-2">
+							<LoaderCircle
+								size={28}
+								className="animate-spin text-lm-gray-500 dark:text-dm-gray-400"
+							/>
+							<p className="text-lm-gray-800 dark:text-dm-gray-200">
+								{t('registerPasskey.messageInteract')}
+							</p>
+						</div>
+					)}
 
 					<div className="pt-2 flex justify-center gap-2">
-						<Button
-							id="cancel-add-passkey-settings"
-							onClick={onCancel}
-							disabled={isSubmitting}
-						>
+						<Button id="cancel-add-passkey-settings" onClick={onCancel} disabled={isSubmitting}>
 							{t('common.cancel')}
 						</Button>
 
@@ -287,7 +293,6 @@ const WebauthnRegistration = ({
 							</Button>
 						)}
 					</div>
-
 				</form>
 			</Dialog>
 
@@ -296,23 +301,24 @@ const WebauthnRegistration = ({
 				onCancel={() => resolvePrfRetryPrompt?.(false)}
 			>
 				<H2
-					heading={(
+					heading={
 						<span className="flex items-center justify-center gap-2">
 							<ShieldCheck size={20} className="text-lm-gray-700 dark:text-dm-gray-300" />
 							{t('registerPasskey.messageDone')}
 						</span>
-					)}
-					flexJustifyContent='center'
+					}
+					flexJustifyContent="center"
 					hr={false}
 				/>
-				<p className='text-lm-gray-800 dark:text-dm-gray-200'>{t('registerPasskey.passkeyCreated')}</p>
-				<p className='text-lm-gray-800 dark:text-dm-gray-200'>{t('registerPasskey.authOnceMore')}</p>
+				<p className="text-lm-gray-800 dark:text-dm-gray-200">
+					{t('registerPasskey.passkeyCreated')}
+				</p>
+				<p className="text-lm-gray-800 dark:text-dm-gray-200">
+					{t('registerPasskey.authOnceMore')}
+				</p>
 
-				<div className='flex justify-center gap-2'>
-					<Button
-						id="cancel-prf-passkey-settings"
-						onClick={() => resolvePrfRetryPrompt?.(false)}
-					>
+				<div className="flex justify-center gap-2">
+					<Button id="cancel-prf-passkey-settings" onClick={() => resolvePrfRetryPrompt?.(false)}>
 						{t('common.cancel')}
 					</Button>
 
@@ -325,22 +331,17 @@ const WebauthnRegistration = ({
 						{t('common.continue')}
 					</Button>
 				</div>
-
 			</Dialog>
 
-			<Dialog
-				open={prfRetryAccepted}
-				onCancel={onCancel}
-			>
+			<Dialog open={prfRetryAccepted} onCancel={onCancel}>
 				<div className="flex flex-col items-center gap-3 py-2">
 					<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
-					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteractNewPasskey')}</p>
+					<p className="text-lm-gray-800 dark:text-dm-gray-200">
+						{t('registerPasskey.messageInteractNewPasskey')}
+					</p>
 				</div>
-				<div className='flex justify-center mt-2'>
-					<Button
-						id="cancel-in-progress-prf-settings"
-						onClick={onCancel}
-					>
+				<div className="flex justify-center mt-2">
+					<Button id="cancel-in-progress-prf-settings" onClick={onCancel}>
 						{t('common.cancel')}
 					</Button>
 				</div>

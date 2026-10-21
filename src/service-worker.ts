@@ -1,11 +1,11 @@
-import { clientsClaim } from "workbox-core";
-import type { FetchDidSucceedCallbackParam } from "workbox-core/types";
-import { ExpirationPlugin } from "workbox-expiration";
-import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
-import type { PrecacheEntry } from "workbox-precaching";
-import { registerRoute } from "workbox-routing";
-import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
-import type { TrustedTypePolicyFactory } from "trusted-types/lib";
+import { clientsClaim } from 'workbox-core';
+import type { FetchDidSucceedCallbackParam } from 'workbox-core/types';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import type { PrecacheEntry } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
+import type { TrustedTypePolicyFactory } from 'trusted-types/lib';
 
 type WalletServiceWorkerGlobalScope = ServiceWorkerGlobalScope & {
 	readonly trustedTypes?: TrustedTypePolicyFactory;
@@ -16,12 +16,12 @@ type WalletServiceWorkerGlobalScope = ServiceWorkerGlobalScope & {
 const serviceWorker = self as unknown as WalletServiceWorkerGlobalScope;
 
 // Build/injection regenerates this file; byte changes trigger a service worker update.
-const runtimePrecachePolicy = serviceWorker.trustedTypes?.createPolicy("sw-register", {
+const runtimePrecachePolicy = serviceWorker.trustedTypes?.createPolicy('sw-register', {
 	createScriptURL: (url) => url,
 });
 importScripts(
-	runtimePrecachePolicy?.createScriptURL("./runtime-precache.js") as unknown as string
-	?? "./runtime-precache.js"
+	(runtimePrecachePolicy?.createScriptURL('./runtime-precache.js') as unknown as string) ??
+		'./runtime-precache.js',
 );
 
 const basePath = new URL(serviceWorker.registration.scope).pathname.replace(/\/?$/, '/') || '/';
@@ -38,20 +38,20 @@ precacheAndRoute([
 ]);
 
 const SPA_ROUTE_ALLOWLIST = [
-	/^\/$/,                              // Home
-	/^\/settings$/,                      // Settings
-	/^\/activity$/,                      // Activity list
-	/^\/pending$/,                       // Pending
-	/^\/add$/,                           // Add credentials
-	/^\/verification\/result$/,          // Verification result
-	/^\/login$/,                         // Login
-	/^\/register$/,                      // Register
-	/^\/login-state$/,                   // Login state
-	/^\/cb(\/.*)?$/,                     // Callback routes
-	/^\/credential\/[^/]+$/,             // Credential
-	/^\/credential\/[^/]+\/activity$/,   // Credential activity
-	/^\/credential\/[^/]+\/details$/,    // Credential details
-	/^\/activity\/[^/]+$/,               // Activity detail
+	/^\/$/, // Home
+	/^\/settings$/, // Settings
+	/^\/activity$/, // Activity list
+	/^\/pending$/, // Pending
+	/^\/add$/, // Add credentials
+	/^\/verification\/result$/, // Verification result
+	/^\/login$/, // Login
+	/^\/register$/, // Register
+	/^\/login-state$/, // Login state
+	/^\/cb(\/.*)?$/, // Callback routes
+	/^\/credential\/[^/]+$/, // Credential
+	/^\/credential\/[^/]+\/activity$/, // Credential activity
+	/^\/credential\/[^/]+\/details$/, // Credential details
+	/^\/activity\/[^/]+$/, // Activity detail
 ];
 
 const rejectServerErrorsPlugin = {
@@ -70,72 +70,70 @@ const appShellStrategy = new NetworkFirst({
 	plugins: [rejectServerErrorsPlugin],
 });
 
-const createAppShellRequest = () => new Request(
-	new URL(`${basePath}index.html`, serviceWorker.location.origin),
-	{ credentials: "same-origin", cache: "reload" },
-);
+const createAppShellRequest = () =>
+	new Request(new URL(`${basePath}index.html`, serviceWorker.location.origin), {
+		credentials: 'same-origin',
+		cache: 'reload',
+	});
 
-const serveAppShell = (event: ExtendableEvent) => appShellStrategy.handle({
-	event,
-	request: createAppShellRequest(),
-});
+const serveAppShell = (event: ExtendableEvent) =>
+	appShellStrategy.handle({
+		event,
+		request: createAppShellRequest(),
+	});
 
 const matchesPathPrefix = (pathname: string, pathPrefix: string) =>
-	pathPrefix === "/" ||
-	pathname === pathPrefix ||
-	pathname.startsWith(`${pathPrefix}/`);
+	pathPrefix === '/' || pathname === pathPrefix || pathname.startsWith(`${pathPrefix}/`);
 
 registerRoute(
 	({ request, url }) => {
-		if (request.mode !== "navigate") return false;
+		if (request.mode !== 'navigate') return false;
 
 		const scopeRelativePathname = url.pathname.slice(basePath.length - 1);
 		const bypassesAppShell = appShellBypassPaths.some((pathPrefix) =>
-			matchesPathPrefix(scopeRelativePathname, pathPrefix)
+			matchesPathPrefix(scopeRelativePathname, pathPrefix),
 		);
 		if (bypassesAppShell) return false;
 
-		if (url.pathname.startsWith("/_")) return false;
+		if (url.pathname.startsWith('/_')) return false;
 		if (/\.[a-zA-Z0-9]+$/.test(url.pathname)) return false;
 
 		const pathname = url.pathname.replace(/^(\/id\/([a-z0-9-]+))/, '');
 
 		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
-	({ event }) => serveAppShell(event)
+	({ event }) => serveAppShell(event),
 );
 
 registerRoute(
 	({ url }) =>
-		!url.searchParams.has("v") &&
-		(
-			url.pathname.endsWith(".ico") ||
-			url.pathname.endsWith(".png") ||
-			url.pathname.endsWith(".jpg") ||
-			url.pathname.endsWith(".jpeg") ||
-			url.pathname.endsWith(".svg") ||
-			url.pathname.endsWith(".webp")
-		),
+		!url.searchParams.has('v') &&
+		(url.pathname.endsWith('.ico') ||
+			url.pathname.endsWith('.png') ||
+			url.pathname.endsWith('.jpg') ||
+			url.pathname.endsWith('.jpeg') ||
+			url.pathname.endsWith('.svg') ||
+			url.pathname.endsWith('.webp')),
 	new StaleWhileRevalidate({
-		cacheName: "images",
+		cacheName: 'images',
 		plugins: [
 			new ExpirationPlugin({
 				maxEntries: 200,
 			}),
 		],
-	})
+	}),
 );
 
 registerRoute(
-	({ request }) => request.destination === "font",
+	({ request }) => request.destination === 'font',
 	new CacheFirst({
-		cacheName: "fonts",
+		cacheName: 'fonts',
 		plugins: [
 			new ExpirationPlugin({
 				maxEntries: 50,
 			}),
 		],
-	})
+	}),
 );
 
 let isFirstVisit = false;
@@ -143,31 +141,29 @@ let isFirstVisit = false;
 serviceWorker.addEventListener('install', (event) => {
 	isFirstVisit = !serviceWorker.registration.active;
 	event.waitUntil(
-		caches.open(appShellCacheName).then((cache) =>
-			cache.add(createAppShellRequest()),
-		),
+		caches.open(appShellCacheName).then((cache) => cache.add(createAppShellRequest())),
 	);
 	serviceWorker.skipWaiting();
 });
 
-serviceWorker.addEventListener("activate", (event) => {
+serviceWorker.addEventListener('activate', (event) => {
 	event.waitUntil(
 		(async () => {
 			// Delete caches replaced by the scoped app shell and branding precache.
 			const cacheNames = await caches.keys();
 			await Promise.all(
 				cacheNames
-					.filter((name) => name === "app-shell" || name === "theme")
-					.map((name) => caches.delete(name))
+					.filter((name) => name === 'app-shell' || name === 'theme')
+					.map((name) => caches.delete(name)),
 			);
 
-			if (cacheNames.includes("images")) {
-				const imageCache = await caches.open("images");
+			if (cacheNames.includes('images')) {
+				const imageCache = await caches.open('images');
 				const imageRequests = await imageCache.keys();
 				await Promise.all(
 					imageRequests
-						.filter((request) => new URL(request.url).searchParams.has("v"))
-						.map((request) => imageCache.delete(request))
+						.filter((request) => new URL(request.url).searchParams.has('v'))
+						.map((request) => imageCache.delete(request)),
 				);
 			}
 
@@ -180,6 +176,6 @@ serviceWorker.addEventListener("activate", (event) => {
 					(client as WindowClient).navigate(client.url);
 				});
 			}
-		})()
+		})(),
 	);
 });

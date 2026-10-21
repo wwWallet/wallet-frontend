@@ -1,54 +1,63 @@
 import '@/types/webauthn';
 
+export function withHintsFromAllowCredentials(
+	publicKey: PublicKeyCredentialRequestOptions,
+): PublicKeyCredentialRequestOptions {
+	const hasInternal = publicKey?.allowCredentials?.some((desc) =>
+		desc.transports?.includes('internal'),
+	);
+	const hasHybrid = publicKey?.allowCredentials?.some((desc) =>
+		desc.transports?.includes('hybrid'),
+	);
 
-export function withHintsFromAllowCredentials(publicKey: PublicKeyCredentialRequestOptions): PublicKeyCredentialRequestOptions {
-	const hasInternal = publicKey?.allowCredentials?.some(desc => desc.transports?.includes("internal"));
-	const hasHybrid = publicKey?.allowCredentials?.some(desc => desc.transports?.includes("hybrid"));
-
-	const nonExternal = new Set(["internal", "hybrid"]);
-	const hasExternal = publicKey?.allowCredentials?.some(desc => !desc.transports?.every(tsp => nonExternal.has(tsp)));
+	const nonExternal = new Set(['internal', 'hybrid']);
+	const hasExternal = publicKey?.allowCredentials?.some(
+		(desc) => !desc.transports?.every((tsp) => nonExternal.has(tsp)),
+	);
 
 	return {
 		...publicKey,
 		hints: [
-			...(
-				hasExternal
-					? ["security-key"]
-					: (
-						hasInternal
-							? ["client-device"]
-							: (
-								hasHybrid
-									? ["hybrid"]
-									: []
-							)
-					)
-			),
+			...(hasExternal
+				? ['security-key']
+				: hasInternal
+					? ['client-device']
+					: hasHybrid
+						? ['hybrid']
+						: []),
 			...(publicKey?.hints || []),
 		],
 	};
 }
 
-export function withAuthenticatorAttachmentFromHints(authSel: AuthenticatorSelectionCriteria, hints: string[]): AuthenticatorSelectionCriteria {
+export function withAuthenticatorAttachmentFromHints(
+	authSel: AuthenticatorSelectionCriteria,
+	hints: string[],
+): AuthenticatorSelectionCriteria {
 	const hintsSet = new Set(hints);
-	const hasClientDevice = hintsSet.has("client-device");
-	const hasHybrid = hintsSet.has("hybrid");
-	const hasSecurityKey = hintsSet.has("security-key");
+	const hasClientDevice = hintsSet.has('client-device');
+	const hasHybrid = hintsSet.has('hybrid');
+	const hasSecurityKey = hintsSet.has('security-key');
 
 	const onlyPlatform = hasClientDevice && !(hasHybrid || hasSecurityKey);
 	const onlyExternal = (hasHybrid || hasSecurityKey) && !hasClientDevice;
 
-	console.log("withAuthenticatorAttachmentFromHints", { authSel, hints, onlyPlatform, onlyExternal });
+	console.log('withAuthenticatorAttachmentFromHints', {
+		authSel,
+		hints,
+		onlyPlatform,
+		onlyExternal,
+	});
 
 	if (onlyPlatform) {
 		return {
 			...authSel,
-			authenticatorAttachment: "platform",
+			authenticatorAttachment: 'platform',
 		};
 	} else if (onlyExternal) {
 		return {
 			...authSel,
-			authenticatorAttachment: "cross-platform",
+			authenticatorAttachment: 'cross-platform',
 		};
 	} else {
 		return authSel;
@@ -84,7 +93,11 @@ async function getPublicKeyCredentialSignals(): Promise<{
 	clientCapabilities: Record<string, boolean>;
 	publicKeyCredential: PublicKeyCredentialWithSignalMethods;
 } | null> {
-	if (typeof window === "undefined" || !window.isSecureContext || typeof PublicKeyCredential === "undefined") {
+	if (
+		typeof window === 'undefined' ||
+		!window.isSecureContext ||
+		typeof PublicKeyCredential === 'undefined'
+	) {
 		return null;
 	}
 
@@ -99,7 +112,9 @@ async function getPublicKeyCredentialSignals(): Promise<{
 	};
 }
 
-export async function signalUnknownCredential(options?: SignalUnknownCredentialOptions): Promise<boolean> {
+export async function signalUnknownCredential(
+	options?: SignalUnknownCredentialOptions,
+): Promise<boolean> {
 	if (!options) {
 		return false;
 	}
@@ -107,8 +122,8 @@ export async function signalUnknownCredential(options?: SignalUnknownCredentialO
 	try {
 		const signals = await getPublicKeyCredentialSignals();
 		if (
-			!signals?.publicKeyCredential.signalUnknownCredential
-			|| signals.clientCapabilities.signalUnknownCredential !== true
+			!signals?.publicKeyCredential.signalUnknownCredential ||
+			signals.clientCapabilities.signalUnknownCredential !== true
 		) {
 			return false;
 		}
@@ -116,12 +131,14 @@ export async function signalUnknownCredential(options?: SignalUnknownCredentialO
 		await signals.publicKeyCredential.signalUnknownCredential(options);
 		return true;
 	} catch (error) {
-		console.warn("Failed to signal unknown WebAuthn credential", error);
+		console.warn('Failed to signal unknown WebAuthn credential', error);
 		return false;
 	}
 }
 
-export async function signalAllAcceptedCredentials(options?: SignalAllAcceptedCredentialsOptions): Promise<boolean> {
+export async function signalAllAcceptedCredentials(
+	options?: SignalAllAcceptedCredentialsOptions,
+): Promise<boolean> {
 	if (!options) {
 		return false;
 	}
@@ -129,8 +146,8 @@ export async function signalAllAcceptedCredentials(options?: SignalAllAcceptedCr
 	try {
 		const signals = await getPublicKeyCredentialSignals();
 		if (
-			!signals?.publicKeyCredential.signalAllAcceptedCredentials
-			|| signals.clientCapabilities.signalAllAcceptedCredentials !== true
+			!signals?.publicKeyCredential.signalAllAcceptedCredentials ||
+			signals.clientCapabilities.signalAllAcceptedCredentials !== true
 		) {
 			return false;
 		}
@@ -138,12 +155,14 @@ export async function signalAllAcceptedCredentials(options?: SignalAllAcceptedCr
 		await signals.publicKeyCredential.signalAllAcceptedCredentials(options);
 		return true;
 	} catch (error) {
-		console.warn("Failed to signal all accepted WebAuthn credentials", error);
+		console.warn('Failed to signal all accepted WebAuthn credentials', error);
 		return false;
 	}
 }
 
-export async function signalCurrentUserDetails(options?: SignalCurrentUserDetailsOptions): Promise<boolean> {
+export async function signalCurrentUserDetails(
+	options?: SignalCurrentUserDetailsOptions,
+): Promise<boolean> {
 	if (!options) {
 		return false;
 	}
@@ -151,8 +170,8 @@ export async function signalCurrentUserDetails(options?: SignalCurrentUserDetail
 	try {
 		const signals = await getPublicKeyCredentialSignals();
 		if (
-			!signals?.publicKeyCredential.signalCurrentUserDetails
-			|| signals.clientCapabilities.signalCurrentUserDetails !== true
+			!signals?.publicKeyCredential.signalCurrentUserDetails ||
+			signals.clientCapabilities.signalCurrentUserDetails !== true
 		) {
 			return false;
 		}
@@ -160,7 +179,7 @@ export async function signalCurrentUserDetails(options?: SignalCurrentUserDetail
 		await signals.publicKeyCredential.signalCurrentUserDetails(options);
 		return true;
 	} catch (error) {
-		console.warn("Failed to signal current WebAuthn user details", error);
+		console.warn('Failed to signal current WebAuthn user details', error);
 		return false;
 	}
 }

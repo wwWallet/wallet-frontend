@@ -1,9 +1,9 @@
-import { createContext, useContext } from "react";
-import { IOpenID4VCI } from "../lib/interfaces/IOpenID4VCI";
+import { createContext, useContext } from 'react';
+import { IOpenID4VCI } from '../lib/interfaces/IOpenID4VCI';
 
 export type OpenID4VCIContextValue = {
 	openID4VCI: IOpenID4VCI;
-}
+};
 
 const OpenID4VCIContext = createContext<OpenID4VCIContextValue | undefined>(undefined);
 

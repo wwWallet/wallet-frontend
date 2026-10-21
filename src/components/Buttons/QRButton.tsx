@@ -22,7 +22,6 @@ const QRButton = ({ openQRScanner }: QRButtonProps) => {
 					<QrCode size={20} className="text-inherit" />
 				</Button>
 			</div>
-
 		);
 	}
 

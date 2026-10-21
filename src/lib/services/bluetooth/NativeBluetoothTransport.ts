@@ -1,8 +1,11 @@
-import { BluetoothConnectionResult, IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
+import {
+	BluetoothConnectionResult,
+	IBluetoothTransport,
+} from '../../interfaces/IBluetoothTransport';
 
 function getNativeWrapper(): NativeWrapper {
-	if (typeof window === "undefined" || !window.nativeWrapper) {
-		throw new Error("Native wrapper is not available");
+	if (typeof window === 'undefined' || !window.nativeWrapper) {
+		throw new Error('Native wrapper is not available');
 	}
 	return window.nativeWrapper;
 }
@@ -17,21 +20,24 @@ export class NativeBluetoothTransport implements IBluetoothTransport {
 	private readonly chunkSize = 512;
 
 	static isAvailable(): boolean {
-		return typeof window !== "undefined" && !!window.nativeWrapper?.bluetoothCreateClient;
+		return typeof window !== 'undefined' && !!window.nativeWrapper?.bluetoothCreateClient;
 	}
 
-	async connect(serviceUuid: string, onDeviceSelected?: () => void): Promise<BluetoothConnectionResult> {
+	async connect(
+		serviceUuid: string,
+		onDeviceSelected?: () => void,
+	): Promise<BluetoothConnectionResult> {
 		const nativeWrapper = getNativeWrapper();
 		// The native wrapper picks the device itself, no selection to wait for
 		onDeviceSelected?.();
 		await nativeWrapper.bluetoothTerminate(); // Terminate any pending ble connections
 		try {
-			return await nativeWrapper.bluetoothCreateClient(serviceUuid) ? "connected" : "failed";
+			return (await nativeWrapper.bluetoothCreateClient(serviceUuid)) ? 'connected' : 'failed';
 		} catch (e) {
 			console.log(e);
 			console.log(await nativeWrapper.bluetoothStatus());
-			console.log("Could not initialize BLE client");
-			return "failed";
+			console.log('Could not initialize BLE client');
+			return 'failed';
 		}
 	}
 
@@ -49,10 +55,10 @@ export class NativeBluetoothTransport implements IBluetoothTransport {
 	async sendMessage(payload: Uint8Array): Promise<void> {
 		const nativeWrapper = getNativeWrapper();
 		let toSendBytes = Array.from(payload);
-		while (toSendBytes.length > (this.chunkSize - 1)) {
-			const chunk = [1, ...toSendBytes.slice(0, (this.chunkSize - 1))];
+		while (toSendBytes.length > this.chunkSize - 1) {
+			const chunk = [1, ...toSendBytes.slice(0, this.chunkSize - 1)];
 			await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
-			toSendBytes = toSendBytes.slice((this.chunkSize - 1));
+			toSendBytes = toSendBytes.slice(this.chunkSize - 1);
 		}
 		await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
 	}
