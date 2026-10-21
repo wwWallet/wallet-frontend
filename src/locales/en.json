@@ -413,6 +413,8 @@
 		"presentationMessage": "You will be redirected to <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {
+		"alreadyRegisteredMessage": "This authenticator already has a passkey for your wallet. To add another passkey, choose a different device or security key.",
+		"alreadyRegisteredTitle": "Passkey already registered",
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveName": "Give this credential a name:",
 		"messageDone": "Almost done!",

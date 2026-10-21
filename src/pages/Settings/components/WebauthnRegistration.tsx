@@ -35,6 +35,7 @@ const WebauthnRegistration = ({
 	const { api, keystore } = useSessionContext();
 	const [beginData, setBeginData] = useState<WebauthnRegistrationBeginData | null>(null);
 	const [pendingCredential, setPendingCredential] = useState<PublicKeyCredential | null>(null);
+	const [authenticatorAlreadyRegistered, setAuthenticatorAlreadyRegistered] = useState(false);
 	const [name, setName] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
@@ -74,6 +75,7 @@ const WebauthnRegistration = ({
 
 	const onBegin = useCallback(
 		async (webauthnHint: string) => {
+			setAuthenticatorAlreadyRegistered(false);
 			setBeginData(null);
 			setIsSubmitting(true);
 			setPendingCredential(null);
@@ -106,6 +108,9 @@ const WebauthnRegistration = ({
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
+					if (e instanceof DOMException && e.name === 'InvalidStateError') {
+						setAuthenticatorAlreadyRegistered(true);
+					}
 					if (!(e instanceof DOMException && e.name === 'AbortError')) {
 						console.error("Failed to register", e);
 					}
@@ -232,6 +237,19 @@ const WebauthnRegistration = ({
 					))}
 				</div>
 			)}
+
+			<Dialog
+				open={authenticatorAlreadyRegistered}
+				onCancel={() => setAuthenticatorAlreadyRegistered(false)}
+			>
+				<div role="alert">
+					<H2 heading={t('registerPasskey.alreadyRegisteredTitle')} hr={false} flexJustifyContent="center" />
+					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.alreadyRegisteredMessage')}</p>
+				</div>
+				<Button onClick={() => setAuthenticatorAlreadyRegistered(false)}>
+					{t('messagePopup.close')}
+				</Button>
+			</Dialog>
 
 			<Dialog
 				open={stateChooseName}
