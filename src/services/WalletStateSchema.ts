@@ -434,6 +434,15 @@ export async function findMergeBase(
 		};
 	}
 
+	function finalizeCommonHash(hash: string) {
+		const commonEventIndex1 = history1.get(hash);
+		const commonEventIndex2 = history2.get(hash);
+		if (commonEventIndex1 === undefined || commonEventIndex2 === undefined) {
+			return null;
+		}
+		return finalizeFoundCommonEvent(commonEventIndex1, commonEventIndex2);
+	}
+
 	if (i1 >= 0) {
 		history1.set(await getSchema(container1.events[i1].schemaVersion).calculateEventHash(container1.events[i1]), i1 + 1);
 	}
@@ -444,7 +453,7 @@ export async function findMergeBase(
 		if (history1.has(hash) && history2.has(hash)) {
 			// Both histories end with the same event hash, so they are semantically
 			// equivalent.
-			return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+			return finalizeCommonHash(hash);
 		}
 	}
 
@@ -453,14 +462,14 @@ export async function findMergeBase(
 			const hash = container1.events[i1].parentHash;
 			history1.set(hash, i1);
 			if (history1.has(hash) && history2.has(hash)) {
-				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+				return finalizeCommonHash(hash);
 			}
 			i1 -= 1;
 		} else if (i1 === -1) {
 			const hash = container1.lastEventHash;
 			history1.set(hash, 0);
 			if (history1.has(hash) && history2.has(hash)) {
-				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+				return finalizeCommonHash(hash);
 			}
 			i1 -= 1;
 		}
@@ -468,14 +477,14 @@ export async function findMergeBase(
 			const hash = container2.events[i2].parentHash;
 			history2.set(hash, i2);
 			if (history1.has(hash) && history2.has(hash)) {
-				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+				return finalizeCommonHash(hash);
 			}
 			i2 -= 1;
 		} else if (i2 === -1) {
 			const hash = container2.lastEventHash;
 			history2.set(hash, 0);
 			if (history1.has(hash) && history2.has(hash)) {
-				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+				return finalizeCommonHash(hash);
 			}
 			i2 -= 1;
 		}

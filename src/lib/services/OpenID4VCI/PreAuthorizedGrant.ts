@@ -11,7 +11,16 @@ export namespace PreAuthorizedGrant {
 		options?: oauth4webapi.TokenEndpointRequestOptions
 	): Promise<Response> => {
 
-		const customFetchFn = options[oauth4webapi.customFetch];
+		const tokenEndpoint = as.token_endpoint;
+		if (!tokenEndpoint) {
+			throw new Error("Token endpoint is not set");
+		}
+
+		const customFetchFn = options?.[oauth4webapi.customFetch];
+		if (!customFetchFn) {
+			throw new Error("Custom fetch is not set");
+		}
+
 		const tokenRequestParams = new URLSearchParams();
 		tokenRequestParams.set("pre-authorized_code", credentialOfferParams.preAuthorizedCode);
 		tokenRequestParams.set("grant_type", GrantType.PRE_AUTHORIZED_CODE);
@@ -28,12 +37,12 @@ export namespace PreAuthorizedGrant {
 					dpop.dpopPrivateKey,
 					dpop.dpopPublicKeyJwk,
 					"POST",
-					as.token_endpoint,
+					tokenEndpoint,
 				),
 			},
 			redirect: "manual",
 		};
-		return customFetchFn(as.token_endpoint, requestOpts);
+		return customFetchFn(tokenEndpoint, requestOpts);
 	}
 
 	export const processPreAuthorizedCodeTokenResponse = async (

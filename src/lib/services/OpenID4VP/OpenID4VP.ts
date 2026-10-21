@@ -1,11 +1,10 @@
 import { IOpenID4VP } from "../../interfaces/IOpenID4VP";
-import type { OpenID4VPServerCredential } from "wallet-common";
 import { OpenID4VPServerAPI, OpenID4VPResponseMode } from "wallet-common";
 import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartyState";
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
-import SessionContext from "@/context/SessionContext";
+import { useSessionContext } from "@/context/SessionContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { useTranslation } from "react-i18next";
 import { ParsedTransactionData, parseTransactionDataWithUI } from "./TransactionData/parseTransactionData";
@@ -14,32 +13,34 @@ import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "wallet-common";
 import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
+import type { TransactionConsentOptions } from '@/types/consent';
+import type { ConformantCredentialsMap, ConformantCredentialsRecord } from '@/types/credentialSelection';
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
 	showTransactionDataConsentPopup,
 }: {
 	showCredentialSelectionPopup: (
-		conformantCredentialsMap: any,
+		conformantCredentialsMap: ConformantCredentialsRecord,
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
 	) => Promise<Map<string, number>>,
-	showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean>,
+	showTransactionDataConsentPopup: (options: TransactionConsentOptions) => Promise<boolean>,
 }): IOpenID4VP {
 
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { parseCredential } = useContext(CredentialsContext);
-	const { keystore, api } = useContext(SessionContext);
+	const { keystore, api } = useSessionContext();
 	const { t } = useTranslation();
 
 	const promptForCredentialSelection = useCallback(
 		async (
-			conformantCredentialsMap: any,
+			conformantCredentialsMap: ConformantCredentialsRecord,
 			verifierDomainName: string,
 			verifierPurpose: string,
-			parsedTransactionData: ParsedTransactionData[],
+			parsedTransactionData?: ParsedTransactionData[],
 		): Promise<Map<string, number>> => {
 			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData);
 		},
@@ -77,16 +78,20 @@ export function useOpenID4VP({
 				};
 			},
 		};
-		const selectCredentialForBatch = async (batchId: number, vcEntityList: ExtendedVcEntity[]): Promise<OpenID4VPServerCredential | null> => {
+		const selectCredentialForBatch = async (batchId: number, vcEntityList: ExtendedVcEntity[]): Promise<ExtendedVcEntity | null> => {
 			const walletState = keystore.getCalculatedWalletState();
 			if (!walletState) {
 				throw new Error("Empty wallet state");
 			}
-			return getLeastUsedCredentialInstance(batchId, vcEntityList, walletState);
+			const selectedCredential = await getLeastUsedCredentialInstance(batchId, vcEntityList, walletState);
+			const batchCredential = vcEntityList.find(credential => credential.batchId === batchId);
+			return selectedCredential && batchCredential
+				? { ...batchCredential, ...selectedCredential }
+				: null;
 		};
 
-		return new OpenID4VPServerAPI<OpenID4VPServerCredential, ParsedTransactionData>({
-			httpClient: { get: httpProxy.get },
+		return new OpenID4VPServerAPI<ExtendedVcEntity, ParsedTransactionData>({
+			httpClient: { get: (url, options) => httpProxy.get(url, {}, options) },
 			rpStateStore,
 			parseCredential,
 			selectCredentialForBatch,
@@ -102,7 +107,7 @@ export function useOpenID4VP({
 				verifyRequestUriAndCerts(request_uri, response_uri, parsedHeader),
 		});
 	}, [
-		httpProxy.get,
+		httpProxy,
 		openID4VPRelyingPartyStateRepository,
 		parseCredential,
 		keystore,
@@ -113,7 +118,7 @@ export function useOpenID4VP({
 		url: string,
 		vcEntityList: ExtendedVcEntity[],
 	): Promise<{
-		conformantCredentialsMap: Map<string, any>,
+		conformantCredentialsMap: ConformantCredentialsMap,
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData: ParsedTransactionData[] | null,
@@ -125,7 +130,7 @@ export function useOpenID4VP({
 		return result;
 	}, [openID4VPServer]);
 
-	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
+	const sendAuthorizationResponse = useCallback(async (selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
 		const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
 		if (!response || !(response as any).formData) {
 			return { state: "skipped" as const };

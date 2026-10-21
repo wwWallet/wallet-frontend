@@ -4,6 +4,7 @@ import { createContext } from 'react';
 import { ParsedCredential, ParsingEngineI, CredentialVerifier } from 'wallet-common';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
 type CredentialEngine = {
 	credentialParsingEngine: ParsingEngineI;
@@ -23,16 +24,19 @@ export type ExtendedVcEntity = WalletStateCredential & {
 	sigCount: number; // calculate usage by parsing all presentation history
 }
 
+export type ParseCredentialInput = Pick<WalletStateCredential, 'data'>
+	& Partial<Pick<WalletStateCredential, 'credentialIssuerIdentifier' | 'credentialConfigurationId'>>;
+
 export type CredentialsContextValue = {
-	vcEntityList: ExtendedVcEntity[];
+	vcEntityList: ExtendedVcEntity[] | null;
 	latestCredentials: Set<number>;
-	fetchVcData: (credentialId?: number) => Promise<ExtendedVcEntity[]>;
+	fetchVcData: (credentialId?: number) => Promise<ExtendedVcEntity[] | null>;
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (credential: WalletStateCredential) => Promise<ParsedCredential | null>;
+	parseCredential: (credential: ParseCredentialInput) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
-	pendingTransactions: Record<string, any>;
+	pendingTransactions: WalletStateCredentialIssuanceSession[] | null;
 };
 
 const defaultContextValue: CredentialsContextValue = {

@@ -26,6 +26,8 @@ const stores = {
 	}),
 };
 
+type StoreName = keyof typeof stores;
+
 /** Remove derived responses while preserving offline users and private data. */
 export async function clearIndexedDbCache(): Promise<void> {
 	await Promise.all([
@@ -41,7 +43,7 @@ export const EXCLUDED_INDEXEDDB_PATHS = new Set([
 	'/user/session/private-data',
 ]);
 
-const storeNameMapping: { [key: string]: string } = {
+const storeNameMapping: Record<string, StoreName> = {
 	'users': 'users',
 	'/issuer/all': 'externalEntities',
 	'/verifier/all': 'externalEntities',
@@ -49,7 +51,7 @@ const storeNameMapping: { [key: string]: string } = {
 	'/helper/iaca-list': 'externalEntities'
 };
 
-function getMappedStoreName(storeName: string): string {
+function getMappedStoreName(storeName: string): StoreName {
 	if (storeName.includes('well-known')) {
 		return 'externalEntities';
 	}
@@ -178,7 +180,7 @@ async function migrateDataSource() {
 // 	await UserHandleToUserID.dropInstance();
 // }
 
-export async function addItem(storeName: string, key: any, value: any, forceMappedStoreName?: string): Promise<void> {
+export async function addItem(storeName: string, key: any, value: any, forceMappedStoreName?: StoreName): Promise<void> {
 	try {
 		const mappedStoreName = forceMappedStoreName ?? getMappedStoreName(storeName);
 		await stores[mappedStoreName].setItem(key, value);
@@ -187,7 +189,7 @@ export async function addItem(storeName: string, key: any, value: any, forceMapp
 	}
 }
 
-export async function getItem(storeName: string, key: any, forceMappedStoreName?: string): Promise<any> {
+export async function getItem(storeName: string, key: any, forceMappedStoreName?: StoreName): Promise<any> {
 	try {
 		const mappedStoreName = forceMappedStoreName ?? getMappedStoreName(storeName);
 		const value = await stores[mappedStoreName].getItem(key);
@@ -202,7 +204,7 @@ export async function getAllItems(storeName: string): Promise<any[]> {
 	try {
 		const mappedStoreName = getMappedStoreName(storeName);
 		const items: any[] = [];
-		await stores[mappedStoreName].iterate((value, key) => {
+		await stores[mappedStoreName].iterate((value: unknown, key: string) => {
 			items.push({ key, value });
 		});
 		console.log('All items retrieved successfully');
@@ -213,7 +215,7 @@ export async function getAllItems(storeName: string): Promise<any[]> {
 	}
 }
 
-export async function removeItem(storeName: string, key: any, forceMappedStoreName?: string): Promise<void> {
+export async function removeItem(storeName: string, key: any, forceMappedStoreName?: StoreName): Promise<void> {
 	try {
 		const mappedStoreName = forceMappedStoreName ?? getMappedStoreName(storeName);
 		await stores[mappedStoreName].removeItem(key);

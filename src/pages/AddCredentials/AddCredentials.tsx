@@ -1,0 +1,318 @@
+// External libraries
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { OpenidCredentialIssuerMetadata } from 'wallet-common';
+
+// Contexts
+import CredentialsContext from '@/context/CredentialsContext';
+import { useOpenID4VCIContext } from '@/context/OpenID4VCIContext';
+import { useSessionContext } from '@/context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+
+// Hooks
+import useFilterItemByLang from '@/hooks/useFilterItemByLang';
+import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+
+// Utilities
+import { buildCredentialConfiguration, buildCredentialPortal } from '@/components/QueryableList/CredentialsDisplayUtils';
+import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
+import { buildPortalRedirectPopupContent } from '@/components/Popups/portalRedirectPopupContent';
+
+// Components
+import MessagePopup from '@/components/Popups/MessagePopup';
+import type { MessagePopupType } from '@/components/Popups/MessagePopup';
+import RedirectPopup from '@/components/Popups/RedirectPopup';
+import QueryableList from '@/components/QueryableList/QueryableList';
+import PageHeading from '@/components/Shared/PageHeading';
+import type { CachedUser } from '@/services/LocalStorageKeystore';
+import type { CredentialPortal, CredentialPortalSource } from '@/types/credentialPortal';
+
+type CredentialConfiguration = ReturnType<typeof buildCredentialConfiguration>;
+
+interface IssuerDirectoryEntry {
+	credentialIssuerIdentifier: string;
+	visible: boolean;
+}
+
+interface IssuerDirectoryResponse {
+	portals: CredentialPortalSource[];
+	issuers: IssuerDirectoryEntry[];
+}
+
+interface MessagePopupState {
+	type: MessagePopupType;
+	message: {
+		title: ReactNode;
+		description: ReactNode;
+	};
+}
+
+const AddCredentials = () => {
+	const { isOnline } = useContext(StatusContext);
+	const { api, keystore } = useSessionContext();
+	const [issuers, setIssuers] = useState<OpenidCredentialIssuerMetadata[]>([]);
+	const [portals, setPortals] = useState<CredentialPortal[]>([]);
+	const [recent, setRecent] = useState<string[]>([]);
+	const [credentialConfigurations, setCredentialConfigurations] = useState<CredentialConfiguration[]>([]);
+
+	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState<CredentialConfiguration | null>(null);
+	const [selectedPortal, setSelectedPortal] = useState<CredentialPortal | null>(null);
+	const [loading, setLoading] = useState(false);
+	const [messagePopupState, setMessagePopupState] = useState<MessagePopupState | null>(null);
+
+	const openID4VCIHelper = useOpenID4VCIHelper();
+	const { openID4VCI } = useOpenID4VCIContext();
+	const { vcEntityList, getData } = useContext(CredentialsContext);
+
+	const { t } = useTranslation();
+	const filterItemByLang = useFilterItemByLang();
+	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
+
+	useEffect(() => {
+		if (!keystore) {
+			return;
+		}
+
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
+
+	useEffect(() => {
+		if (vcEntityList === null) {
+			getData();
+		}
+	}, [vcEntityList, getData]);
+
+	useEffect(() => {
+		if (!vcEntityList) {
+			return;
+		}
+
+		const fetchRecentCredConfigs = async () => {
+			vcEntityList.map(async (vcEntity) => {
+				const identifierField = JSON.stringify([vcEntity.credentialConfigurationId, vcEntity.credentialIssuerIdentifier]);
+				setRecent((currentArray) => {
+					const recentRecordExists = currentArray.some((rec) =>
+						rec === identifierField
+					);
+
+					if (!recentRecordExists) {
+						return [...currentArray, identifierField];
+					}
+					return currentArray;
+				});
+
+			})
+		};
+
+		fetchRecentCredConfigs();
+	}, [vcEntityList]);
+
+	const selectedIssuer = useMemo(() => {
+		if (!selectedCredentialConfiguration) {
+			return null;
+		}
+
+		const { credentialIssuerIdentifier } = selectedCredentialConfiguration;
+		return issuers.find((issuer) => issuer.credential_issuer === credentialIssuerIdentifier) ?? null;
+	}, [issuers, selectedCredentialConfiguration]);
+
+	const sortedCredentialConfigurations = useMemo(() => {
+		return [...credentialConfigurations].sort((a, b) =>
+			a.credentialIssuerIdentifier.localeCompare(b.credentialIssuerIdentifier)
+		);
+	}, [credentialConfigurations]);
+
+	const redirectPopupContent = useMemo(() => {
+		if (selectedPortal) {
+			return buildPortalRedirectPopupContent({
+				portal: selectedPortal,
+				filterItemByLang,
+			});
+		}
+		if (!selectedCredentialConfiguration || !selectedIssuer) {
+			return null;
+		}
+
+		return buildCredentialRedirectPopupContent({
+			t,
+			credentialConfigurationId: selectedCredentialConfiguration?.credentialConfigurationId,
+			issuerMetadata: selectedIssuer,
+			filterItemByLang,
+		});
+	}, [t, selectedPortal, selectedCredentialConfiguration, selectedIssuer, filterItemByLang]);
+
+	useEffect(() => {
+		const fetchIssuers = async () => {
+			try {
+				const response = await api.getExternalEntity('/issuer/all', undefined, true);
+				const { portals: fetchedPortals, issuers: fetchedIssuers } = response.data as IssuerDirectoryResponse;
+				setPortals(fetchedPortals
+					.filter((portal) => portal.visible)
+					.map((portal) => buildCredentialPortal(portal, filterItemByLang))
+					.filter(Boolean) as CredentialPortal[]);
+				fetchedIssuers.map(async (issuer) => {
+					try {
+						if (!issuer.visible) {
+							return;
+						}
+						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier))!.metadata;
+						const configs = await openID4VCI.getAvailableCredentialConfigurations(issuer.credentialIssuerIdentifier);
+
+
+						// add issuer
+						setIssuers((currentArray) => {
+							const issuerExists = currentArray.some((issuerMetadata) =>
+								issuerMetadata.credential_issuer === metadata.credential_issuer
+							);
+
+							if (!issuerExists) {
+								return [...currentArray, metadata];
+							}
+							return currentArray;
+						});
+
+						Object.keys(configs).forEach((key) => {
+							const credentialConfiguration = buildCredentialConfiguration(key, configs[key], metadata, filterItemByLang);
+							setCredentialConfigurations((currentArray) => {
+								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
+									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
+								);
+								if (!credentialConfigurationExists) {
+									return [...currentArray, credentialConfiguration];
+								}
+								return currentArray;
+							})
+						});
+					}
+					catch (err) {
+						console.error(err);
+						return null;
+					}
+				})
+			} catch (error) {
+				console.error('Error fetching issuers:', error);
+			}
+		};
+
+		if (
+			(openID4VCIHelper as typeof openID4VCIHelper | null) &&
+			(openID4VCI as typeof openID4VCI | null) &&
+			(filterItemByLang as typeof filterItemByLang | null)
+		) {
+			console.log("Fetching issuers...")
+			fetchIssuers();
+		}
+	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
+
+	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier: string | number) => {
+		const clickedPortal = portals.find((portal) => portal.identifierField === credentialConfigurationIdWithCredentialIssuerIdentifier);
+		if (clickedPortal) {
+			setSelectedPortal(clickedPortal);
+			return {};
+		}
+		const result = await api.syncPrivateData(cachedUser as CachedUser | undefined);
+		if (!result.ok) {
+			return {};
+		}
+		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier as string) as [string, string];
+		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId && conf.credentialIssuerIdentifier === credentialIssuerIdentifier);
+		if (clickedCredentialConfiguration) {
+			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
+		}
+	}
+
+	const handleCancel = () => {
+		setSelectedCredentialConfiguration(null);
+		setSelectedPortal(null);
+	};
+
+	const handleContinue = async () => {
+		setLoading(true);
+		try {
+			if (selectedPortal) {
+				window.location.href = selectedPortal.url;
+				return;
+			}
+			if (!selectedCredentialConfiguration) {
+				return;
+			}
+			const { credentialConfigurationId, credentialIssuerIdentifier } = selectedCredentialConfiguration;
+
+			const userHandleB64u = keystore.getUserHandleB64u();
+			if (userHandleB64u == null) {
+				console.error("Could not generate authorization request because user handle is null");
+				return;
+			}
+
+			const result = await openID4VCI.generateAuthorizationRequest(credentialIssuerIdentifier, credentialConfigurationId);
+			if ('url' in result) {
+				const { url } = result;
+				window.location.href = url!;
+			}
+		} catch (err) {
+			console.error(err);
+			console.error("Couldn't generate authz req");
+			setMessagePopupState({
+				type: 'error',
+				message: {
+					title: t('issuance.error'),
+					description: t('messagePopup.addCredentialProcessFailed.defaultDescription'),
+				},
+			});
+		} finally {
+			setLoading(false);
+			setSelectedCredentialConfiguration(null);
+			setSelectedPortal(null);
+		}
+	};
+
+	return (
+		<>
+			<div className="px-6 sm:px-12 w-full">
+				<PageHeading heading={t('common.navItemAddCredentials')} />
+
+				{credentialConfigurations && recent && (
+					<QueryableList<CredentialConfiguration | CredentialPortal>
+						isOnline={isOnline as boolean}
+						list={sortedCredentialConfigurations}
+						portalList={portals}
+						// recent={credentialConfigurations.length < 6 ? [] : recent}
+						recent={[]}
+						queryField='credentialConfigurationDisplayName'
+						translationPrefix='pageAddCredentials'
+						identifierField='identifierField'
+						onClick={handleCredentialConfigurationClick}
+					/>
+				)}
+			</div>
+
+			{(selectedCredentialConfiguration || selectedPortal) && (
+				<RedirectPopup
+					loading={loading}
+					showLoadingAfterMs={200}
+					onClose={handleCancel}
+					handleContinue={handleContinue}
+					popupTitle={redirectPopupContent?.title}
+					popupMessage={redirectPopupContent?.message}
+				/>
+			)}
+			{messagePopupState && (
+				<MessagePopup
+					type={messagePopupState.type}
+					message={messagePopupState.message}
+					onClose={() => setMessagePopupState(null)}
+				/>
+			)}
+		</>
+	);
+};
+
+export default AddCredentials;
