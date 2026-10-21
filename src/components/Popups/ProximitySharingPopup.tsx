@@ -6,7 +6,7 @@ import QRCode from 'react-qr-code';
 import { Check, CircleAlert, CircleCheckBig, LoaderCircle, LockKeyhole } from 'lucide-react';
 import { formatDate, isCborDate } from 'wallet-common';
 import type { ClaimPath } from 'wallet-common';
-import { getLanguage } from '@/i18n';
+import { fallbackLng, getLanguage } from '@/i18n';
 import { truncateByWords } from '@/utils';
 import PopupLayout from './PopupLayout';
 import Button from '../Buttons/Button';
@@ -253,7 +253,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 	const labelForClaim = (claim: CredentialClaim | undefined, fallback: unknown) => {
 		const displays = claim?.display ?? [];
 		const activeLanguage = getLanguage(i18n.language);
-		const fallbackLanguage = getLanguage(i18n.options.fallbackLng);
+		const fallbackLanguage = getLanguage(fallbackLng);
 		const activeLanguageLabel = displays.find(display => getLanguage(display.locale) === activeLanguage)?.label;
 		const fallbackLanguageLabel = fallbackLanguage === undefined
 			? undefined
