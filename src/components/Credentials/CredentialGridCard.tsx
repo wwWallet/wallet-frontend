@@ -12,7 +12,12 @@ interface CredentialGridCardProps {
 	fixedRatio?: boolean;
 }
 
-const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }: CredentialGridCardProps) => {
+const CredentialGridCard = ({
+	vcEntity,
+	onClick,
+	latestCredentials,
+	fixedRatio,
+}: CredentialGridCardProps) => {
 	const { t } = useTranslation();
 	const language = i18n.language;
 	const preferredLanguages = useMemo(() => [language], [language]);
@@ -20,15 +25,16 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		preferredLanguages
+		preferredLanguages,
 	);
 
 	return (
 		<button
 			id={`credential-grid-${vcEntity.batchId}`}
 			key={vcEntity.batchId}
-			className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.batchId) ? 'highlight-border fade-in' : ''
-				}`}
+			className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${
+				latestCredentials.has(vcEntity.batchId) ? 'highlight-border fade-in' : ''
+			}`}
 			onClick={() => onClick(vcEntity)}
 			aria-label={credentialName ?? ''}
 			title={t('pageCredentials.credentialDetailsTitle', {
@@ -38,8 +44,9 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }
 			<CredentialImage
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
-				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
-					}`}
+				className={`w-full h-full object-cover rounded-xl ${
+					latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
+				}`}
 				fixedRatio={fixedRatio}
 			/>
 		</button>

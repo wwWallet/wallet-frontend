@@ -67,7 +67,7 @@ export default defineConfig(async ({ mode }) => {
 					lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
 					useFlatConfig: true,
 					watchPath: './src',
-				}
+				},
 			}),
 			VitePWA({
 				registerType: 'autoUpdate',
@@ -77,11 +77,11 @@ export default defineConfig(async ({ mode }) => {
 				strategies: 'injectManifest', // Uses `src/service-worker.ts` for caching
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
-					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
+					maximumFileSizeToCacheInBytes:
+						env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
 					globIgnores: ['theme.css', 'index.html', 'runtime-precache.js'],
 				},
 			}),
-
 		],
 		resolve: {
 			alias: {
@@ -104,7 +104,7 @@ export default defineConfig(async ({ mode }) => {
 		build: {
 			manifest: true,
 			sourcemap: env.GENERATE_SOURCEMAP === 'true',
-			minify: env.GENERATE_SOURCEMAP !== 'true'
+			minify: env.GENERATE_SOURCEMAP !== 'true',
 		},
 	};
 

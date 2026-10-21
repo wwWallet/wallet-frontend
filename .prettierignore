@@ -1,0 +1,8 @@
+coverage/
+dist/
+node_modules/
+public/
+branding/custom/
+src/locales/*.json
+# Prettier indents lists nested in ordered lists by 3 spaces; .editorconfig wants 2 for Markdown
+branding/README.md

@@ -13,20 +13,27 @@ interface CredentialSlideCardProps {
 	fixedRatio?: boolean;
 }
 
-const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick, fixedRatio }: CredentialSlideCardProps) => {
+const CredentialSlideCard = ({
+	vcEntity,
+	isActive,
+	latestCredentials,
+	onClick,
+	fixedRatio,
+}: CredentialSlideCardProps) => {
 	const { t } = useTranslation();
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		[i18n.language]
+		[i18n.language],
 	);
 
 	return (
 		<button
 			id={`credential-slide-${vcEntity.batchId}`}
-			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.batchId) ? 'fade-in' : ''
-				}`}
+			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${
+				latestCredentials.has(vcEntity.batchId) ? 'fade-in' : ''
+			}`}
 			onClick={() => onClick(vcEntity)}
 			aria-label={credentialName ?? ''}
 			tabIndex={isActive ? 0 : -1}
@@ -38,8 +45,9 @@ const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick, f
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
 				showRibbon={isActive}
-				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
-					}`}
+				className={`w-full h-full object-cover rounded-xl ${
+					latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
+				}`}
 				fixedRatio={fixedRatio}
 			/>
 		</button>

@@ -4,8 +4,9 @@ export function coerce<T>(value: T): T {
 	return value;
 }
 
-
-export function toU8<T extends ArrayBufferLike>(b: ArrayBuffer | ArrayBufferView<T>): Uint8Array<ArrayBuffer | T> {
+export function toU8<T extends ArrayBufferLike>(
+	b: ArrayBuffer | ArrayBufferView<T>,
+): Uint8Array<ArrayBuffer | T> {
 	if (b instanceof ArrayBuffer) {
 		return new Uint8Array(b);
 	} else {
@@ -25,10 +26,13 @@ export function toBase64(binary: ArrayBuffer | ArrayBufferView): string {
 }
 
 export function toBase64Url(binary: ArrayBuffer | ArrayBufferView): string {
-	return toBase64(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+	return toBase64(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-export function byteArrayEquals(a: ArrayBuffer | ArrayBufferView, b: ArrayBuffer | ArrayBufferView): boolean {
+export function byteArrayEquals(
+	a: ArrayBuffer | ArrayBufferView,
+	b: ArrayBuffer | ArrayBufferView,
+): boolean {
 	return toBase64(a) === toBase64(b);
 }
 
@@ -37,25 +41,29 @@ function base64pad(s: string): string {
 	if (m === 0) {
 		return s;
 	} else if (m === 2) {
-		return s + "==";
+		return s + '==';
 	} else if (m === 3) {
-		return s + "=";
+		return s + '=';
 	} else {
-		throw Error("Invalid length of Base64 encoded data");
+		throw Error('Invalid length of Base64 encoded data');
 	}
 }
 
 export function fromBase64(s: string): Uint8Array<ArrayBuffer> {
-	return new Uint8Array(Array.from(atob(base64pad(s))).map(c => c.charCodeAt(0)));
+	return new Uint8Array(Array.from(atob(base64pad(s))).map((c) => c.charCodeAt(0)));
 }
 
 export function fromBase64Url(s: string): Uint8Array<ArrayBuffer> {
-	return fromBase64(s.replace(/-/g, "+").replace(/_/g, "/"));
+	return fromBase64(s.replace(/-/g, '+').replace(/_/g, '/'));
 }
 
-function replacerUint8ArrayToTaggedBase64Url(this: Record<string, unknown>, key: string, value: any): any {
+function replacerUint8ArrayToTaggedBase64Url(
+	this: Record<string, unknown>,
+	key: string,
+	value: any,
+): any {
 	if (this[key] instanceof Uint8Array || this[key] instanceof ArrayBuffer) {
-		return { '$b64u': toBase64Url(toU8(this[key])) };
+		return { $b64u: toBase64Url(toU8(this[key])) };
 	} else {
 		return value;
 	}
@@ -67,7 +75,7 @@ export function jsonStringifyTaggedBinary(value: any): string {
 
 function reviverTaggedBinaryToUint8Array(key: string, value: any): any {
 	if (value?.$b64u !== undefined) {
-		return fromBase64Url(value["$b64u"]);
+		return fromBase64Url(value['$b64u']);
 	} else {
 		return value;
 	}
@@ -111,21 +119,20 @@ export function splitWhen<T>(arr: T[], predicate: (element: T) => boolean): [T[]
 	Filter `arr` for duplicates as determined by `f`, keeping the first element
 	of each duplicate class.
 	*/
-export function deduplicateBy<T, U extends (string | number | boolean | bigint | symbol)>(
+export function deduplicateBy<T, U extends string | number | boolean | bigint | symbol>(
 	arr: T[],
 	f: (element: T) => U,
 ): T[] {
 	return [
-		...arr.reduce(
-			(map, e: T) => {
+		...arr
+			.reduce((map, e: T) => {
 				const key = f(e);
 				if (!map.has(key)) {
 					map.set(key, e);
 				}
 				return map;
-			},
-			new Map<U, T>(),
-		).values(),
+			}, new Map<U, T>())
+			.values(),
 	];
 }
 
@@ -133,18 +140,17 @@ export function deduplicateBy<T, U extends (string | number | boolean | bigint |
 	Filter `arr` for duplicates as determined by `f`, keeping the last element of
 	each duplicate class.
 	*/
-export function deduplicateFromRightBy<T, U extends (string | number | boolean | bigint | symbol)>(
+export function deduplicateFromRightBy<T, U extends string | number | boolean | bigint | symbol>(
 	arr: T[],
 	f: (element: T) => U,
 ): T[] {
 	return [
-		...arr.reduce(
-			(map, e: T) => {
+		...arr
+			.reduce((map, e: T) => {
 				map.set(f(e), e);
 				return map;
-			},
-			new Map<U, T>(),
-		).values(),
+			}, new Map<U, T>())
+			.values(),
 	];
 }
 
@@ -184,14 +190,17 @@ export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 
 	If the maximum is not unique, return the first maximum.
 	 */
-export function maxByKey<T, U extends string | number | boolean | bigint>(arr: T[], byKey: (v: T) => U): T | undefined {
+export function maxByKey<T, U extends string | number | boolean | bigint>(
+	arr: T[],
+	byKey: (v: T) => U,
+): T | undefined {
 	if (arr.length === 0) {
 		return undefined;
 	} else {
 		return arr.slice(1).reduce<[T, U]>(
 			([max, maxKey], next) => {
 				const nextKey = byKey(next);
-				return (nextKey > maxKey) ? [next, nextKey] : [max, maxKey];
+				return nextKey > maxKey ? [next, nextKey] : [max, maxKey];
 			},
 			[arr[0], byKey(arr[0])],
 		)[0];
@@ -208,7 +217,9 @@ export function reverse<T>(f: (a: T, b: T) => number): (a: T, b: T) => number {
  */
 export function throttle(action: () => void, timeoutMillis: number): () => void {
 	let ready = true;
-	const setReady = () => { ready = true; };
+	const setReady = () => {
+		ready = true;
+	};
 	return () => {
 		if (ready) {
 			ready = false;
@@ -216,35 +227,32 @@ export function throttle(action: () => void, timeoutMillis: number): () => void 
 			setTimeout(setReady, timeoutMillis);
 		}
 	};
-};
+}
 
 /** Return the byte length of `s` in the UTF-8 encoding. */
 export function calculateByteSize(s: string): number {
 	const encoder = new TextEncoder();
 	const encoded = encoder.encode(s);
 	return encoded.length;
-};
+}
 
 /** Return a shallow copy of `o` containing only the key-value pairs for which `predicate` returns `true`. */
-export function filterObject<T>(o: { [key: string]: T }, predicate: (v: T, k: string) => boolean): { [key: string]: T } {
-	return Object.entries(o).reduce(
-		(result: { [key: string]: T }, [k, v]) => {
-			if (predicate(v, k)) {
-				result[k] = v;
-			}
-			return result;
-		},
-		{},
-	);
+export function filterObject<T>(
+	o: { [key: string]: T },
+	predicate: (v: T, k: string) => boolean,
+): { [key: string]: T } {
+	return Object.entries(o).reduce((result: { [key: string]: T }, [k, v]) => {
+		if (predicate(v, k)) {
+			result[k] = v;
+		}
+		return result;
+	}, {});
 }
 
 // To get the values of possible nested properties
-export function getElementPropValue(
-	obj: any,
-	property: string
-): string | number | undefined {
+export function getElementPropValue(obj: any, property: string): string | number | undefined {
 	let value = obj;
-	for (const prop of property.split(".")) {
+	for (const prop of property.split('.')) {
 		if (!value) {
 			break;
 		}
@@ -267,5 +275,5 @@ export function getElementPropValue(
  */
 export function sanitizeId(value: string | number): string {
 	const str = String(value);
-	return str.replace(/[^a-zA-Z0-9-_]/g, "");
+	return str.replace(/[^a-zA-Z0-9-_]/g, '');
 }

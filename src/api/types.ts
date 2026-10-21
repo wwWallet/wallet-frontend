@@ -2,7 +2,7 @@ export type Verifier = {
 	id: number;
 	name: string;
 	url: string;
-}
+};
 
 // Duplicated in wallet-backend-server
 export class UserId {
@@ -34,21 +34,21 @@ export type UserData = {
 	webauthnCredentials: WebauthnCredential[];
 	privateData: Uint8Array;
 	settings: UserSettings;
-}
+};
 
 export type WebauthnCredential = {
-	createTime: string,
-	credentialId: Uint8Array,
-	id: string,
-	lastUseTime: string,
-	name?: string,
-	prfCapable: boolean,
-	backupEligibility: boolean,
-	backupState: boolean,
-	authenticatorName?: string
-}
+	createTime: string;
+	credentialId: Uint8Array;
+	id: string;
+	lastUseTime: string;
+	name?: string;
+	prfCapable: boolean;
+	backupEligibility: boolean;
+	backupState: boolean;
+	authenticatorName?: string;
+};
 
 export type UserSettings = {
 	openidRefreshTokenMaxAgeInSeconds: number;
 	useOblivious: string;
-}
+};

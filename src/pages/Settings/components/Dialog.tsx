@@ -6,14 +6,12 @@ const Dialog = ({
 	open,
 	onCancel,
 }: {
-	children: ReactNode,
-	open: boolean,
-	onCancel: () => void,
+	children: ReactNode;
+	open: boolean;
+	onCancel: () => void;
 }) => (
 	<PopupLayout isOpen={open} onClose={onCancel} padding="p-4 pt-8 sm:p-8">
-		<div className="text-center md:space-y-6">
-			{children}
-		</div>
+		<div className="text-center md:space-y-6">{children}</div>
 	</PopupLayout>
 );
 

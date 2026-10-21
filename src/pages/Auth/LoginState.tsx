@@ -21,9 +21,7 @@ type FilteredUserResult = [
 	authenticated: boolean,
 ];
 
-const WebauthnLogin = ({
-	filteredUser,
-}: WebauthnLoginProps) => {
+const WebauthnLogin = ({ filteredUser }: WebauthnLoginProps) => {
 	const { api, keystore } = useSessionContext();
 	const [error, setError] = useState<string | undefined>('');
 	const navigate = useNavigate();
@@ -40,7 +38,6 @@ const WebauthnLogin = ({
 				const params = new URLSearchParams(from);
 				params.append('authenticated', 'true');
 				navigate(`?${params.toString()}`, { replace: true });
-
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
@@ -83,12 +80,12 @@ const WebauthnLogin = ({
 	return (
 		<>
 			<ul className=" p-2">
-				<div className='flex flex-row gap-4 justify-center mr-2'>
+				<div className="flex flex-row gap-4 justify-center mr-2">
 					<Button
 						id="cancel-login-state"
 						onClick={() => navigate('/')}
 						disabled={isSubmitting}
-						additionalClassName='w-full'
+						additionalClassName="w-full"
 					>
 						{t('common.cancel')}
 					</Button>
@@ -97,16 +94,18 @@ const WebauthnLogin = ({
 						onClick={() => onLoginCachedUser(filteredUser)}
 						variant="primary"
 						disabled={isSubmitting}
-						additionalClassName='w-full'
+						additionalClassName="w-full"
 					>
 						<UserLock className="inline text-xl mr-2" />
-						{isSubmitting
-							? t('loginSignup.submitting')
-							: t('common.continue')}
+						{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
 					</Button>
 				</div>
 			</ul>
-			{error && <div role="alert" className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
+			{error && (
+				<div role="alert" className="text-lm-red dark:text-dm-red pt-2">
+					{error}
+				</div>
+			)}
 		</>
 	);
 };
@@ -132,7 +131,11 @@ const LoginState = () => {
 				console.log('state', state);
 				const decodedState = atob(state);
 				const stateObj = JSON.parse(decodedState) as Pick<CachedUser, 'userHandleB64u'>;
-				return [cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u), false, authenticated === 'true'];
+				return [
+					cachedUsers.find((user) => user.userHandleB64u === stateObj.userHandleB64u),
+					false,
+					authenticated === 'true',
+				];
 			} catch (error) {
 				console.error('Error decoding state:', error);
 			}
@@ -154,23 +157,22 @@ const LoginState = () => {
 				<Trans
 					i18nKey="loginState.welcomeBackMessage"
 					components={{
-						highlight: <span className="text-primary dark:text-brand-light" />
+						highlight: <span className="text-primary dark:text-brand-light" />,
 					}}
 				/>
 			}
-			heading={<>{t('loginState.title')} {filteredUser.displayName}</>}
+			heading={
+				<>
+					{t('loginState.title')} {filteredUser.displayName}
+				</>
+			}
 			showPasskeyInfoPopup={false}
 		>
 			<p className="text-sm text-center text-lm-gray-800 dark:text-white mb-2">
-				<Trans
-					i18nKey="loginState.message"
-					components={{ strong: <strong /> }}
-				/>
+				<Trans i18nKey="loginState.message" components={{ strong: <strong /> }} />
 			</p>
 
-			<WebauthnLogin
-				filteredUser={filteredUser}
-			/>
+			<WebauthnLogin filteredUser={filteredUser} />
 		</AuthCard>
 	);
 };

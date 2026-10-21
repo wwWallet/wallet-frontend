@@ -1,43 +1,43 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import AppSettingsContext, { ColorScheme, Settings } from "./AppSettingsContext";
-import { useLocalStorage } from "@/hooks/useStorage";
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import AppSettingsContext, { ColorScheme, Settings } from './AppSettingsContext';
+import { useLocalStorage } from '@/hooks/useStorage';
 
-const getSystemPref = (): "light" | "dark" =>
-	typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
-		? "dark"
-		: "light";
+const getSystemPref = (): 'light' | 'dark' =>
+	typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+		? 'dark'
+		: 'light';
 
 export const AppSettingsProvider = ({ children }: React.PropsWithChildren) => {
-	const [settings, setSettings] = useLocalStorage<Settings>("settings", {
-		colorScheme: "system",
-		mobileVcHomeView: "horizontal-slider",
+	const [settings, setSettings] = useLocalStorage<Settings>('settings', {
+		colorScheme: 'system',
+		mobileVcHomeView: 'horizontal-slider',
 	});
 
 	// Track OS preference and react to changes
-	const [systemPref, setSystemPref] = useState<"light" | "dark">(getSystemPref());
+	const [systemPref, setSystemPref] = useState<'light' | 'dark'>(getSystemPref());
 
 	useEffect(() => {
-		if (typeof window === "undefined" || settings.colorScheme !== "system") return;
-		const mql = window.matchMedia("(prefers-color-scheme: dark)");
+		if (typeof window === 'undefined' || settings.colorScheme !== 'system') return;
+		const mql = window.matchMedia('(prefers-color-scheme: dark)');
 
 		const onChange = (e: MediaQueryListEvent | MediaQueryList) => {
-			const matches = "matches" in e ? e.matches : mql.matches;
-			setSystemPref(matches ? "dark" : "light");
+			const matches = 'matches' in e ? e.matches : mql.matches;
+			setSystemPref(matches ? 'dark' : 'light');
 		};
 
 		onChange(mql as unknown as MediaQueryListEvent);
 
-		if (typeof mql.addEventListener === "function") {
-			mql.addEventListener("change", onChange);
-		} else if (typeof (mql as any).addListener === "function") {
+		if (typeof mql.addEventListener === 'function') {
+			mql.addEventListener('change', onChange);
+		} else if (typeof (mql as any).addListener === 'function') {
 			// Safari < 14 fallback
 			(mql as any).addListener(onChange);
 		}
 
 		return () => {
-			if (typeof mql.removeEventListener === "function") {
-				mql.removeEventListener("change", onChange);
-			} else if (typeof (mql as any).removeListener === "function") {
+			if (typeof mql.removeEventListener === 'function') {
+				mql.removeEventListener('change', onChange);
+			} else if (typeof (mql as any).removeListener === 'function') {
 				(mql as any).removeListener(onChange);
 			}
 		};
@@ -45,37 +45,33 @@ export const AppSettingsProvider = ({ children }: React.PropsWithChildren) => {
 
 	const setColorScheme = useCallback(
 		(t: ColorScheme) => setSettings((prev) => ({ ...prev, colorScheme: t })),
-		[setSettings]
+		[setSettings],
 	);
 
 	const setMobileVcHomeView = useCallback(
-		(v: Settings["mobileVcHomeView"]) => setSettings((prev) => ({ ...prev, mobileVcHomeView: v })),
-		[setSettings]
+		(v: Settings['mobileVcHomeView']) => setSettings((prev) => ({ ...prev, mobileVcHomeView: v })),
+		[setSettings],
 	);
 
-	const resolvedColorScheme: "light" | "dark" = useMemo(
-		() => (settings.colorScheme === "system" ? systemPref : settings.colorScheme),
-		[settings.colorScheme, systemPref]
+	const resolvedColorScheme: 'light' | 'dark' = useMemo(
+		() => (settings.colorScheme === 'system' ? systemPref : settings.colorScheme),
+		[settings.colorScheme, systemPref],
 	);
 
 	// Apply to <html>
 	useEffect(() => {
-		if (typeof document === "undefined") return;
+		if (typeof document === 'undefined') return;
 		const root = document.documentElement;
-		const isDark = resolvedColorScheme === "dark";
-		root.classList.toggle("dark", isDark);      // Tailwind dark mode
-		root.setAttribute("data-theme", resolvedColorScheme);
-		root.style.colorScheme = isDark ? "dark" : "light"; // native form controls
+		const isDark = resolvedColorScheme === 'dark';
+		root.classList.toggle('dark', isDark); // Tailwind dark mode
+		root.setAttribute('data-theme', resolvedColorScheme);
+		root.style.colorScheme = isDark ? 'dark' : 'light'; // native form controls
 	}, [resolvedColorScheme]);
 
 	const value = useMemo(
 		() => ({ settings, resolvedColorScheme, setColorScheme, setMobileVcHomeView }),
-		[settings, resolvedColorScheme, setColorScheme, setMobileVcHomeView]
+		[settings, resolvedColorScheme, setColorScheme, setMobileVcHomeView],
 	);
 
-	return (
-		<AppSettingsContext.Provider value={value}>
-			{children}
-		</AppSettingsContext.Provider>
-	);
+	return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;
 };

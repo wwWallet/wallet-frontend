@@ -1,5 +1,4 @@
-import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
-
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common';
 
 export type ClientConfig = {
 	clientId: string;
@@ -7,4 +6,4 @@ export type ClientConfig = {
 
 	credentialIssuerMetadata: OpenidCredentialIssuerMetadata;
 	authorizationServerMetadata: OpenidAuthorizationServerMetadata;
-}
+};

@@ -6,18 +6,13 @@ import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 
 type ClearCachePopupProps = {
-	isOpen: boolean,
-	onClose: () => void,
-	onConfirm: () => void,
-	isClearing: boolean,
+	isOpen: boolean;
+	onClose: () => void;
+	onConfirm: () => void;
+	isClearing: boolean;
 };
 
-const ClearCachePopup = ({
-	isOpen,
-	onClose,
-	onConfirm,
-	isClearing,
-}: ClearCachePopupProps) => {
+const ClearCachePopup = ({ isOpen, onClose, onConfirm, isClearing }: ClearCachePopupProps) => {
 	const { t } = useTranslation();
 	const canDismiss = !isClearing;
 
@@ -26,11 +21,7 @@ const ClearCachePopup = ({
 	};
 
 	return (
-		<PopupLayout
-			isOpen={isOpen}
-			onClose={handleClose}
-			shouldCloseOnOverlayClick={canDismiss}
-		>
+		<PopupLayout isOpen={isOpen} onClose={handleClose} shouldCloseOnOverlayClick={canDismiss}>
 			<div>
 				<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 					<Database size={20} className="inline mr-1 mb-1" />
@@ -41,11 +32,7 @@ const ClearCachePopup = ({
 					{t('pageSettings.clearCache.confirmMessage')}
 				</p>
 				<div className="flex justify-end space-x-2 pt-4">
-					<Button
-						id="close-clear-cache-popup"
-						onClick={handleClose}
-						disabled={isClearing}
-					>
+					<Button id="close-clear-cache-popup" onClick={handleClose} disabled={isClearing}>
 						{t('common.cancel')}
 					</Button>
 					<Button
@@ -54,7 +41,11 @@ const ClearCachePopup = ({
 						onClick={onConfirm}
 						disabled={isClearing}
 					>
-						{t(isClearing ? 'pageSettings.clearCache.clearing' : 'pageSettings.clearCache.confirmButtonText')}
+						{t(
+							isClearing
+								? 'pageSettings.clearCache.clearing'
+								: 'pageSettings.clearCache.confirmButtonText',
+						)}
 					</Button>
 				</div>
 			</div>

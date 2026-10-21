@@ -14,15 +14,20 @@ export function buildCredentialRedirectPopupContent({
 	issuerMetadata: OpenidCredentialIssuerMetadata;
 	filterItemByLang: FilterItemByLang;
 }): { title: string; message: React.ReactNode } {
-
 	const issuerDisplay = filterItemByLang(issuerMetadata?.display);
 	const selectedCredentialConfiguration = credentialConfigurationId
 		? issuerMetadata?.credential_configurations_supported?.[credentialConfigurationId]
 		: null;
-	const credentialDisplay = filterItemByLang(selectedCredentialConfiguration?.credential_metadata?.display);
+	const credentialDisplay = filterItemByLang(
+		selectedCredentialConfiguration?.credential_metadata?.display,
+	);
 
 	const resolvedCredentialName = credentialDisplay?.name ?? credentialConfigurationId ?? 'Unknown';
-	const resolvedIssuerName = issuerDisplay?.name ?? (issuerMetadata?.credential_issuer ? new URL(issuerMetadata.credential_issuer).host : 'Unknown');
+	const resolvedIssuerName =
+		issuerDisplay?.name ??
+		(issuerMetadata?.credential_issuer
+			? new URL(issuerMetadata.credential_issuer).host
+			: 'Unknown');
 	const resolvedCredentialDescription = credentialDisplay?.description ?? '';
 
 	return {
@@ -34,7 +39,9 @@ export function buildCredentialRedirectPopupContent({
 					issuerName: resolvedIssuerName,
 					issuerDescription: '',
 					credentialName: resolvedCredentialName,
-					credentialDescription: resolvedCredentialDescription ? `(${resolvedCredentialDescription})` : '',
+					credentialDescription: resolvedCredentialDescription
+						? `(${resolvedCredentialDescription})`
+						: '',
 				}}
 				components={{ strong: <strong />, italic: <i /> }}
 			/>

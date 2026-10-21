@@ -20,11 +20,7 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }: HistoryDetailPopup
 				<h2 className="right text-lg font-bold text-lm-gray-900 dark:text-dm-gray-100">
 					{t('pageActivity.popupTitle')}
 				</h2>
-				<Button
-					id="dismiss-history-detail-popup"
-					square={true}
-					onClick={onClose}
-				>
+				<Button id="dismiss-history-detail-popup" square={true} onClick={onClose}>
 					<svg
 						className="w-3 h-3"
 						aria-hidden="true"

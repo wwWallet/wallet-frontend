@@ -1,32 +1,27 @@
-import React from "react";
+import React from 'react';
 
-import { useTranslation } from "react-i18next";
-import { languageOptions } from "./languages";
-import {  ChevronDown } from "lucide-react";
+import { useTranslation } from 'react-i18next';
+import { languageOptions } from './languages';
+import { ChevronDown } from 'lucide-react';
 
 type LanguageSelectorProps = {
 	className?: string;
 	showName?: boolean;
 };
 
-const LanguageSelector = ({
-	className,
-	showName = false,
-}: LanguageSelectorProps) => {
+const LanguageSelector = ({ className, showName = false }: LanguageSelectorProps) => {
 	const { i18n, t } = useTranslation();
 	const { language } = i18n;
 
 	// Filter language options based on resources in i18n and languageOptions
 	const availableLanguages = languageOptions.filter((option) =>
-		Object.keys(i18n.options.resources || {}).includes(option.value)
+		Object.keys(i18n.options.resources || {}).includes(option.value),
 	);
 
-	const handleChangeLanguage = (
-		event: React.ChangeEvent<HTMLSelectElement>
-	) => {
+	const handleChangeLanguage = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		const selectedLanguage = event.target.value;
 		i18n.changeLanguage(selectedLanguage);
-		localStorage.setItem("locale", selectedLanguage);
+		localStorage.setItem('locale', selectedLanguage);
 	};
 
 	// If only one language and showName is true, show it as static text
@@ -46,7 +41,7 @@ const LanguageSelector = ({
 					className={className}
 					value={language}
 					onChange={handleChangeLanguage}
-					aria-label={t("language.label")}
+					aria-label={t('language.label')}
 				>
 					{availableLanguages.map((option) => (
 						<option key={option.value} value={option.value}>

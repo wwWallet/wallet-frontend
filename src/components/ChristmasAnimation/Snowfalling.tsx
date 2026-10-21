@@ -53,9 +53,7 @@ const SnowfallCanvas = () => {
 			previousTime = time;
 			context.clearRect(0, 0, width, height);
 
-			const visibleSnowflakeCount = width <= 640
-				? Math.ceil(SNOWFLAKE_COUNT / 2)
-				: SNOWFLAKE_COUNT;
+			const visibleSnowflakeCount = width <= 640 ? Math.ceil(SNOWFLAKE_COUNT / 2) : SNOWFLAKE_COUNT;
 
 			for (let index = 0; index < visibleSnowflakeCount; index += 1) {
 				const snowflake = snowflakes[index];
@@ -67,10 +65,10 @@ const SnowfallCanvas = () => {
 				context.fillStyle = `rgba(${snowColor}, ${snowflake.opacity})`;
 				context.fill();
 
-				snowflake.x += (
-					snowflake.wind + Math.sin(time / 900 + snowflake.sway) * 10
-				) * elapsed / Math.max(width, 1);
-				snowflake.y += snowflake.speed * elapsed / Math.max(height, 1);
+				snowflake.x +=
+					((snowflake.wind + Math.sin(time / 900 + snowflake.sway) * 10) * elapsed) /
+					Math.max(width, 1);
+				snowflake.y += (snowflake.speed * elapsed) / Math.max(height, 1);
 
 				if (snowflake.y > 1.02) {
 					snowflake.y = -0.02;
@@ -129,10 +127,7 @@ const SnowfallCanvas = () => {
 };
 
 const Snowfalling = () => {
-	const isSnowfallSeason = isDateInAnnualRange(
-		new Date(),
-		SNOWFALL_DATE_RANGE,
-	);
+	const isSnowfallSeason = isDateInAnnualRange(new Date(), SNOWFALL_DATE_RANGE);
 
 	return isSnowfallSeason ? <SnowfallCanvas /> : null;
 };

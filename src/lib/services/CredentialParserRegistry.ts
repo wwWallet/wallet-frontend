@@ -1,15 +1,20 @@
-import { ICredentialParser, ICredentialParserRegistry } from "../interfaces/ICredentialParser";
-import { calculateHash } from "../utils/digest";
-
+import { ICredentialParser, ICredentialParserRegistry } from '../interfaces/ICredentialParser';
+import { calculateHash } from '../utils/digest';
 
 export function useCredentialParserRegistry(): ICredentialParserRegistry {
-
 	const parserList: ICredentialParser[] = [];
 
 	/**
 	 * optimize parsing time by caching alread parsed objects because parse() can be called multiple times in a single view
 	 */
-	const parsedObjectsCache = new Map<string, { credentialFriendlyName: string; credentialImage: { credentialImageURL: string; }; beautifiedForm: any; }>();
+	const parsedObjectsCache = new Map<
+		string,
+		{
+			credentialFriendlyName: string;
+			credentialImage: { credentialImageURL: string };
+			beautifiedForm: any;
+		}
+	>();
 
 	return {
 		setParsers(parsers: ICredentialParser[]): void {
@@ -28,7 +33,7 @@ export function useCredentialParserRegistry(): ICredentialParserRegistry {
 					return result;
 				}
 			}
-			return { error: "All parsings failed" };
-		}
-	}
+			return { error: 'All parsings failed' };
+		},
+	};
 }

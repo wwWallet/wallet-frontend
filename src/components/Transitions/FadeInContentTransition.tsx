@@ -1,14 +1,13 @@
 import React, { useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 
-
 export default function FadeInContentTransition({
 	children,
 	reanimateKey,
 }: {
-	appear?: boolean,
-	children?: React.ReactNode,
-	reanimateKey?: any,
+	appear?: boolean;
+	children?: React.ReactNode;
+	reanimateKey?: any;
 }) {
 	const nodeRef = useRef(null);
 	return (
@@ -20,9 +19,7 @@ export default function FadeInContentTransition({
 			nodeRef={nodeRef}
 			key={reanimateKey}
 		>
-			<div ref={nodeRef}>
-				{children}
-			</div>
+			<div ref={nodeRef}>{children}</div>
 		</CSSTransition>
 	);
-};
+}

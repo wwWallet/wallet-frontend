@@ -37,7 +37,7 @@ const QueryableList = <T extends object>({
 }: QueryableListProps<T>) => {
 	const { t } = useTranslation();
 	const resolvedPortalList = portalList ?? defaultPortalList;
-	const [searchQuery, setSearchQuery] = useState<string>("");
+	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [filteredList, setFilteredList] = useState<T[]>(list);
 	const [filteredPortalList, setFilteredPortalList] = useState<T[]>(resolvedPortalList);
 	const [recentList, setRecentList] = useState<string[]>(recent);
@@ -49,8 +49,7 @@ const QueryableList = <T extends object>({
 		setSearchQuery(normalizedQuery);
 
 		const filter = (el: T) => {
-			const friendlyName =
-				(getElementPropValue(el, queryField) as string) ?? "Unknown";
+			const friendlyName = (getElementPropValue(el, queryField) as string) ?? 'Unknown';
 			const query = normalizedQuery.toLowerCase();
 			return friendlyName.toLowerCase().includes(query);
 		};
@@ -73,10 +72,10 @@ const QueryableList = <T extends object>({
 
 	useEffect(() => {
 		const recentConfigs = recentList
-			.map(recentItem =>
-				filteredList.find(config =>
-					getElementPropValue(config, identifierField as string) === recentItem
-				)
+			.map((recentItem) =>
+				filteredList.find(
+					(config) => getElementPropValue(config, identifierField as string) === recentItem,
+				),
 			)
 			.filter((config): config is T => Boolean(config))
 			.slice(0, 3); // This limits the array to the first two entries
@@ -93,18 +92,19 @@ const QueryableList = <T extends object>({
 				variant="outline"
 				additionalClassName="wrap-break-word w-full text-left"
 				key={identifier}
-				{...(onClick && identifierField && {
-					onClick: () => onClick(identifier),
-				})}
+				{...(onClick &&
+					identifierField && {
+						onClick: () => onClick(identifier),
+					})}
 				disabled={!isOnline}
-				title={!isOnline ? t("common.offlineTitle") : ""}
+				title={!isOnline ? t('common.offlineTitle') : ''}
 			>
-				{"displayNode" in el && typeof el.displayNode === "function"
+				{'displayNode' in el && typeof el.displayNode === 'function'
 					? el.displayNode(itemSearchQuery)
 					: highlightBestSequence(
-						String(getElementPropValue(el, queryField) ?? "Unknown"),
-						itemSearchQuery
-					)}
+							String(getElementPropValue(el, queryField) ?? 'Unknown'),
+							itemSearchQuery,
+						)}
 			</Button>
 		);
 	};
@@ -113,32 +113,33 @@ const QueryableList = <T extends object>({
 		<>
 			<div className="my-4">
 				<SearchInput
-					placeholder={t(translationPrefix + ".searchPlaceholder")}
+					placeholder={t(translationPrefix + '.searchPlaceholder')}
 					searchCallback={handleSearch}
 				/>
 				<div className="my-2">
-					{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
-					<div
-						className="mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
-					>
-						{!searchQuery && recentCredentialConfigurations.map((el) => renderListItem(el, "recent", ""))}
+					{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && (
+						<H3 heading={t('queryableList.recent')} />
+					)}
+					<div className="mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+						{!searchQuery &&
+							recentCredentialConfigurations.map((el) => renderListItem(el, 'recent', ''))}
 					</div>
 				</div>
 			</div>
-			{showSectionHeadings && <H3 heading={t("queryableList.trustedIssuers")} />}
+			{showSectionHeadings && <H3 heading={t('queryableList.trustedIssuers')} />}
 			{filteredPortalList.length > 0 && (
 				<div className="mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-					{filteredPortalList.map((el) => renderListItem(el, "portal"))}
+					{filteredPortalList.map((el) => renderListItem(el, 'portal'))}
 				</div>
 			)}
-			{showSectionHeadings && <H3 heading={t("queryableList.featuredCredentials")} />}
+			{showSectionHeadings && <H3 heading={t('queryableList.featuredCredentials')} />}
 			{filteredList.length === 0 && filteredPortalList.length === 0 ? (
 				<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
-					{t(translationPrefix + ".noFound")}
+					{t(translationPrefix + '.noFound')}
 				</p>
 			) : filteredList.length > 0 ? (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-					{filteredList.map((el) => renderListItem(el, "main"))}
+					{filteredList.map((el) => renderListItem(el, 'main'))}
 				</div>
 			) : null}
 		</>

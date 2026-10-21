@@ -6,7 +6,7 @@ function ConsoleBehavior(): void {
 	if (config.DISPLAY_CONSOLE === 'false') {
 		Object.keys(console).forEach((method) => {
 			if (typeof console[method as keyof Console] === 'function') {
-				Reflect.set(console, method, () => { });
+				Reflect.set(console, method, () => {});
 			}
 		});
 	}

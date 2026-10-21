@@ -31,22 +31,16 @@ describe('clearWalletCache', () => {
 	});
 
 	it('clears derived data and disposable caches while preserving offline app caches', async () => {
-		const disposableCacheNames = [
-			'images',
-			'app-shell',
-			'theme',
-		];
+		const disposableCacheNames = ['images', 'app-shell', 'theme'];
 		const offlineCacheNames = [
 			`workbox-precache-v2-${new URL('/wallet/', window.location.origin).href}`,
 			'app-shell:/wallet/',
 			'fonts',
 		];
 		const unrelatedCacheName = 'other-app-cache';
-		const keys = vi.fn().mockResolvedValue([
-			...disposableCacheNames,
-			...offlineCacheNames,
-			unrelatedCacheName,
-		]);
+		const keys = vi
+			.fn()
+			.mockResolvedValue([...disposableCacheNames, ...offlineCacheNames, unrelatedCacheName]);
 		const deleteCache = vi.fn().mockResolvedValue(true);
 		vi.stubGlobal('caches', {
 			keys,

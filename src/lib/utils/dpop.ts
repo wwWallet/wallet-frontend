@@ -1,19 +1,26 @@
-import { JWK, KeyLike, SignJWT } from "jose";
-import { generateRandomIdentifier } from "./generateRandomIdentifier";
+import { JWK, KeyLike, SignJWT } from 'jose';
+import { generateRandomIdentifier } from './generateRandomIdentifier';
 
-export async function generateDPoP(privateKey: KeyLike, publicKeyJwk: JWK, targetMethod: string, targetUri: string, nonce?: string, access_token?: string) {
+export async function generateDPoP(
+	privateKey: KeyLike,
+	publicKeyJwk: JWK,
+	targetMethod: string,
+	targetUri: string,
+	nonce?: string,
+	access_token?: string,
+) {
 	return new SignJWT({
-		"jti": generateRandomIdentifier(8),
-		"htm": targetMethod,
-		"htu": targetUri,
-		"nonce": nonce,
-		"ath": access_token ? await calculateAth(access_token) : undefined,
+		jti: generateRandomIdentifier(8),
+		htm: targetMethod,
+		htu: targetUri,
+		nonce: nonce,
+		ath: access_token ? await calculateAth(access_token) : undefined,
 	})
 		.setIssuedAt()
 		.setProtectedHeader({
-			"typ": "dpop+jwt",
-			"alg": "ES256",
-			"jwk": publicKeyJwk,
+			typ: 'dpop+jwt',
+			alg: 'ES256',
+			jwk: publicKeyJwk,
 		})
 		.sign(privateKey);
 }

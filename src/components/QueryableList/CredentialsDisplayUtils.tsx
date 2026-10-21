@@ -1,8 +1,16 @@
 import React from 'react';
 import EntityListItem from './EntityListItem';
 import type { FilterItemByLang } from '@/hooks/useFilterItemByLang';
-import type { CredentialPortal, CredentialPortalSource, PortalDisplay } from '@/types/credentialPortal';
-import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, ParsedCredential } from 'wallet-common';
+import type {
+	CredentialPortal,
+	CredentialPortalSource,
+	PortalDisplay,
+} from '@/types/credentialPortal';
+import type {
+	CredentialConfigurationSupported,
+	OpenidCredentialIssuerMetadata,
+	ParsedCredential,
+} from 'wallet-common';
 
 type CredentialConfigurationDisplay = NonNullable<
 	NonNullable<CredentialConfigurationSupported['credential_metadata']>['display']
@@ -18,7 +26,7 @@ export function getCredentialType(parsedCredential: ParsedCredential | null | un
 
 export function buildCredentialPortal(
 	portal: CredentialPortalSource,
-	filterItemByLang: FilterItemByLang
+	filterItemByLang: FilterItemByLang,
 ): CredentialPortal | null {
 	const display = filterItemByLang<PortalDisplay>(portal.display);
 	let portalUrl: URL;
@@ -39,10 +47,7 @@ export function buildCredentialPortal(
 			.filter(Boolean)
 			.join(' '),
 		displayNode: (searchQuery: string): React.ReactNode => (
-			<EntityListItem
-				primaryData={display}
-				searchQuery={searchQuery}
-			/>
+			<EntityListItem primaryData={display} searchQuery={searchQuery} />
 		),
 	};
 }
@@ -51,9 +56,11 @@ export function buildCredentialConfiguration(
 	key: string,
 	config: CredentialConfigurationSupported,
 	metadata: OpenidCredentialIssuerMetadata,
-	filterItemByLang: FilterItemByLang
+	filterItemByLang: FilterItemByLang,
 ) {
-	const display = filterItemByLang<CredentialConfigurationDisplay>(config?.credential_metadata?.display);
+	const display = filterItemByLang<CredentialConfigurationDisplay>(
+		config?.credential_metadata?.display,
+	);
 	const credentialDisplay = {
 		...display,
 		name: display?.name ?? key,
@@ -62,9 +69,7 @@ export function buildCredentialConfiguration(
 
 	const issuerDisplayLang = filterItemByLang<IssuerDisplay>(metadata.display);
 	const issuerDisplay = {
-		name:
-			issuerDisplayLang?.name ??
-			new URL(metadata.credential_issuer).host,
+		name: issuerDisplayLang?.name ?? new URL(metadata.credential_issuer).host,
 		logo: issuerDisplayLang?.logo ?? null,
 	};
 

@@ -23,7 +23,10 @@ import useScreenType from '@/hooks/useScreenType';
 import { useVcEntity } from '@/hooks/useVcEntity';
 
 // Services
-import { bluetoothConnectRequiresUserGesture, isBluetoothTransportAvailable } from '@/lib/services/bluetooth';
+import {
+	bluetoothConnectRequiresUserGesture,
+	isBluetoothTransportAvailable,
+} from '@/lib/services/bluetooth';
 
 // Components
 import ActivityEmptyState from '@/components/History/ActivityEmptyState';
@@ -37,7 +40,9 @@ import CredentialShareMenu from '@/components/Credentials/CredentialShareMenu';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 import DeletePopup from '@/components/Popups/DeletePopup';
 import HistoryList from '@/components/History/HistoryList';
-import ProximitySharingPopup, { PROXIMITY_SHARING_STATUS } from '@/components/Popups/ProximitySharingPopup';
+import ProximitySharingPopup, {
+	PROXIMITY_SHARING_STATUS,
+} from '@/components/Popups/ProximitySharingPopup';
 import type { ProximitySharingStatus } from '@/components/Popups/ProximitySharingPopup';
 import type { Verifier } from '@/api/types';
 import type { CachedUser } from '@/services/LocalStorageKeystore';
@@ -51,14 +56,17 @@ const Credential = () => {
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
 	const isDesktop = screenType === 'desktop';
-	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
+	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } =
+		useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
-	const [mdocQRStatus, setMdocQRStatus] = useState<ProximitySharingStatus>(PROXIMITY_SHARING_STATUS.SCAN);
+	const [mdocQRStatus, setMdocQRStatus] = useState<ProximitySharingStatus>(
+		PROXIMITY_SHARING_STATUS.SCAN,
+	);
 	const handledMdocStatusRef = useRef<ProximitySharingStatus | null>(null);
 	const shareSessionRef = useRef(0); // bumped on new shares, used to invalidate abandoned connections
 	const [shareWithQr, setShareWithQr] = useState(false);
 	const [verifiers, setVerifiers] = useState<Verifier[] | null>(null);
-	const [mdocQRContent, setMdocQRContent] = useState("");
+	const [mdocQRContent, setMdocQRContent] = useState('');
 	const [shareWithQrFilter, setShareWithQrFilter] = useState<string[]>([]);
 	const [mdocTypeDetails, setMdocTypeDetails] = useState<MdocTypeDetails | null>(null);
 	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
@@ -77,7 +85,7 @@ const Credential = () => {
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		[i18n.language]
+		[i18n.language],
 	);
 
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
@@ -94,7 +102,6 @@ const Credential = () => {
 		};
 		fetchVerifiers();
 	}, [api]);
-
 
 	useEffect(() => {
 		const userHandle = keystore.getUserHandleB64u();
@@ -117,7 +124,9 @@ const Credential = () => {
 			setLoading(false);
 			return;
 		}
-		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId!));
+		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(
+			parseInt(batchId!),
+		);
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 
@@ -180,10 +189,10 @@ const Credential = () => {
 			// The user cancelled (or restarted) the share while connecting
 			return;
 		}
-		if (connectionResult === "cancelled") {
+		if (connectionResult === 'cancelled') {
 			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 			setBluetoothPairingCancelled(true);
-		} else if (connectionResult === "failed") {
+		} else if (connectionResult === 'failed') {
 			setMdocQRStatus(PROXIMITY_SHARING_STATUS.CONNECTION_FAILED);
 		} else {
 			setMdocQRStatus(PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST);
@@ -208,10 +217,15 @@ const Credential = () => {
 	};
 
 	const handleMdocRequest = useCallback(async () => {
-		const { fields, credentialMatchesRequest, requestedDocType, credentialDocType } = await getMdocRequest();
+		const { fields, credentialMatchesRequest, requestedDocType, credentialDocType } =
+			await getMdocRequest();
 		setShareWithQrFilter(fields);
 		setMdocTypeDetails({ requestedDocType, credentialDocType });
-		setMdocQRStatus(credentialMatchesRequest ? PROXIMITY_SHARING_STATUS.REVIEW : PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH);
+		setMdocQRStatus(
+			credentialMatchesRequest
+				? PROXIMITY_SHARING_STATUS.REVIEW
+				: PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH,
+		);
 	}, [getMdocRequest]);
 
 	const handleMdocResponse = useCallback(async () => {
@@ -219,21 +233,21 @@ const Credential = () => {
 			await sendMdocResponse();
 			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SUCCESS);
 		} catch (error) {
-			console.error("Failed to send mdoc response", error);
+			console.error('Failed to send mdoc response', error);
 			setMdocQRStatus(PROXIMITY_SHARING_STATUS.SHARING_FAILED);
 		}
 	}, [sendMdocResponse]);
 
 	const consentToShare = () => {
 		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SHARING);
-	}
+	};
 
 	const cancelShare = () => {
 		shareSessionRef.current += 1;
 		setMdocQRStatus(PROXIMITY_SHARING_STATUS.SCAN);
 		setShowMdocQR(false);
 		terminateSession();
-	}
+	};
 
 	useEffect(() => {
 		if (handledMdocStatusRef.current === mdocQRStatus) {
@@ -256,7 +270,7 @@ const Credential = () => {
 				setShareWithQr(false);
 				return;
 			}
-			if (vcEntity.format === "mso_mdoc") {
+			if (vcEntity.format === 'mso_mdoc') {
 				setShareWithQr(true);
 			} else {
 				setShareWithQr(false);
@@ -270,13 +284,14 @@ const Credential = () => {
 
 	const activityContent = (
 		<>
-			{history !== null && (Array.isArray(history) && history.length === 0 ? (
-				<ActivityEmptyState credentialSpecific />
-			) : (
-				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
-					<HistoryList batchId={batchId} history={history} />
-				</div>
-			))}
+			{history !== null &&
+				(Array.isArray(history) && history.length === 0 ? (
+					<ActivityEmptyState credentialSpecific />
+				) : (
+					<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
+						<HistoryList batchId={batchId} history={history} />
+					</div>
+				))}
 		</>
 	);
 
@@ -284,50 +299,56 @@ const Credential = () => {
 		{
 			label: t('pageCredentials.detailsTitle'),
 			icon: <List size={18} aria-hidden="true" />,
-			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
+			component: <CredentialInfo parsedCredential={vcEntity?.parsedCredential} />,
 		},
 		{
 			label: t('pageCredentials.activityTitle'),
 			icon: <History size={18} aria-hidden="true" />,
-			component: activityContent
+			component: activityContent,
 		},
-		...(DEV_MODE && isDesktop ? [{
-			label: t('pageCredentials.datasetTitle'),
-			icon: <Braces size={18} aria-hidden="true" />,
-			component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />
-		}] : []),
+		...(DEV_MODE && isDesktop
+			? [
+					{
+						label: t('pageCredentials.datasetTitle'),
+						icon: <Braces size={18} aria-hidden="true" />,
+						component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} />,
+					},
+				]
+			: []),
 	];
 
 	return (
 		<CredentialLayout
 			title={credentialName}
-			summaryActions={!isDesktop ? (
-				<div className='flex flex-wrap gap-2 xm:w-full'>
-					{shareMenu(screenType === 'mobile')}
-					<Button
-						id="navigate-credential-activity"
-						variant='outline'
-						additionalClassName='xm:w-full'
-						onClick={() => navigate(`/credential/${batchId}/activity`)}
-					>
-						<History size={20} aria-hidden="true" />
-						{t('pageCredentials.activityTitle')}
-					</Button>
-					{DEV_MODE && (
+			summaryActions={
+				!isDesktop ? (
+					<div className="flex flex-wrap gap-2 xm:w-full">
+						{shareMenu(screenType === 'mobile')}
 						<Button
-							id="navigate-credential-dataset"
-							variant='outline'
-							additionalClassName='xm:w-full'
-							onClick={() => navigate(`/credential/${batchId}/details`)}
+							id="navigate-credential-activity"
+							variant="outline"
+							additionalClassName="xm:w-full"
+							onClick={() => navigate(`/credential/${batchId}/activity`)}
 						>
-							<Braces size={20} aria-hidden="true" />
-							{t('pageCredentials.datasetTitle')}
+							<History size={20} aria-hidden="true" />
+							{t('pageCredentials.activityTitle')}
 						</Button>
-					)}
-				</div>
-			) : null}
+						{DEV_MODE && (
+							<Button
+								id="navigate-credential-dataset"
+								variant="outline"
+								additionalClassName="xm:w-full"
+								onClick={() => navigate(`/credential/${batchId}/details`)}
+							>
+								<Braces size={20} aria-hidden="true" />
+								{t('pageCredentials.datasetTitle')}
+							</Button>
+						)}
+					</div>
+				) : null
+			}
 			actionsMenu={
-				<div className='flex items-center gap-1'>
+				<div className="flex items-center gap-1">
 					{isDesktop && shareMenu()}
 					<CredentialActionsMenu>
 						<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} />
@@ -335,7 +356,7 @@ const Credential = () => {
 				</div>
 			}
 		>
-			<div className='mt-2'>
+			<div className="mt-2">
 				{!isDesktop ? (
 					<CredentialInfo parsedCredential={vcEntity?.parsedCredential} />
 				) : (

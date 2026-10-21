@@ -1,25 +1,25 @@
-import React, { useEffect, useState, useContext, useRef, useCallback, Suspense } from "react";
-import { useLocation } from "react-router-dom";
-import StatusContext from "../context/StatusContext";
-import { useSessionContext } from "../context/SessionContext";
-import { useTranslation } from "react-i18next";
-import type { OpenidCredentialIssuerMetadata } from "wallet-common";
-import { useOpenID4VCIContext } from "../context/OpenID4VCIContext";
-import { useOpenID4VPContext } from "../context/OpenID4VPContext";
-import CredentialsContext from "@/context/CredentialsContext";
-import SyncNotificationContext from "@/context/SyncNotificationContext";
-import { CachedUser } from "@/services/LocalStorageKeystore";
-import AuthPopup from "@/components/Popups/AuthPopup";
-import MessagePopup from "@/components/Popups/MessagePopup";
-import type { MessagePopupType } from "@/components/Popups/MessagePopup";
-import RedirectPopup from "@/components/Popups/RedirectPopup";
-import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
-import { useReconnectSync } from "@/hooks/useReconnectSync";
-import useFilterItemByLang from "@/hooks/useFilterItemByLang";
-import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
-import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey";
-import { getAuthorizationResponseErrorMessageKey } from "@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey";
-import type { TxCodeInputMetadata } from "@/lib/interfaces/IOpenID4VCI";
+import React, { useEffect, useState, useContext, useRef, useCallback, Suspense } from 'react';
+import { useLocation } from 'react-router-dom';
+import StatusContext from '../context/StatusContext';
+import { useSessionContext } from '../context/SessionContext';
+import { useTranslation } from 'react-i18next';
+import type { OpenidCredentialIssuerMetadata } from 'wallet-common';
+import { useOpenID4VCIContext } from '../context/OpenID4VCIContext';
+import { useOpenID4VPContext } from '../context/OpenID4VPContext';
+import CredentialsContext from '@/context/CredentialsContext';
+import SyncNotificationContext from '@/context/SyncNotificationContext';
+import { CachedUser } from '@/services/LocalStorageKeystore';
+import AuthPopup from '@/components/Popups/AuthPopup';
+import MessagePopup from '@/components/Popups/MessagePopup';
+import type { MessagePopupType } from '@/components/Popups/MessagePopup';
+import RedirectPopup from '@/components/Popups/RedirectPopup';
+import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
+import { useReconnectSync } from '@/hooks/useReconnectSync';
+import useFilterItemByLang from '@/hooks/useFilterItemByLang';
+import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+import { getAuthorizationRequestErrorMessageKey } from '@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey';
+import { getAuthorizationResponseErrorMessageKey } from '@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey';
+import type { TxCodeInputMetadata } from '@/lib/interfaces/IOpenID4VCI';
 
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
@@ -43,20 +43,32 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { openID4VCI } = useOpenID4VCIContext();
 	const { openID4VP } = useOpenID4VPContext();
 
-	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse, requestCredentialsWithPreAuthorization } = openID4VCI;
-	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
+	const {
+		handleCredentialOffer,
+		generateAuthorizationRequest,
+		handleAuthorizationResponse,
+		requestCredentialsWithPreAuthorization,
+	} = openID4VCI;
+	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } =
+		openID4VP;
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const txCodeResolverRef = useRef<((value: string | null) => void) | null>(null);
 	const [txCodeInputOptions, setTxCodeInputOptions] = useState<TxCodeInputMetadata | null>(null);
 
 	const [isMessagePopupOpen, setMessagePopup] = useState<boolean>(false);
-	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
+	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string; description: string }>({
+		title: '',
+		description: '',
+	});
 	const [typeMessagePopup, setTypeMessagePopup] = useState<MessagePopupType | null>(null);
 	const { t, i18n } = useTranslation();
 
 	const [redirectUri, setRedirectUri] = useState<string | null>(null);
-	const [redirectPopupContent, setRedirectPopupContent] = useState<{ title: string, message: React.ReactNode }>({ title: "", message: "" });
+	const [redirectPopupContent, setRedirectPopupContent] = useState<{
+		title: string;
+		message: React.ReactNode;
+	}>({ title: '', message: '' });
 	const [showRedirectPopup, setShowRedirectPopup] = useState<boolean>(false);
 	const redirectPopupResolverRef = useRef<((approved: boolean) => void) | null>(null);
 	const { vcEntityList } = useContext(CredentialsContext);
@@ -117,7 +129,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 	}, [synced, setUrl, location]);
 
-	const openRedirectPopup = (content: { title: string, message: React.ReactNode }, onResolve: (approved: boolean) => void) => {
+	const openRedirectPopup = (
+		content: { title: string; message: React.ReactNode },
+		onResolve: (approved: boolean) => void,
+	) => {
 		setRedirectPopupContent(content);
 		redirectPopupResolverRef.current = onResolve;
 		setShowRedirectPopup(true);
@@ -129,7 +144,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 		setShowRedirectPopup(false);
 		redirectPopupResolverRef.current = null;
-		setRedirectPopupContent({ title: "", message: "" });
+		setRedirectPopupContent({ title: '', message: '' });
 		cleanCurrentUrl();
 	};
 
@@ -139,15 +154,18 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 		setShowRedirectPopup(false);
 		redirectPopupResolverRef.current = null;
-		setRedirectPopupContent({ title: "", message: "" });
+		setRedirectPopupContent({ title: '', message: '' });
 		cleanCurrentUrl();
 	};
 
-	const requestRedirectConsent = useCallback((content: { title: string, message: React.ReactNode }) => {
-		return new Promise<boolean>((resolve) => {
-			openRedirectPopup(content, resolve);
-		});
-	}, []);
+	const requestRedirectConsent = useCallback(
+		(content: { title: string; message: React.ReactNode }) => {
+			return new Promise<boolean>((resolve) => {
+				openRedirectPopup(content, resolve);
+			});
+		},
+		[],
+	);
 
 	const requestTxCodeInput = useCallback((txCode: TxCodeInputMetadata) => {
 		return new Promise<string | null>((resolve) => {
@@ -163,45 +181,50 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		setTxCodeInputOptions(null);
 	}, []);
 
-	const popupContentFromIssuerMetadata = useCallback((
-		issuerMetadata: OpenidCredentialIssuerMetadata,
-		credentialConfigurationId: string
-	) => buildCredentialRedirectPopupContent({
-		t,
-		credentialConfigurationId,
-		issuerMetadata,
-		filterItemByLang,
-	}), [t, filterItemByLang]);
+	const popupContentFromIssuerMetadata = useCallback(
+		(issuerMetadata: OpenidCredentialIssuerMetadata, credentialConfigurationId: string) =>
+			buildCredentialRedirectPopupContent({
+				t,
+				credentialConfigurationId,
+				issuerMetadata,
+				filterItemByLang,
+			}),
+		[t, filterItemByLang],
+	);
 
-	const showMessagePopup = useCallback((
-		messageOrErrorKey: string | { title: string, description: string },
-		mappedDescriptionKey?: string,
-		type: 'error' | 'success' | 'info' = 'error',
-	) => {
-		if (typeof messageOrErrorKey === 'string') {
-			const errorKey = messageOrErrorKey;
-			const resolvedTitleKey = `messagePopup.${errorKey}.title`;
-			const defaultDescriptionKey = `messagePopup.${errorKey}.defaultDescription`;
-			const specificDescriptionKey = mappedDescriptionKey
-				? `messagePopup.${errorKey}.${mappedDescriptionKey}`
-				: undefined;
-			const resolvedDescriptionKey = specificDescriptionKey && i18n.exists(specificDescriptionKey)
-				? specificDescriptionKey
-				: defaultDescriptionKey;
+	const showMessagePopup = useCallback(
+		(
+			messageOrErrorKey: string | { title: string; description: string },
+			mappedDescriptionKey?: string,
+			type: 'error' | 'success' | 'info' = 'error',
+		) => {
+			if (typeof messageOrErrorKey === 'string') {
+				const errorKey = messageOrErrorKey;
+				const resolvedTitleKey = `messagePopup.${errorKey}.title`;
+				const defaultDescriptionKey = `messagePopup.${errorKey}.defaultDescription`;
+				const specificDescriptionKey = mappedDescriptionKey
+					? `messagePopup.${errorKey}.${mappedDescriptionKey}`
+					: undefined;
+				const resolvedDescriptionKey =
+					specificDescriptionKey && i18n.exists(specificDescriptionKey)
+						? specificDescriptionKey
+						: defaultDescriptionKey;
 
-			setTextMessagePopup({
-				title: t(resolvedTitleKey),
-				description: t(resolvedDescriptionKey),
-			});
+				setTextMessagePopup({
+					title: t(resolvedTitleKey),
+					description: t(resolvedDescriptionKey),
+				});
+				setTypeMessagePopup(type);
+				setMessagePopup(true);
+				return;
+			}
+
+			setTextMessagePopup(messageOrErrorKey);
 			setTypeMessagePopup(type);
 			setMessagePopup(true);
-			return;
-		}
-
-		setTextMessagePopup(messageOrErrorKey);
-		setTypeMessagePopup(type);
-		setMessagePopup(true);
-	}, [i18n, t]);
+		},
+		[i18n, t],
+	);
 
 	useEffect(() => {
 		if (redirectUri) {
@@ -212,10 +235,19 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	useEffect(() => {
 		if (
-			!isLoggedIn || !url || !t || !vcEntityList || !synced ||
-			!handleCredentialOffer || !generateAuthorizationRequest || !handleAuthorizationResponse ||
-			!handleAuthorizationRequest || !promptForCredentialSelection || !sendAuthorizationResponse
-		) return;
+			!isLoggedIn ||
+			!url ||
+			!t ||
+			!vcEntityList ||
+			!synced ||
+			!handleCredentialOffer ||
+			!generateAuthorizationRequest ||
+			!handleAuthorizationResponse ||
+			!handleAuthorizationRequest ||
+			!promptForCredentialSelection ||
+			!sendAuthorizationResponse
+		)
+			return;
 		const availableVcEntityList = vcEntityList;
 
 		async function handle(urlToCheck: string) {
@@ -228,108 +260,147 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			const code = u.searchParams.get('code');
 			const requestUri = u.searchParams.get('request_uri');
 
-			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
-					const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer);
-					if (!metadataResult?.metadata) {
-						throw new Error('Could not resolve issuer metadata for credential offer');
-					}
+			if (
+				u.protocol === 'openid-credential-offer' ||
+				u.searchParams.get('credential_offer') ||
+				u.searchParams.get('credential_offer_uri')
+			) {
+				handleCredentialOffer(u.toString())
+					.then(
+						async ({
+							credentialIssuer,
+							selectedCredentialConfigurationId,
+							issuer_state,
+							preAuthorizedCode,
+							txCode,
+						}) => {
+							const metadataResult =
+								await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer);
+							if (!metadataResult?.metadata) {
+								throw new Error('Could not resolve issuer metadata for credential offer');
+							}
 
-					console.log("Generating authorization request...");
-					if (!preAuthorizedCode) {
-						const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
-						const userApproved = await requestRedirectConsent({
-							title: popupContent.title,
-							message: popupContent.message,
-						});
-						if (!userApproved) {
-							return null;
+							console.log('Generating authorization request...');
+							if (!preAuthorizedCode) {
+								const popupContent = popupContentFromIssuerMetadata(
+									metadataResult.metadata,
+									selectedCredentialConfigurationId,
+								);
+								const userApproved = await requestRedirectConsent({
+									title: popupContent.title,
+									message: popupContent.message,
+								});
+								if (!userApproved) {
+									return null;
+								}
+								return generateAuthorizationRequest(
+									credentialIssuer,
+									selectedCredentialConfigurationId,
+									issuer_state,
+								);
+							} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
+								console.log('Already used pre-authorized code');
+								return null;
+							}
+
+							let userInput: string | undefined = undefined;
+							if (txCode !== undefined) {
+								const pin = await requestTxCodeInput(txCode);
+								if (pin === null) {
+									cleanCurrentUrl();
+									return null;
+								}
+								userInput = pin;
+							}
+							usedPreAuthorizedCodes.current.push(preAuthorizedCode);
+							return requestCredentialsWithPreAuthorization(
+								credentialIssuer,
+								selectedCredentialConfigurationId,
+								preAuthorizedCode,
+								userInput,
+							);
+						},
+					)
+					.then((res) => {
+						if (!res) {
+							return;
 						}
-						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
-					} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
-						console.log("Already used pre-authorized code");
-						return null;
-					}
-
-					let userInput: string | undefined = undefined;
-					if (txCode !== undefined) {
-						const pin = await requestTxCodeInput(txCode);
-						if (pin === null) {
+						if ('url' in res && typeof res.url === 'string' && res.url) {
 							cleanCurrentUrl();
-							return null;
+							window.location.href = res.url;
 						}
-						userInput = pin;
-					}
-					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
-					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
-				}).then((res) => {
-					if (!res) {
-						return;
-					}
-					if ('url' in res && typeof res.url === 'string' && res.url) {
+					})
+					.catch((err) => {
 						cleanCurrentUrl();
-						window.location.href = res.url;
-					}
-				}).catch(err => {
-					cleanCurrentUrl();
-					showMessagePopup('addCredentialProcessFailed');
-					console.error('Error during the handling of credential offer', err);
-				})
+						showMessagePopup('addCredentialProcessFailed');
+						console.error('Error during the handling of credential offer', err);
+					});
 				return;
-			}
-			else if (code && !usedAuthorizationCodes.includes(code)) {
+			} else if (code && !usedAuthorizationCodes.includes(code)) {
 				setUsedAuthorizationCodes((codes) => [...codes, code]);
 
-				console.log("Handling authorization response...");
-				handleAuthorizationResponse(u.toString()).then(() => {
-				}).catch(err => {
-					cleanCurrentUrl();
-					showMessagePopup('addCredentialProcessFailed');
-					console.error('Error during the handling of authorization response', err);
-				})
-			}
-			else if (u.searchParams.get('client_id') && requestUri && !usedRequestUris.includes(requestUri)) {
+				console.log('Handling authorization response...');
+				handleAuthorizationResponse(u.toString())
+					.then(() => {})
+					.catch((err) => {
+						cleanCurrentUrl();
+						showMessagePopup('addCredentialProcessFailed');
+						console.error('Error during the handling of authorization response', err);
+					});
+			} else if (
+				u.searchParams.get('client_id') &&
+				requestUri &&
+				!usedRequestUris.includes(requestUri)
+			) {
 				setUsedRequestUris((uriArray) => [...uriArray, requestUri]);
-				await handleAuthorizationRequest(u.toString(), availableVcEntityList).then((result) => {
-					console.log("Result = ", result);
-					const { conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData } = result;
-					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
-					console.log("Prompting for selection..")
-					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData ?? undefined);
-				}).then((selection) => {
-					if (!(selection instanceof Map)) {
-						return;
-					}
-					console.log("Selection = ", selection);
-					return sendAuthorizationResponse(selection, availableVcEntityList);
-
-				}).then((res) => {
-					// if (res.state === 'skipped') do nothing
-					if (res?.redirect_uri) {
-						setRedirectUri(res.redirect_uri);
-					}
-					else if (res?.state === 'success') {
-						showMessagePopup('sendCredentialProcessSuccess', undefined, 'success');
-					}
-				}).catch(err => {
-					cleanCurrentUrl();
-					showMessagePopup(
-						'sendCredentialProcessFailed',
-						getAuthorizationRequestErrorMessageKey(err),
-					);
-					console.error('Failed to handle authorization req', err);
-				})
+				await handleAuthorizationRequest(u.toString(), availableVcEntityList)
+					.then((result) => {
+						console.log('Result = ', result);
+						const {
+							conformantCredentialsMap,
+							verifierDomainName,
+							verifierPurpose,
+							parsedTransactionData,
+						} = result;
+						const jsonedMap = Object.fromEntries(conformantCredentialsMap);
+						console.log('Prompting for selection..');
+						return promptForCredentialSelection(
+							jsonedMap,
+							verifierDomainName,
+							verifierPurpose,
+							parsedTransactionData ?? undefined,
+						);
+					})
+					.then((selection) => {
+						if (!(selection instanceof Map)) {
+							return;
+						}
+						console.log('Selection = ', selection);
+						return sendAuthorizationResponse(selection, availableVcEntityList);
+					})
+					.then((res) => {
+						// if (res.state === 'skipped') do nothing
+						if (res?.redirect_uri) {
+							setRedirectUri(res.redirect_uri);
+						} else if (res?.state === 'success') {
+							showMessagePopup('sendCredentialProcessSuccess', undefined, 'success');
+						}
+					})
+					.catch((err) => {
+						cleanCurrentUrl();
+						showMessagePopup(
+							'sendCredentialProcessFailed',
+							getAuthorizationRequestErrorMessageKey(err),
+						);
+						console.error('Failed to handle authorization req', err);
+					});
 				return;
-			}
-			else if (u.searchParams.get('error') && u.searchParams.get('state')) {
+			} else if (u.searchParams.get('error') && u.searchParams.get('state')) {
 				cleanCurrentUrl();
 				const error = u.searchParams.get('error');
 				const errorDescription = u.searchParams.get('error_description');
 				const mappedDescriptionKey = getAuthorizationResponseErrorMessageKey(error);
-				showMessagePopup(
-					'authorizationProcessFailed',
-					mappedDescriptionKey
-				);
+				showMessagePopup('authorizationProcessFailed', mappedDescriptionKey);
 				console.error('Authorization error', { error, error_description: errorDescription });
 			}
 		}
@@ -364,12 +435,14 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	return (
 		<>
 			<StatusContext.Provider value={{ ...statusContext, isOnline: isOnline && !pendingResync }}>
-				<SyncNotificationContext.Provider value={{ pendingResync, showSyncNotification, openAuthPopup, dismissSyncNotification }}>
+				<SyncNotificationContext.Provider
+					value={{ pendingResync, showSyncNotification, openAuthPopup, dismissSyncNotification }}
+				>
 					{children}
 				</SyncNotificationContext.Provider>
 			</StatusContext.Provider>
 			<Suspense fallback={null}>
-				{showPinInputPopup &&
+				{showPinInputPopup && (
 					<PinInputPopup
 						isOpen={showPinInputPopup}
 						setIsOpen={setShowPinInputPopup}
@@ -383,12 +456,16 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						}}
 						onCancel={cancelTxCodeInput}
 					/>
-				}
-				{isMessagePopupOpen && typeMessagePopup &&
-					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-				}
+				)}
+				{isMessagePopupOpen && typeMessagePopup && (
+					<MessagePopup
+						type={typeMessagePopup}
+						message={textMessagePopup}
+						onClose={() => setMessagePopup(false)}
+					/>
+				)}
 			</Suspense>
-			{popupDescriptionKey &&
+			{popupDescriptionKey && (
 				<AuthPopup
 					descriptionKey={popupDescriptionKey}
 					onClose={() => {
@@ -396,8 +473,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						logout();
 					}}
 				/>
-			}
-			{showRedirectPopup &&
+			)}
+			{showRedirectPopup && (
 				<RedirectPopup
 					loading={false}
 					onClose={closeRedirectPopup}
@@ -405,7 +482,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					popupTitle={redirectPopupContent.title}
 					popupMessage={redirectPopupContent.message}
 				/>
-			}
+			)}
 		</>
 	);
-}
+};

@@ -4,20 +4,18 @@ import { JWK } from 'jose';
 
 export * from './WalletStateSchemaVersion2';
 
-
 /**
 	Schema version 3 changes the storage of the private keys from wrapped to unwrapped
 */
 export const SCHEMA_VERSION = 3;
 
-
 export type CredentialKeyPair = {
-	kid: string,
-	did?: string,
-	alg: string,
-	publicKey: JWK,
-	privateKey: JWK,
-}
+	kid: string;
+	did?: string;
+	alg: string;
+	publicKey: JWK;
+	privateKey: JWK;
+};
 
 export type WalletStateContainer = {
 	events: WalletSessionEvent[];
@@ -25,12 +23,13 @@ export type WalletStateContainer = {
 	lastEventHash: string;
 };
 
-export type WalletSessionEventV3 = WalletSchemaCommon.WalletSessionEvent & WalletSessionEventTypeAttributes;
+export type WalletSessionEventV3 = WalletSchemaCommon.WalletSessionEvent &
+	WalletSessionEventTypeAttributes;
 export type WalletSessionEventV3OrEarlier = SchemaV2.WalletSessionEvent | WalletSessionEventV3;
 export type WalletSessionEvent = WalletSessionEventV3OrEarlier;
 
-export type WalletSessionEventTypeAttributes = (
-	SchemaV2.WalletSessionEventNewCredential
+export type WalletSessionEventTypeAttributes =
+	| SchemaV2.WalletSessionEventNewCredential
 	| SchemaV2.WalletSessionEventDeleteCredential
 	| WalletSessionEventNewKeypair
 	| SchemaV2.WalletSessionEventDeleteKeypair
@@ -38,21 +37,20 @@ export type WalletSessionEventTypeAttributes = (
 	| SchemaV2.WalletSessionEventDeletePresentation
 	| SchemaV2.WalletSessionEventAlterSettings
 	| SchemaV2.WalletSessionEventSaveCredentialIssuanceSession
-	| SchemaV2.WalletSessionEventDeleteCredentialIssuanceSession
-);
+	| SchemaV2.WalletSessionEventDeleteCredentialIssuanceSession;
 
 export type WalletSessionEventNewKeypair = {
-	type: "new_keypair",
-	kid: string,
-	keypair: CredentialKeyPair,
-}
+	type: 'new_keypair';
+	kid: string;
+	keypair: CredentialKeyPair;
+};
 
-export type WalletStateV3 = Omit<SchemaV2.WalletState, "keypairs"> & {
+export type WalletStateV3 = Omit<SchemaV2.WalletState, 'keypairs'> & {
 	keypairs: {
-		kid: string,
-		keypair: CredentialKeyPair,
-	}[],
-}
+		kid: string;
+		keypair: CredentialKeyPair;
+	}[];
+};
 export type WalletStateV3OrEarlier = SchemaV2.WalletState | WalletStateV3;
 export type WalletState = WalletStateV3;
 
@@ -70,7 +68,10 @@ function isLegacyState(state: WalletStateV3OrEarlier): state is SchemaV2.WalletS
 	return state.schemaVersion < SCHEMA_VERSION;
 }
 
-function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent): WalletStateKeypair[] {
+function keypairReducer(
+	state: WalletStateKeypair[] = [],
+	newEvent: WalletSessionEvent,
+): WalletStateKeypair[] {
 	// Runtime logic is identical to V2. The only difference is between
 	// `SchemaV2.WalletStateKeypair.keypair.wrappedPrivateKey` and
 	// `SchemaV3.WalletStateKeypair.keypair.privateKey`, but the reducer logic
@@ -85,9 +86,8 @@ const v2strats = SchemaV2.mergeStrategies;
 
 export function createOperations(
 	SCHEMA_VERSION: number,
-	mergeStrategies: Record<WalletSessionEvent["type"], SchemaV2.MergeStrategy>,
+	mergeStrategies: Record<WalletSessionEvent['type'], SchemaV2.MergeStrategy>,
 ) {
-
 	function migrateState(state: WalletStateV3OrEarlier): WalletState {
 		if (isV3State(state)) {
 			return state;
@@ -100,22 +100,34 @@ export function createOperations(
 				schemaVersion: SCHEMA_VERSION,
 			} as unknown as WalletState;
 		} else {
-			throw new Error(`Cannot migrate state with schemaVersion ${state?.schemaVersion} to version ${SCHEMA_VERSION}`);
+			throw new Error(
+				`Cannot migrate state with schemaVersion ${state?.schemaVersion} to version ${SCHEMA_VERSION}`,
+			);
 		}
 	}
 
 	function initialWalletStateContainer(): WalletStateContainer {
 		return {
-			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { openidRefreshTokenMaxAgeInSeconds: '0' } },
+			S: {
+				schemaVersion: SCHEMA_VERSION,
+				credentials: [],
+				presentations: [],
+				keypairs: [],
+				credentialIssuanceSessions: [],
+				settings: { openidRefreshTokenMaxAgeInSeconds: '0' },
+			},
 			events: [],
-			lastEventHash: "",
-		}
+			lastEventHash: '',
+		};
 	}
 
-	function walletStateReducer(state: WalletStateV3OrEarlier, newEvent: WalletSessionEvent): WalletStateV3OrEarlier {
+	function walletStateReducer(
+		state: WalletStateV3OrEarlier,
+		newEvent: WalletSessionEvent,
+	): WalletStateV3OrEarlier {
 		if (isV3Event(newEvent)) {
 			const stateV3 = migrateState(state);
-			if (newEvent.type === "new_keypair" || newEvent.type === "delete_keypair") {
+			if (newEvent.type === 'new_keypair' || newEvent.type === 'delete_keypair') {
 				return {
 					...stateV3,
 					schemaVersion: newEvent.schemaVersion,
@@ -129,8 +141,11 @@ export function createOperations(
 					schemaVersion: newEvent.schemaVersion,
 					credentials: SchemaV2.credentialReducer(state.credentials, newEvent),
 					presentations: SchemaV2.presentationReducer(state.presentations, newEvent),
-					credentialIssuanceSessions: SchemaV2.credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
-					settings: SchemaV2.settingsReducer(state.settings, newEvent)
+					credentialIssuanceSessions: SchemaV2.credentialIssuanceSessionReducer(
+						state.credentialIssuanceSessions,
+						newEvent,
+					),
+					settings: SchemaV2.settingsReducer(state.settings, newEvent),
 				};
 			}
 		} else if (isLegacyState(state)) {
@@ -138,7 +153,9 @@ export function createOperations(
 			// but at least the types are compatible.
 			return SchemaV2.WalletStateOperations.walletStateReducer(state, newEvent);
 		} else {
-			throw new Error(`Cannot apply event with schemaVersion ${newEvent?.schemaVersion} to state with version ${state?.schemaVersion}`);
+			throw new Error(
+				`Cannot apply event with schemaVersion ${newEvent?.schemaVersion} to state with version ${state?.schemaVersion}`,
+			);
 		}
 	}
 

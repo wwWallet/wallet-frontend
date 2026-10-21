@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 
 export type SettingsTab = {
-	id: string,
-	label: string,
-	icon: ReactNode,
+	id: string;
+	label: string;
+	icon: ReactNode;
 };
 
 // Matches the `gap-4` spacing between tabs.
@@ -16,12 +16,10 @@ const MIN_VISIBLE_TABS = 1;
 // "More" shouldn't ever hold just one tab.
 const MIN_OVERFLOW_TABS = 2;
 
-const tabButtonClassName = (isActive: boolean) => (
-	`flex items-center gap-2 min-w-0 px-3 sm:px-4 py-2 cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 ${isActive
-		? 'bg-lm-gray-500 dark:bg-dm-gray-500 rounded-t-lg'
-		: ''
-	}`
-);
+const tabButtonClassName = (isActive: boolean) =>
+	`flex items-center gap-2 min-w-0 px-3 sm:px-4 py-2 cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 ${
+		isActive ? 'bg-lm-gray-500 dark:bg-dm-gray-500 rounded-t-lg' : ''
+	}`;
 
 // `truncate` is a no-op until something constrains width, so it's safe to
 // reuse this for the unconstrained offscreen measurement copies too.
@@ -37,9 +35,9 @@ const SettingsTabs = ({
 	activeTab,
 	onChange,
 }: {
-	tabs: SettingsTab[],
-	activeTab: string,
-	onChange: (id: string) => void,
+	tabs: SettingsTab[];
+	activeTab: string;
+	onChange: (id: string) => void;
 }) => {
 	const { t } = useTranslation();
 	const overflowPanelId = useId();
@@ -130,7 +128,10 @@ const SettingsTabs = ({
 	const overflowTabIds = overflowTabs.map((tab) => `settings-tab-${tab.id}`).join(' ');
 
 	return (
-		<div ref={containerRef} className="relative flex items-end gap-4 border-b border-lm-gray-400 dark:border-dm-gray-600">
+		<div
+			ref={containerRef}
+			className="relative flex items-end gap-4 border-b border-lm-gray-400 dark:border-dm-gray-600"
+		>
 			<div
 				role="tablist"
 				aria-owns={menuOpen && overflowTabIds ? overflowTabIds : undefined}
@@ -185,9 +186,10 @@ const SettingsTabs = ({
 										onChange(tab.id);
 										setMenuOpen(false);
 									}}
-									className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left whitespace-nowrap ${activeTab === tab.id
-										? 'bg-primary text-white font-semibold cursor-pointer'
-										: 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'
+									className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left whitespace-nowrap ${
+										activeTab === tab.id
+											? 'bg-primary text-white font-semibold cursor-pointer'
+											: 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'
 									}`}
 								>
 									{tab.icon}
@@ -199,11 +201,16 @@ const SettingsTabs = ({
 				</div>
 			)}
 
-			<div aria-hidden className="absolute top-0 left-0 flex gap-4 invisible -z-10 scale-0 pointer-events-none">
+			<div
+				aria-hidden
+				className="absolute top-0 left-0 flex gap-4 invisible -z-10 scale-0 pointer-events-none"
+			>
 				{tabs.map((tab, i) => (
 					<button
 						key={tab.id}
-						ref={(el) => { measureRefs.current[i] = el; }}
+						ref={(el) => {
+							measureRefs.current[i] = el;
+						}}
 						type="button"
 						tabIndex={-1}
 						className={tabButtonClassName(activeTab === tab.id)}
@@ -211,7 +218,12 @@ const SettingsTabs = ({
 						<TabContent tab={tab} />
 					</button>
 				))}
-				<button ref={measureMoreRef} type="button" tabIndex={-1} className={tabButtonClassName(false)}>
+				<button
+					ref={measureMoreRef}
+					type="button"
+					tabIndex={-1}
+					className={tabButtonClassName(false)}
+				>
 					{moreContent}
 				</button>
 			</div>

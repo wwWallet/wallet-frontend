@@ -52,7 +52,7 @@ const SelectableCredentialSlideCard = ({
 	isActive,
 	isSelected,
 	onClick,
-	borderColor
+	borderColor,
 }: SelectableCredentialSlideCardProps) => {
 	const { t } = useTranslation();
 	const [imageLoaded, setImageLoaded] = useState(false);
@@ -60,7 +60,7 @@ const SelectableCredentialSlideCard = ({
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
-		[i18n.language]
+		[i18n.language],
 	);
 
 	return (
@@ -87,20 +87,15 @@ const SelectableCredentialSlideCard = ({
 			{imageLoaded && (
 				<>
 					<div
-						className={`absolute inset-0 rounded-xl transition-opacity bg-lm-gray-400 dark:bg-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-50'
-							}`}
+						className={`absolute inset-0 rounded-xl transition-opacity bg-lm-gray-400 dark:bg-dm-gray-600 ${
+							isSelected ? 'opacity-0' : 'opacity-50'
+						}`}
 					/>
 					<div className="absolute bottom-4 right-4 z-60">
 						{isSelected ? (
-							<CheckCircle
-								size={30}
-								className="z-50 rounded-full bg-white text-primary"
-							/>
+							<CheckCircle size={30} className="z-50 rounded-full bg-white text-primary" />
 						) : (
-							<Circle
-								size={30}
-								className="z-50 rounded-full bg-white/50 text-primary"
-							/>
+							<Circle size={30} className="z-50 rounded-full bg-white/50 text-primary" />
 						)}
 					</div>
 				</>
@@ -117,20 +112,23 @@ const normalizePath = (path: ClaimPath | string): ClaimPath => {
 	return [path] as ClaimPath;
 };
 
-const getRequestedClaimPaths = (fields: RequestedCredentialField[] | undefined): ClaimPath[] | undefined =>
-	fields?.flatMap(field => field.path?.length ? [normalizePath(field.path as ClaimPath)] : []);
+const getRequestedClaimPaths = (
+	fields: RequestedCredentialField[] | undefined,
+): ClaimPath[] | undefined =>
+	fields?.flatMap((field) => (field.path?.length ? [normalizePath(field.path as ClaimPath)] : []));
 
 const toCredentialClaimPath = (path: ClaimPath): CredentialClaimPath =>
-	path.map(segment => segment === null ? '' : String(segment));
+	path.map((segment) => (segment === null ? '' : String(segment)));
 
 const uniquePaths = (paths: CredentialClaimPath[]): CredentialClaimPath[] =>
-	Array.from(new Map(paths.map(path => [JSON.stringify(path), path])).values());
+	Array.from(new Map(paths.map((path) => [JSON.stringify(path), path])).values());
 
 const createSelectionMap = (selection: SelectionMap): Map<string, number> =>
-	new Map(Object.entries(selection).filter((entry): entry is [string, number] => entry[1] !== undefined));
+	new Map(
+		Object.entries(selection).filter((entry): entry is [string, number] => entry[1] !== undefined),
+	);
 
 const StepBar = ({ totalSteps, currentStep }: StepBarProps) => {
-
 	return (
 		<div className="flex items-center justify-center w-full mb-2">
 			{Array.from({ length: totalSteps }, (_, index) => {
@@ -140,12 +138,13 @@ const StepBar = ({ totalSteps, currentStep }: StepBarProps) => {
 					<React.Fragment key={index}>
 						<div className="flex flex-col items-center">
 							<div
-								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive
-									? 'text-white bg-primary border border-primary'
-									: isCurrent
-										? 'text-primary dark:text-white dark:bg-dm-gray-700 border border-primary'
-										: 'text-brand-lighter dark:text-brand-lighter border border-brand-lighter dark:border-brand-darker'
-									}`}
+								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+									isActive
+										? 'text-white bg-primary border border-primary'
+										: isCurrent
+											? 'text-primary dark:text-white dark:bg-dm-gray-700 border border-primary'
+											: 'text-brand-lighter dark:text-brand-lighter border border-brand-lighter dark:border-brand-darker'
+								}`}
 							>
 								{index === 0 ? (
 									<View size={20} className="text-sm" />
@@ -189,11 +188,17 @@ const StepTitle = ({ currentKey, t }: StepTitleProps) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: SelectCredentialsPopupProps) {
-
+function SelectCredentialsPopup({
+	popupState,
+	setPopupState,
+	vcEntityList,
+}: SelectCredentialsPopupProps) {
 	const [vcEntities, setVcEntities] = useState<ExtendedVcEntity[] | null>(null);
 	const { t } = useTranslation();
-	const rawKeys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : [], [popupState]);
+	const rawKeys = useMemo(
+		() => (popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : []),
+		[popupState],
+	);
 	const keys = useMemo(() => ['preview', ...rawKeys, 'summary'], [rawKeys]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState<SelectionMap>({});
@@ -206,15 +211,15 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
 
 	const handleSlideChange = (idx: number) => {
-		setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
+		setActiveSlideIndexByKey((prev) => ({ ...prev, [currentKey]: idx + 1 }));
 	};
 
 	useEffect(() => {
 		const selectedId = currentSelectionMap[currentKey];
 		if (selectedId && vcEntities?.length) {
-			const idx = vcEntities.findIndex(v => v.batchId === selectedId);
+			const idx = vcEntities.findIndex((v) => v.batchId === selectedId);
 			if (idx !== -1 && activeSlideIndexByKey[currentKey] !== idx + 1) {
-				setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
+				setActiveSlideIndexByKey((prev) => ({ ...prev, [currentKey]: idx + 1 }));
 			}
 		}
 		// run when step or its selection changes — NOT when activeSlideIndexByKey
@@ -223,13 +228,12 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 	}, [currentKey, vcEntities, currentSelectionMap]);
 
 	const requestedFieldsPerCredential = useMemo<Record<string, RequestedCredentialField[]>>(() => {
-
 		if (!popupState?.options) return {};
 		const map = popupState.options.conformantCredentialsMap;
 		const result: Record<string, RequestedCredentialField[]> = {};
 		for (const [descriptorId, entry] of Object.entries(map)) {
 			const seen = new Set<string | undefined>();
-			result[descriptorId] = (entry.requestedFields || []).filter(field => {
+			result[descriptorId] = (entry.requestedFields || []).filter((field) => {
 				const key = field.name || field.path?.join('.');
 				if (seen.has(key)) return false;
 				seen.add(key);
@@ -266,8 +270,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 				return;
 			}
 			try {
-				const filteredVcEntities = vcEntityList.filter(vcEntity =>
-					options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.batchId)
+				const filteredVcEntities = vcEntityList.filter((vcEntity) =>
+					options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(
+						vcEntity.batchId,
+					),
 				);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
@@ -278,14 +284,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 		if (popupState.options && vcEntityList) {
 			getData();
 		}
-	}, [
-		currentIndex,
-		currentSelectionMap,
-		keys,
-		popupState,
-		vcEntityList,
-		reinitialize
-	]);
+	}, [currentIndex, currentSelectionMap, keys, popupState, vcEntityList, reinitialize]);
 
 	useEffect(() => {
 		if (popupState?.options) {
@@ -299,14 +298,14 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 		if (!vcEntityList || !currentSelectionMap) return [];
 
 		return Object.values(currentSelectionMap)
-			.map((selectedId) =>
-				vcEntityList.find((vc) => vc.batchId === selectedId)
-			)
+			.map((selectedId) => vcEntityList.find((vc) => vc.batchId === selectedId))
 			.filter((vc): vc is ExtendedVcEntity => vc !== undefined);
 	}, [currentSelectionMap, vcEntityList]);
 	const currentSummaryCredential = selectedVcEntities[currentSummarySlide];
 	const currentSummaryDescriptorId = currentSummaryCredential
-		? Object.keys(currentSelectionMap).find(key => currentSelectionMap[key] === currentSummaryCredential.batchId)
+		? Object.keys(currentSelectionMap).find(
+				(key) => currentSelectionMap[key] === currentSummaryCredential.batchId,
+			)
 		: undefined;
 	const currentSummaryRequestedFields = currentSummaryDescriptorId
 		? getRequestedClaimPaths(requestedFieldsPerCredential[currentSummaryDescriptorId])
@@ -317,9 +316,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 			popupState.resolve(createSelectionMap(currentSelectionMap));
 			reinitialize();
 		} else {
-			setCurrentIndex(i => i + 1);
+			setCurrentIndex((i) => i + 1);
 		}
-	}
+	};
 
 	const goToPreviousSelection = () => {
 		if (currentIndex > 0) {
@@ -343,20 +342,24 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 		popupState.reject();
 		reinitialize();
 		// navigate('/');
-	}
+	};
 
 	const options = popupState.options;
 	if (!popupState.isOpen || !options) {
 		return null;
-	};
+	}
 
 	return (
-		<PopupLayout isOpen={popupState.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0" shouldCloseOnOverlayClick={false}>
+		<PopupLayout
+			isOpen={popupState.isOpen}
+			onClose={onClose}
+			loading={false}
+			fullScreen={screenType !== 'desktop'}
+			padding="p-0"
+			shouldCloseOnOverlayClick={false}
+		>
 			<div className={`${screenType === 'desktop' && 'p-4'}`}>
-
-				{keys.length > 1 && (
-					<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} />
-				)}
+				{keys.length > 1 && <StepBar totalSteps={keys.length} currentStep={currentIndex + 1} />}
 				<StepTitle currentKey={keys[currentIndex]} t={t} />
 				<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
@@ -367,7 +370,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 							{t('selectCredentialPopup.previewDescription')}
 						</p>
 						<div className="flex flex-col gap-2">
-
 							{options.verifierDomainName && (
 								<div className="flex flex-wrap gap-1 items-center text-sm text-lm-gray-900 dark:text-dm-gray-100">
 									<span className="text-lm-gray-900 dark:text-dm-gray-100 text-sm font-bold block">
@@ -378,36 +380,38 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 									</span>
 								</div>
 							)}
-							{options.verifierPurpose && (() => {
-								const { text: truncatedText, truncated } = truncateByWords(options.verifierPurpose, 40);
-								const textToDisplay = showFullPurpose ? options.verifierPurpose : truncatedText;
+							{options.verifierPurpose &&
+								(() => {
+									const { text: truncatedText, truncated } = truncateByWords(
+										options.verifierPurpose,
+										40,
+									);
+									const textToDisplay = showFullPurpose ? options.verifierPurpose : truncatedText;
 
-								return (
-									<p className="pd-2 text-sm text-lm-gray-900 dark:text-dm-gray-100">
-										<span className="text-sm font-bold text-lm-gray-900 dark:text-dm-gray-100">
-											{t('selectCredentialPopup.purpose')}
-										</span>
-										<span className="font-medium">
-											{textToDisplay}
-										</span>
-										{truncated && (
-											<>
-												{' '}
-												<button
-													onClick={() => setShowFullPurpose(!showFullPurpose)}
-													className="text-primary dark:text-brand-light font-medium hover:underline inline"
-												>
-													{showFullPurpose ? t('common.showLess') : t('common.showMore')}
-												</button>
-											</>
-										)}
-									</p>
-								);
-							})()}
+									return (
+										<p className="pd-2 text-sm text-lm-gray-900 dark:text-dm-gray-100">
+											<span className="text-sm font-bold text-lm-gray-900 dark:text-dm-gray-100">
+												{t('selectCredentialPopup.purpose')}
+											</span>
+											<span className="font-medium">{textToDisplay}</span>
+											{truncated && (
+												<>
+													{' '}
+													<button
+														onClick={() => setShowFullPurpose(!showFullPurpose)}
+														className="text-primary dark:text-brand-light font-medium hover:underline inline"
+													>
+														{showFullPurpose ? t('common.showLess') : t('common.showMore')}
+													</button>
+												</>
+											)}
+										</p>
+									);
+								})()}
 
 							{options.parsedTransactionData?.map((txData, index) => {
 								const TxComp = txData.ui;
-								return (<TxComp key={`${txData.transaction_data_b64u}-${index}`} />)
+								return <TxComp key={`${txData.transaction_data_b64u}-${index}`} />;
 							})}
 
 							<div>
@@ -431,13 +435,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 											</div>
 											<p className="text-sm font-normal text-lm-gray-900 dark:text-dm-gray-100 list-disc ml-4">
 												{!fields[0]?.path?.[0] ? (
-													<span>
-														{t('selectCredentialPopup.allClaimsRequested')}
-													</span>
+													<span>{t('selectCredentialPopup.allClaimsRequested')}</span>
 												) : (
-													<span>
-														{t('selectCredentialPopup.specificClaimsRequested')}
-													</span>
+													<span>{t('selectCredentialPopup.specificClaimsRequested')}</span>
 												)}
 											</p>
 										</div>
@@ -445,7 +445,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 								})}
 							</div>
 						</div>
-
 					</>
 				)}
 
@@ -455,9 +454,11 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 						<p className="text-lm-gray-900 dark:text-dm-gray-100 italic text-sm mt-3 mb-4">
 							{t('selectCredentialPopup.selectDescription')}
 						</p>
-						<div>
-						</div>
-						<div key={keys[currentIndex]} className={`${screenType === 'desktop' && 'm-auto max-w-[700px]'}`}>
+						<div></div>
+						<div
+							key={keys[currentIndex]}
+							className={`${screenType === 'desktop' && 'm-auto max-w-[700px]'}`}
+						>
 							{vcEntities && vcEntities.length ? (
 								<Slider
 									items={vcEntities}
@@ -468,25 +469,30 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 											isActive={currentSlide === index + 1}
 											isSelected={selectedCredential === vcEntity.batchId}
 											onClick={handleClick}
-											borderColor={screenType === 'desktop' ? 'border-lm-gray-400 dark:border-dm-gray-600' : undefined}
+											borderColor={
+												screenType === 'desktop'
+													? 'border-lm-gray-400 dark:border-dm-gray-600'
+													: undefined
+											}
 										/>
 									)}
 									initialSlide={currentSlide}
 									onSlideChange={handleSlideChange}
-									className='xm:px-4 px-16 sm:px-24 md:px-8'
+									className="xm:px-4 px-16 sm:px-24 md:px-8"
 								/>
 							) : (
 								<CredentialCardSkeleton />
-
 							)}
 							{vcEntities?.[currentSlide - 1] ? (
 								<div className="flex flex-wrap justify-center flex-row items-center my-2">
 									<CredentialInfo
 										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
-										mainClassName={"text-xs w-full"}
+										mainClassName={'text-xs w-full'}
 										requested={{
-											fields: getRequestedClaimPaths(requestedFieldsPerCredential[keys[currentIndex]]),
-											display: "highlight"
+											fields: getRequestedClaimPaths(
+												requestedFieldsPerCredential[keys[currentIndex]],
+											),
+											display: 'highlight',
 										}}
 									/>
 								</div>
@@ -511,51 +517,59 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 
 						{options.parsedTransactionData?.map((txData, index) => {
 							const TxComp = txData.ui;
-							return <TxComp key={`${txData.transaction_data_b64u}-${index}`} />
+							return <TxComp key={`${txData.transaction_data_b64u}-${index}`} />;
 						})}
 
 						<div className={`${screenType === 'desktop' && 'max-w-[600px]'}`}>
-							<div className='py-[3px]'>
+							<div className="py-[3px]">
 								<Slider
 									items={selectedVcEntities}
 									renderSlideContent={(vcEntity, i) => {
 										const descriptorId = Object.keys(currentSelectionMap).find(
-											(key) => currentSelectionMap[key] === vcEntity.batchId
+											(key) => currentSelectionMap[key] === vcEntity.batchId,
 										);
 
-										const fields = descriptorId ? requestedFieldsPerCredential[descriptorId] : undefined;
+										const fields = descriptorId
+											? requestedFieldsPerCredential[descriptorId]
+											: undefined;
 										const requestedClaimPaths = getRequestedClaimPaths(fields);
 										const hasValidPath = Boolean(fields?.[0]?.path?.[0]);
 
-										const requiredClaimPaths = (vcEntity.parsedCredential.metadata.credential?.TypeMetadata?.claims ?? [])
-											.filter(c => c?.required === true)
-											.map(c => normalizePath(c.path))
+										const requiredClaimPaths = (
+											vcEntity.parsedCredential.metadata.credential?.TypeMetadata?.claims ?? []
+										)
+											.filter((c) => c?.required === true)
+											.map((c) => normalizePath(c.path))
 											.map(toCredentialClaimPath);
 
 										// Only merge when hasValidPath is true, otherwise leave undefined
 										const filterPaths = hasValidPath
 											? uniquePaths([
-												...(requestedClaimPaths ?? []).map(toCredentialClaimPath),
-												...requiredClaimPaths,
-											])
+													...(requestedClaimPaths ?? []).map(toCredentialClaimPath),
+													...requiredClaimPaths,
+												])
 											: undefined;
 
 										return (
-											<div className='w-full'>
-											<CredentialImage
-												vcEntity={vcEntity}
-												vcEntityInstances={vcEntity.instances}
+											<div className="w-full">
+												<CredentialImage
+													vcEntity={vcEntity}
+													vcEntityInstances={vcEntity.instances}
 													className="w-full object-cover rounded-xl"
 													showRibbon={currentSummarySlide === i}
 													filter={filterPaths}
-													borderColor={screenType === 'desktop' ? 'border-lm-gray-400 dark:border-dm-gray-600' : undefined}
+													borderColor={
+														screenType === 'desktop'
+															? 'border-lm-gray-400 dark:border-dm-gray-600'
+															: undefined
+													}
 												/>
 											</div>
 										);
 									}}
 									initialSlide={currentSummarySlide + 1}
 									onSlideChange={(index) => setCurrentSummarySlide(index)}
-									className='xm:px-4 px-16 sm:px-24 md:px-8'
+									className="xm:px-4 px-16 sm:px-24 md:px-8"
 								/>
 							</div>
 							{currentSummaryCredential ? (
@@ -565,7 +579,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 										mainClassName="text-xs w-full"
 										requested={{
 											fields: currentSummaryRequestedFields,
-											display: "hide"
+											display: 'hide',
 										}}
 									/>
 								</div>
@@ -578,15 +592,11 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 			</div>
 
 			<div
-				className={`z-10 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 border-t border-lm-gray-400 dark:border-dm-gray-600 shadow-2xl flex justify-between ${screenType === 'desktop'
-					? 'sticky bottom-0 px-4 py-3'
-					: 'fixed bottom-0 px-6 pb-4 pt-4'
-					}`}
+				className={`z-10 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 border-t border-lm-gray-400 dark:border-dm-gray-600 shadow-2xl flex justify-between ${
+					screenType === 'desktop' ? 'sticky bottom-0 px-4 py-3' : 'fixed bottom-0 px-6 pb-4 pt-4'
+				}`}
 			>
-				<Button
-					id="cancel-select-credentials"
-					onClick={onClose}
-				>
+				<Button id="cancel-select-credentials" onClick={onClose}>
 					{t('common.cancel')}
 				</Button>
 
@@ -595,7 +605,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 						<Button
 							id="previous-select-credentials"
 							variant="outline"
-							onClick={goToPreviousSelection}>
+							onClick={goToPreviousSelection}
+						>
 							{t('common.previous')}
 						</Button>
 					)}
@@ -604,9 +615,18 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
 						variant="primary"
-						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential === undefined}
-						title={selectedCredential === undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
-							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
+						disabled={
+							keys[currentIndex] !== 'summary' &&
+							keys[currentIndex] !== 'preview' &&
+							selectedCredential === undefined
+						}
+						title={
+							selectedCredential === undefined &&
+							keys[currentIndex] !== 'summary' &&
+							keys[currentIndex] !== 'preview'
+								? t('selectCredentialPopup.nextButtonDisabledTitle')
+								: ''
+						}
 					>
 						{keys[currentIndex] === 'summary'
 							? t('common.navItemSendCredentialsSimple')
@@ -614,7 +634,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 					</Button>
 				</div>
 			</div>
-		</PopupLayout >
+		</PopupLayout>
 	);
 }
 

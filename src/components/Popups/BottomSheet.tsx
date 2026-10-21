@@ -12,12 +12,12 @@ const BottomSheet = ({
 	dismissThresholdPx = DEFAULT_DISMISS_THRESHOLD_PX,
 	shouldCloseOnOverlayClick = true,
 }: {
-	isOpen: boolean,
-	onClose: () => void,
-	contentLabel: string,
-	children: React.ReactNode,
-	dismissThresholdPx?: number,
-	shouldCloseOnOverlayClick?: boolean,
+	isOpen: boolean;
+	onClose: () => void;
+	contentLabel: string;
+	children: React.ReactNode;
+	dismissThresholdPx?: number;
+	shouldCloseOnOverlayClick?: boolean;
 }) => {
 	const [hasEntered, setHasEntered] = useState(false);
 	const [dragY, setDragY] = useState(0);

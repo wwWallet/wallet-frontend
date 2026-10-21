@@ -18,22 +18,22 @@ export function usePolicyLinks() {
 }
 
 function parsePolicyLinks(raw: unknown): PolicyLink[] | undefined {
-		if (typeof raw !== 'string') {
-			return undefined;
-		}
-
-		return raw
-			.split(',')
-			.map((item) => {
-				const parts = item.split('::').map((str) => str.trim());
-
-				if (parts.length !== 2) {
-					return null;
-				}
-
-				const [label, href] = parts;
-
-				return label && href ? { label, href } : null;
-			})
-			.filter((item): item is PolicyLink => item !== null);
+	if (typeof raw !== 'string') {
+		return undefined;
 	}
+
+	return raw
+		.split(',')
+		.map((item) => {
+			const parts = item.split('::').map((str) => str.trim());
+
+			if (parts.length !== 2) {
+				return null;
+			}
+
+			const [label, href] = parts;
+
+			return label && href ? { label, href } : null;
+		})
+		.filter((item): item is PolicyLink => item !== null);
+}

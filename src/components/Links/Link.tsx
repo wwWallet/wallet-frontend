@@ -8,20 +8,13 @@ type CommonProps = {
 	className?: string;
 };
 
-type Props = CommonProps & (
-	| { href: string; onClick?: never }
-	| { href?: never; onClick: React.MouseEventHandler<HTMLButtonElement> }
-);
+type Props = CommonProps &
+	(
+		| { href: string; onClick?: never }
+		| { href?: never; onClick: React.MouseEventHandler<HTMLButtonElement> }
+	);
 
-const Link = ({
-	id,
-	children,
-	href,
-	onClick,
-	disabled = false,
-	title,
-	className = '',
-}: Props) => {
+const Link = ({ id, children, href, onClick, disabled = false, title, className = '' }: Props) => {
 	const interactionClassName = disabled
 		? 'grayscale opacity-75 cursor-not-allowed'
 		: 'cursor-pointer hover:underline';

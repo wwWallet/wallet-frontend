@@ -1,6 +1,5 @@
 import fs from 'fs';
 
-
 function constructLeafNames(obj, aggrKey, mySet, values) {
 	if (typeof obj !== 'object') {
 		mySet.add(aggrKey);
@@ -8,9 +7,9 @@ function constructLeafNames(obj, aggrKey, mySet, values) {
 	} else {
 		for (const item in obj) {
 			if (aggrKey !== '') {
-				constructLeafNames(obj[item], `${aggrKey}.${item}`, mySet, values)
+				constructLeafNames(obj[item], `${aggrKey}.${item}`, mySet, values);
 			} else {
-				constructLeafNames(obj[item], `${item}`, mySet, values)
+				constructLeafNames(obj[item], `${item}`, mySet, values);
 			}
 		}
 	}
@@ -32,7 +31,7 @@ function validateLocale(obj, locale, aggrKey = '') {
 	return errors;
 }
 
-console.log("Checking files in src/locales...\n");
+console.log('Checking files in src/locales...\n');
 const dir = fs.readdirSync('./src/locales');
 const locales = {};
 const validationErrors = [];
@@ -90,7 +89,7 @@ for (const lc in locales) {
 			missingCount++;
 		}
 	}
-	const completion = ((leafNames.size - missingCount) / leafNames.size * 100).toFixed(2);
+	const completion = (((leafNames.size - missingCount) / leafNames.size) * 100).toFixed(2);
 
 	console.log();
 	console.log(`Extraneous for ${lc}:`);
@@ -110,13 +109,10 @@ for (const lc in locales) {
 
 function removeExtraneousKeys(src, target) {
 	if (target instanceof Object && !(target instanceof Array)) {
-		return Object.keys(src).reduce(
-			(result, key) => {
-				result[key] = removeExtraneousKeys(src[key], target[key]);
-				return result;
-			},
-			{},
-		);
+		return Object.keys(src).reduce((result, key) => {
+			result[key] = removeExtraneousKeys(src[key], target[key]);
+			return result;
+		}, {});
 	} else {
 		return target;
 	}
@@ -124,37 +120,36 @@ function removeExtraneousKeys(src, target) {
 
 function sortKeys(obj) {
 	if (obj instanceof Object && !(obj instanceof Array)) {
-		return Object.keys(obj).sort().reduce(
-			(result, key) => {
+		return Object.keys(obj)
+			.sort()
+			.reduce((result, key) => {
 				result[key] = sortKeys(obj[key]);
 				return result;
-			},
-			{},
-		);
+			}, {});
 	} else {
 		return obj;
 	}
 }
 
-console.log("Tidying keys in translation files...");
+console.log('Tidying keys in translation files...');
 for (const loc in locales) {
 	const extraneousRemoved = removeExtraneousKeys(locales['en'], locales[loc]);
 	const sorted = sortKeys(extraneousRemoved);
-	fs.writeFileSync(`./src/locales/${loc}.json`, JSON.stringify(sorted, null, "\t"));
+	fs.writeFileSync(`./src/locales/${loc}.json`, JSON.stringify(sorted, null, '\t'));
 }
 
 // Save JSON files
-console.log("Saving coverage reports...");
+console.log('Saving coverage reports...');
 
 for (const [lang, percent] of Object.entries(coverageResults)) {
-	const color = percent >= 100 ? "brightgreen" : percent >= 80 ? "yellow" : "red";
+	const color = percent >= 100 ? 'brightgreen' : percent >= 80 ? 'yellow' : 'red';
 	const langResult = {
 		schemaVersion: 1,
 		label: `${lang.toUpperCase()} Coverage`,
 		message: `${percent}%`,
 		color: color,
 	};
-	const filename = `./translation_coverage/coverage_${lang}.json`
-	fs.writeFileSync(filename, JSON.stringify(langResult, null, "\t") + "\n");
-	console.log(`Saved ${filename}`)
+	const filename = `./translation_coverage/coverage_${lang}.json`;
+	fs.writeFileSync(filename, JSON.stringify(langResult, null, '\t') + '\n');
+	console.log(`Saved ${filename}`);
 }

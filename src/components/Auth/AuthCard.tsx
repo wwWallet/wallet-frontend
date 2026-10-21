@@ -14,18 +14,22 @@ const AuthCard = ({
 	showPasskeyInfoPopup = true,
 	children,
 }: {
-	heading: React.ReactNode,
-	appHeading?: React.ReactNode,
-	showPasskeyInfoPopup?: boolean,
-	children: React.ReactNode,
+	heading: React.ReactNode;
+	appHeading?: React.ReactNode;
+	showPasskeyInfoPopup?: boolean;
+	children: React.ReactNode;
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { t } = useTranslation();
 
 	return (
-		<AuthPageLayout heading={
-			appHeading ?? <span className="text-primary dark:text-brand-light"> {t('common.walletName')}</span>
-		}>
+		<AuthPageLayout
+			heading={
+				appHeading ?? (
+					<span className="text-primary dark:text-brand-light"> {t('common.walletName')}</span>
+				)
+			}
+		>
 			<div className="px-0 py-6 sm:p-8 sm:px-12 space-y-4 sm:space-y-6 bg-white rounded-lg dark:bg-dm-gray-900 sm:border sm:border-lm-gray-400 dark:sm:border-dm-gray-600">
 				{heading && (
 					<h1 className="text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">

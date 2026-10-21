@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { FingerprintIcon, QrCodeIcon } from "lucide-react";
-import PopupLayout from "./PopupLayout";
-import { UsbStickDotIcon } from "../Shared/CustomIcons";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { FingerprintIcon, QrCodeIcon } from 'lucide-react';
+import PopupLayout from './PopupLayout';
+import { UsbStickDotIcon } from '../Shared/CustomIcons';
 
 const PasskeyInfoPopup = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -43,9 +43,22 @@ const PasskeyInfoPopup = () => {
 				{t('passkeyInfoPopup.triggerButton')}
 			</button>
 			{isOpen && (
-				<PopupLayout padding="p-4 md:p-8" isOpen={isOpen} onClose={handleClose} shouldCloseOnOverlayClick={true}>
-					<div className="flex items-start justify-between mb-4" role="dialog" aria-modal="true" aria-labelledby="passkey-info-title">
-						<h2 id="passkey-info-title" className="flex items-center text-lg font-bold text-lm-gray-900 dark:text-dm-gray-50 pr-6">
+				<PopupLayout
+					padding="p-4 md:p-8"
+					isOpen={isOpen}
+					onClose={handleClose}
+					shouldCloseOnOverlayClick={true}
+				>
+					<div
+						className="flex items-start justify-between mb-4"
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="passkey-info-title"
+					>
+						<h2
+							id="passkey-info-title"
+							className="flex items-center text-lg font-bold text-lm-gray-900 dark:text-dm-gray-50 pr-6"
+						>
 							{t('passkeyInfoPopup.title')}
 						</h2>
 						<button
@@ -55,8 +68,20 @@ const PasskeyInfoPopup = () => {
 							onClick={handleClose}
 							aria-label={t('passkeyInfoPopup.closeAriaLabel')}
 						>
-							<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-								<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+							<svg
+								className="w-3 h-3"
+								aria-hidden="true"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 14 14"
+							>
+								<path
+									stroke="currentColor"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth="2"
+									d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+								/>
 							</svg>
 						</button>
 					</div>
@@ -66,8 +91,14 @@ const PasskeyInfoPopup = () => {
 					</div>
 					<ul>
 						{Object.entries(passKeyTypes).map(([key, { label, description, icon: Icon }]) => (
-							<li key={key} className="grid grid-cols-[40px_auto] md:grid-cols-[60px_auto] gap-4 py-4">
-								<div className="border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg aspect-square flex items-center justify-center" aria-hidden="true">
+							<li
+								key={key}
+								className="grid grid-cols-[40px_auto] md:grid-cols-[60px_auto] gap-4 py-4"
+							>
+								<div
+									className="border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg aspect-square flex items-center justify-center"
+									aria-hidden="true"
+								>
 									<Icon size={30} className="text-primary dark:text-white" />
 								</div>
 								<div>
@@ -81,6 +112,6 @@ const PasskeyInfoPopup = () => {
 			)}
 		</>
 	);
-}
+};
 
 export default PasskeyInfoPopup;

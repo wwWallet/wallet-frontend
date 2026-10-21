@@ -52,8 +52,9 @@ describe('resolveLoginRedirect', () => {
 	it('drops params the target does not declare', () => {
 		expect(resolveLoginRedirect('?redirect=settings&credential_offer=abc')).toBe('/settings');
 		expect(resolveLoginRedirect('?redirect=settings&code=abc&state=xyz')).toBe('/settings');
-		expect(resolveLoginRedirect('?redirect=settings&tab=privacy&credential_offer=abc'))
-			.toBe('/settings?tab=privacy');
+		expect(resolveLoginRedirect('?redirect=settings&tab=privacy&credential_offer=abc')).toBe(
+			'/settings?tab=privacy',
+		);
 	});
 
 	it('drops declared params whose value fails validation', () => {
@@ -63,9 +64,18 @@ describe('resolveLoginRedirect', () => {
 
 	it('always lands on a known same-origin route', () => {
 		const hostile = [
-			'/settings', '//evil.com/settings', '/\\evil.com/settings',
-			'https://evil.com/settings', 'javascript:alert(1)', 'http://[',
-			'__proto__', 'constructor', '', '   ', '%%%', 'settings',
+			'/settings',
+			'//evil.com/settings',
+			'/\\evil.com/settings',
+			'https://evil.com/settings',
+			'javascript:alert(1)',
+			'http://[',
+			'__proto__',
+			'constructor',
+			'',
+			'   ',
+			'%%%',
+			'settings',
 		];
 
 		for (const target of hostile) {
@@ -78,9 +88,8 @@ describe('resolveLoginRedirect', () => {
 });
 
 describe('withLoginRedirect + resolveLoginRedirect', () => {
-	const roundTrip = (pathname: string, search: string) => (
-		resolveLoginRedirect(withLoginRedirect(pathname, search))
-	);
+	const roundTrip = (pathname: string, search: string) =>
+		resolveLoginRedirect(withLoginRedirect(pathname, search));
 
 	it('restores exactly what it recorded', () => {
 		expect(roundTrip('/settings', '?tab=privacy')).toBe('/settings?tab=privacy');

@@ -20,21 +20,31 @@ const ConnectionStatusIcon = ({
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
 	const filledColor = 'bg-current';
 	const unFilledColor = 'bg-lm-gray-400 dark:bg-dm-gray-600';
-	const connectingSpinner = backgroundColor === 'light' ? 'border-lm-gray-600 dark:border-dm-gray-100' : 'border-lm-gray-100';
+	const connectingSpinner =
+		backgroundColor === 'light'
+			? 'border-lm-gray-600 dark:border-dm-gray-100'
+			: 'border-lm-gray-100';
 
 	const qualityText = (quality: number | null): string => {
 		switch (quality) {
-			case 5: return t('ConnectionStatusIcon.qualityLabels.excellent');
-			case 4: return t('ConnectionStatusIcon.qualityLabels.good');
-			case 3: return t('ConnectionStatusIcon.qualityLabels.fair');
-			case 2: return t('ConnectionStatusIcon.qualityLabels.poor');
-			case 1: return t('ConnectionStatusIcon.qualityLabels.veryPoor');
-			case 0: return t('common.offline');
-			default: return t('ConnectionStatusIcon.qualityLabels.connecting');
+			case 5:
+				return t('ConnectionStatusIcon.qualityLabels.excellent');
+			case 4:
+				return t('ConnectionStatusIcon.qualityLabels.good');
+			case 3:
+				return t('ConnectionStatusIcon.qualityLabels.fair');
+			case 2:
+				return t('ConnectionStatusIcon.qualityLabels.poor');
+			case 1:
+				return t('ConnectionStatusIcon.qualityLabels.veryPoor');
+			case 0:
+				return t('common.offline');
+			default:
+				return t('ConnectionStatusIcon.qualityLabels.connecting');
 		}
 	};
 
-	const titleText = `${t("ConnectionStatusIcon.status")} ${qualityText(quality)}`;
+	const titleText = `${t('ConnectionStatusIcon.status')} ${qualityText(quality)}`;
 
 	return (
 		<div className="relative flex items-end" title={titleText}>
@@ -47,12 +57,19 @@ const ConnectionStatusIcon = ({
 			))}
 			{quality === 0 ? (
 				<div className="absolute inset-0 flex items-center justify-center">
-					<XIcon size={16} className="text-lm-gray-500 absolute bottom-[-4px] right-[-4px] bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg border border-lm-gray-500" />
+					<XIcon
+						size={16}
+						className="text-lm-gray-500 absolute bottom-[-4px] right-[-4px] bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg border border-lm-gray-500"
+					/>
 				</div>
-			) : quality === null && (
-				<div className="absolute inset-0 flex items-center justify-center">
-					<div className={`h-4 w-4 border-2 border-t-transparent dark:border-t-transparent ${connectingSpinner} absolute bottom-0 rounded-full animate-spin`} />
-				</div>
+			) : (
+				quality === null && (
+					<div className="absolute inset-0 flex items-center justify-center">
+						<div
+							className={`h-4 w-4 border-2 border-t-transparent dark:border-t-transparent ${connectingSpinner} absolute bottom-0 rounded-full animate-spin`}
+						/>
+					</div>
+				)
 			)}
 		</div>
 	);

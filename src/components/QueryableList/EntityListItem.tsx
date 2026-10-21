@@ -1,6 +1,6 @@
 import React from 'react';
 import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
-import { useProxiedImage } from '@/hooks/useProxiedImage'
+import { useProxiedImage } from '@/hooks/useProxiedImage';
 type EntityListItemProps = {
 	primaryData: any;
 	secondaryData?: any;
@@ -8,7 +8,6 @@ type EntityListItemProps = {
 };
 
 const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItemProps) => {
-
 	const primaryLogoSrc = useProxiedImage(primaryData?.logo?.uri);
 	const secondaryImageSrc = useProxiedImage(secondaryData?.logo?.uri);
 
@@ -19,14 +18,14 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 	const logoStyle = primaryLogoSrc
 		? { backgroundColor: primaryData.background_color || 'white' }
 		: shouldUseCustomStyle
-		? {
-			backgroundColor: primaryData.background_color,
-			color: primaryData.text_color,
-		}
-		: {
-			backgroundColor: '#939393',
-			color: 'white',
-		};
+			? {
+					backgroundColor: primaryData.background_color,
+					color: primaryData.text_color,
+				}
+			: {
+					backgroundColor: '#939393',
+					color: 'white',
+				};
 
 	const issuerLogoStyle = {
 		backgroundColor: secondaryData?.background_color || 'white',
@@ -49,10 +48,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 						<p className="font-bold">{primaryData.name?.charAt(0)}</p>
 					)}
 				</div>
-				<span
-					className="line-clamp-2 max-w-full"
-					title={primaryData.name}
-				>
+				<span className="line-clamp-2 max-w-full" title={primaryData.name}>
 					{highlightBestSequence(primaryData.name, searchQuery)}
 				</span>
 			</span>

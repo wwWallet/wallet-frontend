@@ -1,10 +1,12 @@
 import eslint from '@eslint/js';
 import vitest from '@vitest/eslint-plugin';
+import { defineConfig } from 'eslint/config';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import prettierConfig from 'eslint-config-prettier/flat';
 
 const applicationFiles = ['src/**/*.{ts,tsx}'];
 const testFiles = ['src/**/*.{test,spec}.{ts,tsx}'];
@@ -37,14 +39,9 @@ const accessibilityRules = Object.fromEntries(
 	accessibilityRuleNames.map((name) => [name, jsxA11yRecommended.rules[name]]),
 );
 
-export default tseslint.config(
+export default defineConfig(
 	{
-		ignores: [
-			'coverage/**',
-			'dist/**',
-			'node_modules/**',
-			'public/**',
-		],
+		ignores: ['coverage/**', 'dist/**', 'node_modules/**', 'public/**'],
 	},
 	{
 		linterOptions: {
@@ -122,9 +119,7 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: [
-			'src/service-worker.ts',
-		],
+		files: ['src/service-worker.ts'],
 		languageOptions: {
 			globals: {
 				...globals.serviceworker,
@@ -132,10 +127,7 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: [
-			'src/**/*worker.ts',
-			'src/**/worker.ts',
-		],
+		files: ['src/**/*worker.ts', 'src/**/worker.ts'],
 		languageOptions: {
 			globals: {
 				...globals.worker,
@@ -159,12 +151,11 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: [
-			'src/utils/qr/**/*.ts',
-		],
+		files: ['src/utils/qr/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-wrapper-object-types': 'off',
 			'prefer-const': 'off',
 		},
 	},
+	prettierConfig,
 );
