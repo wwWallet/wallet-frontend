@@ -274,7 +274,6 @@
 	},
 	"registerPasskey": {
 		"alreadyRegisteredMessage": "Este autenticador já tem uma chave de acesso para a sua carteira. Para adicionar outra chave de acesso, escolha um dispositivo ou uma chave de segurança diferente.",
-		"alreadyRegisteredTitle": "Chave de acesso já registada",
 		"authOnceMore": "Para concluir a configuração, por favor autentique-se novamente.",
 		"giveName": "Dê um nome a esta credencial:",
 		"messageDone": "Quase pronto!",

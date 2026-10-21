@@ -71,6 +71,12 @@ const WebauthnRegistration = ({
 		return () => document.removeEventListener('mousedown', handler);
 	}, [menuOpen]);
 
+	useEffect(() => {
+		if (!authenticatorAlreadyRegistered) return;
+		const timeout = window.setTimeout(() => setAuthenticatorAlreadyRegistered(false), 30_000);
+		return () => window.clearTimeout(timeout);
+	}, [authenticatorAlreadyRegistered]);
+
 	const stateChooseName = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
@@ -238,18 +244,11 @@ const WebauthnRegistration = ({
 				</div>
 			)}
 
-			<Dialog
-				open={authenticatorAlreadyRegistered}
-				onCancel={() => setAuthenticatorAlreadyRegistered(false)}
-			>
-				<div role="alert">
-					<H2 heading={t('registerPasskey.alreadyRegisteredTitle')} hr={false} flexJustifyContent="center" />
-					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.alreadyRegisteredMessage')}</p>
+			{authenticatorAlreadyRegistered && (
+				<div role="alert" className="text-lm-red dark:text-dm-red pt-2 text-sm max-w-sm">
+					{t('registerPasskey.alreadyRegisteredMessage')}
 				</div>
-				<Button onClick={() => setAuthenticatorAlreadyRegistered(false)}>
-					{t('messagePopup.close')}
-				</Button>
-			</Dialog>
+			)}
 
 			<Dialog
 				open={stateChooseName}
