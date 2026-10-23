@@ -23,7 +23,7 @@ import useScreenType from '@/hooks/useScreenType';
 import { useVcEntity } from '@/hooks/useVcEntity';
 
 // Services
-import { bluetoothConnectRequiresUserGesture, isBluetoothTransportAvailable } from '@/lib/services/bluetooth';
+import { isBluetoothTransportAvailable } from '@/lib/services/bluetooth';
 
 // Components
 import ActivityEmptyState from '@/components/History/ActivityEmptyState';
@@ -51,7 +51,7 @@ const Credential = () => {
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
 	const isDesktop = screenType === 'desktop';
-	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
+	const { generateEngagementQR, startClient, connectRequiresUserGesture, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState<ProximitySharingStatus>(PROXIMITY_SHARING_STATUS.SCAN);
 	const handledMdocStatusRef = useRef<ProximitySharingStatus | null>(null);
@@ -62,6 +62,7 @@ const Credential = () => {
 	const [shareWithQrFilter, setShareWithQrFilter] = useState<string[]>([]);
 	const [mdocTypeDetails, setMdocTypeDetails] = useState<MdocTypeDetails | null>(null);
 	const [bluetoothPairingCancelled, setBluetoothPairingCancelled] = useState(false);
+	const [requiresUserGesture, setRequiresUserGesture] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
@@ -196,8 +197,10 @@ const Credential = () => {
 		setBluetoothPairingCancelled(false);
 		setMdocTypeDetails(null);
 		setMdocQRContent(await generateEngagementQR(vcEntity));
+		const needsUserGesture = connectRequiresUserGesture();
+		setRequiresUserGesture(needsUserGesture);
 		setShowMdocQR(true);
-		if (bluetoothConnectRequiresUserGesture()) {
+		if (needsUserGesture) {
 			// Web Bluetooth: connecting opens the browser's device-chooser dialog,
 			// which would cover the QR before the verifier has scanned it (and no
 			// device advertises the engagement UUID until then). Wait for the user
@@ -352,7 +355,7 @@ const Credential = () => {
 				requestedFields={shareWithQrFilter}
 				mdocTypeDetails={mdocTypeDetails}
 				bluetoothPairingCancelled={bluetoothPairingCancelled}
-				requiresUserGesture={bluetoothConnectRequiresUserGesture()}
+				requiresUserGesture={requiresUserGesture}
 				onConnect={connectClient}
 				onConsent={consentToShare}
 				onCancel={cancelShare}

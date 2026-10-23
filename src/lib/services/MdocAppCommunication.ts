@@ -85,6 +85,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		requestedDcqlClaimsRef.current = [];
 		requestedDocTypeRef.current = null;
 		requestedNamespaceRef.current = null;
+		// One transport per engagement, reused if the user retries connecting
+		transportRef.current = createBluetoothTransport();
 
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
 	}, []);
@@ -94,14 +96,18 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			console.log("No device engagement generated yet");
 			return "failed";
 		}
-		const transport = createBluetoothTransport();
+		const transport = transportRef.current;
 		if (!transport) {
 			console.log("No Bluetooth backend available");
 			return "failed";
 		}
-		transportRef.current = transport;
 		return transport.connect(serviceUuidRef.current, onDeviceSelected);
 	}, []);
+
+	const connectRequiresUserGesture = useCallback(
+		(): boolean => transportRef.current?.requiresUserGesture ?? false,
+		[],
+	);
 
 	const getMdocRequest = useCallback(async (): Promise<MdocRequest> => {
 		let receivedMessage: Uint8Array = new Uint8Array([]);
@@ -328,6 +334,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		() => ({
 			generateEngagementQR,
 			startClient,
+			connectRequiresUserGesture,
 			getMdocRequest,
 			sendMdocResponse,
 			terminateSession
@@ -335,6 +342,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		[
 			generateEngagementQR,
 			startClient,
+			connectRequiresUserGesture,
 			getMdocRequest,
 			sendMdocResponse,
 			terminateSession
