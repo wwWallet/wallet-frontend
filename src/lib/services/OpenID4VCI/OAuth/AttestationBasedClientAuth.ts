@@ -22,7 +22,10 @@ function getKeyAndKid(input: CryptoKey | oauth4webapi.PrivateKey): oauth4webapi.
 	return { key, kid };
 }
 
-function signingAlgorithm(key: CryptoKey): { alg: string; algorithm: AlgorithmIdentifier | RsaPssParams | EcdsaParams } {
+function signingAlgorithm(key: CryptoKey): {
+	alg: string;
+	algorithm: AlgorithmIdentifier | RsaPssParams | EcdsaParams;
+} {
 	const { name } = key.algorithm;
 	if (name === 'ECDSA') {
 		const curve = (key.algorithm as EcKeyAlgorithm).namedCurve;
@@ -32,10 +35,11 @@ function signingAlgorithm(key: CryptoKey): { alg: string; algorithm: AlgorithmId
 	if (name === 'RSA-PSS' || name === 'RSASSA-PKCS1-v1_5') {
 		const hash = (key.algorithm as RsaHashedKeyAlgorithm).hash.name;
 		const bits = { 'SHA-256': 256, 'SHA-384': 384, 'SHA-512': 512 }[hash];
-		if (bits) return {
-			alg: `${name === 'RSA-PSS' ? 'PS' : 'RS'}${bits}`,
-			algorithm: name === 'RSA-PSS' ? { name, saltLength: bits / 8 } : { name },
-		};
+		if (bits)
+			return {
+				alg: `${name === 'RSA-PSS' ? 'PS' : 'RS'}${bits}`,
+				algorithm: name === 'RSA-PSS' ? { name, saltLength: bits / 8 } : { name },
+			};
 	}
 	if (name === 'Ed25519') return { alg: 'Ed25519', algorithm: { name } };
 	throw new TypeError('Unsupported clientPrivateKey signing algorithm');
@@ -73,7 +77,9 @@ export function AttestationBasedClientAuth(
 	const signProof = async (as: oauth4webapi.AuthorizationServer, client: oauth4webapi.Client): Promise<string> => {
 		const skew = client[oauth4webapi.clockSkew];
 		const header: Record<string, oauth4webapi.JsonValue | undefined> = {
-			alg, kid, typ: 'oauth-client-attestation-pop+jwt',
+			alg,
+			kid,
+			typ: 'oauth-client-attestation-pop+jwt',
 		};
 		const payload: Record<string, oauth4webapi.JsonValue | undefined> = {
 			aud: as.issuer,
@@ -96,8 +102,15 @@ export function AttestationBasedClientAuth(
 	};
 
 	return async (as, client, body, headers) => {
-		if (headers.has('authorization') || body.has('client_secret') || body.has('client_assertion') || body.has('client_assertion_type')) {
-			throw new TypeError('Attestation-based client authentication cannot be combined with another authentication mechanism');
+		if (
+			headers.has('authorization') ||
+			body.has('client_secret') ||
+			body.has('client_assertion') ||
+			body.has('client_assertion_type')
+		) {
+			throw new TypeError(
+				'Attestation-based client authentication cannot be combined with another authentication mechanism',
+			);
 		}
 		const proof = await signProof(as, client);
 		body.set('client_id', client.client_id);
