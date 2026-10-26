@@ -1,5 +1,4 @@
 {
-	"SpacesAfterTabs": true,
 	"Exclude": [
 		"^(node_modules|dist|build|public|coverage)/"
 	]

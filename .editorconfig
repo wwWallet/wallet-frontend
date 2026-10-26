@@ -8,6 +8,10 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = tab
 
+# Prettier owns indentation for JavaScript and TypeScript files.
+[*.{js,ts,tsx}]
+indent_style = unset
+
 [LICENSE]
 indent_style = space
 
