@@ -4,7 +4,7 @@ import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
-import { useLocation } from "react-router-dom";
+import { useLocation } from 'react-router-dom';
 import { usePushedAuthorizationRequest } from './OAuth/PushedAuthorizationRequest';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
@@ -12,13 +12,18 @@ import { accessTokenIsValid, refreshAccessToken } from './OAuth/accessToken';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import { useSessionContext } from '@/context/SessionContext';
-import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema, OpenidCredentialIssuerMetadata } from 'wallet-common';
+import {
+	CredentialConfigurationSupported,
+	VerifiableCredentialFormat,
+	CredentialOfferSchema,
+	OpenidCredentialIssuerMetadata,
+} from 'wallet-common';
 import { useTranslation } from 'react-i18next';
-import CredentialsContext from "@/context/CredentialsContext";
+import CredentialsContext from '@/context/CredentialsContext';
 import { WalletStateUtils } from '@/services/WalletStateUtils';
 import { fromBase64Url } from '@/util';
 import { IssuerSigned } from '@owf/mdoc';
-import { notify } from "@/context/notifier";
+import { notify } from '@/context/notifier';
 import { IOpenID4VCIClientStateRepository } from '@/lib/interfaces/IOpenID4VCIClientStateRepository';
 import { IOpenID4VCITokenRefreshMetadataProvider } from '@/lib/interfaces/IOpenID4VCIHelper';
 import type { IssuanceConsentOptions } from '@/types/consent';
@@ -33,9 +38,7 @@ const textDecoder = new TextDecoder();
 const getNextPollAt = (intervalMaybe: unknown): number => {
 	const fallbackInterval = config.OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS;
 	const parsedInterval = Number(intervalMaybe);
-	const intervalInSeconds = Number.isFinite(parsedInterval) && parsedInterval > 0
-		? parsedInterval
-		: fallbackInterval;
+	const intervalInSeconds = Number.isFinite(parsedInterval) && parsedInterval > 0 ? parsedInterval : fallbackInterval;
 	return Math.floor(Date.now() / 1000) + intervalInSeconds;
 };
 
@@ -50,7 +53,7 @@ async function refreshAccessTokenForFlowState(
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
 	if (!flowState.tokenResponse?.data?.refresh_token) {
-		throw new Error("No refresh token available");
+		throw new Error('No refresh token available');
 	}
 
 	const [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
@@ -59,26 +62,30 @@ async function refreshAccessTokenForFlowState(
 		context.openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier),
 	]);
 	if (!authzServerMetadata || !credentialIssuerMetadata) {
-		throw new Error("Missing metadata for refresh token request");
+		throw new Error('Missing metadata for refresh token request');
 	}
-	const credentialConfiguration = credentialIssuerMetadata.metadata?.credential_configurations_supported?.[flowState.credentialConfigurationId];
+	const credentialConfiguration =
+		credentialIssuerMetadata.metadata?.credential_configurations_supported?.[flowState.credentialConfigurationId];
 	const scope = credentialConfiguration?.scope;
 	if (!scope) {
-		throw new Error("Missing scope for refresh token request");
+		throw new Error('Missing scope for refresh token request');
 	}
 
 	try {
-		const result = await refreshAccessToken({
-			tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
-			issuer: authzServerMetadata.authzServerMetadata.issuer,
-			clientId: clientId ? clientId.client_id : null,
-			refreshToken: flowState.tokenResponse.data.refresh_token,
-			additionalParameters: { scope },
-			dpop: flowState.dpop,
-			dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
-		}, {
-			tokenRequestBuilder: context.tokenRequestBuilder,
-		});
+		const result = await refreshAccessToken(
+			{
+				tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
+				issuer: authzServerMetadata.authzServerMetadata.issuer,
+				clientId: clientId ? clientId.client_id : null,
+				refreshToken: flowState.tokenResponse.data.refresh_token,
+				additionalParameters: { scope },
+				dpop: flowState.dpop,
+				dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
+			},
+			{
+				tokenRequestBuilder: context.tokenRequestBuilder,
+			},
+		);
 
 		flowState.tokenResponse = {
 			data: {
@@ -120,37 +127,42 @@ async function ensureValidAccessTokenForFlowState(
 		return flowState;
 	}
 	if (!flowState.tokenResponse?.data?.refresh_token) {
-		throw new Error("No refresh token available");
+		throw new Error('No refresh token available');
 	}
 	return await refreshAccessTokenForFlowState(flowState, context);
 }
-
 
 export const deriveHolderKidFromCredential = async (credential: string, format: string) => {
 	if (format === VerifiableCredentialFormat.VC_SDJWT || format === VerifiableCredentialFormat.DC_SDJWT) {
 		const payload = credential.split('.')[1];
 		const { cnf } = JSON.parse(textDecoder.decode(fromBase64Url(payload)));
 		if (cnf && cnf.jwk) {
-			const jwkThumbprint = await jose.calculateJwkThumbprint(cnf.jwk as jose.JWK, "sha256");
+			const jwkThumbprint = await jose.calculateJwkThumbprint(cnf.jwk as jose.JWK, 'sha256');
 			return jwkThumbprint;
 		}
-	}
-	else if (format === VerifiableCredentialFormat.MSO_MDOC) {
+	} else if (format === VerifiableCredentialFormat.MSO_MDOC) {
 		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credential);
 		const deviceKey = issuerSigned.issuerAuth.mobileSecurityObject.deviceKeyInfo.deviceKey;
-		const kid = await jose.calculateJwkThumbprint(deviceKey.jwk as jose.JWK, "sha256");
+		const kid = await jose.calculateJwkThumbprint(deviceKey.jwk as jose.JWK, 'sha256');
 		return kid;
 	}
-}
+};
 
-export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup, openID4VCIClientStateRepository }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: IssuanceConsentOptions) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }, type?: 'error' | 'success' | 'info') => void, openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository }): IOpenID4VCI {
+export function useOpenID4VCI({
+	errorCallback,
+	showPopupConsent,
+	showMessagePopup,
+	openID4VCIClientStateRepository,
+}: {
+	errorCallback: (title: string, message: string) => void;
+	showPopupConsent: (options: IssuanceConsentOptions) => Promise<boolean>;
+	showMessagePopup: (message: { title: string; description: string }, type?: 'error' | 'success' | 'info') => void;
+	openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository;
+}): IOpenID4VCI {
 	const { search } = useLocation();
 	const params = useMemo(() => new URLSearchParams(search), [search]);
 
-	const verificationFlowInProgress = useMemo(
-		() => params.has("request_uri") && params.has("client_id"),
-		[params]
-	);
+	const verificationFlowInProgress = useMemo(() => params.has('request_uri') && params.has('client_id'), [params]);
 
 	const [issuanceFlowInProgress, setIssuanceFlowInProgress] = useState(false);
 
@@ -172,7 +184,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const credentialConfigurationIdRef = useRef<string | null>(null);
 	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
-
 	const { getCalculatedWalletState } = keystore;
 
 	const [tick, setTick] = useState(0);
@@ -187,46 +198,44 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const batchId = WalletStateUtils.getRandomUint32();
 		const credentialConfigurationId = credentialConfigurationIdRef.current;
 		const credentialIssuerMetadata = credentialIssuerMetadataRef.current;
-		const credentialConfiguration = credentialConfigurationId && credentialIssuerMetadata
-			? credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId]
-			: undefined;
+		const credentialConfiguration =
+			credentialConfigurationId && credentialIssuerMetadata
+				? credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId]
+				: undefined;
 		if (!credentialConfigurationId || !credentialIssuerMetadata || !credentialConfiguration) {
-			console.error("Credential issuer metadata or configuration is not set");
+			console.error('Credential issuer metadata or configuration is not set');
 			return;
 		}
 		setReceivedCredentialsArray(null);
 		// wait for keystore update before commiting the new credentials
 		(async () => {
 			try {
-
-				const kidMap = await Promise.all(temp.map(async (credential, index) => {
-					if (credentialConfiguration.format === VerifiableCredentialFormat.VC_SDJWT ||
-						credentialConfiguration.format === VerifiableCredentialFormat.DC_SDJWT
-					) {
-						return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
-					}
-					else if (credentialConfiguration.format === VerifiableCredentialFormat.MSO_MDOC) {
-						return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
-					}
-					else {
-						return null;
-					}
-				}));
+				const kidMap = await Promise.all(
+					temp.map(async (credential, index) => {
+						if (
+							credentialConfiguration.format === VerifiableCredentialFormat.VC_SDJWT ||
+							credentialConfiguration.format === VerifiableCredentialFormat.DC_SDJWT
+						) {
+							return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
+						} else if (credentialConfiguration.format === VerifiableCredentialFormat.MSO_MDOC) {
+							return deriveHolderKidFromCredential(credential, credentialConfiguration.format);
+						} else {
+							return null;
+						}
+					}),
+				);
 
 				let warnings = [];
 
-				const result = await credentialEngine.credentialParsingEngine.parse(
-					{
-						rawCredential: temp[0],
-						credentialIssuer: {
-							credentialConfigurationId,
-							credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-						},
-					}
-				)
+				const result = await credentialEngine.credentialParsingEngine.parse({
+					rawCredential: temp[0],
+					credentialIssuer: {
+						credentialConfigurationId,
+						credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
+					},
+				});
 
 				if (result.success) {
-
 					if (result.value.warnings && result.value.warnings.length > 0) {
 						console.warn(`Credential had warnings:`, result.value.warnings);
 						warnings = result.value.warnings;
@@ -240,32 +249,33 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				let userConsent = true;
 				if (warnings.length > 0 && config.DISPLAY_ISSUANCE_WARNINGS === true) {
 					userConsent = await showPopupConsent({
-						title: t("issuance.title"),
-						warnings: warnings
+						title: t('issuance.title'),
+						warnings: warnings,
 					});
 				}
 
 				if (userConsent) {
-					const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
-						return {
-							data: credential,
-							format: credentialConfiguration.format,
-							kid: kidMap[index] ?? "",
-							credentialConfigurationId,
-							credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-							batchId: batchId,
-							instanceId: index,
-						}
-					}));
+					const [, privateData, keystoreCommit] = await keystore.addCredentials(
+						temp.map((credential, index) => {
+							return {
+								data: credential,
+								format: credentialConfiguration.format,
+								kid: kidMap[index] ?? '',
+								credentialConfigurationId,
+								credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
+								batchId: batchId,
+								instanceId: index,
+							};
+						}),
+					);
 
 					await api.updatePrivateData(privateData);
 					await keystoreCommit();
 					setCommitStateChanges(1);
 					// display notification
-					notify("newCredential");
+					notify('newCredential');
 				}
-			}
-			catch (err) {
+			} catch (err) {
 				throw err;
 			}
 		})();
@@ -278,31 +288,37 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		showMessagePopup,
 		showPopupConsent,
 		t,
-		api
+		api,
 	]);
 
-	const resumePendingCredentialIssuance = useCallback(async (
-		credentialIssuerIdentifier: string,
-		credentialConfigurationId: string,
-	): Promise<boolean> => {
-		await openID4VCIClientStateRepository.cleanupExpired();
-		const existingState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(
-			credentialIssuerIdentifier,
-			credentialConfigurationId
-		);
-		if (existingState?.credentialEndpoint?.transactionId) {
-			showMessagePopup({
-				title: t('messagePopup.credentialIssuanceAlreadyPending.title'),
-				description: t('messagePopup.credentialIssuanceAlreadyPending.description'),
-			}, 'info');
-			return true;
-		}
-		return false;
-	}, [openID4VCIClientStateRepository, showMessagePopup, t]);
+	const resumePendingCredentialIssuance = useCallback(
+		async (credentialIssuerIdentifier: string, credentialConfigurationId: string): Promise<boolean> => {
+			await openID4VCIClientStateRepository.cleanupExpired();
+			const existingState =
+				await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(
+					credentialIssuerIdentifier,
+					credentialConfigurationId,
+				);
+			if (existingState?.credentialEndpoint?.transactionId) {
+				showMessagePopup(
+					{
+						title: t('messagePopup.credentialIssuanceAlreadyPending.title'),
+						description: t('messagePopup.credentialIssuanceAlreadyPending.description'),
+					},
+					'info',
+				);
+				return true;
+			}
+			return false;
+		},
+		[openID4VCIClientStateRepository, showMessagePopup, t],
+	);
 
 	const credentialRequest = useCallback(
 		async (response: any, flowState: WalletStateCredentialIssuanceSession) => {
-			if (await resumePendingCredentialIssuance(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId)) {
+			if (
+				await resumePendingCredentialIssuance(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId)
+			) {
 				return;
 			}
 
@@ -311,14 +327,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			} = response;
 
 			const [credentialIssuerMetadata] = await Promise.all([
-				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
+				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier),
 			]);
 			if (!credentialIssuerMetadata) {
-				throw new Error("Credential issuer metadata is not set");
+				throw new Error('Credential issuer metadata is not set');
 			}
 
 			// store as refs
-			credentialIssuerMetadataRef.current = credentialIssuerMetadata
+			credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 			credentialConfigurationIdRef.current = flowState.credentialConfigurationId;
 			if (credentialIssuerMetadata.metadata.nonce_endpoint) {
 				const nonceEndpointResp = await httpProxy.post(credentialIssuerMetadata.metadata.nonce_endpoint, {});
@@ -333,9 +349,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			if (flowState?.dpop) {
 				if (!flowState.dpop.dpopPublicKeyJwk) {
-					throw new Error("DPoP public key is not set");
+					throw new Error('DPoP public key is not set');
 				}
-				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg)
+				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg);
 				credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 				credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
 				credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
@@ -343,11 +359,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				await credentialRequestBuilder.setDpopHeader();
 			}
 
-			const credConf = credentialIssuerMetadata.metadata.credential_configurations_supported[
-				flowState.credentialConfigurationId
-			];
+			const credConf =
+				credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId];
 			if (!credConf) {
-				throw new Error("Credential configuration is not set");
+				throw new Error('Credential configuration is not set');
 			}
 
 			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
@@ -355,18 +370,20 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				if (proof_type === 'attestation' && credConf?.proof_types_supported?.attestation) {
 					selectedProofType = 'attestation';
 					break;
-				}
-				else if (proof_type === 'jwt' && credConf?.proof_types_supported?.jwt) {
+				} else if (proof_type === 'jwt' && credConf?.proof_types_supported?.jwt) {
 					selectedProofType = 'jwt';
 					break;
 				}
 			}
 
-			console.log("Selected proof type = ", selectedProofType);
+			console.log('Selected proof type = ', selectedProofType);
 
-			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId, selectedProofType);
+			const { credentialResponse } = await credentialRequestBuilder.execute(
+				flowState.credentialConfigurationId,
+				selectedProofType,
+			);
 
-			console.log("Response = ", credentialResponse)
+			console.log('Response = ', credentialResponse);
 
 			if (credentialResponse.data.transaction_id) {
 				flowState.credentialEndpoint = {
@@ -374,9 +391,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					nextPollAt: getNextPollAt(credentialResponse?.data?.interval),
 				};
 				await openID4VCIClientStateRepository.updateState(flowState);
-				console.log("Flow state: ", flowState)
+				console.log('Flow state: ', flowState);
 				const s = await openID4VCIClientStateRepository.getByState(flowState.state);
-				console.log("Updated S: ", s);
+				console.log('Updated S: ', s);
 				await openID4VCIClientStateRepository.cleanupExpired();
 				setCommitStateChanges(1);
 				return;
@@ -384,19 +401,22 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			await openID4VCIClientStateRepository.updateState(flowState);
 			await openID4VCIClientStateRepository.cleanupExpired();
 
-			const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
+			const credentialArray: string[] = credentialResponse.data.credentials.map(
+				(c: { credential: string }) => c.credential,
+			);
 
 			setReceivedCredentialsArray(credentialArray);
 
 			return;
-
-		}, [
-		openID4VCIHelper,
-		openID4VCIClientStateRepository,
-		credentialRequestBuilder,
-		httpProxy,
-		resumePendingCredentialIssuance
-	]);
+		},
+		[
+			openID4VCIHelper,
+			openID4VCIClientStateRepository,
+			credentialRequestBuilder,
+			httpProxy,
+			resumePendingCredentialIssuance,
+		],
+	);
 
 	const getRememberIssuerAge = useCallback((): number | null => {
 		if (!getCalculatedWalletState) {
@@ -410,73 +430,87 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [getCalculatedWalletState]);
 
 	const requestCredentials = useCallback(
-		async (credentialIssuerIdentifier: string, requestCredentialsParams: {
-			dpopNonceHeader?: string,
-			preAuthorizedCodeGrant?: {
-				pre_authorized_code: string;
+		async (
+			credentialIssuerIdentifier: string,
+			requestCredentialsParams: {
+				dpopNonceHeader?: string;
+				preAuthorizedCodeGrant?: {
+					pre_authorized_code: string;
+				};
+				authorizationCodeGrant?: {
+					state: string;
+					authorizationResponseUrl: string;
+					code: string;
+				};
+				usingActiveAccessToken?: {
+					credentialConfigurationId: string;
+				};
+				refreshTokenGrant?: {
+					credentialConfigurationId: string;
+				};
 			},
-			authorizationCodeGrant?: {
-				state: string;
-				authorizationResponseUrl: string;
-				code: string;
-			},
-			usingActiveAccessToken?: {
-				credentialConfigurationId: string;
-			},
-			refreshTokenGrant?: {
-				credentialConfigurationId: string;
-			}
-		}) => {
+		) => {
 			console.log(JSON.stringify(requestCredentialsParams));
 			const [authzServerMetadata, clientId] = await Promise.all([
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
-				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
+				openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 			]);
 			if (!authzServerMetadata) {
-				throw new Error("Authorization server metadata is not set");
+				throw new Error('Authorization server metadata is not set');
 			}
 
 			if (!clientId) {
-				console.error("clientId not found");
-				return ;
+				console.error('clientId not found');
+				return;
 			}
 
 			if (requestCredentialsParams.usingActiveAccessToken) {
-				console.log("Attempting with active access token")
+				console.log('Attempting with active access token');
 
-				const flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(credentialIssuerIdentifier, requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId)
+				const flowState =
+					await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(
+						credentialIssuerIdentifier,
+						requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId,
+					);
 				if (!flowState) {
-					throw new Error("Using active access token: No flowstate");
+					throw new Error('Using active access token: No flowstate');
 				}
 
 				const rememberIssuerAge = getRememberIssuerAge();
 				const flowStateAge = Math.floor(Date.now() / 1000) - flowState.created;
 				// if c_nonce and access_token are not expired
-				if (flowState.tokenResponse &&
+				if (
+					flowState.tokenResponse &&
 					Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.expiration_timestamp &&
-					rememberIssuerAge !== null && flowStateAge < rememberIssuerAge) {
+					rememberIssuerAge !== null &&
+					flowStateAge < rememberIssuerAge
+				) {
 					// attempt credential request
 					if (!flowState.dpop) {
-						throw new Error("Using active access token: No dpop in flowstate");
+						throw new Error('Using active access token: No dpop in flowstate');
 					}
 
 					await credentialRequest(flowState.tokenResponse, flowState);
 					return;
-				}
-				else {
-					console.log("Using active access token: c_nonce or access_token are expired");
+				} else {
+					console.log('Using active access token: c_nonce or access_token are expired');
 				}
 
 				// if access_token is expired
-				if (flowState.tokenResponse && Math.floor(Date.now() / 1000) > flowState.tokenResponse.data.expiration_timestamp && flowState.tokenResponse.data.refresh_token &&
-					rememberIssuerAge !== null && flowStateAge < rememberIssuerAge) {
+				if (
+					flowState.tokenResponse &&
+					Math.floor(Date.now() / 1000) > flowState.tokenResponse.data.expiration_timestamp &&
+					flowState.tokenResponse.data.refresh_token &&
+					rememberIssuerAge !== null &&
+					flowStateAge < rememberIssuerAge
+				) {
 					// refresh token grant
 					await requestCredentials(credentialIssuerIdentifier, {
 						dpopNonceHeader: requestCredentialsParams.dpopNonceHeader,
 						refreshTokenGrant: {
-							credentialConfigurationId: requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId
-						}
-					})
+							credentialConfigurationId: requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId,
+						},
+					});
 					return;
 				}
 				throw new Error("Couldn't hande using active access token");
@@ -484,43 +518,44 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			// Token Request
 			const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 
-
 			let flowState: WalletStateCredentialIssuanceSession | null = null;
 
 			if (requestCredentialsParams?.authorizationCodeGrant) {
-
-				flowState = await openID4VCIClientStateRepository.getByState(requestCredentialsParams.authorizationCodeGrant.state)
+				flowState = await openID4VCIClientStateRepository.getByState(
+					requestCredentialsParams.authorizationCodeGrant.state,
+				);
+			} else if (requestCredentialsParams?.refreshTokenGrant) {
+				flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(
+					credentialIssuerIdentifier,
+					requestCredentialsParams.refreshTokenGrant.credentialConfigurationId,
+				);
 			}
-			else if (requestCredentialsParams?.refreshTokenGrant) {
-				flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(credentialIssuerIdentifier, requestCredentialsParams.refreshTokenGrant.credentialConfigurationId)
-			}
-
-
 
 			if (!flowState) {
-				throw new Error("No flowstate");
+				throw new Error('No flowstate');
 			}
 
 			let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
 			let dpopPrivateKeyJwk: jose.JWK | null = null;
 			let dpopPublicKeyJwk: jose.JWK | null = null;
 
-			if (!flowState.dpop) { // if DPoP keys have not been generated, then generate them
+			if (!flowState.dpop) {
+				// if DPoP keys have not been generated, then generate them
 				const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
 				[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
 					jose.exportJWK(privateKey),
-					jose.exportJWK(publicKey)
+					jose.exportJWK(publicKey),
 				]);
 
 				dpopPrivateKey = privateKey;
-			}
-			else { // if already generated, then reuse them
+			} else {
+				// if already generated, then reuse them
 				dpopPrivateKeyJwk = flowState.dpop.dpopPrivateKeyJwk;
 				dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk ?? null;
 
 				[dpopPrivateKey] = await Promise.all([
-					jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
-				])
+					jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg),
+				]);
 			}
 			const jti = generateRandomIdentifier(8);
 
@@ -529,7 +564,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
 				if (!dpopPrivateKey || !dpopPublicKeyJwk || !dpopPrivateKeyJwk) {
-					throw new Error("DPoP keys are not set");
+					throw new Error('DPoP keys are not set');
 				}
 				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
 				flowState.dpop = {
@@ -537,18 +572,21 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					dpopJti: jti,
 					dpopPrivateKeyJwk: dpopPrivateKeyJwk,
 					dpopPublicKeyJwk: dpopPublicKeyJwk,
-				}
+				};
 			}
 
-
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
-			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
+			tokenRequestBuilder.setGrantType(
+				requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH,
+			);
 			if (requestCredentialsParams.authorizationCodeGrant) {
 				if (!flowState.code_verifier) {
-					throw new Error("Code verifier is not set");
+					throw new Error('Code verifier is not set');
 				}
 				tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams.authorizationCodeGrant.code);
-				tokenRequestBuilder.setAuthorizationResponseUrl(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl);
+				tokenRequestBuilder.setAuthorizationResponseUrl(
+					requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl,
+				);
 				tokenRequestBuilder.setState(requestCredentialsParams.authorizationCodeGrant.state);
 				tokenRequestBuilder.setCodeVerifier(flowState.code_verifier);
 			}
@@ -556,64 +594,63 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const refreshToken = flowState.tokenResponse?.data?.refresh_token;
 			if (requestCredentialsParams.refreshTokenGrant) {
 				if (!refreshToken) {
-					throw new Error("Refresh token is not set");
+					throw new Error('Refresh token is not set');
 				}
 				tokenRequestBuilder.setRefreshToken(refreshToken);
 			}
 
 			tokenRequestBuilder.setRedirectUri(redirectUri);
 
-
 			const result = await tokenRequestBuilder.execute();
 
 			if ('error' in result) {
 				if (result.error === TokenRequestError.AUTHORIZATION_REQUIRED) {
 					if (!generateAuthorizationRequestRef.current) {
-						throw new Error("Authorization request generator is not set");
+						throw new Error('Authorization request generator is not set');
 					}
-					return generateAuthorizationRequestRef.current(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
+					return generateAuthorizationRequestRef.current(
+						flowState.credentialIssuerIdentifier,
+						flowState.credentialConfigurationId,
+					);
 				}
-				throw new Error("Token request failed");
+				throw new Error('Token request failed');
 			}
 
-			try { // try to extract the response and update the OpenID4VCIClientStateRepository
+			try {
+				// try to extract the response and update the OpenID4VCIClientStateRepository
 				const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
 
 				if (!access_token) {
-					console.log("Missing access_token from response");
+					console.log('Missing access_token from response');
 					return;
 				}
 
 				flowState.tokenResponse = {
 					data: {
-						access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
+						access_token,
+						c_nonce,
+						expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in,
+						c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in,
+						refresh_token,
 					},
-					headers: { ...result.response.httpResponseHeaders }
-				}
+					headers: { ...result.response.httpResponseHeaders },
+				};
 
 				await openID4VCIClientStateRepository.updateState(flowState);
-			}
-			catch (err) {
+			} catch (err) {
 				console.error(err);
-				throw new Error("Failed to extract the response and update the OpenID4VCIClientStateRepository");
+				throw new Error('Failed to extract the response and update the OpenID4VCIClientStateRepository');
 			}
 
 			try {
 				// Credential Request
 				await credentialRequest(flowState.tokenResponse, flowState);
-			}
-			catch (err) {
-				console.error("Error handling authrozation response ", err);
-				throw new Error("Credential request failed");
+			} catch (err) {
+				console.error('Error handling authrozation response ', err);
+				throw new Error('Credential request failed');
 			}
 		},
-		[
-			openID4VCIClientStateRepository,
-			openID4VCIHelper,
-			credentialRequest,
-			tokenRequestBuilder,
-			getRememberIssuerAge
-		]
+		[openID4VCIClientStateRepository, openID4VCIHelper, credentialRequest, tokenRequestBuilder, getRememberIssuerAge],
 	);
 
 	const generateAuthorizationRequestRef = useRef<IOpenID4VCI['generateAuthorizationRequest'] | null>(null);
@@ -634,7 +671,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			const s = await openID4VCIClientStateRepository.getByState(state);
 			if (!s || !s.credentialIssuerIdentifier) {
-				console.log("No credential issuer identifier was found in the issuance flow state");
+				console.log('No credential issuer identifier was found in the issuance flow state');
 				return;
 			}
 			if (sessionStorage.getItem('oid4vci_last_used_state') === state) {
@@ -642,7 +679,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 
 			sessionStorage.setItem('oid4vci_last_used_state', state);
-			console.log("Handling authorization response...");
+			console.log('Handling authorization response...');
 			setIssuanceFlowInProgress(true);
 			try {
 				await requestCredentials(s.credentialIssuerIdentifier, {
@@ -651,154 +688,187 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						authorizationResponseUrl: url,
 						code: code,
 						state: state,
-					}
+					},
 				});
-			}
-			finally {
+			} finally {
 				setIssuanceFlowInProgress(false);
 			}
 		},
-		[openID4VCIClientStateRepository, requestCredentials, setIssuanceFlowInProgress]
+		[openID4VCIClientStateRepository, requestCredentials, setIssuanceFlowInProgress],
 	);
 
-	const requestCredentialsWithPreAuthorization = useCallback(async (credentialIssuer: string, selectedCredentialConfigurationId: string, preAuthorizedCode: string, txCode?: string): Promise<{}> => {
-		if (await resumePendingCredentialIssuance(credentialIssuer, selectedCredentialConfigurationId)) {
-			return {};
-		}
-
-		const [authzServerMetadata] = await Promise.all([
-			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
-		]);
-		if (!authzServerMetadata) {
-			throw new Error("Authorization server metadata is not set");
-		}
-
-		const flowState: WalletStateCredentialIssuanceSession = {
-			sessionId: WalletStateUtils.getRandomUint32(),
-			credentialIssuerIdentifier: credentialIssuer,
-			state: "",
-			code_verifier: "",
-			credentialConfigurationId: selectedCredentialConfigurationId,
-			created: Math.floor(Date.now() / 1000),
-		};
-
-		const userHandleB64u = keystore.getUserHandleB64u();
-		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-		flowState.state = state;
-
-		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
-		let dpopPrivateKeyJwk: jose.JWK | null = null;
-		let dpopPublicKeyJwk: jose.JWK | null = null;
-		const jti = generateRandomIdentifier(18);
-		if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported && authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported.includes('ES256')) {
-			const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
-			[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
-				jose.exportJWK(privateKey),
-				jose.exportJWK(publicKey)
-			]);
-
-			dpopPrivateKey = privateKey;
-			await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
-			flowState.dpop = {
-				dpopAlg: 'ES256',
-				dpopJti: jti,
-				dpopPrivateKeyJwk: dpopPrivateKeyJwk,
-				dpopPublicKeyJwk: dpopPublicKeyJwk,
+	const requestCredentialsWithPreAuthorization = useCallback(
+		async (
+			credentialIssuer: string,
+			selectedCredentialConfigurationId: string,
+			preAuthorizedCode: string,
+			txCode?: string,
+		): Promise<{}> => {
+			if (await resumePendingCredentialIssuance(credentialIssuer, selectedCredentialConfigurationId)) {
+				return {};
 			}
-		}
 
-		// Persist state/code_verifier for later token exchange
-		await openID4VCIClientStateRepository.create(flowState);
-		await openID4VCIClientStateRepository.commitStateChanges();
+			const [authzServerMetadata] = await Promise.all([
+				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
+			]);
+			if (!authzServerMetadata) {
+				throw new Error('Authorization server metadata is not set');
+			}
 
-		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
-		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
-		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
-		tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
-		tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
-		if (txCode) {
-			tokenRequestBuilder.setTxCode(txCode);
-		}
-		const result = await tokenRequestBuilder.execute();
-		if ('error' in result) {
-			console.error(result.error);
-			throw new Error("Token Request failed");
-		}
-		const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
-		if (!access_token) {
-			console.error("Missing access_token from response");
-			throw new Error("Missing access_token from response");
-		}
+			const flowState: WalletStateCredentialIssuanceSession = {
+				sessionId: WalletStateUtils.getRandomUint32(),
+				credentialIssuerIdentifier: credentialIssuer,
+				state: '',
+				code_verifier: '',
+				credentialConfigurationId: selectedCredentialConfigurationId,
+				created: Math.floor(Date.now() / 1000),
+			};
 
+			const userHandleB64u = keystore.getUserHandleB64u();
+			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) }))
+				.replace(/\+/g, '-')
+				.replace(/\//g, '_')
+				.replace(/=/g, '');
+			flowState.state = state;
 
-		flowState.tokenResponse = {
-			data: {
-				access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
-			},
-			headers: { ...result.response.httpResponseHeaders }
-		};
-		await openID4VCIClientStateRepository.updateState(flowState);
+			let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
+			let dpopPrivateKeyJwk: jose.JWK | null = null;
+			let dpopPublicKeyJwk: jose.JWK | null = null;
+			const jti = generateRandomIdentifier(18);
+			if (
+				authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported &&
+				authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported.includes('ES256')
+			) {
+				const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
+				[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
+					jose.exportJWK(privateKey),
+					jose.exportJWK(publicKey),
+				]);
 
-		await credentialRequest(flowState.tokenResponse, flowState);
-		return {};
-	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper, resumePendingCredentialIssuance, keystore, openID4VCIClientStateRepository]);
+				dpopPrivateKey = privateKey;
+				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
+				flowState.dpop = {
+					dpopAlg: 'ES256',
+					dpopJti: jti,
+					dpopPrivateKeyJwk: dpopPrivateKeyJwk,
+					dpopPublicKeyJwk: dpopPublicKeyJwk,
+				};
+			}
+
+			// Persist state/code_verifier for later token exchange
+			await openID4VCIClientStateRepository.create(flowState);
+			await openID4VCIClientStateRepository.commitStateChanges();
+
+			const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
+			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
+			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
+			tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
+			tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
+			if (txCode) {
+				tokenRequestBuilder.setTxCode(txCode);
+			}
+			const result = await tokenRequestBuilder.execute();
+			if ('error' in result) {
+				console.error(result.error);
+				throw new Error('Token Request failed');
+			}
+			const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
+			if (!access_token) {
+				console.error('Missing access_token from response');
+				throw new Error('Missing access_token from response');
+			}
+
+			flowState.tokenResponse = {
+				data: {
+					access_token,
+					c_nonce,
+					expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in,
+					c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in,
+					refresh_token,
+				},
+				headers: { ...result.response.httpResponseHeaders },
+			};
+			await openID4VCIClientStateRepository.updateState(flowState);
+
+			await credentialRequest(flowState.tokenResponse, flowState);
+			return {};
+		},
+		[
+			tokenRequestBuilder,
+			credentialRequest,
+			openID4VCIHelper,
+			resumePendingCredentialIssuance,
+			keystore,
+			openID4VCIClientStateRepository,
+		],
+	);
 
 	/**
- *
- * @param response
- * @param flowState
- * @param cachedProof cachedProof is used in case a failure due to invalid dpop-nonce is caused and the last proof can be re-used.
- * @returns
- */
+	 *
+	 * @param response
+	 * @param flowState
+	 * @param cachedProof cachedProof is used in case a failure due to invalid dpop-nonce is caused and the last proof can be re-used.
+	 * @returns
+	 */
 
 	const handleCredentialOffer = useCallback(
-		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: TxCodeInputMetadata; preAuthorizedCode?: string; }> => {
+		async (
+			credentialOfferURL: string,
+		): Promise<{
+			credentialIssuer: string;
+			selectedCredentialConfigurationId: string;
+			issuer_state?: string;
+			txCode?: TxCodeInputMetadata;
+			preAuthorizedCode?: string;
+		}> => {
 			const parsedUrl = new URL(credentialOfferURL);
-			const credentialOffer = parsedUrl.searchParams.get("credential_offer");
-			const credentialOfferUri = parsedUrl.searchParams.get("credential_offer_uri");
+			const credentialOffer = parsedUrl.searchParams.get('credential_offer');
+			const credentialOfferUri = parsedUrl.searchParams.get('credential_offer_uri');
 			let offer;
 			if (credentialOffer && credentialOfferUri) {
-				throw new Error("Credential offer must not contain both credential_offer and credential_offer_uri");
+				throw new Error('Credential offer must not contain both credential_offer and credential_offer_uri');
 			}
 			if (credentialOffer) {
 				offer = CredentialOfferSchema.parse(JSON.parse(credentialOffer));
 			} else if (credentialOfferUri) {
 				try {
-					const response = await httpProxy.get(credentialOfferUri, {})
+					const response = await httpProxy.get(credentialOfferUri, {});
 					offer = CredentialOfferSchema.parse(response.data);
-				}
-				catch (err) {
+				} catch (err) {
 					console.error(err);
-					throw new Error("Credential offer request failed");
+					throw new Error('Credential offer request failed');
 				}
 			} else {
-				throw new Error("Credential offer must contain credential_offer or credential_offer_uri");
+				throw new Error('Credential offer must contain credential_offer or credential_offer_uri');
 			}
 
-
 			const [credentialIssuerMetadata] = await Promise.all([
-				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
+				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer),
 			]);
 			if (!credentialIssuerMetadata) {
-				throw new Error("Credential issuer metadata not found");
+				throw new Error('Credential issuer metadata not found');
 			}
 
 			const selectedConfigurationId = offer.credential_configuration_ids[0];
 			if (!selectedConfigurationId) {
-				throw new Error("Credential configuration not found");
+				throw new Error('Credential configuration not found');
 			}
-			const selectedConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[selectedConfigurationId];
+			const selectedConfiguration =
+				credentialIssuerMetadata.metadata.credential_configurations_supported[selectedConfigurationId];
 			if (!selectedConfiguration) {
-				throw new Error("Credential configuration not found");
+				throw new Error('Credential configuration not found');
 			}
 
 			const preAuthorizedCodeObject = offer.grants?.[GrantType.PRE_AUTHORIZED_CODE];
 			if (preAuthorizedCodeObject) {
-				const preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"];
-				const txCode = "tx_code" in preAuthorizedCodeObject
-					? preAuthorizedCodeObject["tx_code"] ?? {}
-					: undefined;
-				return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, txCode, preAuthorizedCode };
+				const preAuthorizedCode = preAuthorizedCodeObject['pre-authorized_code'];
+				const txCode = 'tx_code' in preAuthorizedCodeObject ? (preAuthorizedCodeObject['tx_code'] ?? {}) : undefined;
+				return {
+					credentialIssuer: offer.credential_issuer,
+					selectedCredentialConfigurationId: selectedConfigurationId,
+					txCode,
+					preAuthorizedCode,
+				};
 			}
 
 			let issuer_state = undefined;
@@ -806,25 +876,29 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				issuer_state = offer.grants.authorization_code.issuer_state;
 			}
 
-			return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, issuer_state };
+			return {
+				credentialIssuer: offer.credential_issuer,
+				selectedCredentialConfigurationId: selectedConfigurationId,
+				issuer_state,
+			};
 		},
-		[httpProxy, openID4VCIHelper]
+		[httpProxy, openID4VCIHelper],
 	);
 
 	const getAvailableCredentialConfigurations = useCallback(
 		async (credentialIssuerIdentifier: string): Promise<Record<string, CredentialConfigurationSupported>> => {
 			const [credentialIssuerMetadata] = await Promise.all([
-				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier)
+				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			]);
 			if (!credentialIssuerMetadata) {
-				throw new Error("Credential issuer metadata not found");
+				throw new Error('Credential issuer metadata not found');
 			}
 			if (!credentialIssuerMetadata.metadata?.credential_configurations_supported) {
-				throw new Error("Credential configuration supported not found")
+				throw new Error('Credential configuration supported not found');
 			}
 			return credentialIssuerMetadata.metadata?.credential_configurations_supported;
 		},
-		[openID4VCIHelper]
+		[openID4VCIHelper],
 	);
 
 	const generateAuthorizationRequest = useCallback(
@@ -833,57 +907,60 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				return {};
 			}
 
-			try { // attempt to get credentials using active session
+			try {
+				// attempt to get credentials using active session
 				await requestCredentials(credentialIssuerIdentifier, {
 					usingActiveAccessToken: {
-						credentialConfigurationId
-					}
+						credentialConfigurationId,
+					},
 				});
 				return {};
+			} catch (err) {
+				console.error(err);
 			}
-			catch (err) { console.error(err) }
 
 			const [authzServerMetadata, credentialIssuerMetadata, clientId] = await Promise.all([
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
-				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
+				openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 			]);
 
 			if (!clientId) {
-				throw new Error("Error generating Authorization Request: ClientID not found");
+				throw new Error('Error generating Authorization Request: ClientID not found');
 			}
 			if (!authzServerMetadata || !credentialIssuerMetadata) {
-				throw new Error("Error generating Authorization Request: metadata not found");
+				throw new Error('Error generating Authorization Request: metadata not found');
 			}
 
 			// OID4VCI-specific logic for PAR
-			const selectedCredentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
+			const selectedCredentialConfigurationSupported =
+				credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
 			if (!selectedCredentialConfigurationSupported?.scope) {
-				throw new Error("Error generating Authorization Request: credential configuration scope not found");
+				throw new Error('Error generating Authorization Request: credential configuration scope not found');
 			}
 			const scope = selectedCredentialConfigurationSupported.scope;
 
 			const userHandleB64u = keystore.getUserHandleB64u();
-			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) }))
+				.replace(/\+/g, '-')
+				.replace(/\//g, '_')
+				.replace(/=/g, '');
 
 			// OAuth params
 			const params: Record<string, string> = {
 				scope,
-				response_type: "code",
+				response_type: 'code',
 				client_id: clientId.client_id,
 				state,
-				redirect_uri: redirectUri
+				redirect_uri: redirectUri,
 			};
 			if (issuer_state) {
-				params["issuer_state"] = issuer_state;
+				params['issuer_state'] = issuer_state;
 			}
 
 			if (authzServerMetadata.authzServerMetadata.pushed_authorization_request_endpoint) {
 				const { sendPushedAuthorizationRequest } = openID4VCIPushedAuthorizationRequest;
-				const parRes = await sendPushedAuthorizationRequest(
-					authzServerMetadata.authzServerMetadata,
-					params
-				);
+				const parRes = await sendPushedAuthorizationRequest(authzServerMetadata.authzServerMetadata, params);
 				// Persist state/code_verifier for later token exchange
 				await openID4VCIClientStateRepository.create({
 					sessionId: WalletStateUtils.getRandomUint32(),
@@ -906,11 +983,25 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				if (age != null && age === 0) {
 					authorizationRequestURL.searchParams.set('prompt', 'login');
 				}
-				return { url: authorizationRequestURL.toString(), issuerMetadata: credentialIssuerMetadata.metadata, credentialConfigurationId };
+				return {
+					url: authorizationRequestURL.toString(),
+					issuerMetadata: credentialIssuerMetadata.metadata,
+					credentialConfigurationId,
+				};
 			}
-			throw new Error("Error generating Authorization Request: pushed_authorization_request_endpoint parameter not found");
+			throw new Error(
+				'Error generating Authorization Request: pushed_authorization_request_endpoint parameter not found',
+			);
 		},
-		[openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge, resumePendingCredentialIssuance, openID4VCIClientStateRepository]
+		[
+			openID4VCIHelper,
+			openID4VCIPushedAuthorizationRequest,
+			requestCredentials,
+			keystore,
+			getRememberIssuerAge,
+			resumePendingCredentialIssuance,
+			openID4VCIClientStateRepository,
+		],
 	);
 
 	useEffect(() => {
@@ -919,7 +1010,13 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const firedRef = useRef(false);
 	useEffect(() => {
-		if (commitStateChanges === 1 && !firedRef.current && !verificationFlowInProgress && openID4VCIClientStateRepository && receivedCredentialsArray === null) {
+		if (
+			commitStateChanges === 1 &&
+			!firedRef.current &&
+			!verificationFlowInProgress &&
+			openID4VCIClientStateRepository &&
+			receivedCredentialsArray === null
+		) {
 			firedRef.current = true;
 			(async () => {
 				await openID4VCIClientStateRepository.commitStateChanges();
@@ -930,11 +1027,23 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		if (commitStateChanges !== 1) {
 			firedRef.current = false;
 		}
-	}, [commitStateChanges, openID4VCIClientStateRepository, verificationFlowInProgress, setCommitStateChanges, receivedCredentialsArray]);
-
+	}, [
+		commitStateChanges,
+		openID4VCIClientStateRepository,
+		verificationFlowInProgress,
+		setCommitStateChanges,
+		receivedCredentialsArray,
+	]);
 
 	const intervalCallback = useCallback(async (): Promise<void | null> => {
-		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress || issuanceFlowInProgress) {
+		if (
+			!openID4VCIClientStateRepository ||
+			!api.isLoggedIn() ||
+			receivedCredentialsArray !== null ||
+			commitStateChanges === 1 ||
+			verificationFlowInProgress ||
+			issuanceFlowInProgress
+		) {
 			return null;
 		}
 		await openID4VCIClientStateRepository.getAllStatesWithNonEmptyTransactionId().then(async (sessions) => {
@@ -945,15 +1054,16 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				const transactionId = credentialEndpoint?.transactionId;
 				const nextPollAt = credentialEndpoint?.nextPollAt;
 				const now = Math.floor(new Date().getTime() / 1000);
-				console.log("Transaction id: ", transactionId)
+				console.log('Transaction id: ', transactionId);
 				if (!transactionId) {
 					continue;
 				}
-				if (typeof nextPollAt === "number" && now < nextPollAt) {
+				if (typeof nextPollAt === 'number' && now < nextPollAt) {
 					continue;
 				}
-				if (now - created > config.OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) { // exceeded lifetime, then stop tracking
-					console.log("Deferred: exceeded lifetime")
+				if (now - created > config.OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) {
+					// exceeded lifetime, then stop tracking
+					console.log('Deferred: exceeded lifetime');
 					await openID4VCIClientStateRepository.updateState({
 						...s,
 						credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
@@ -975,8 +1085,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						openID4VCIClientStateRepository,
 						tokenRequestBuilder,
 					});
-				}
-				catch (error) {
+				} catch (error) {
 					console.error(error);
 					continue;
 				}
@@ -991,37 +1100,35 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 				if (pollingState?.dpop) {
 					if (!pollingState.dpop.dpopPublicKeyJwk) {
-						console.error("DPoP public key is not set");
+						console.error('DPoP public key is not set');
 						continue;
 					}
-					const privateKey = await jose.importJWK(pollingState?.dpop.dpopPrivateKeyJwk, pollingState?.dpop.dpopAlg)
+					const privateKey = await jose.importJWK(pollingState?.dpop.dpopPrivateKeyJwk, pollingState?.dpop.dpopAlg);
 					deferredCredentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 					deferredCredentialRequestBuilder.setDpopPublicKeyJwk(pollingState.dpop.dpopPublicKeyJwk);
 					deferredCredentialRequestBuilder.setDpopJti(pollingState.dpop.dpopJti);
 					await deferredCredentialRequestBuilder.setDpopHeader();
 				}
 
-				console.log("attemtping deferred...")
+				console.log('attemtping deferred...');
 				try {
 					const { credentialResponse } = await deferredCredentialRequestBuilder.executeDeferredFetch(transactionId);
-					console.log("Credential response = ", credentialResponse)
-					if (credentialResponse?.data?.error && credentialResponse?.data?.error !== "issuance_pending") {
-						console.log("Error deferred: ", credentialResponse?.data?.error)
+					console.log('Credential response = ', credentialResponse);
+					if (credentialResponse?.data?.error && credentialResponse?.data?.error !== 'issuance_pending') {
+						console.log('Error deferred: ', credentialResponse?.data?.error);
 						await openID4VCIClientStateRepository.updateState({
 							...pollingState,
 							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 						});
-						console.log("Invalidated transaction id: ", transactionId)
-						notify("error",
-							{
-								title: "Pending credential issuance failed",
-								message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
-							}
-						);
+						console.log('Invalidated transaction id: ', transactionId);
+						notify('error', {
+							title: 'Pending credential issuance failed',
+							message: 'Unable to fetch deferred credential. Credential issuance has been cancelled.',
+						});
 						stateUpdated = true;
 						continue;
 					}
-					if (credentialResponse?.data?.error === "issuance_pending") {
+					if (credentialResponse?.data?.error === 'issuance_pending') {
 						await openID4VCIClientStateRepository.updateState({
 							...pollingState,
 							credentialEndpoint: {
@@ -1035,7 +1142,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					if (!credentialResponse?.data?.credentials) {
 						continue;
 					}
-					const credentialArray: string[] = credentialResponse.data.credentials.map((c: { credential: string }) => c.credential);
+					const credentialArray: string[] = credentialResponse.data.credentials.map(
+						(c: { credential: string }) => c.credential,
+					);
 					if (credentialResponse?.data?.credentials) {
 						await openID4VCIClientStateRepository.updateState({
 							...pollingState,
@@ -1047,15 +1156,13 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					credentialConfigurationIdRef.current = s.credentialConfigurationId;
 					// let warnings = [];
 					for (const rawCredential of credentialArray) {
-
-						const result = await credentialEngine.credentialParsingEngine.parse(
-							{
-								rawCredential: rawCredential,
-								credentialIssuer: {
-									credentialIssuerIdentifier: s.credentialIssuerIdentifier,
-									credentialConfigurationId: s.credentialConfigurationId,
-								},
-							})
+						const result = await credentialEngine.credentialParsingEngine.parse({
+							rawCredential: rawCredential,
+							credentialIssuer: {
+								credentialIssuerIdentifier: s.credentialIssuerIdentifier,
+								credentialConfigurationId: s.credentialConfigurationId,
+							},
+						});
 						if (result.success) {
 							if (result.value.warnings && result.value.warnings.length > 0) {
 								console.warn(`Credential had warnings:`, result.value.warnings);
@@ -1068,19 +1175,16 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						credsCollected.push(...credentialArray);
 						break; // in next tick, will handle different issuance
 					}
-				}
-				catch (err) {
+				} catch (err) {
 					console.log(err);
 				}
-
 			}
 			if (credsCollected.length > 0) {
 				setReceivedCredentialsArray(credsCollected);
-			}
-			else if (stateUpdated) {
+			} else if (stateUpdated) {
 				setCommitStateChanges(1);
 			}
-		})
+		});
 	}, [
 		openID4VCIClientStateRepository,
 		api,
@@ -1091,7 +1195,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		openID4VCIHelper,
 		deferredCredentialRequestBuilder,
 		credentialEngine,
-		tokenRequestBuilder
+		tokenRequestBuilder,
 	]);
 
 	useEffect(() => {
@@ -1104,7 +1208,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		return () => {
 			clearTimeout(timeoutId);
 		};
-	}, [tick, intervalCallback])
+	}, [tick, intervalCallback]);
 
 	return useMemo(() => {
 		return {
@@ -1113,7 +1217,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			handleCredentialOffer,
 			handleAuthorizationResponse,
 			requestCredentialsWithPreAuthorization,
-		}
+		};
 	}, [
 		generateAuthorizationRequest,
 		getAvailableCredentialConfigurations,

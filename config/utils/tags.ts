@@ -1,4 +1,4 @@
-import { Tag } from "./resources";
+import { Tag } from './resources';
 import { ClientMetaConfig } from '../config';
 
 export function getTagSortingPriority(el: Element): number {
@@ -23,7 +23,8 @@ export function getTagSortingPriority(el: Element): number {
 		(tag === 'link' && rel === 'manifest') ||
 		(tag === 'meta' && name === 'theme-color') ||
 		(tag === 'link' && /theme.css/i.test(href))
-	) return 4;
+	)
+		return 4;
 
 	// description, keywords, og:*, twitter:*
 	if (tag === 'meta') {
@@ -32,11 +33,7 @@ export function getTagSortingPriority(el: Element): number {
 	}
 
 	// assets
-	if (
-		(tag === 'link' && rel === 'stylesheet') ||
-		tag === 'style' ||
-		tag === 'script'
-	) return 6;
+	if ((tag === 'link' && rel === 'stylesheet') || tag === 'style' || tag === 'script') return 6;
 
 	// meta tags with name starting with www:*
 	if (tag === 'meta' && name.startsWith('www:')) return 7;
@@ -72,6 +69,6 @@ export function configMetaTag(config: ClientMetaConfig): Tag {
 		props: {
 			name: 'www:config',
 			content: JSON.stringify(config),
-		}
-	}
+		},
+	};
 }

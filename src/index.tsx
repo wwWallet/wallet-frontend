@@ -10,7 +10,7 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import './index.css';
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from 'react-router-dom';
 import AppProvider from './AppProvider';
 
 // Set root element for react-modal
@@ -35,5 +35,5 @@ root.render(
 		<AppProvider>
 			<App />
 		</AppProvider>
-	</BrowserRouter>
+	</BrowserRouter>,
 );

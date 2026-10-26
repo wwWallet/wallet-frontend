@@ -8,9 +8,7 @@ export interface ConsentPopupState<TOptions> {
 	reject: () => void;
 }
 
-export type SetConsentPopupState<TOptions> = Dispatch<
-	SetStateAction<ConsentPopupState<TOptions>>
->;
+export type SetConsentPopupState<TOptions> = Dispatch<SetStateAction<ConsentPopupState<TOptions>>>;
 
 export interface TransactionConsentOptions {
 	title?: ReactNode;

@@ -5,7 +5,6 @@ import { WalletSessionEvent } from './WalletStateSchemaVersion1';
 
 export * from './WalletStateSchemaVersion1';
 
-
 /**
 	Schema version 2 deduplicates "new_presentation" and "delete_presentation"
 	events by `presentationId` instead of by `eventId`. The state data structure is
@@ -19,9 +18,8 @@ export type MergeStrategy = (
 	b: WalletSessionEvent[],
 ) => WalletSessionEvent[];
 
-
 function deduplicateFromEarlierSchemaVersions<T>(
-	mapToKey: (e: T) => (string | number | boolean),
+	mapToKey: (e: T) => string | number | boolean,
 	earlier: T[],
 	a: T[],
 	b: T[],
@@ -31,23 +29,17 @@ function deduplicateFromEarlierSchemaVersions<T>(
 	return [a.filter(filterFunc), b.filter(filterFunc)];
 }
 
-function filterAll<T, U extends T>(
-	predicate: (e: T) => e is U,
-	a: T[],
-	b: T[],
-	c: T[],
-): [U[], U[], U[]] {
+function filterAll<T, U extends T>(predicate: (e: T) => e is U, a: T[], b: T[], c: T[]): [U[], U[], U[]] {
 	return [a.filter(predicate), b.filter(predicate), c.filter(predicate)];
 }
 
 function adaptStrategy<T, U extends T>(
 	v1Strategy: (a: T[], b: T[]) => T[],
 	typeFilter: (e: T) => e is U,
-	mapToKey: (e: U) => (string | number | boolean),
+	mapToKey: (e: U) => string | number | boolean,
 ): (earlier: T[], a: T[], b: T[]) => T[] {
-	return (earlier: T[], a: T[], b: T[]) => v1Strategy(
-		...deduplicateFromEarlierSchemaVersions(mapToKey, ...filterAll(typeFilter, earlier, a, b)),
-	);
+	return (earlier: T[], a: T[], b: T[]) =>
+		v1Strategy(...deduplicateFromEarlierSchemaVersions(mapToKey, ...filterAll(typeFilter, earlier, a, b)));
 }
 
 const v1strats = SchemaV1.mergeStrategies;
@@ -57,29 +49,48 @@ const v1strats = SchemaV1.mergeStrategies;
 // the V1 event is kept and the V2 event is discarded.
 //
 // In V2, new_presentation and delete_presentation events are deduplicated by presentationId instead of eventId.
-export const mergeStrategies: Record<SchemaV1.WalletSessionEvent["type"], MergeStrategy> = {
-	new_credential: adaptStrategy(v1strats.new_credential, e => e.type === "new_credential", e => e.credentialId),
-	delete_credential: adaptStrategy(v1strats.delete_credential, e => e.type === "delete_credential", e => e.credentialId),
-	new_keypair: adaptStrategy(v1strats.new_keypair, e => e.type === "new_keypair", e => e.kid),
-	delete_keypair: adaptStrategy(v1strats.delete_keypair, e => e.type === "delete_keypair", e => e.kid),
+export const mergeStrategies: Record<SchemaV1.WalletSessionEvent['type'], MergeStrategy> = {
+	new_credential: adaptStrategy(
+		v1strats.new_credential,
+		(e) => e.type === 'new_credential',
+		(e) => e.credentialId,
+	),
+	delete_credential: adaptStrategy(
+		v1strats.delete_credential,
+		(e) => e.type === 'delete_credential',
+		(e) => e.credentialId,
+	),
+	new_keypair: adaptStrategy(
+		v1strats.new_keypair,
+		(e) => e.type === 'new_keypair',
+		(e) => e.kid,
+	),
+	delete_keypair: adaptStrategy(
+		v1strats.delete_keypair,
+		(e) => e.type === 'delete_keypair',
+		(e) => e.kid,
+	),
 	new_presentation: (mbesv, a, b) => {
 		const [dedupA, dedupB] = deduplicateFromEarlierSchemaVersions(
-			e => e.presentationId,
-			...filterAll(e => e.type === "new_presentation", mbesv, a, b)
+			(e) => e.presentationId,
+			...filterAll((e) => e.type === 'new_presentation', mbesv, a, b),
 		);
-		return deduplicateBy(dedupA.concat(dedupB).sort(compareBy(e => e.timestampSeconds)), e => e.presentationId);
+		return deduplicateBy(dedupA.concat(dedupB).sort(compareBy((e) => e.timestampSeconds)), (e) => e.presentationId);
 	},
 	delete_presentation: (mbesv, a, b) => {
 		const [dedupA, dedupB] = deduplicateFromEarlierSchemaVersions(
-			e => e.presentationId,
-			...filterAll(e => e.type === "delete_presentation", mbesv, a, b)
+			(e) => e.presentationId,
+			...filterAll((e) => e.type === 'delete_presentation', mbesv, a, b),
 		);
-		return deduplicateBy(dedupA.concat(dedupB).sort(compareBy(e => e.timestampSeconds)), e => e.presentationId);
+		return deduplicateBy(dedupA.concat(dedupB).sort(compareBy((e) => e.timestampSeconds)), (e) => e.presentationId);
 	},
 	alter_settings: (mbesv, a, b) => {
 		// Take the latest applied setting regardless of schema version
 		const [merged] = v1strats.alter_settings(a, b);
-		if (merged && mbesv.filter(e => e.type === "alter_settings").every(e => e.timestampSeconds < merged.timestampSeconds)) {
+		if (
+			merged &&
+			mbesv.filter((e) => e.type === 'alter_settings').every((e) => e.timestampSeconds < merged.timestampSeconds)
+		) {
 			return [merged];
 		} else {
 			return [];
@@ -87,19 +98,19 @@ export const mergeStrategies: Record<SchemaV1.WalletSessionEvent["type"], MergeS
 	},
 	save_credential_issuance_session: adaptStrategy(
 		v1strats.save_credential_issuance_session,
-		e => e.type === "save_credential_issuance_session",
-		e => e.eventId,
+		(e) => e.type === 'save_credential_issuance_session',
+		(e) => e.eventId,
 	),
 	delete_credential_issuance_session: adaptStrategy(
 		v1strats.delete_credential_issuance_session,
-		e => e.type === "delete_credential_issuance_session",
-		e => e.eventId,
+		(e) => e.type === 'delete_credential_issuance_session',
+		(e) => e.eventId,
 	),
 };
 
 export function createOperations(
 	SCHEMA_VERSION: number,
-	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy>,
+	mergeStrategies: Record<WalletSessionEvent['type'], MergeStrategy>,
 ) {
 	const v1ops = SchemaV1.createOperations(SCHEMA_VERSION, null);
 	return {
@@ -111,7 +122,10 @@ export function createOperations(
 			historyB: WalletSessionEvent[],
 			parentHash: string,
 		): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
-			const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[], WalletSessionEvent[]]> = {
+			const eventsByType: Record<
+				WalletSessionEvent['type'],
+				[WalletSessionEvent[], WalletSessionEvent[], WalletSessionEvent[]]
+			> = {
 				new_credential: [[], [], []],
 				delete_credential: [[], [], []],
 				new_keypair: [[], [], []],
@@ -124,28 +138,27 @@ export function createOperations(
 			};
 
 			for (const event of mergedByEarlierSchemaVersions) {
-				eventsByType[event.type as WalletSessionEvent["type"]][0].push(event as WalletSessionEvent);
+				eventsByType[event.type as WalletSessionEvent['type']][0].push(event as WalletSessionEvent);
 			}
 
 			for (const event of historyA) {
-				eventsByType[event.type as WalletSessionEvent["type"]][1].push(event);
+				eventsByType[event.type as WalletSessionEvent['type']][1].push(event);
 			}
 
 			for (const event of historyB) {
-				eventsByType[event.type as WalletSessionEvent["type"]][2].push(event);
+				eventsByType[event.type as WalletSessionEvent['type']][2].push(event);
 			}
 
 			let mergedEvents: WalletSessionEvent[] = [];
 			for (const type in mergeStrategies) {
-				const [mergedByEarlierSchemaVersions, a, b] = eventsByType[type as WalletSessionEvent["type"]];
-				const merged = mergeStrategies[type as WalletSessionEvent["type"]](mergedByEarlierSchemaVersions, a, b);
+				const [mergedByEarlierSchemaVersions, a, b] = eventsByType[type as WalletSessionEvent['type']];
+				const merged = mergeStrategies[type as WalletSessionEvent['type']](mergedByEarlierSchemaVersions, a, b);
 				mergedEvents = mergedEvents.concat(merged);
 			}
 
-			mergedEvents.sort(compareBy(e => e.timestampSeconds));
+			mergedEvents.sort(compareBy((e) => e.timestampSeconds));
 			return v1ops.rebuildEventHistory(mergedEvents, parentHash);
 		},
-
 	};
 }
 

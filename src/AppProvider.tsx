@@ -33,9 +33,7 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 								<OpenID4VCIContextProvider>
 									<UriHandlerProvider>
 										<NotificationProvider>
-											<NativeWrapperProvider>
-												{children}
-											</NativeWrapperProvider>
+											<NativeWrapperProvider>{children}</NativeWrapperProvider>
 										</NotificationProvider>
 									</UriHandlerProvider>
 								</OpenID4VCIContextProvider>

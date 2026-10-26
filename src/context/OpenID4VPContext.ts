@@ -1,9 +1,9 @@
-import { createContext, useContext } from "react";
-import { IOpenID4VP } from "../lib/interfaces/IOpenID4VP";
+import { createContext, useContext } from 'react';
+import { IOpenID4VP } from '../lib/interfaces/IOpenID4VP';
 
 export type OpenID4VPContextValue = {
 	openID4VP: IOpenID4VP;
-}
+};
 
 const OpenID4VPContext = createContext<OpenID4VPContextValue | undefined>(undefined);
 

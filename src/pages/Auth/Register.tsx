@@ -40,7 +40,7 @@ const Register = () => {
 		checkForUpdates();
 		updateOnlineStatus();
 		navigate(`/login${search}`);
-	}
+	};
 
 	return (
 		<AuthCard heading={t('loginSignup.signUp')}>
@@ -54,10 +54,7 @@ const Register = () => {
 			/>
 			<p className="text-sm text-center font-light text-lm-gray-900 dark:text-dm-gray-100">
 				{t('loginSignup.alreadyHaveAccountQuestion')}
-				<Link
-					id="signIn-switch-loginsignup"
-					onClick={goToSignIn}
-				>
+				<Link id="signIn-switch-loginsignup" onClick={goToSignIn}>
 					{t('loginSignup.signIn')}
 				</Link>
 			</p>

@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 
-
 declare global {
 	interface Window {
 		nativeWrapper?: NativeWrapper;
@@ -14,18 +13,14 @@ declare global {
 	}
 }
 
-
 export const NativeWrapperProvider = ({ children }: React.PropsWithChildren) => {
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 
-	useEffect(
-		() => {
-			if (window.nativeWrapper) {
-				window.nativeWrapper.isKeystoreOpen = async () => keystore.isOpen();
-			}
-		},
-		[keystore],
-	);
+	useEffect(() => {
+		if (window.nativeWrapper) {
+			window.nativeWrapper.isKeystoreOpen = async () => keystore.isOpen();
+		}
+	}, [keystore]);
 
 	return children;
 };

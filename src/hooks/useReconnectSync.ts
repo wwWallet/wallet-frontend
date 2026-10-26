@@ -5,14 +5,14 @@ import type { CachedUser, LocalStorageKeystore } from '@/services/LocalStorageKe
 import { useSessionStorage } from '@/hooks/useStorage';
 
 type UseReconnectSyncArgs = {
-	isOnline: boolean | null,
-	isLoggedIn: boolean,
-	cachedUser: CachedUser | null,
-	synced: boolean,
-	setSynced: (synced: boolean) => void,
-	getCalculatedWalletState: LocalStorageKeystore['getCalculatedWalletState'],
-	syncPrivateData: BackendApi['syncPrivateData'],
-	useClearOnClearSession: BackendApi['useClearOnClearSession'],
+	isOnline: boolean | null;
+	isLoggedIn: boolean;
+	cachedUser: CachedUser | null;
+	synced: boolean;
+	setSynced: (synced: boolean) => void;
+	getCalculatedWalletState: LocalStorageKeystore['getCalculatedWalletState'];
+	syncPrivateData: BackendApi['syncPrivateData'];
+	useClearOnClearSession: BackendApi['useClearOnClearSession'];
 };
 
 /**
@@ -35,12 +35,16 @@ export function useReconnectSync({
 	const location = useLocation();
 
 	// Persisted so a reload while unresolved still reads as "pending", not fresh.
-	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(useSessionStorage<boolean | null>('reconnectDetected', null));
+	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(
+		useSessionStorage<boolean | null>('reconnectDetected', null),
+	);
 	const reconnectWasPendingAtMount = useRef(reconnectDetected === true).current;
 	// Once this page instance observes offline status, a later reconnect is fresh,
 	// even if an unresolved reconnect was persisted when the page first loaded.
 	const wentOfflineSinceMountRef = useRef(isOnline === false);
-	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage<boolean | null>('latestIsOnlineStatus', null));
+	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(
+		useSessionStorage<boolean | null>('latestIsOnlineStatus', null),
+	);
 
 	// Which popup to show, if any -- both render the same component, they only
 	// differ in this i18n key.
@@ -56,7 +60,15 @@ export function useReconnectSync({
 			setReconnectDetected(false);
 		}
 		setLatestIsOnlineStatus(isLoggedIn ? isOnline : null);
-	}, [isLoggedIn, isOnline, latestIsOnlineStatus, setLatestIsOnlineStatus, cachedUser, setSynced, setReconnectDetected]);
+	}, [
+		isLoggedIn,
+		isOnline,
+		latestIsOnlineStatus,
+		setLatestIsOnlineStatus,
+		cachedUser,
+		setSynced,
+		setReconnectDetected,
+	]);
 
 	useEffect(() => {
 		if (!getCalculatedWalletState || !cachedUser || !syncPrivateData) {
@@ -65,7 +77,7 @@ export function useReconnectSync({
 		const params = new URLSearchParams(location.search);
 		// syncPrivateData no-ops offline, which would wrongly mark this synced.
 		if (isOnline && synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
-			console.log("Actually syncing...");
+			console.log('Actually syncing...');
 			syncPrivateData(cachedUser).then((r) => {
 				if (!r.ok) {
 					return;
@@ -75,7 +87,16 @@ export function useReconnectSync({
 				setReconnectDetected(false);
 			});
 		}
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search, isOnline, setReconnectDetected]);
+	}, [
+		cachedUser,
+		synced,
+		setSynced,
+		getCalculatedWalletState,
+		syncPrivateData,
+		location.search,
+		isOnline,
+		setReconnectDetected,
+	]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);

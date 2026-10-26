@@ -29,14 +29,8 @@ const ActivityDetail = () => {
 
 	return (
 		<div className="px-6 sm:px-12 w-full">
-			<PageHeading
-				heading={t('pageActivity.presentationDetails.title')}
-				backPath="/activity"
-				showBackButtonOnDesktop
-			/>
-			{selectedActivityItem.length > 0 && (
-				<HistoryDetailContent historyItem={selectedActivityItem} />
-			)}
+			<PageHeading heading={t('pageActivity.presentationDetails.title')} backPath="/activity" showBackButtonOnDesktop />
+			{selectedActivityItem.length > 0 && <HistoryDetailContent historyItem={selectedActivityItem} />}
 		</div>
 	);
 };

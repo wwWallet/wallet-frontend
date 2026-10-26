@@ -17,7 +17,7 @@ export function useWebauthnCredentialName(credential?: WebauthnCredential): stri
 	if (credential) {
 		return credential.name || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
 	} else {
-		return "";
+		return '';
 	}
 }
 
@@ -29,12 +29,12 @@ const WebauthnCredentialItem = ({
 	onRename,
 	onUpgradePrfKey,
 }: {
-	credential: WebauthnCredential,
-	prfKeyInfo?: WebauthnPrfEncryptionKeyInfo,
-	isCurrent?: boolean,
-	onDelete?: false | (() => Promise<void>),
-	onRename: (credential: WebauthnCredential, name: string) => Promise<boolean>,
-	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
+	credential: WebauthnCredential;
+	prfKeyInfo?: WebauthnPrfEncryptionKeyInfo;
+	isCurrent?: boolean;
+	onDelete?: false | (() => Promise<void>);
+	onRename: (credential: WebauthnCredential, name: string) => Promise<boolean>;
+	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void;
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const [name, setName] = useState(credential.name || '');
@@ -57,17 +57,14 @@ const WebauthnCredentialItem = ({
 		}
 	};
 
-	const onCancelEditing = useCallback(
-		() => {
-			setName(credential.name || '');
-			setEditing(false);
-		},
-		[credential.name],
-	);
+	const onCancelEditing = useCallback(() => {
+		setName(credential.name || '');
+		setEditing(false);
+	}, [credential.name]);
 
 	const onKeyUp = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
-			if (event.key === "Escape") {
+			if (event.key === 'Escape') {
 				onCancelEditing();
 			}
 		},
@@ -97,26 +94,21 @@ const WebauthnCredentialItem = ({
 						<span className="shrink-0 text-sm text-lm-gray-700 dark:text-dm-gray-300">
 							{t('pageSettings.passkeyItem.name')}
 						</span>
-						{editing
-							? (
-								<input
-									className="w-full text-sm max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-									type="text"
-									placeholder={t('pageSettings.passkeyItem.nameInput')}
-									value={name}
-									onChange={(event) => setName(event.target.value)}
-									aria-label={t('pageSettings.passkeyItem.nameInputAriaLabel', { passkeyLabel: currentLabel })}
-									onKeyUp={onKeyUp}
-									disabled={submitting}
-									autoFocus
-								/>
-							)
-							: (
-								<p className="font-medium text-sm text-lm-gray-900 dark:text-white truncate">
-									{currentLabel}
-								</p>
-							)
-						}
+						{editing ? (
+							<input
+								className="w-full text-sm max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
+								type="text"
+								placeholder={t('pageSettings.passkeyItem.nameInput')}
+								value={name}
+								onChange={(event) => setName(event.target.value)}
+								aria-label={t('pageSettings.passkeyItem.nameInputAriaLabel', { passkeyLabel: currentLabel })}
+								onKeyUp={onKeyUp}
+								disabled={submitting}
+								autoFocus
+							/>
+						) : (
+							<p className="font-medium text-sm text-lm-gray-900 dark:text-white truncate">{currentLabel}</p>
+						)}
 						{!editing && isCurrent && (
 							<div className="order-first sm:order-none w-full sm:w-auto">
 								<span className="inline-flex shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-blue/5 text-lm-blue/70 dark:bg-dm-blue/50 dark:text-lm-gray-100">
@@ -127,44 +119,35 @@ const WebauthnCredentialItem = ({
 					</div>
 
 					<div className="flex gap-2 shrink-0">
-						{editing
-							? (
-								<>
-									<Button
-										id="cancel-editing-settings"
-										size="sm"
-										onClick={onCancelEditing}
-										disabled={submitting}
-										ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
-									>
-										{t('common.cancel')}
-									</Button>
-									<Button
-										id="save-editing-settings"
-										size="sm"
-										type="submit"
-										disabled={submitting}
-										variant="primary"
-									>
-										{t('common.save')}
-									</Button>
-								</>
-							)
-							: (
+						{editing ? (
+							<>
 								<Button
-									id="rename-passkey"
+									id="cancel-editing-settings"
 									size="sm"
-									variant="outline"
-									onClick={() => setEditing(true)}
-									disabled={!isOnline}
-									aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-									title={!isOnline ? t("common.offlineTitle") : ""}
+									onClick={onCancelEditing}
+									disabled={submitting}
+									ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
 								>
-									<Edit size={14} />
-									{t('pageSettings.passkeyItem.rename')}
+									{t('common.cancel')}
 								</Button>
-							)
-						}
+								<Button id="save-editing-settings" size="sm" type="submit" disabled={submitting} variant="primary">
+									{t('common.save')}
+								</Button>
+							</>
+						) : (
+							<Button
+								id="rename-passkey"
+								size="sm"
+								variant="outline"
+								onClick={() => setEditing(true)}
+								disabled={!isOnline}
+								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
+								title={!isOnline ? t('common.offlineTitle') : ''}
+							>
+								<Edit size={14} />
+								{t('pageSettings.passkeyItem.rename')}
+							</Button>
+						)}
 
 						{onDelete && (
 							<Button
@@ -174,7 +157,11 @@ const WebauthnCredentialItem = ({
 								onClick={openDeleteConfirmation}
 								disabled={!isOnline}
 								aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-								title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+								title={
+									!isOnline
+										? t('common.offlineTitle')
+										: t('pageSettings.passkeyItem.deleteButtonTitleUnlocked', { passkeyLabel: currentLabel })
+								}
 							>
 								<Trash2 size={14} />
 								{t('common.delete')}
@@ -195,18 +182,28 @@ const WebauthnCredentialItem = ({
 					<div>
 						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.syncable')}</p>
 						<p className="text-lm-gray-900 dark:text-white">
-							{credential.backupEligibility === true && credential.backupState === true ? t("pageSettings.passkeyItem.syncableYes"): credential.backupEligibility === true && credential.backupState === false ? t("pageSettings.passkeyItem.syncableAvailable"): t("pageSettings.passkeyItem.syncableNo")}
+							{credential.backupEligibility === true && credential.backupState === true
+								? t('pageSettings.passkeyItem.syncableYes')
+								: credential.backupEligibility === true && credential.backupState === false
+									? t('pageSettings.passkeyItem.syncableAvailable')
+									: t('pageSettings.passkeyItem.syncableNo')}
 						</p>
 					</div>
 					<div>
-						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.authenticatorName')}</p>
-						<p className="text-lm-gray-900 dark:text-white">{credential.authenticatorName || t("pageSettings.passkeyItem.unknownAuthenticator")}</p>
+						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">
+							{t('pageSettings.passkeyItem.authenticatorName')}
+						</p>
+						<p className="text-lm-gray-900 dark:text-white">
+							{credential.authenticatorName || t('pageSettings.passkeyItem.unknownAuthenticator')}
+						</p>
 					</div>
 				</div>
 
 				{needsPrfUpgrade && (
 					<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-lm-orange/10 dark:bg-dm-orange/10 border border-lm-orange/30 dark:border-dm-orange/30 px-3 py-2">
-						<span className="text-sm text-lm-gray-900 dark:text-white">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
+						<span className="text-sm text-lm-gray-900 dark:text-white">
+							{t('pageSettings.passkeyItem.needsPrfUpgrade')}
+						</span>
 						<Button
 							id="upgrade-prf-settings"
 							size="sm"

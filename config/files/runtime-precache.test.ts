@@ -63,10 +63,7 @@ describe('runtimePrecache', () => {
 		const secondDir = await mkdtemp(join(tmpdir(), 'wwwallet-branding-b-'));
 
 		try {
-			await Promise.all([
-				mkdir(join(firstDir, 'custom')),
-				mkdir(join(secondDir, 'custom')),
-			]);
+			await Promise.all([mkdir(join(firstDir, 'custom')), mkdir(join(secondDir, 'custom'))]);
 			await Promise.all([
 				writeFile(join(firstDir, 'logo.svg'), '<svg>same</svg>'),
 				writeFile(join(secondDir, 'logo.svg'), '<svg>same</svg>'),

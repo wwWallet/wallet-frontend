@@ -1,6 +1,6 @@
-import { DcqlQueryType } from "./dcqlQuery.type";
+import { DcqlQueryType } from './dcqlQuery.type';
 import * as z from 'zod';
-import { OpenID4VPClientMetadata, OpenID4VPResponseMode } from "wallet-common";
+import { OpenID4VPClientMetadata, OpenID4VPResponseMode } from 'wallet-common';
 
 export { OpenID4VPResponseMode as ResponseMode };
 
@@ -10,7 +10,6 @@ export const ResponseModeSchema = z.nativeEnum(OpenID4VPResponseMode);
  * serializable
  */
 export class OpenID4VPRelyingPartyState {
-
 	constructor(
 		public nonce: string,
 		public response_uri: string,
@@ -19,8 +18,8 @@ export class OpenID4VPRelyingPartyState {
 		public client_metadata: OpenID4VPClientMetadata,
 		public response_mode: OpenID4VPResponseMode,
 		public transaction_data: string[],
-		public dcql_query: DcqlQueryType
-	) { }
+		public dcql_query: DcqlQueryType,
+	) {}
 
 	public serialize(): string {
 		return JSON.stringify({
@@ -31,12 +30,22 @@ export class OpenID4VPRelyingPartyState {
 			client_metadata: this.client_metadata,
 			response_mode: this.response_mode,
 			transaction_data: this.transaction_data,
-			dcql_query: this.dcql_query
+			dcql_query: this.dcql_query,
 		});
 	}
 
 	public static deserialize(storedValue: string): OpenID4VPRelyingPartyState {
-		const { nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
-		return new OpenID4VPRelyingPartyState( nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query);
+		const { nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query } =
+			JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
+		return new OpenID4VPRelyingPartyState(
+			nonce,
+			response_uri,
+			client_id,
+			state,
+			client_metadata,
+			response_mode,
+			transaction_data,
+			dcql_query,
+		);
 	}
 }

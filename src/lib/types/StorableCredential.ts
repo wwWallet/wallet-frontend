@@ -1,5 +1,4 @@
-import { VerifiableCredentialFormat } from "wallet-common";
-
+import { VerifiableCredentialFormat } from 'wallet-common';
 
 export type StorableCredential = {
 	credentialIdentifier: string;

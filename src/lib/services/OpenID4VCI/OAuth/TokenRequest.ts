@@ -16,14 +16,14 @@ export type AccessToken = {
 	refresh_token?: string;
 
 	httpResponseHeaders: {
-		"dpop-nonce"?: string;
+		'dpop-nonce'?: string;
 	};
 };
 
 export enum GrantType {
-	AUTHORIZATION_CODE = "code",
-	REFRESH = "refresh_token",
-	PRE_AUTHORIZED_CODE = "urn:ietf:params:oauth:grant-type:pre-authorized_code",
+	AUTHORIZATION_CODE = 'code',
+	REFRESH = 'refresh_token',
+	PRE_AUTHORIZED_CODE = 'urn:ietf:params:oauth:grant-type:pre-authorized_code',
 }
 
 export enum TokenRequestError {
@@ -66,7 +66,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const redirectUri = useRef<string | null>(null);
 	const clientId = useRef<string | null>(OPENID4VCI_REDIRECT_URI);
 	const retries = useRef<number>(0);
-	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK } | null>(null);
+	const dpopParams = useRef<{ dpopPrivateKey: KeyLike; dpopPublicKeyJwk: JWK } | null>(null);
 	const dpopHandle = useRef<oauth4webapi.DPoPHandle | null>(null);
 
 	function normalizeHeaders(h: any): Record<string, string> {
@@ -194,7 +194,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			dpopParams.current.dpopPublicKeyJwk as JsonWebKey,
 			{ name: 'ECDSA', namedCurve: 'P-256' },
 			true,
-			['verify']
+			['verify'],
 		);
 		const keyPair = {
 			privateKey: dpopParams.current.dpopPrivateKey as CryptoKey,
@@ -210,7 +210,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		retries.current = 0;
 
 		if (!tokenEndpointURL.current) {
-			throw new Error("Token endpoint is not set");
+			throw new Error('Token endpoint is not set');
 		}
 
 		const as: oauth4webapi.AuthorizationServer = {
@@ -230,35 +230,30 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 		const preAuthorizedCodeGrantRequest = async () => {
 			if (!preAuthorizedCode.current) {
-				throw new Error("Pre-Authorized Code not set");
+				throw new Error('Pre-Authorized Code not set');
 			}
 			if (!dpopParams.current) {
-				throw new Error("DPoP parameters are not set");
+				throw new Error('DPoP parameters are not set');
 			}
 			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
 				as,
 				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current ?? undefined },
 				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
-				options
+				options,
 			);
-		}
+		};
 
 		const authorizationCodeGrantRequest = async () => {
 			if (!clientId.current || !redirectUri.current) {
-				throw new Error("Client ID or Redirect URI is not set");
+				throw new Error('Client ID or Redirect URI is not set');
 			}
 			if (!authorizationCode.current || !codeVerifier.current) {
-				throw new Error("Authorization Code or Code Verifier is not set");
+				throw new Error('Authorization Code or Code Verifier is not set');
 			}
 			let callbackParams: URLSearchParams;
 			if (authorizationResponseUrl.current) {
 				const currentUrl = new URL(authorizationResponseUrl.current);
-				callbackParams = oauth4webapi.validateAuthResponse(
-					as,
-					client,
-					currentUrl,
-					oauthState.current ?? undefined
-				);
+				callbackParams = oauth4webapi.validateAuthResponse(as, client, currentUrl, oauthState.current ?? undefined);
 			} else {
 				callbackParams = new URLSearchParams({ code: authorizationCode.current });
 			}
@@ -269,24 +264,18 @@ export function useTokenRequest(): TokenRequestBuilder {
 				callbackParams,
 				redirectUri.current!,
 				codeVerifier.current,
-				options
+				options,
 			);
 		};
 
 		const refreshTokenGrantRequest = async () => {
 			if (!refreshToken.current) {
-				throw new Error("Refresh Token is not set");
+				throw new Error('Refresh Token is not set');
 			}
-			return oauth4webapi.refreshTokenGrantRequest(
-				as,
-				client,
-				clientAuth,
-				refreshToken.current,
-				{
-					...options,
-					...(additionalParameters.current ? { additionalParameters: additionalParameters.current } : {}),
-				}
-			);
+			return oauth4webapi.refreshTokenGrantRequest(as, client, clientAuth, refreshToken.current, {
+				...options,
+				...(additionalParameters.current ? { additionalParameters: additionalParameters.current } : {}),
+			});
 		};
 
 		let tokenRequest:
@@ -304,7 +293,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		}
 
 		if (!tokenRequest) {
-			throw new Error("Invalid grant type selected");
+			throw new Error('Invalid grant type selected');
 		}
 
 		const processResponse = async (response: Response) => {
@@ -319,7 +308,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 		const normalizeError = (err: any) => {
 			if (err && typeof err === 'object' && 'error' in err) {
-				if (err.error === "authorization_required") {
+				if (err.error === 'authorization_required') {
 					return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: err };
 				}
 				return { error: TokenRequestError.FAILED, response: err };
@@ -344,7 +333,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		}
 
 		if (result && typeof result === 'object' && 'error' in result) {
-			if (result.error === "authorization_required") {
+			if (result.error === 'authorization_required') {
 				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: result };
 			}
 			return { error: TokenRequestError.FAILED, response: result };
@@ -364,37 +353,40 @@ export function useTokenRequest(): TokenRequestBuilder {
 		};
 	}, [getDPoPHandle, myCustomFetch]);
 
-	return useMemo(() => ({
-		setClientId,
-		setIssuer,
-		setGrantType,
-		setAuthorizationCode,
-		setPreAuthorizedCode,
-		setTxCode,
-		setAuthorizationResponseUrl,
-		setState,
-		setCodeVerifier,
-		setRefreshToken,
-		setAdditionalParameters,
-		setRedirectUri,
-		setTokenEndpoint,
-		setDpopHeader,
-		execute,
-	}), [
-		setClientId,
-		setIssuer,
-		setGrantType,
-		setAuthorizationCode,
-		setPreAuthorizedCode,
-		setTxCode,
-		setAuthorizationResponseUrl,
-		setState,
-		setCodeVerifier,
-		setRefreshToken,
-		setAdditionalParameters,
-		setRedirectUri,
-		setTokenEndpoint,
-		setDpopHeader,
-		execute,
-	]);
+	return useMemo(
+		() => ({
+			setClientId,
+			setIssuer,
+			setGrantType,
+			setAuthorizationCode,
+			setPreAuthorizedCode,
+			setTxCode,
+			setAuthorizationResponseUrl,
+			setState,
+			setCodeVerifier,
+			setRefreshToken,
+			setAdditionalParameters,
+			setRedirectUri,
+			setTokenEndpoint,
+			setDpopHeader,
+			execute,
+		}),
+		[
+			setClientId,
+			setIssuer,
+			setGrantType,
+			setAuthorizationCode,
+			setPreAuthorizedCode,
+			setTxCode,
+			setAuthorizationResponseUrl,
+			setState,
+			setCodeVerifier,
+			setRefreshToken,
+			setAdditionalParameters,
+			setRedirectUri,
+			setTokenEndpoint,
+			setDpopHeader,
+			execute,
+		],
+	);
 }

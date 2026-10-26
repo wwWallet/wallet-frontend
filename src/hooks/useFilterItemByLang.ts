@@ -17,18 +17,22 @@ const useFilterItemByLang = (): FilterItemByLang => {
 	const language = getLanguage(i18n.language);
 	const fallbackLanguage = getLanguage(fallbackLng);
 
-	const filterItemByLang = useCallback<FilterItemByLang>((arrayOfItems) => {
-		if (!Array.isArray(arrayOfItems) || arrayOfItems.length === 0) {
-			return {};
-		}
+	const filterItemByLang = useCallback<FilterItemByLang>(
+		(arrayOfItems) => {
+			if (!Array.isArray(arrayOfItems) || arrayOfItems.length === 0) {
+				return {};
+			}
 
-		const getItemLanguage = (item: LocalizedItem) => getLanguage(item.locale);
+			const getItemLanguage = (item: LocalizedItem) => getLanguage(item.locale);
 
-		const item = arrayOfItems.find(candidate => getItemLanguage(candidate) === language) ||
-			arrayOfItems.find(candidate => getItemLanguage(candidate) === fallbackLanguage);
+			const item =
+				arrayOfItems.find((candidate) => getItemLanguage(candidate) === language) ||
+				arrayOfItems.find((candidate) => getItemLanguage(candidate) === fallbackLanguage);
 
-		return item || arrayOfItems[0] || {};
-	}, [language, fallbackLanguage]);
+			return item || arrayOfItems[0] || {};
+		},
+		[language, fallbackLanguage],
+	);
 
 	return filterItemByLang;
 };

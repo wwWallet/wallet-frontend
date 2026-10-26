@@ -1,11 +1,10 @@
-export type AppErrorId = (
+export type AppErrorId =
 	| 'canceled'
 	| 'keystore_closed'
 	| 'keystore_not_asymmetric'
 	| 'prf_not_supported'
 	| 'prf_retry_failed'
-	| 'x-private-data-etag'
-);
+	| 'x-private-data-etag';
 
 export class AppError extends Error {
 	constructor(

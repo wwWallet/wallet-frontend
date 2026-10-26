@@ -61,7 +61,7 @@ export async function refreshAccessToken(
 			dpopPublicKeyJwk = dpop.dpopPublicKeyJwk ?? null;
 			const importedPrivateKey = await jose.importJWK(dpop.dpopPrivateKeyJwk, dpop.dpopAlg);
 			if (importedPrivateKey instanceof Uint8Array) {
-				throw new Error("DPoP private key must be asymmetric");
+				throw new Error('DPoP private key must be asymmetric');
 			}
 			dpopPrivateKey = importedPrivateKey;
 		} else {
@@ -74,7 +74,7 @@ export async function refreshAccessToken(
 		}
 
 		if (!dpopPrivateKey || !dpopPrivateKeyJwk || !dpopPublicKeyJwk) {
-			throw new Error("Missing DPoP key material for token refresh");
+			throw new Error('Missing DPoP key material for token refresh');
 		}
 		await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey, dpopPublicKeyJwk, jti);
 		dpop = {
@@ -94,12 +94,12 @@ export async function refreshAccessToken(
 
 	const result = await context.tokenRequestBuilder.execute();
 	if ('error' in result) {
-		throw new Error("Token refresh failed");
+		throw new Error('Token refresh failed');
 	}
 
 	const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
 	if (!access_token) {
-		throw new Error("Missing access_token from refresh response");
+		throw new Error('Missing access_token from refresh response');
 	}
 
 	const now = context.now ?? Math.floor(Date.now() / 1000);

@@ -14,7 +14,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		if (!state) return false;
 		try {
 			const decodedState = JSON.parse(atob(state));
-			return cachedUsers.some(user => user.userHandleB64u === decodedState.userHandleB64u);
+			return cachedUsers.some((user) => user.userHandleB64u === decodedState.userHandleB64u);
 		} catch (error) {
 			console.error('Error decoding state:', error);
 			return false;
@@ -30,11 +30,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		}
 	}
 
-	return (
-		<>
-			{children}
-		</>
-	);
+	return <>{children}</>;
 };
 
 export default PrivateRoute;

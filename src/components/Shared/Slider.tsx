@@ -29,7 +29,13 @@ const getSlideKey = <T extends object>(item: T, index: number): Key => {
 	return index;
 };
 
-function Slider<T extends object>({ items, renderSlideContent, onSlideChange, initialSlide = 1, className = '' }: SliderProps<T>) {
+function Slider<T extends object>({
+	items,
+	renderSlideContent,
+	onSlideChange,
+	initialSlide = 1,
+	className = '',
+}: SliderProps<T>) {
 	const [currentSlide, setCurrentSlide] = useState(initialSlide);
 	const sliderRef = useRef<SwiperInstance | null>(null);
 	const { t } = useTranslation();
@@ -55,8 +61,9 @@ function Slider<T extends object>({ items, renderSlideContent, onSlideChange, in
 				{items.map((item, index) => (
 					<SwiperSlide
 						key={getSlideKey(item, index)}
-						className={`rounded-xl ${Math.abs(currentSlide - (index + 1)) > 1 && 'invisible pointer-events-none'
-							} ${currentSlide === index + 1 && 'overflow-visible-force'} `}
+						className={`rounded-xl ${
+							Math.abs(currentSlide - (index + 1)) > 1 && 'invisible pointer-events-none'
+						} ${currentSlide === index + 1 && 'overflow-visible-force'} `}
 					>
 						{renderSlideContent(item, index)}
 					</SwiperSlide>
@@ -68,12 +75,15 @@ function Slider<T extends object>({ items, renderSlideContent, onSlideChange, in
 						id="previous-slide"
 						onClick={handlePrev}
 						disabled={currentSlide === 1}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 bg-lm-gray-800 rounded-md ${currentSlide === 1
-							? 'opacity-50 cursor-not-allowed text-lm-gray-100'
-							: 'text-white hover:opacity-100 opacity-80'}`}
-						aria-label={currentSlide === 1
-							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') })
-							: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 bg-lm-gray-800 rounded-md ${
+							currentSlide === 1
+								? 'opacity-50 cursor-not-allowed text-lm-gray-100'
+								: 'text-white hover:opacity-100 opacity-80'
+						}`}
+						aria-label={
+							currentSlide === 1
+								? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') })
+								: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })
 						}
 						title={
 							currentSlide === 1
@@ -88,12 +98,15 @@ function Slider<T extends object>({ items, renderSlideContent, onSlideChange, in
 						id="next-slide"
 						onClick={handleNext}
 						disabled={currentSlide === items.length}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 bg-lm-gray-800 rounded-md z-10 p-2 ${currentSlide === items.length
-							? 'opacity-50 cursor-not-allowed text-lm-gray-100'
-							: 'text-white hover:opacity-100 opacity-80'}`}
-						aria-label={currentSlide === items.length
-							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') })
-							: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 bg-lm-gray-800 rounded-md z-10 p-2 ${
+							currentSlide === items.length
+								? 'opacity-50 cursor-not-allowed text-lm-gray-100'
+								: 'text-white hover:opacity-100 opacity-80'
+						}`}
+						aria-label={
+							currentSlide === items.length
+								? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') })
+								: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })
 						}
 						title={
 							currentSlide === items.length

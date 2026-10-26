@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import type { MouseEventHandler } from 'react';
 import ExpiredRibbon from './ExpiredRibbon';
-import UsagesRibbon from "./UsagesRibbon";
-import DefaultCred from "../../assets/images/cred.png";
+import UsagesRibbon from './UsagesRibbon';
+import DefaultCred from '../../assets/images/cred.png';
 import { CredentialCardSkeleton } from '../Skeletons';
 import { useTranslation } from 'react-i18next';
 import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
@@ -63,7 +63,7 @@ const CredentialImage = ({
 
 	const imageFn = vcEntity?.parsedCredential?.metadata?.credential?.image?.dataUri;
 	const cacheKey = imageFn ? getCacheKey(vcEntity, filter, preferredLangs, preferredOrientation) : null;
-	const computeSrc = () => (!imageFn ? DefaultCred : (cacheKey ? resolvedImageCache.get(cacheKey) : undefined));
+	const computeSrc = () => (!imageFn ? DefaultCred : cacheKey ? resolvedImageCache.get(cacheKey) : undefined);
 
 	const [resolved, setResolved] = useState(() => ({ key: cacheKey, src: computeSrc() }));
 
@@ -114,7 +114,9 @@ const CredentialImage = ({
 			}
 		});
 
-		return () => { isMounted = false };
+		return () => {
+			isMounted = false;
+		};
 	}, [imageFn, cacheKey, filter, preferredLangs, preferredOrientation, onLoad]);
 
 	const imageSrc = resolved.key === cacheKey ? resolved.src : undefined;
@@ -130,12 +132,10 @@ const CredentialImage = ({
 							className={`w-full h-full object-cover object-top ${className ?? ''}`}
 							onClick={onClick}
 						/>
-						{showRibbon &&
-							<ExpiredRibbon vcEntity={vcEntity} borderColor={borderColor} />
-						}
-						{showRibbon && DISPLAY_CREDENTIAL_USAGES &&
+						{showRibbon && <ExpiredRibbon vcEntity={vcEntity} borderColor={borderColor} />}
+						{showRibbon && DISPLAY_CREDENTIAL_USAGES && (
 							<UsagesRibbon vcEntityInstances={vcEntityInstances} borderColor={borderColor} />
-						}
+						)}
 					</div>
 				</>
 			) : (

@@ -12,34 +12,24 @@ function ResyncNotification(): React.ReactElement | null {
 
 	const { showSyncNotification, openAuthPopup } = useContext(SyncNotificationContext);
 
-	return (
-		showSyncNotification
-			? (
-				<div className="px-6 sm:px-12 w-full">
-					<div className="bg-lm-green-bg dark:bg-dm-green-bg text-white shadow-sm p-4 rounded-lg mb-4 flex items-center">
-						<div className="mr-4">
-							<RefreshCw size={24} />
-						</div>
-						<div className="grow">
-							<p className='text-sm'>
-								<Trans
-									i18nKey="resyncNotification.description"
-									components={{ strong: <strong /> }}
-								/>
-							</p>
-						</div>
-						<Button
-							id="resync-notification-action"
-							variant="outline"
-							additionalClassName="ml-2"
-							onClick={openAuthPopup}
-						>
-							{t('resyncNotification.action')}
-						</Button>
-					</div>
+	return showSyncNotification ? (
+		<div className="px-6 sm:px-12 w-full">
+			<div className="bg-lm-green-bg dark:bg-dm-green-bg text-white shadow-sm p-4 rounded-lg mb-4 flex items-center">
+				<div className="mr-4">
+					<RefreshCw size={24} />
 				</div>
-			)
-			: <></>
+				<div className="grow">
+					<p className="text-sm">
+						<Trans i18nKey="resyncNotification.description" components={{ strong: <strong /> }} />
+					</p>
+				</div>
+				<Button id="resync-notification-action" variant="outline" additionalClassName="ml-2" onClick={openAuthPopup}>
+					{t('resyncNotification.action')}
+				</Button>
+			</div>
+		</div>
+	) : (
+		<></>
 	);
 }
 
