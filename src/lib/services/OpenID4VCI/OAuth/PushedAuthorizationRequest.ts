@@ -24,7 +24,10 @@ function normalizeHeaders(h: any): Record<string, string> {
 
 export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
-	const { keystore, api: { updatePrivateData } } = useSessionContext();
+	const {
+		keystore,
+		api: { updatePrivateData },
+	} = useSessionContext();
 	const { requestWalletInstanceAttestation } = useWalletProvider();
 
 	const myCustomFetch = useMemo(() => {
@@ -83,7 +86,11 @@ export function usePushedAuthorizationRequest() {
 				const { privateKey: privateJwk, publicKey: generatedPublicJwk, alg } = keypairs[0];
 				const publicJwk = { ...generatedPublicJwk, key_ops: ['verify'] };
 
-				const requestWalletInstanceAttestationResponse = await requestWalletInstanceAttestation(publicJwk, params.client_id, asMeta.issuer);
+				const requestWalletInstanceAttestationResponse = await requestWalletInstanceAttestation(
+					publicJwk,
+					params.client_id,
+					asMeta.issuer,
+				);
 				if (!requestWalletInstanceAttestationResponse) {
 					throw new Error('Failed to get Wallet Instance Attestation from wallet-backend-server');
 				}
@@ -129,7 +136,13 @@ export function usePushedAuthorizationRequest() {
 			let response = await sendPar();
 			let json = await response.json();
 			const challenge = response.headers.get('OAuth-Client-Attestation-Challenge');
-			if (privateKey && walletInstanceAttestation && response.status === 400 && json?.error === 'use_attestation_challenge' && challenge) {
+			if (
+				privateKey &&
+				walletInstanceAttestation &&
+				response.status === 400 &&
+				json?.error === 'use_attestation_challenge' &&
+				challenge
+			) {
 				response = await sendPar(challenge);
 				json = await response.json();
 			}
@@ -141,7 +154,7 @@ export function usePushedAuthorizationRequest() {
 			}
 			return { request_uri: json.request_uri, code_verifier, rawResponse: json, dpop };
 		},
-		[myCustomFetch, requestWalletInstanceAttestation, keystore, updatePrivateData]
+		[myCustomFetch, requestWalletInstanceAttestation, keystore, updatePrivateData],
 	);
 
 	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);

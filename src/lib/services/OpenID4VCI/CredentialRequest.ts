@@ -213,16 +213,16 @@ export function useCredentialRequest() {
 			}
 			else if (proofType === "attestation") {
 				if (!c_nonce) {
-					throw new Error("Cannot create a KA-bound proof without an issuer nonce");
+					throw new Error('Cannot create a KA-bound proof without an issuer nonce');
 				}
 
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfProofs);
 				if (keypairs.length === 0) {
-					throw new Error("No credential keypairs were generated");
+					throw new Error('No credential keypairs were generated');
 				}
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
-				const publicKeys = keypairs.map(({ publicKey }) => ({ ...publicKey, key_ops: ["verify"] }));
+				const publicKeys = keypairs.map(({ publicKey }) => ({ ...publicKey, key_ops: ['verify'] }));
 
 				const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
 				if (!requestKeyAttestationResponse) {
@@ -234,25 +234,25 @@ export function useCredentialRequest() {
 				const keyAttestationPayload = decodeJwt(keyAttestation);
 				const attestedKeys = keyAttestationPayload.attested_keys as JWK[] | undefined;
 				if (!attestedKeys?.[0]) {
-					throw new Error("Key attestation does not contain attested_keys[0]");
+					throw new Error('Key attestation does not contain attested_keys[0]');
 				}
 				const [attestedKeyThumbprint, generatedKeyThumbprint] = await Promise.all([
 					calculateJwkThumbprint(attestedKeys[0]),
 					calculateJwkThumbprint(firstKey.publicKey),
 				]);
 				if (attestedKeyThumbprint !== generatedKeyThumbprint) {
-					throw new Error("Key attestation attested_keys[0] does not match the first generated credential key");
+					throw new Error('Key attestation attested_keys[0] does not match the first generated credential key');
 				}
 
 				const signingKey = await importJWK(firstKey.privateKey, firstKey.alg);
-				const proofJwk: JWK = { ...firstKey.publicKey, key_ops: ["verify"] };
+				const proofJwk: JWK = { ...firstKey.publicKey, key_ops: ['verify'] };
 				const proof = await new SignJWT({
 					aud: credentialIssuerMetadata.metadata.credential_issuer,
 					nonce: c_nonce,
 				})
 					.setIssuedAt()
 					.setProtectedHeader({
-						typ: "openid4vci-proof+jwt",
+						typ: 'openid4vci-proof+jwt',
 						alg: firstKey.alg,
 						key_attestation: keyAttestation,
 						jwk: proofJwk,

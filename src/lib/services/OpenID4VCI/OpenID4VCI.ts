@@ -8,7 +8,12 @@ import { useLocation } from "react-router-dom";
 import { usePushedAuthorizationRequest } from './OAuth/PushedAuthorizationRequest';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
-import { accessTokenIsValid, refreshAccessToken, requestTokenWalletInstanceAttestation, type RequestWalletInstanceAttestation } from './OAuth/accessToken';
+import {
+	accessTokenIsValid,
+	refreshAccessToken,
+	requestTokenWalletInstanceAttestation,
+	type RequestWalletInstanceAttestation,
+} from './OAuth/accessToken';
 import { useWalletProvider } from '../WalletProvider';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
@@ -511,9 +516,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			let dpopPrivateKeyJwk: jose.JWK | null = null;
 			let dpopPublicKeyJwk: jose.JWK | null = null;
 
-			const attestationRequired = authzServerMetadata.authzServerMetadata.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth');
+			const attestationRequired =
+				authzServerMetadata.authzServerMetadata.token_endpoint_auth_methods_supported?.includes(
+					'attest_jwt_client_auth',
+				);
 			if (attestationRequired && !flowState.dpop) {
-				throw new Error("Wallet Instance Attestation is missing its bound key");
+				throw new Error('Wallet Instance Attestation is missing its bound key');
 			}
 
 			if (!flowState.dpop) { // if DPoP keys have not been generated, then generate them
@@ -554,10 +562,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			const walletInstanceAttestation = attestationRequired
 				? await requestTokenWalletInstanceAttestation(
-					requestWalletInstanceAttestation,
-					dpopPublicKeyJwk,
-					clientId?.client_id ?? null,
-					authzServerMetadata.authzServerMetadata.issuer)
+						requestWalletInstanceAttestation,
+						dpopPublicKeyJwk,
+						clientId?.client_id ?? null,
+						authzServerMetadata.authzServerMetadata.issuer,
+					)
 				: null;
 			tokenRequestBuilder.setWalletInstanceAttestation(walletInstanceAttestation, dpopPrivateKey as jose.KeyLike);
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
@@ -1115,7 +1124,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		deferredCredentialRequestBuilder,
 		credentialEngine,
 		tokenRequestBuilder,
-		requestWalletInstanceAttestation
+		requestWalletInstanceAttestation,
 	]);
 
 	useEffect(() => {

@@ -133,7 +133,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return;
 		}
 		if (!attestation || !privateKey) {
-			throw new Error("Wallet Instance Attestation requires its bound private key");
+			throw new Error('Wallet Instance Attestation requires its bound private key');
 		}
 		clientAttestation.current = { attestation, privateKey };
 	}, []);
@@ -232,12 +232,17 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 		const client: oauth4webapi.Client = { client_id: clientId.current ?? OPENID4VCI_REDIRECT_URI };
 		if (clientAttestation.current && (!clientId.current || grantType.current === GrantType.PRE_AUTHORIZED_CODE)) {
-			throw new Error("Attestation-based client authentication requires a client and a supported grant");
+			throw new Error('Attestation-based client authentication requires a client and a supported grant');
 		}
 		let attestationChallenge: string | undefined;
-		const getClientAuth = () => clientAttestation.current
-			? AttestationBasedClientAuth(clientAttestation.current.privateKey as CryptoKey, clientAttestation.current.attestation, { challenge: attestationChallenge })
-			: oauth4webapi.None();
+		const getClientAuth = () =>
+			clientAttestation.current
+				? AttestationBasedClientAuth(
+						clientAttestation.current.privateKey as CryptoKey,
+						clientAttestation.current.attestation,
+						{ challenge: attestationChallenge },
+					)
+				: oauth4webapi.None();
 		const DPoP = await getDPoPHandle(client);
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
@@ -355,7 +360,10 @@ export function useTokenRequest(): TokenRequestBuilder {
 			response = await tokenRequest();
 			const challenge = response.headers.get('OAuth-Client-Attestation-Challenge');
 			if (clientAttestation.current && !retriedAttestation && response.status === 400 && challenge) {
-				const body = await response.clone().json().catch(() => null);
+				const body = await response
+					.clone()
+					.json()
+					.catch(() => null);
 				if (body?.error === 'use_attestation_challenge') {
 					attestationChallenge = challenge;
 					retriedAttestation = true;
@@ -377,7 +385,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		}
 
 		if (!response) {
-			throw new Error("Token request did not produce a response");
+			throw new Error('Token request did not produce a response');
 		}
 
 		if (result && typeof result === 'object' && 'error' in result) {
