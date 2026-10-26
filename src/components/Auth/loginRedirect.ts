@@ -3,8 +3,8 @@ import { SETTINGS_TAB_IDS } from '@/pages/Settings/tabs';
 const LOGIN_REDIRECT_PARAM = 'redirect';
 
 type RedirectTarget = {
-	path: string,
-	params: Record<string, readonly string[]>,
+	path: string;
+	params: Record<string, readonly string[]>;
 };
 
 /**

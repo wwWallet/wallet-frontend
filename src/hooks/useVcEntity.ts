@@ -15,11 +15,9 @@ export const useVcEntity = (
 			const parsedBatchId = batchId == null ? undefined : parseInt(batchId);
 
 			if (vcEntityList) {
-				const matchingVcEntity = vcEntityList.find(
-					(entity) => entity.batchId === parsedBatchId
-				);
+				const matchingVcEntity = vcEntityList.find((entity) => entity.batchId === parsedBatchId);
 				if (!matchingVcEntity) {
-					console.log("Credential not found");
+					console.log('Credential not found');
 					setVcEntity(undefined);
 					return;
 				}
@@ -28,7 +26,6 @@ export const useVcEntity = (
 			} else {
 				const fetchedVcEntityList = await fetchVcData(parsedBatchId);
 				setVcEntity(fetchedVcEntityList?.[0]);
-
 			}
 		} catch (err) {
 			console.error('Error fetching VC entity:', err);

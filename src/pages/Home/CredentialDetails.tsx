@@ -19,7 +19,7 @@ const CredentialDetails = () => {
 	const { t } = useTranslation();
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const vcEntity  = useVcEntity(fetchVcData, vcEntityList, batchId);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 
 	if (!DEV_MODE) {
 		return <Navigate to={`/credential/${batchId}`} replace />;
@@ -28,11 +28,8 @@ const CredentialDetails = () => {
 	return (
 		<>
 			<CredentialLayout title={t('pageCredentials.datasetTitle')}>
-				{vcEntity && (
-					<CredentialJson parsedCredential={vcEntity?.parsedCredential} />
-				)}
+				{vcEntity && <CredentialJson parsedCredential={vcEntity?.parsedCredential} />}
 			</CredentialLayout>
-
 		</>
 	);
 };

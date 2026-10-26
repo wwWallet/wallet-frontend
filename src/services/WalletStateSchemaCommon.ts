@@ -6,15 +6,15 @@ export interface WalletStateContainer<S extends WalletState, E extends WalletSes
 }
 
 export interface WalletState {
-	schemaVersion: number,
+	schemaVersion: number;
 }
 
 export interface WalletSessionEvent {
-	schemaVersion: number,
-	parentHash: string,
-	eventId: number,
-	timestampSeconds: number,
-	type: string,
+	schemaVersion: number;
+	parentHash: string;
+	eventId: number;
+	timestampSeconds: number;
+	type: string;
 }
 
 export interface WalletStateOperations<S extends WalletState, E extends WalletSessionEvent> {

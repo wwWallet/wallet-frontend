@@ -46,25 +46,28 @@ const MessagePopup = ({ type, message, onClose }: MessagePopupProps) => {
 					</div>
 					{title}
 				</h2>
-				<Button
-					id="dismiss-message-popup"
-					square={true}
-					onClick={() => onClose()}
-				>
-					<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-						<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+				<Button id="dismiss-message-popup" square={true} onClick={() => onClose()}>
+					<svg
+						className="w-3 h-3"
+						aria-hidden="true"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 14 14"
+					>
+						<path
+							stroke="currentColor"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth="2"
+							d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+						/>
 					</svg>
 				</Button>
 			</div>
 			<hr className={`mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600`} />
-			<p className="mb-2 mt-4 dark:text-white">
-				{description}
-			</p>
+			<p className="mb-2 mt-4 dark:text-white">{description}</p>
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button
-					id="close-message-popup"
-					onClick={onClose}
-				>
+				<Button id="close-message-popup" onClick={onClose}>
 					{t('messagePopup.close')}
 				</Button>
 			</div>

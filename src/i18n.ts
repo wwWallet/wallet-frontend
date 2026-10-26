@@ -28,9 +28,7 @@ const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]:
 
 // Helper function to get only the language part and check if it exists
 export const getLanguage = (locale: unknown): string | undefined =>
-	typeof locale === 'string'
-		? (locale.includes('-') ? locale.split('-')[0] : locale) || undefined
-		: undefined;
+	typeof locale === 'string' ? (locale.includes('-') ? locale.split('-')[0] : locale) || undefined : undefined;
 
 // Get the preferred language
 let preferredLanguage =
@@ -47,15 +45,13 @@ if (!preferredLanguage || !(preferredLanguage in availableResources)) {
 // If multi-language is disabled, force the fallback language
 const languageSetting = isMultiLanguageEnabled ? preferredLanguage : fallbackLng;
 
-i18n
-	.use(initReactI18next)
-	.init({
-		resources: availableResources,
-		fallbackLng,
-		lng: languageSetting,
-		interpolation: {
-			escapeValue: false,
-		},
-	});
+i18n.use(initReactI18next).init({
+	resources: availableResources,
+	fallbackLng,
+	lng: languageSetting,
+	interpolation: {
+		escapeValue: false,
+	},
+});
 
 export default i18n;

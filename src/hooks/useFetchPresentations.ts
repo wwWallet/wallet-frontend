@@ -42,22 +42,18 @@ const useFetchPresentations = (
 				}
 
 				const allCredentials = (await keystore.getAllCredentials()) || [];
-				const credentialById = new Map(
-					allCredentials.map(c => [String(c.credentialId), c])
-				);
+				const credentialById = new Map(allCredentials.map((c) => [String(c.credentialId), c]));
 
 				if (batchId !== null && batchId !== undefined && batchId !== '') {
 					const parsedBatchId = typeof batchId === 'number' ? batchId : Number.parseInt(batchId, 10);
 					const instances = allCredentials.filter((credential) => credential.batchId === parsedBatchId);
 					const credentialsIds = instances.map((instance) => instance.credentialId);
 
-					const transactionIds = presentations.filter((p) =>
-						credentialsIds.reduce((acc, val) => acc || p.usedCredentialIds.includes(val), false)
-					).map(p => p.transactionId);
+					const transactionIds = presentations
+						.filter((p) => credentialsIds.reduce((acc, val) => acc || p.usedCredentialIds.includes(val), false))
+						.map((p) => p.transactionId);
 
-					presentations = presentations.filter((p) =>
-						transactionIds.includes(p.transactionId)
-					);
+					presentations = presentations.filter((p) => transactionIds.includes(p.transactionId));
 
 					if (presentations.length === 0) {
 						setHistory([]);
@@ -73,44 +69,46 @@ const useFetchPresentations = (
 					}
 				}
 
-				const presentationsTransformed = await Promise.all(presentations
-					.sort(reverse(compareBy(presentation => presentation.presentationTimestampSeconds)))
-					.map(async (presentation) => {
+				const presentationsTransformed = await Promise.all(
+					presentations
+						.sort(reverse(compareBy((presentation) => presentation.presentationTimestampSeconds)))
+						.map(async (presentation) => {
+							const firstUsedId = String(presentation.usedCredentialIds?.[0] ?? '');
+							const firstVC = credentialById.get(firstUsedId);
 
-						const firstUsedId = String(presentation.usedCredentialIds?.[0] ?? "");
-						const firstVC = credentialById.get(firstUsedId);
+							const parsedCredential = await parseCredential({
+								...presentation,
+								credentialIssuerIdentifier: firstVC?.credentialIssuerIdentifier,
+								credentialConfigurationId: firstVC?.credentialConfigurationId,
+							});
 
-						const parsedCredential = await parseCredential({
-							...presentation,
-							credentialIssuerIdentifier: firstVC?.credentialIssuerIdentifier,
-							credentialConfigurationId: firstVC?.credentialConfigurationId,
-						});
+							const result = await (async () => {
+								if (!credentialEngine) return null;
 
-						const result = await (async () => {
-							if (!credentialEngine) return null;
+								switch (parsedCredential?.metadata?.credential?.format) {
+									case VerifiableCredentialFormat.VC_SDJWT:
+										return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
+									case VerifiableCredentialFormat.DC_SDJWT:
+										return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
+									case VerifiableCredentialFormat.MSO_MDOC:
+										return credentialEngine.msoMdocVerifier.verify({ rawCredential: presentation.data, opts: {} });
+									default:
+										return null;
+								}
+							})();
 
-							switch (parsedCredential?.metadata?.credential?.format) {
-								case VerifiableCredentialFormat.VC_SDJWT:
-									return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
-								case VerifiableCredentialFormat.DC_SDJWT:
-									return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
-								case VerifiableCredentialFormat.MSO_MDOC:
-									return credentialEngine.msoMdocVerifier.verify({ rawCredential: presentation.data, opts: {} });
-								default:
-									return null;
-							}
-						})();
-
-						return {
-							presentation,
-							parsedCredential,
-							result,
-							isExpired: result?.success === false && result.error === CredentialVerificationError.ExpiredCredential,
-						};
-					})
+							return {
+								presentation,
+								parsedCredential,
+								result,
+								isExpired: result?.success === false && result.error === CredentialVerificationError.ExpiredCredential,
+							};
+						}),
 				);
 				const presentationsGroupedByTransactionId = presentationsTransformed.reduce<PresentationHistory>((acc, p) => {
-					acc[p.presentation.transactionId] = acc[p.presentation.transactionId] ? [...acc[p.presentation.transactionId], p] : [p];
+					acc[p.presentation.transactionId] = acc[p.presentation.transactionId]
+						? [...acc[p.presentation.transactionId], p]
+						: [p];
 					return acc;
 				}, {});
 				setHistory(presentationsGroupedByTransactionId);

@@ -1,7 +1,14 @@
-import { CLOCK_TOLERANCE, VCT_REGISTRY_URLS } from "../config";
-import { IHttpProxy } from "./interfaces/IHttpProxy";
-import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
-import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
+import { CLOCK_TOLERANCE, VCT_REGISTRY_URLS } from '../config';
+import { IHttpProxy } from './interfaces/IHttpProxy';
+import {
+	ParsingEngine,
+	SDJWTVCParser,
+	PublicKeyResolverEngine,
+	SDJWTVCVerifier,
+	MsoMdocParser,
+	MsoMdocVerifier,
+} from 'wallet-common';
+import { IOpenID4VCIHelper } from './interfaces/IOpenID4VCIHelper';
 import { createVctDocumentResolutionEngine, VctDocumentProvider, VctResolutionErrors, ok, err } from 'wallet-common';
 
 export async function initializeCredentialEngine(
@@ -10,16 +17,15 @@ export async function initializeCredentialEngine(
 	getIssuers: () => Promise<Record<string, unknown>[]>,
 	trustedCertificates: string[] = [],
 	shouldUseCache: boolean = true,
-	onIssuerMetadataResolved?: (issuerIdentifier: string) => void
+	onIssuerMetadataResolved?: (issuerIdentifier: string) => void,
 ): Promise<any> {
-
 	const vctRegistryProviders: VctDocumentProvider[] = VCT_REGISTRY_URLS.map((registryUrl) => ({
 		getVctMetadataDocument: async (vct: string) => {
 			try {
 				const url = new URL(registryUrl);
 				url.searchParams.set('vct', vct);
 				const res = await httpProxy.get(url.toString(), {}, { useCache: true });
-				if (!res?.data || res.status!==200) return err(VctResolutionErrors.NotFound);
+				if (!res?.data || res.status !== 200) return err(VctResolutionErrors.NotFound);
 				return ok(res.data as any);
 			} catch (e) {
 				console.error('Error in VCT SDJWT Metadata retrieval: ' + JSON.stringify(e));
@@ -35,19 +41,21 @@ export async function initializeCredentialEngine(
 		subtle: crypto.subtle,
 		lang: 'en-US',
 		trustedCertificates,
-		vctResolutionEngine: vctDocumentProvider
+		vctResolutionEngine: vctDocumentProvider,
 	};
 
-	await helper.fetchIssuerMetadataAndCertificates(
-		getIssuers,
-		(pemCerts) => trustedCertificates.push(...pemCerts),
-		shouldUseCache,
-		(issuerIdentifier) => {
-			onIssuerMetadataResolved?.(issuerIdentifier);
-		}
-	).catch((err) => {
-		console.error("Failed to fetch issuer metadata asynchronously:", err);
-	});
+	await helper
+		.fetchIssuerMetadataAndCertificates(
+			getIssuers,
+			(pemCerts) => trustedCertificates.push(...pemCerts),
+			shouldUseCache,
+			(issuerIdentifier) => {
+				onIssuerMetadataResolved?.(issuerIdentifier);
+			},
+		)
+		.catch((err) => {
+			console.error('Failed to fetch issuer metadata asynchronously:', err);
+		});
 
 	const credentialParsingEngine = ParsingEngine();
 	credentialParsingEngine.register(SDJWTVCParser({ context: ctx, httpClient: httpProxy }));

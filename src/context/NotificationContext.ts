@@ -1,6 +1,6 @@
-import { createContext } from "react";
+import { createContext } from 'react';
 
-export type NotificationType = "success" | "newCredential" | "error";
+export type NotificationType = 'success' | 'newCredential' | 'error';
 
 export type NotifyPayload = {
 	title?: string;
@@ -11,7 +11,7 @@ export type NotifyPayload = {
 export type NotifyFn = (type: NotificationType, payload?: NotifyPayload) => string;
 
 export type NotificationAPI = {
-	notify: NotifyFn;   // single entry point
+	notify: NotifyFn; // single entry point
 	remove: (id: string) => void;
 };
 

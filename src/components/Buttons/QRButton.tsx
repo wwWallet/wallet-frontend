@@ -13,16 +13,10 @@ const QRButton = ({ openQRScanner }: QRButtonProps) => {
 	if (screenType === 'tablet') {
 		return (
 			<div className="mb-2">
-				<Button
-					id="open-qr-scanner"
-					onClick={openQRScanner}
-					variant="primary"
-					additionalClassName={`step-2`}
-				>
+				<Button id="open-qr-scanner" onClick={openQRScanner} variant="primary" additionalClassName={`step-2`}>
 					<QrCode size={20} className="text-inherit" />
 				</Button>
 			</div>
-
 		);
 	}
 

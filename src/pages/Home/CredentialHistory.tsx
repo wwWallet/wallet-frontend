@@ -23,13 +23,13 @@ const CredentialHistory = () => {
 	return (
 		<>
 			<CredentialLayout title={t('pageCredentials.activityTitle')} hideHeadingOnMobile>
-				{history !== null && (Array.isArray(history) && history.length === 0 ? (
-					<ActivityEmptyState credentialSpecific />
-				) : (
-					<HistoryList batchId={batchId} history={history} />
-				))}
+				{history !== null &&
+					(Array.isArray(history) && history.length === 0 ? (
+						<ActivityEmptyState credentialSpecific />
+					) : (
+						<HistoryList batchId={batchId} history={history} />
+					))}
 			</CredentialLayout>
-
 		</>
 	);
 };

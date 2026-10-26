@@ -39,10 +39,7 @@ const Login = () => {
 	}
 
 	return (
-		<AuthCard
-			heading={isDesktopSwitcherOpen ? null : t('loginSignup.signIn')}
-			showPasskeyInfoPopup={false}
-		>
+		<AuthCard heading={isDesktopSwitcherOpen ? null : t('loginSignup.signIn')} showPasskeyInfoPopup={false}>
 			<WebauthnSignupLogin
 				isLogin={true}
 				isSubmitting={isSubmitting}

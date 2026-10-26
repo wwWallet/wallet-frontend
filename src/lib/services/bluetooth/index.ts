@@ -1,5 +1,5 @@
-import { IBluetoothTransport } from "../../interfaces/IBluetoothTransport";
-import { WebBluetoothTransport } from "./WebBluetoothTransport";
+import { IBluetoothTransport } from '../../interfaces/IBluetoothTransport';
+import { WebBluetoothTransport } from './WebBluetoothTransport';
 
 /**
  * Create the Bluetooth transport for the current environment: Web Bluetooth

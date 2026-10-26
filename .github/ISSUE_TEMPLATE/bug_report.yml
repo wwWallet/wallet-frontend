@@ -13,7 +13,7 @@ body:
     id: to-reproduce
     attributes:
       label: To Reproduce
-      description: "Steps to reproduce the behavior"
+      description: 'Steps to reproduce the behavior'
       value: |
         1. Go to '...'
         2. Click on '....'

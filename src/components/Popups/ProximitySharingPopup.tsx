@@ -28,9 +28,11 @@ export const PROXIMITY_SHARING_STATUS = Object.freeze({
 	SHARING_FAILED: 'sharingFailed',
 } as const);
 
-export type ProximitySharingStatus = typeof PROXIMITY_SHARING_STATUS[keyof typeof PROXIMITY_SHARING_STATUS];
+export type ProximitySharingStatus = (typeof PROXIMITY_SHARING_STATUS)[keyof typeof PROXIMITY_SHARING_STATUS];
 
-type CredentialClaim = NonNullable<ExtendedVcEntity['parsedCredential']['metadata']['credential']['TypeMetadata']['claims']>[number];
+type CredentialClaim = NonNullable<
+	ExtendedVcEntity['parsedCredential']['metadata']['credential']['TypeMetadata']['claims']
+>[number];
 
 interface StructuredValueProps {
 	value: unknown;
@@ -69,54 +71,82 @@ interface ProximitySharingPopupProps {
 	onClose: () => void;
 }
 
-const includesStatus = (statuses: readonly ProximitySharingStatus[], status: ProximitySharingStatus) => statuses.includes(status);
+const includesStatus = (statuses: readonly ProximitySharingStatus[], status: ProximitySharingStatus) =>
+	statuses.includes(status);
 
 const currentStepForStatus = (status: ProximitySharingStatus) => {
-	if (includesStatus([PROXIMITY_SHARING_STATUS.SELECTING_DEVICE, PROXIMITY_SHARING_STATUS.PAIRING, PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST, PROXIMITY_SHARING_STATUS.CONNECTION_FAILED], status)) return 1;
+	if (
+		includesStatus(
+			[
+				PROXIMITY_SHARING_STATUS.SELECTING_DEVICE,
+				PROXIMITY_SHARING_STATUS.PAIRING,
+				PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST,
+				PROXIMITY_SHARING_STATUS.CONNECTION_FAILED,
+			],
+			status,
+		)
+	)
+		return 1;
 	if (includesStatus([PROXIMITY_SHARING_STATUS.REVIEW, PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH], status)) return 2;
-	if (includesStatus([PROXIMITY_SHARING_STATUS.SHARING, PROXIMITY_SHARING_STATUS.SUCCESS, PROXIMITY_SHARING_STATUS.SHARING_FAILED], status)) return 3;
+	if (
+		includesStatus(
+			[PROXIMITY_SHARING_STATUS.SHARING, PROXIMITY_SHARING_STATUS.SUCCESS, PROXIMITY_SHARING_STATUS.SHARING_FAILED],
+			status,
+		)
+	)
+		return 3;
 	return 0;
 };
 
 // Turns identifier-style names such as `firstName` or `first_name` into readable labels.
-const formatFieldLabel = (name: unknown) => String(name)
-	.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-	.replace(/[_-]+/g, ' ')
-	.replace(/\s+/g, ' ')
-	.trim()
-	.replace(/^./, character => character.toUpperCase());
+const formatFieldLabel = (name: unknown) =>
+	String(name)
+		.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+		.replace(/[_-]+/g, ' ')
+		.replace(/\s+/g, ' ')
+		.trim()
+		.replace(/^./, (character) => character.toUpperCase());
 
 // Converts string or array paths into comparable, case- and separator-insensitive segments.
-const normalizePath = (field: unknown) => (Array.isArray(field) ? field : String(field).split('.'))
-	.filter(segment => segment !== null && segment !== undefined && segment !== '')
-	.map(segment => String(segment).replace(/[^a-z0-9]/gi, '').toLowerCase());
+const normalizePath = (field: unknown) =>
+	(Array.isArray(field) ? field : String(field).split('.'))
+		.filter((segment) => segment !== null && segment !== undefined && segment !== '')
+		.map((segment) =>
+			String(segment)
+				.replace(/[^a-z0-9]/gi, '')
+				.toLowerCase(),
+		);
 
 // Used when deciding whether a claim (e.g. academicDetails.degree) belongs to a requested field (e.g. academicDetails).
 const pathsAreRelated = (left: unknown, right: unknown) => {
 	const leftPath = normalizePath(left);
 	const rightPath = normalizePath(right);
-	const leftContainsRight = rightPath.length > 0 && leftPath.some((_, start) =>
-		rightPath.every((segment, index) => leftPath[start + index] === segment));
-	const rightContainsLeft = leftPath.length > 0 && rightPath.some((_, start) =>
-		leftPath.every((segment, index) => rightPath[start + index] === segment));
+	const leftContainsRight =
+		rightPath.length > 0 &&
+		leftPath.some((_, start) => rightPath.every((segment, index) => leftPath[start + index] === segment));
+	const rightContainsLeft =
+		leftPath.length > 0 &&
+		rightPath.some((_, start) => leftPath.every((segment, index) => rightPath[start + index] === segment));
 
 	return leftContainsRight || rightContainsLeft;
 };
 
-const getValueAtPath = (source: unknown, path: ClaimPath): unknown => path.reduce<unknown>((value, segment) => {
-	if (value instanceof Map) return value.get(segment);
-	if (value !== null && typeof value === 'object') {
-		return (value as Record<string | number, unknown>)[segment ?? 'null'];
-	}
-	return undefined;
-}, source);
+const getValueAtPath = (source: unknown, path: ClaimPath): unknown =>
+	path.reduce<unknown>((value, segment) => {
+		if (value instanceof Map) return value.get(segment);
+		if (value !== null && typeof value === 'object') {
+			return (value as Record<string | number, unknown>)[segment ?? 'null'];
+		}
+		return undefined;
+	}, source);
 
 const findValueByKey = (source: unknown, targetKey: unknown, visited = new WeakSet<object>()): unknown => {
 	if (!source || typeof source !== 'object') return undefined;
 	if (visited.has(source)) return undefined;
 	visited.add(source);
 
-	const entries: Array<[unknown, unknown]> = source instanceof Map ? Array.from(source.entries()) : Object.entries(source);
+	const entries: Array<[unknown, unknown]> =
+		source instanceof Map ? Array.from(source.entries()) : Object.entries(source);
 	const normalizedTargetKey = normalizePath(targetKey).at(-1);
 	const directMatch = entries.find(([key]) => normalizePath(key).at(-1) === normalizedTargetKey);
 	if (directMatch) return directMatch[1];
@@ -131,16 +161,20 @@ const findValueByKey = (source: unknown, targetKey: unknown, visited = new WeakS
 const imageSourceForValue = (value: unknown): string | null => {
 	if (typeof value === 'string' && value.toLowerCase().startsWith('data:image/')) return value;
 
-	const byteEntries: Array<[string, unknown]> = value && typeof value === 'object' && !Array.isArray(value)
-		? Object.entries(value)
-		: [];
-	const isSerializedByteString = byteEntries.length > 0 && byteEntries.every(([key, byte], index) =>
-		Number(key) === index && typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255);
-	const bytes = value instanceof Uint8Array
-		? value
-		: isSerializedByteString
-			? new Uint8Array(byteEntries.map(([, byte]) => Number(byte)))
-			: null;
+	const byteEntries: Array<[string, unknown]> =
+		value && typeof value === 'object' && !Array.isArray(value) ? Object.entries(value) : [];
+	const isSerializedByteString =
+		byteEntries.length > 0 &&
+		byteEntries.every(
+			([key, byte], index) =>
+				Number(key) === index && typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255,
+		);
+	const bytes =
+		value instanceof Uint8Array
+			? value
+			: isSerializedByteString
+				? new Uint8Array(byteEntries.map(([, byte]) => Number(byte)))
+				: null;
 	if (!bytes) return null;
 
 	let binary = '';
@@ -163,27 +197,31 @@ const StructuredValue = ({ value, label }: StructuredValueProps) => {
 
 	const imageSource = imageSourceForValue(value);
 	if (imageSource) {
-		return <img
-			src={imageSource}
-			alt={label}
-			className="mt-1 max-h-24 max-w-full rounded-md border border-lm-gray-400 bg-white object-contain dark:border-dm-gray-600"
-		/>;
+		return (
+			<img
+				src={imageSource}
+				alt={label}
+				className="mt-1 max-h-24 max-w-full rounded-md border border-lm-gray-400 bg-white object-contain dark:border-dm-gray-600"
+			/>
+		);
 	}
 
 	if (value instanceof Map || (value && typeof value === 'object')) {
 		const entries = value instanceof Map ? Array.from(value.entries()) : Object.entries(value);
 		if (entries.length === 0) return <span>—</span>;
 
-		return <dl className="mt-1 space-y-1 border-l border-lm-gray-400 pl-3 dark:border-dm-gray-600">
-			{entries.map(([key, nestedValue]) => (
-				<div key={String(key)} className="min-w-0">
-					<dt className="font-medium text-lm-gray-800 dark:text-dm-gray-200">{formatFieldLabel(key)}:</dt>
-					<dd className="ml-2 min-w-0 wrap-break-word text-lm-gray-700 dark:text-dm-gray-300">
-						<StructuredValue value={nestedValue} label={`${label} ${formatFieldLabel(key)}`} />
-					</dd>
-				</div>
-			))}
-		</dl>;
+		return (
+			<dl className="mt-1 space-y-1 border-l border-lm-gray-400 pl-3 dark:border-dm-gray-600">
+				{entries.map(([key, nestedValue]) => (
+					<div key={String(key)} className="min-w-0">
+						<dt className="font-medium text-lm-gray-800 dark:text-dm-gray-200">{formatFieldLabel(key)}:</dt>
+						<dd className="ml-2 min-w-0 wrap-break-word text-lm-gray-700 dark:text-dm-gray-300">
+							<StructuredValue value={nestedValue} label={`${label} ${formatFieldLabel(key)}`} />
+						</dd>
+					</div>
+				))}
+			</dl>
+		);
 	}
 
 	return <span>{displayValue(value)}</span>;
@@ -196,108 +234,154 @@ const StepBar = ({ currentStep, complete }: StepBarProps) => {
 			{steps.map((step, index) => {
 				const done = complete || index < currentStep;
 				const current = !complete && index === currentStep;
-				return <React.Fragment key={step}>
-					<li className="flex min-w-0 flex-col items-center gap-1.5" aria-current={current ? 'step' : undefined}>
-						<span className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold ${done ? 'border-primary bg-primary text-white' : current ? 'border-primary text-primary dark:text-white' : 'border-lm-gray-400 text-lm-gray-600 dark:border-dm-gray-600 dark:text-dm-gray-300'}`}>
-							{done ? <Check size={16} strokeWidth={3} /> : index + 1}
-						</span>
-						<span className={`text-center text-xs ${done || current ? 'font-semibold text-lm-gray-900 dark:text-dm-gray-100' : 'text-lm-gray-600 dark:text-dm-gray-300'}`}>
-							{t(`qrShareMdoc.steps.${step}`)}
-						</span>
-					</li>
-					{index < steps.length - 1 && <div className={`mt-3.5 h-px min-w-3 flex-1 ${done ? 'bg-primary' : 'bg-lm-gray-400 dark:bg-dm-gray-600'}`} aria-hidden="true" />}
-				</React.Fragment>;
+				return (
+					<React.Fragment key={step}>
+						<li className="flex min-w-0 flex-col items-center gap-1.5" aria-current={current ? 'step' : undefined}>
+							<span
+								className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold ${done ? 'border-primary bg-primary text-white' : current ? 'border-primary text-primary dark:text-white' : 'border-lm-gray-400 text-lm-gray-600 dark:border-dm-gray-600 dark:text-dm-gray-300'}`}
+							>
+								{done ? <Check size={16} strokeWidth={3} /> : index + 1}
+							</span>
+							<span
+								className={`text-center text-xs ${done || current ? 'font-semibold text-lm-gray-900 dark:text-dm-gray-100' : 'text-lm-gray-600 dark:text-dm-gray-300'}`}
+							>
+								{t(`qrShareMdoc.steps.${step}`)}
+							</span>
+						</li>
+						{index < steps.length - 1 && (
+							<div
+								className={`mt-3.5 h-px min-w-3 flex-1 ${done ? 'bg-primary' : 'bg-lm-gray-400 dark:bg-dm-gray-600'}`}
+								aria-hidden="true"
+							/>
+						)}
+					</React.Fragment>
+				);
 			})}
 		</ol>
 	);
 };
 
-const ErrorState = ({ title, description }: ErrorStateProps) => <div className="flex h-full flex-col items-center justify-center text-center">
-	<CircleAlert className="text-lm-red dark:text-dm-red" size={64} strokeWidth={1.5} aria-hidden="true" />
-	<h3 className="mt-4 text-lg font-bold text-lm-red dark:text-dm-red">{title}</h3>
-	<p className="mt-2 max-w-sm text-base text-lm-gray-800 dark:text-dm-gray-200">{description}</p>
-</div>;
+const ErrorState = ({ title, description }: ErrorStateProps) => (
+	<div className="flex h-full flex-col items-center justify-center text-center">
+		<CircleAlert className="text-lm-red dark:text-dm-red" size={64} strokeWidth={1.5} aria-hidden="true" />
+		<h3 className="mt-4 text-lg font-bold text-lm-red dark:text-dm-red">{title}</h3>
+		<p className="mt-2 max-w-sm text-base text-lm-gray-800 dark:text-dm-gray-200">{description}</p>
+	</div>
+);
 
-const TransferProgress = ({ failed = false, itemCount, t }: TransferProgressProps) => <div className="flex h-full flex-col items-center justify-center text-center">
-	{failed ? (
-		<>
-			<CircleAlert className="h-20 w-20 text-lm-red dark:text-dm-red" strokeWidth={1.5} aria-hidden="true" />
-			<h3 className="mt-4 text-lg font-bold text-lm-red dark:text-dm-red">
-				{t('qrShareMdoc.sharingFailedHeading')}
-			</h3>
-			<p className="mt-2 text-base text-lm-gray-800 dark:text-dm-gray-200">{t('qrShareMdoc.connectionLost')}</p>
-		</>
-	) : (
-		<>
-			<h3 className="text-lg font-bold text-lm-gray-900 dark:text-dm-gray-100">{t('qrShareMdoc.sharingHeading')}</h3>
-			<p className="mt-1 text-base text-lm-gray-800 dark:text-dm-gray-200">{t('qrShareMdoc.keepOpen')}</p>
-			<LoaderCircle className="mt-7 h-20 w-20 animate-spin text-primary dark:text-brand-light" strokeWidth={1.5} aria-hidden="true" />
-			<p className="mt-5 text-base font-semibold text-lm-gray-900 dark:text-dm-gray-100">
-				{t('qrShareMdoc.sendingItems', { count: itemCount })}
-			</p>
-		</>
-	)}
-</div>;
+const TransferProgress = ({ failed = false, itemCount, t }: TransferProgressProps) => (
+	<div className="flex h-full flex-col items-center justify-center text-center">
+		{failed ? (
+			<>
+				<CircleAlert className="h-20 w-20 text-lm-red dark:text-dm-red" strokeWidth={1.5} aria-hidden="true" />
+				<h3 className="mt-4 text-lg font-bold text-lm-red dark:text-dm-red">{t('qrShareMdoc.sharingFailedHeading')}</h3>
+				<p className="mt-2 text-base text-lm-gray-800 dark:text-dm-gray-200">{t('qrShareMdoc.connectionLost')}</p>
+			</>
+		) : (
+			<>
+				<h3 className="text-lg font-bold text-lm-gray-900 dark:text-dm-gray-100">{t('qrShareMdoc.sharingHeading')}</h3>
+				<p className="mt-1 text-base text-lm-gray-800 dark:text-dm-gray-200">{t('qrShareMdoc.keepOpen')}</p>
+				<LoaderCircle
+					className="mt-7 h-20 w-20 animate-spin text-primary dark:text-brand-light"
+					strokeWidth={1.5}
+					aria-hidden="true"
+				/>
+				<p className="mt-5 text-base font-semibold text-lm-gray-900 dark:text-dm-gray-100">
+					{t('qrShareMdoc.sendingItems', { count: itemCount })}
+				</p>
+			</>
+		)}
+	</div>
+);
 
-const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credential, requestedFields, mdocTypeDetails, bluetoothPairingCancelled, requiresUserGesture, onConnect, onConsent, onCancel, onClose }: ProximitySharingPopupProps) => {
+const ProximitySharingPopup = ({
+	isOpen,
+	fullScreen,
+	status,
+	qrContent,
+	credential,
+	requestedFields,
+	mdocTypeDetails,
+	bluetoothPairingCancelled,
+	requiresUserGesture,
+	onConnect,
+	onConsent,
+	onCancel,
+	onClose,
+}: ProximitySharingPopupProps) => {
 	const { t, i18n } = useTranslation();
 	const [showAllNotShared, setShowAllNotShared] = useState(false);
 	const claims = credential?.parsedCredential?.metadata?.credential?.TypeMetadata?.claims ?? [];
 	const signedClaims = credential?.parsedCredential?.signedClaims;
-	const claimIsRequested = (claim: CredentialClaim) => Array.isArray(claim.path)
-		&& requestedFields.some(field => pathsAreRelated(claim.path, field));
+	const claimIsRequested = (claim: CredentialClaim) =>
+		Array.isArray(claim.path) && requestedFields.some((field) => pathsAreRelated(claim.path, field));
 	const claimForField = (field: string) => {
 		const normalizedField = normalizePath(field).at(-1);
-		return claims.find(claim => Array.isArray(claim.path) && normalizePath(claim.path).at(-1) === normalizedField);
+		return claims.find((claim) => Array.isArray(claim.path) && normalizePath(claim.path).at(-1) === normalizedField);
 	};
 	const labelForClaim = (claim: CredentialClaim | undefined, fallback: unknown) => {
 		const displays = claim?.display ?? [];
 		const activeLanguage = getLanguage(i18n.language);
 		const fallbackLanguage = getLanguage(fallbackLng);
-		const activeLanguageLabel = displays.find(display => getLanguage(display.locale) === activeLanguage)?.label;
-		const fallbackLanguageLabel = fallbackLanguage === undefined
-			? undefined
-			: displays.find(display => getLanguage(display.locale) === fallbackLanguage)?.label;
+		const activeLanguageLabel = displays.find((display) => getLanguage(display.locale) === activeLanguage)?.label;
+		const fallbackLanguageLabel =
+			fallbackLanguage === undefined
+				? undefined
+				: displays.find((display) => getLanguage(display.locale) === fallbackLanguage)?.label;
 
-		return formatFieldLabel(activeLanguageLabel
-			?? fallbackLanguageLabel
-			?? displays[0]?.label
-			?? fallback);
+		return formatFieldLabel(activeLanguageLabel ?? fallbackLanguageLabel ?? displays[0]?.label ?? fallback);
 	};
 	const valueForField = (field: unknown, claim: CredentialClaim | undefined) => {
 		const pathValue = Array.isArray(claim?.path) ? getValueAtPath(signedClaims, claim.path) : undefined;
 		return pathValue ?? findValueByKey(signedClaims, field);
 	};
-	const requestedItems = requestedFields.map(field => {
+	const requestedItems = requestedFields.map((field) => {
 		const claim = claimForField(field);
 		const value = valueForField(field, claim);
 		return { field, label: labelForClaim(claim, field), value };
 	});
 	const notSharedLabels = claims
-		.filter(claim => Array.isArray(claim.path) && !claimIsRequested(claim) && valueForField(claim.path.at(-1), claim) !== undefined)
-		.map(claim => labelForClaim(claim, claim.path.at(-1)).toLowerCase())
+		.filter(
+			(claim) =>
+				Array.isArray(claim.path) && !claimIsRequested(claim) && valueForField(claim.path.at(-1), claim) !== undefined,
+		)
+		.map((claim) => labelForClaim(claim, claim.path.at(-1)).toLowerCase())
 		.filter((label, index, labels) => labels.indexOf(label) === index);
 	const notSharedSummary = notSharedLabels.length > 0 ? notSharedLabels.join(', ') : t('qrShareMdoc.nothingElse');
 	const { text: truncatedNotShared, truncated: hasHiddenNotShared } = truncateByWords(notSharedSummary, 60);
 	const visibleNotSharedSummary = showAllNotShared ? notSharedSummary : truncatedNotShared;
-	const isLoadingStatus = includesStatus([
-		PROXIMITY_SHARING_STATUS.SELECTING_DEVICE,
-		PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST,
-		PROXIMITY_SHARING_STATUS.SHARING,
-	], status);
+	const isLoadingStatus = includesStatus(
+		[
+			PROXIMITY_SHARING_STATUS.SELECTING_DEVICE,
+			PROXIMITY_SHARING_STATUS.WAITING_FOR_REQUEST,
+			PROXIMITY_SHARING_STATUS.SHARING,
+		],
+		status,
+	);
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} fullScreen={fullScreen} useDefaultContentPadding={false} shouldCloseOnOverlayClick={false}>
-			<div className={`flex flex-col ${fullScreen
-				? 'h-full'
-				: bluetoothPairingCancelled
-					? 'h-[min(720px,calc(90dvh-2rem))]'
-					: 'h-[min(640px,calc(90dvh-2rem))]'}`}>
+		<PopupLayout
+			isOpen={isOpen}
+			onClose={onClose}
+			fullScreen={fullScreen}
+			useDefaultContentPadding={false}
+			shouldCloseOnOverlayClick={false}
+		>
+			<div
+				className={`flex flex-col ${
+					fullScreen
+						? 'h-full'
+						: bluetoothPairingCancelled
+							? 'h-[min(720px,calc(90dvh-2rem))]'
+							: 'h-[min(640px,calc(90dvh-2rem))]'
+				}`}
+			>
 				<header className="shrink-0 px-5 pt-5 sm:px-6 sm:pt-6">
-					<h2 className="text-lg font-bold text-primary dark:text-white">
-						{t('qrShareMdoc.presentCredential')}
-					</h2>
+					<h2 className="text-lg font-bold text-primary dark:text-white">{t('qrShareMdoc.presentCredential')}</h2>
 					<div className="mt-4 border-y border-lm-gray-400 py-3 dark:border-dm-gray-600">
-						<StepBar currentStep={currentStepForStatus(status)} complete={status === PROXIMITY_SHARING_STATUS.SUCCESS} />
+						<StepBar
+							currentStep={currentStepForStatus(status)}
+							complete={status === PROXIMITY_SHARING_STATUS.SUCCESS}
+						/>
 					</div>
 				</header>
 				<div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 custom-scrollbar sm:px-6">
@@ -378,7 +462,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 								{t('qrShareMdoc.reviewDescription')}
 							</p>
 							<ul className="mt-4 overflow-hidden rounded-lg border border-lm-gray-400 bg-lm-gray-50 dark:border-dm-gray-600 dark:bg-dm-gray-800">
-								{requestedItems.map(item => (
+								{requestedItems.map((item) => (
 									<li
 										key={item.field}
 										className="flex min-h-16 items-center gap-3 border-b border-lm-gray-400 px-3 py-1.5 last:border-b-0 dark:border-dm-gray-600"
@@ -415,7 +499,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 											<button
 												type="button"
 												className="font-medium text-primary hover:underline dark:text-brand-light"
-												onClick={() => setShowAllNotShared(current => !current)}
+												onClick={() => setShowAllNotShared((current) => !current)}
 											>
 												{showAllNotShared ? t('common.showLess') : t('common.showMore')}
 											</button>
@@ -426,9 +510,7 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 						</div>
 					)}
 
-					{status === PROXIMITY_SHARING_STATUS.SHARING && (
-						<TransferProgress itemCount={requestedItems.length} t={t} />
-					)}
+					{status === PROXIMITY_SHARING_STATUS.SHARING && <TransferProgress itemCount={requestedItems.length} t={t} />}
 
 					{status === PROXIMITY_SHARING_STATUS.SUCCESS && (
 						<div className="flex h-full flex-col items-center justify-center text-center">
@@ -450,12 +532,18 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 					{status === PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH && (
 						<ErrorState
 							title={t('qrShareMdoc.credentialMismatchHeading')}
-							description={mdocTypeDetails?.requestedDocType && mdocTypeDetails?.credentialDocType
-								? <strong>{t('qrShareMdoc.credentialTypeMismatch', {
-									requestedType: mdocTypeDetails.requestedDocType,
-									credentialType: mdocTypeDetails.credentialDocType,
-								})}</strong>
-								: t('qrShareMdoc.credentialMismatch')}
+							description={
+								mdocTypeDetails?.requestedDocType && mdocTypeDetails?.credentialDocType ? (
+									<strong>
+										{t('qrShareMdoc.credentialTypeMismatch', {
+											requestedType: mdocTypeDetails.requestedDocType,
+											credentialType: mdocTypeDetails.credentialDocType,
+										})}
+									</strong>
+								) : (
+									t('qrShareMdoc.credentialMismatch')
+								)
+							}
 						/>
 					)}
 
@@ -463,7 +551,9 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 						<TransferProgress failed itemCount={requestedItems.length} t={t} />
 					)}
 				</div>
-				<div className={`flex min-h-16 shrink-0 items-center justify-end px-5 py-3 sm:px-6 ${isLoadingStatus ? '' : 'border-t border-lm-gray-400 dark:border-dm-gray-600'}`}>
+				<div
+					className={`flex min-h-16 shrink-0 items-center justify-end px-5 py-3 sm:px-6 ${isLoadingStatus ? '' : 'border-t border-lm-gray-400 dark:border-dm-gray-600'}`}
+				>
 					{status === PROXIMITY_SHARING_STATUS.SCAN && (
 						<div className="flex w-full justify-between gap-2">
 							<Button onClick={onCancel}>{t('common.cancel')}</Button>
@@ -475,10 +565,35 @@ const ProximitySharingPopup = ({ isOpen, fullScreen, status, qrContent, credenti
 						</div>
 					)}
 					{status === PROXIMITY_SHARING_STATUS.PAIRING && <Button onClick={onCancel}>{t('common.cancel')}</Button>}
-					{status === PROXIMITY_SHARING_STATUS.CONNECTION_FAILED && <div className="flex w-full justify-between gap-2"><Button onClick={onClose}>{t('messagePopup.close')}</Button><Button variant="primary" onClick={onConnect}>{t('common.tryAgain')}</Button></div>}
-					{status === PROXIMITY_SHARING_STATUS.REVIEW && <div className="flex w-full justify-between gap-2"><Button onClick={onCancel}>{t('common.cancel')}</Button><Button variant="primary" onClick={onConsent}>{t('qrShareMdoc.shareItems', { count: requestedItems.length })}</Button></div>}
-					{status === PROXIMITY_SHARING_STATUS.SUCCESS && <Button variant="primary" onClick={onClose}>{t('qrShareMdoc.done')}</Button>}
-					{includesStatus([PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH, PROXIMITY_SHARING_STATUS.SHARING_FAILED], status) && <Button variant="primary" onClick={onClose}>{t('messagePopup.close')}</Button>}
+					{status === PROXIMITY_SHARING_STATUS.CONNECTION_FAILED && (
+						<div className="flex w-full justify-between gap-2">
+							<Button onClick={onClose}>{t('messagePopup.close')}</Button>
+							<Button variant="primary" onClick={onConnect}>
+								{t('common.tryAgain')}
+							</Button>
+						</div>
+					)}
+					{status === PROXIMITY_SHARING_STATUS.REVIEW && (
+						<div className="flex w-full justify-between gap-2">
+							<Button onClick={onCancel}>{t('common.cancel')}</Button>
+							<Button variant="primary" onClick={onConsent}>
+								{t('qrShareMdoc.shareItems', { count: requestedItems.length })}
+							</Button>
+						</div>
+					)}
+					{status === PROXIMITY_SHARING_STATUS.SUCCESS && (
+						<Button variant="primary" onClick={onClose}>
+							{t('qrShareMdoc.done')}
+						</Button>
+					)}
+					{includesStatus(
+						[PROXIMITY_SHARING_STATUS.CREDENTIAL_MISMATCH, PROXIMITY_SHARING_STATUS.SHARING_FAILED],
+						status,
+					) && (
+						<Button variant="primary" onClick={onClose}>
+							{t('messagePopup.close')}
+						</Button>
+					)}
 				</div>
 			</div>
 		</PopupLayout>

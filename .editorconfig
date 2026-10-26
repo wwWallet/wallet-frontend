@@ -8,11 +8,19 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = tab
 
+# Prettier owns indentation for JavaScript and TypeScript files.
+[*.{js,ts,tsx}]
+indent_style = unset
+
 [LICENSE]
 indent_style = space
 
+# Markdown list markers determine the required indentation width
+[*.md]
+indent_style = space
+
 # YAML does not allow tab indentation
-[*.{md,yml,yaml}]
+[*.{yml,yaml}]
 indent_style = space
 indent_size = 2
 

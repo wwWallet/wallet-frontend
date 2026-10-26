@@ -1,8 +1,7 @@
 import React from 'react';
-import { TransactionDataRequest } from "wallet-common";
-import { useTranslation } from "react-i18next";
+import { TransactionDataRequest } from 'wallet-common';
+import { useTranslation } from 'react-i18next';
 import document from '../../../../assets/images/document.png';
-
 
 export const withTransactionData = (req: TransactionDataRequest) => {
 	const TransactionDataComponent: React.FC = () => {
@@ -16,8 +15,7 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 					</span>
 				</div>
 			);
-		}
-		else if (req.type === 'https://cloudsignatureconsortium.org/2025/qes') {
+		} else if (req.type === 'https://cloudsignatureconsortium.org/2025/qes') {
 			return (
 				<div className="pd-2 text-lm-gray-800 text-sm dark:text-dm-gray-200 mt-2 mb-2">
 					<span className="text-primary text-sm font-bold dark:text-white block mb-1">
@@ -28,7 +26,10 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 						<div className="w-5/6 flex items-center">
 							<ul className="flex flex-col list-disc">
 								{req.documentDigests.map((digest, index) => (
-									<span key={`${digest.hash ?? digest.label}-${index}`} className="text-lm-gray-800 dark:text-dm-gray-200 font-bold">
+									<span
+										key={`${digest.hash ?? digest.label}-${index}`}
+										className="text-lm-gray-800 dark:text-dm-gray-200 font-bold"
+									>
 										{digest.label}
 									</span>
 								))}
@@ -37,9 +38,8 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 						<img src={document} alt="signed-doc-icon" className="h-12"></img>
 					</div>
 				</div>
-			)
-		}
-		else if (req.type === 'https://cloudsignatureconsortium.org/2025/qc-request') {
+			);
+		} else if (req.type === 'https://cloudsignatureconsortium.org/2025/qc-request') {
 			return (
 				<div className="pd-2 text-lm-gray-800 text-sm dark:text-dm-gray-200 mt-2 mb-2">
 					<span className="text-primary text-sm font-bold dark:text-white block mb-1">
@@ -47,11 +47,10 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 					</span>
 					<p></p>
 				</div>
-			)
+			);
 		}
-
 	};
 
-	TransactionDataComponent.displayName = "TransactionDataComponent";
+	TransactionDataComponent.displayName = 'TransactionDataComponent';
 	return TransactionDataComponent;
 };

@@ -13,7 +13,7 @@ export async function clearWalletCache(): Promise<void> {
 	if (!window.caches) return;
 
 	const cacheNames = await window.caches.keys();
-	await Promise.all(cacheNames
-		.filter(name => DISPOSABLE_CACHE_NAMES.has(name))
-		.map(name => window.caches.delete(name)));
+	await Promise.all(
+		cacheNames.filter((name) => DISPOSABLE_CACHE_NAMES.has(name)).map((name) => window.caches.delete(name)),
+	);
 }

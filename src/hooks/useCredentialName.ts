@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 export function useCredentialName(
 	credentialNameFn?: (langs?: string[]) => Promise<string | null>,
 	credentialId?: string | number,
-	preferredLangs: string[] = ['en-US']
+	preferredLangs: string[] = ['en-US'],
 ): string | null {
 	const [name, setName] = useState<string | null>(null);
 
@@ -14,11 +14,13 @@ export function useCredentialName(
 
 	useEffect(() => {
 		let isMounted = true;
-		fetchName().then((resolvedName) => {
-			if (isMounted) setName(resolvedName ?? null);
-		}).catch(() => {
-			if (isMounted) setName(null);
-		});
+		fetchName()
+			.then((resolvedName) => {
+				if (isMounted) setName(resolvedName ?? null);
+			})
+			.catch(() => {
+				if (isMounted) setName(null);
+			});
 
 		return () => {
 			isMounted = false;

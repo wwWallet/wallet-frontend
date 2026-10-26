@@ -19,13 +19,13 @@ wwWallet supports the use of a custom logo. To ensure optimal display across the
 
 1. Inside the `branding/custom` directory, create a new directory: `logo`.
 2. Inside the new `branding/custom/logo` directory, add your logo files using the following filenames:
-    - `logo_light.svg` **or** `logo_light.png`
-    - `logo_dark.svg` **or** `logo_dark.png`
+   - `logo_light.svg` **or** `logo_light.png`
+   - `logo_dark.svg` **or** `logo_dark.png`
      **Note:** Both light and dark versions are required.
 
 3. **Supported formats:**
-    - **SVG (recommended):** Ensures crisp scaling and smaller file size.
-    - **PNG:** Minimum resolution of **512×512**.
+   - **SVG (recommended):** Ensures crisp scaling and smaller file size.
+   - **PNG:** Minimum resolution of **512×512**.
 
 Vite will automatically detect these files and generate all necessary logo assets for the application. If changes don’t appear immediately, try reloading your browser. If the logos still don’t update, restart the development server.
 
@@ -39,35 +39,36 @@ You can customize the visual theme of wwWallet. We're working on adding support 
 
 Create `branding/custom/theme.json`. It **must** stick to the format specified in [.schemas/theme.json](.schemas/theme.json).
 
-The following options are supported:
+The following options are supported. All fields shown below are required:
 
-```json5
+```json
 {
-  // Schema reference. (required)
-  "$schema": "../.schemas/theme.schema.json",
-  // Brand color. (required)
+  "$schema": "../.schemas/theme.json",
   "brand": {
-    // The primary brand color. (required)
     "color": "<hex/hsl/rgb>",
-    // A light variant of the brand color. (required)
     "colorLight": "<hex/hsl/rgb>",
-    // An even lighter variant of the brand color. (required)
     "colorLighter": "<hex/hsl/rgb>",
-    // A dark variant of the brand color. (required)
     "colorDark": "<hex/hsl/rgb>",
-    // An even darker variant of the brand color. (required)
     "colorDarker": "<hex/hsl/rgb>"
   }
 }
-
 ```
+
+| Property             | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `$schema`            | Schema used to validate the theme configuration. |
+| `brand.color`        | Primary brand color.                             |
+| `brand.colorLight`   | Light variant of the brand color.                |
+| `brand.colorLighter` | Lighter variant of the brand color.              |
+| `brand.colorDark`    | Dark variant of the brand color.                 |
+| `brand.colorDarker`  | Darker variant of the brand color.               |
 
 ### Theme option details
 
 #### `brand`
 
-The *brand* color(s) is used in buttons and accent elements.
-The *light* and *lighter* variants are used in light mode, while the *dark* and *darker* variants are used in dark mode.
+The _brand_ color(s) is used in buttons and accent elements.
+The _light_ and _lighter_ variants are used in light mode, while the _dark_ and _darker_ variants are used in dark mode.
 Make sure that the contrast ratio is sufficient, in both light and dark mode.
 
 ## Screenshots
@@ -81,7 +82,6 @@ branding/default/screenshots/
 ├── screen_mobile_2.png
 ├── screen_tablet_1.png
 └── screen_tablet_2.png
-
 
 These files are copied to `public/screenshots/` during dev/build and used by the manifest.
 

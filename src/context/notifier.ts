@@ -1,7 +1,7 @@
 // Imperative bridge for firing notifications outside React.
 // Works with notify(type, payload).
 
-import type { NotificationType, NotifyPayload } from "./NotificationContext";
+import type { NotificationType, NotifyPayload } from './NotificationContext';
 
 type NotifyBridge = (type: NotificationType, payload?: NotifyPayload) => void;
 

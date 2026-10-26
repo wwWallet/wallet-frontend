@@ -1,65 +1,49 @@
 import React from 'react';
 
-export type Variant = (
-	'primary'
-	| 'secondary'
-	| 'delete'
-	| 'invisible'
-	| 'outline'
-	| 'custom'
-	| 'default'
-);
+export type Variant = 'primary' | 'secondary' | 'delete' | 'invisible' | 'outline' | 'custom' | 'default';
 
-type Size = (
-	'sm'
-	| 'md'
-	| 'lg'
-	| 'xl'
-	| '2xl'
-);
+type Size = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
-type TextSize = (
-	'sm'
-	| 'md'
-	| 'lg'
-);
+type TextSize = 'sm' | 'md' | 'lg';
 
 export type Props = {
-	id?: string,
-	type?: 'button' | 'reset' | 'submit',
-	children?: React.ReactNode,
-	onClick?: React.MouseEventHandler<HTMLButtonElement>,
-	variant?: Variant,
-	size?: Size,
-	square?: boolean,
-	textSize?: TextSize,
-	additionalClassName?: string,
-	disabled?: boolean,
-	ariaLabel?: string,
-	ariaExpanded?: boolean,
-	ariaControls?: string,
-	title?: string,
+	id?: string;
+	type?: 'button' | 'reset' | 'submit';
+	children?: React.ReactNode;
+	onClick?: React.MouseEventHandler<HTMLButtonElement>;
+	variant?: Variant;
+	size?: Size;
+	square?: boolean;
+	textSize?: TextSize;
+	additionalClassName?: string;
+	disabled?: boolean;
+	ariaLabel?: string;
+	ariaExpanded?: boolean;
+	ariaControls?: string;
+	title?: string;
 	value?: string;
 };
 
-const Button = React.forwardRef<HTMLButtonElement, Props>(function Button({
-	id,
-	type = 'button',
-	children,
-	onClick,
-	variant = 'custom',
-	size = 'md',
-	square = false,
-	textSize = 'sm',
-	additionalClassName = '',
-	disabled = false,
-	ariaLabel,
-	ariaExpanded,
-	ariaControls,
-	title,
-	value,
-}, ref) {
-
+const Button = React.forwardRef<HTMLButtonElement, Props>(function Button(
+	{
+		id,
+		type = 'button',
+		children,
+		onClick,
+		variant = 'custom',
+		size = 'md',
+		square = false,
+		textSize = 'sm',
+		additionalClassName = '',
+		disabled = false,
+		ariaLabel,
+		ariaExpanded,
+		ariaControls,
+		title,
+		value,
+	},
+	ref,
+) {
 	const getVariantClassName = () => {
 		let sizeClasses = '';
 		if (size === 'sm') {
@@ -85,7 +69,9 @@ const Button = React.forwardRef<HTMLButtonElement, Props>(function Button({
 			textSizeClasses = 'text-lg';
 		}
 
-		const disabledClasses = !disabled ? 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]' : 'grayscale opacity-75 cursor-not-allowed';
+		const disabledClasses = !disabled
+			? 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]'
+			: 'grayscale opacity-75 cursor-not-allowed';
 		const commonClasses = `rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 ${textSizeClasses} ${disabledClasses}`;
 
 		switch (variant) {

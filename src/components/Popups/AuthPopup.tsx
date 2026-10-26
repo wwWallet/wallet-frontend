@@ -18,10 +18,7 @@ interface AuthPopupProps {
 	onClose: () => void;
 }
 
-export const WebauthnLogin = ({
-	filteredUser,
-	onClose,
-}: WebauthnLoginProps) => {
+export const WebauthnLogin = ({ filteredUser, onClose }: WebauthnLoginProps) => {
 	const { api, keystore } = useSessionContext();
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
@@ -34,8 +31,8 @@ export const WebauthnLogin = ({
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
 				const params = new URLSearchParams(window.location.search);
-				params.delete("user");
-				params.delete('sync')
+				params.delete('user');
+				params.delete('sync');
 				navigate(`${window.location.pathname}?${params.toString()}`, { replace: true });
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
@@ -79,13 +76,8 @@ export const WebauthnLogin = ({
 	return (
 		<>
 			<ul className=" p-2">
-				<div className='flex flex-row gap-4 justify-center mr-2'>
-					<Button
-						id="cancel-login-state"
-						onClick={onClose}
-						disabled={isSubmitting}
-						additionalClassName='w-full'
-					>
+				<div className="flex flex-row gap-4 justify-center mr-2">
+					<Button id="cancel-login-state" onClick={onClose} disabled={isSubmitting} additionalClassName="w-full">
 						Logout
 					</Button>
 					<Button
@@ -93,12 +85,10 @@ export const WebauthnLogin = ({
 						onClick={() => onLoginCachedUser(filteredUser)}
 						variant="primary"
 						disabled={isSubmitting}
-						additionalClassName='w-full'
+						additionalClassName="w-full"
 					>
 						<UserLock className="inline text-xl mr-2" />
-						{isSubmitting
-							? t('loginSignup.submitting')
-							: t('common.continue')}
+						{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
 					</Button>
 				</div>
 			</ul>
@@ -127,10 +117,10 @@ const AuthPopup = ({ descriptionKey, onClose }: AuthPopupProps) => {
 				const decodedState = atob(state);
 				const stateObj: unknown = JSON.parse(decodedState);
 				if (
-					typeof stateObj === 'object'
-					&& stateObj !== null
-					&& 'userHandleB64u' in stateObj
-					&& typeof stateObj.userHandleB64u === 'string'
+					typeof stateObj === 'object' &&
+					stateObj !== null &&
+					'userHandleB64u' in stateObj &&
+					typeof stateObj.userHandleB64u === 'string'
 				) {
 					return cachedUsers.find((u) => u.userHandleB64u === stateObj.userHandleB64u);
 				}
@@ -153,16 +143,10 @@ const AuthPopup = ({ descriptionKey, onClose }: AuthPopupProps) => {
 					{t('loginState.title')} {filteredUser.displayName}
 				</p>
 				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
-					<Trans
-						i18nKey={descriptionKey}
-						components={{ strong: <strong /> }}
-					/>
+					<Trans i18nKey={descriptionKey} components={{ strong: <strong /> }} />
 				</p>
 			</div>
-			<WebauthnLogin
-				filteredUser={filteredUser}
-				onClose={onClose}
-			/>
+			<WebauthnLogin filteredUser={filteredUser} onClose={onClose} />
 		</PopupLayout>
 	);
 };

@@ -1,7 +1,7 @@
 import * as oauth4webapi from 'oauth4webapi';
-import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useCallback, useMemo } from "react";
-import { OpenidAuthorizationServerMetadata } from "wallet-common";
+import { useHttpProxy } from '../../HttpProxy/HttpProxy';
+import { useCallback, useMemo } from 'react';
+import { OpenidAuthorizationServerMetadata } from 'wallet-common';
 import { MODE } from '@/config';
 import * as jose from 'jose';
 import { useWalletProvider } from '../../WalletProvider';
@@ -70,7 +70,7 @@ export function usePushedAuthorizationRequest() {
 	}, [httpProxy]);
 
 	const sendPushedAuthorizationRequest = useCallback(
-		async (asMeta: OpenidAuthorizationServerMetadata, params: Record<string,string>) => {
+		async (asMeta: OpenidAuthorizationServerMetadata, params: Record<string, string>) => {
 			const endpoint = asMeta.pushed_authorization_request_endpoint;
 			if (!endpoint) {
 				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
@@ -108,7 +108,7 @@ export function usePushedAuthorizationRequest() {
 			const code_verifier = oauth4webapi.generateRandomCodeVerifier();
 			const code_challenge = await oauth4webapi.calculatePKCECodeChallenge(code_verifier);
 			params.code_challenge = code_challenge;
-			params.code_challenge_method = "S256";
+			params.code_challenge_method = 'S256';
 
 			const body = new URLSearchParams(params);
 
@@ -117,21 +117,20 @@ export function usePushedAuthorizationRequest() {
 				pushed_authorization_request_endpoint: endpoint,
 			};
 
-			const privateKey = dpop
-				? await jose.importJWK(dpop.dpopPrivateKeyJwk, dpop.dpopAlg) as CryptoKey
-				: undefined;
-			const sendPar = (challenge?: string) => oauth4webapi.pushedAuthorizationRequest(
-				as,
-				client,
-				privateKey && walletInstanceAttestation
-					? AttestationBasedClientAuth(privateKey, walletInstanceAttestation, { challenge })
-					: oauth4webapi.None(),
-				body,
-				{
-					[customFetch]: myCustomFetch,
-					[allowInsecureRequests]: isDev,
-				}
-			);
+			const privateKey = dpop ? ((await jose.importJWK(dpop.dpopPrivateKeyJwk, dpop.dpopAlg)) as CryptoKey) : undefined;
+			const sendPar = (challenge?: string) =>
+				oauth4webapi.pushedAuthorizationRequest(
+					as,
+					client,
+					privateKey && walletInstanceAttestation
+						? AttestationBasedClientAuth(privateKey, walletInstanceAttestation, { challenge })
+						: oauth4webapi.None(),
+					body,
+					{
+						[customFetch]: myCustomFetch,
+						[allowInsecureRequests]: isDev,
+					},
+				);
 
 			let response = await sendPar();
 			let json = await response.json();

@@ -14,10 +14,7 @@ import { formatDate } from 'wallet-common';
 // Utils
 import { prettyDomain } from '@/utils';
 import Button from '../Buttons/Button';
-import type {
-	PresentationHistoryItem,
-	PresentationHistoryState,
-} from '@/hooks/useFetchPresentations';
+import type { PresentationHistoryItem, PresentationHistoryState } from '@/hooks/useFetchPresentations';
 
 interface HistoryListViewProps {
 	title?: string;
@@ -42,7 +39,7 @@ function HistoryListView({ title = '', limit = null, history = {} }: HistoryList
 
 	// normalize in case history is [] (some callers return [] on empty)
 	const groups = useMemo(() => {
-		const normalized = (history && !Array.isArray(history)) ? history : {};
+		const normalized = history && !Array.isArray(history) ? history : {};
 		return Object.values(normalized);
 	}, [history]);
 
@@ -59,13 +56,8 @@ function HistoryListView({ title = '', limit = null, history = {} }: HistoryList
 	};
 
 	const sorted = useMemo(
-		() =>
-			groups
-				.slice()
-				.sort(
-					reverse(compareBy(item => item[0].presentation.presentationTimestampSeconds))
-				),
-		[groups]
+		() => groups.slice().sort(reverse(compareBy((item) => item[0].presentation.presentationTimestampSeconds))),
+		[groups],
 	);
 
 	return (
@@ -73,13 +65,13 @@ function HistoryListView({ title = '', limit = null, history = {} }: HistoryList
 			<div className="py-2 mt-2 w-full">
 				{title && groups.length > 0 && <H3 heading={title} />}
 				<div className="space-y-2">
-					{(limit ? sorted.slice(0, limit) : sorted).map(item => (
+					{(limit ? sorted.slice(0, limit) : sorted).map((item) => (
 						<Button
-							variant='outline'
+							variant="outline"
 							id={`credential-activity-item-${item[0].presentation.transactionId}`}
 							key={item[0].presentation.transactionId}
 							onClick={() => handleHistoryItemClick(item)}
-							additionalClassName='w-full'
+							additionalClassName="w-full"
 						>
 							<div className="w-full text-left">
 								<div className="font-bold">{prettyDomain(item[0].presentation.audience)}</div>
