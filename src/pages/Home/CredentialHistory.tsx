@@ -1,0 +1,37 @@
+// External libraries
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+// Contexts
+import { useSessionContext } from '@/context/SessionContext';
+
+// Hooks
+import useFetchPresentations from '../../hooks/useFetchPresentations';
+
+// Components
+import ActivityEmptyState from '@/components/History/ActivityEmptyState';
+import HistoryList from '../../components/History/HistoryList';
+import CredentialLayout from '../../components/Credentials/CredentialLayout';
+
+const CredentialHistory = () => {
+	const { batchId } = useParams();
+	const { keystore } = useSessionContext();
+	const history = useFetchPresentations(keystore, batchId, null);
+	const { t } = useTranslation();
+
+	return (
+		<>
+			<CredentialLayout title={t('pageCredentials.activityTitle')} hideHeadingOnMobile>
+				{history !== null && (Array.isArray(history) && history.length === 0 ? (
+					<ActivityEmptyState credentialSpecific />
+				) : (
+					<HistoryList batchId={batchId} history={history} />
+				))}
+			</CredentialLayout>
+
+		</>
+	);
+};
+
+export default CredentialHistory;

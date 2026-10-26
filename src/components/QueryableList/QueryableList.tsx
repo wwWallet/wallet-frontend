@@ -41,7 +41,7 @@ const QueryableList = <T extends object>({
 	const [filteredList, setFilteredList] = useState<T[]>(list);
 	const [filteredPortalList, setFilteredPortalList] = useState<T[]>(resolvedPortalList);
 	const [recentList, setRecentList] = useState<string[]>(recent);
-	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState([]);
+	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState<T[]>([]);
 	const showSectionHeadings = filteredPortalList.length > 0 && filteredList.length > 0;
 
 	const handleSearch = (inputQuery: string) => {
@@ -78,7 +78,7 @@ const QueryableList = <T extends object>({
 					getElementPropValue(config, identifierField as string) === recentItem
 				)
 			)
-			.filter(Boolean) // This ensures undefined entries are removed
+			.filter((config): config is T => Boolean(config))
 			.slice(0, 3); // This limits the array to the first two entries
 
 		setRecentCredentialConfigurations(recentConfigs);

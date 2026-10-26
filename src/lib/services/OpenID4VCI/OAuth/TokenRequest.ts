@@ -246,9 +246,12 @@ export function useTokenRequest(): TokenRequestBuilder {
 			if (!preAuthorizedCode.current) {
 				throw new Error("Pre-Authorized Code not set");
 			}
+			if (!dpopParams.current) {
+				throw new Error("DPoP parameters are not set");
+			}
 			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
 				as,
-				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current },
+				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current ?? undefined },
 				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
 				options
 			);
@@ -304,7 +307,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			| typeof authorizationCodeGrantRequest
 			| typeof refreshTokenGrantRequest
 			| typeof preAuthorizedCodeGrantRequest
-			| null;
+			| null = null;
 
 		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
 			tokenRequest = authorizationCodeGrantRequest;

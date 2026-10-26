@@ -1,25 +1,26 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useState, useCallback } from "react";
 import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
 import OpenID4VCIContext from "./OpenID4VCIContext";
 import IssuanceConsentPopup from "@/components/Popups/IssuanceConsentPopup";
 import MessagePopup from "@/components/Popups/MessagePopup";
-import SessionContext from "./SessionContext";
+import { useSessionContext } from "./SessionContext";
 import { useOpenID4VCIClientStateRepository } from "@/lib/services/OpenID4VCIClientStateRepository";
+import type { ConsentPopupState, IssuanceConsentOptions } from '@/types/consent';
 
 export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren) => {
 
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn } = useSessionContext();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { isInitialized } = openID4VCIClientStateRepository;
 
-	const [popupConsentState, setPopupConsentState] = useState({
+	const [popupConsentState, setPopupConsentState] = useState<ConsentPopupState<IssuanceConsentOptions>>({
 		isOpen: false,
 		options: null,
-		resolve: (value: unknown) => { },
+		resolve: () => { },
 		reject: () => { },
 	});
 
-	const showPopupConsent = useCallback((options): Promise<boolean> =>
+	const showPopupConsent = useCallback((options: IssuanceConsentOptions): Promise<boolean> =>
 		new Promise((resolve, reject) => {
 			setPopupConsentState({
 				isOpen: true,
@@ -29,23 +30,16 @@ export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren)
 			});
 		}), []);
 
-	const hidePopupConsent = useCallback(() => {
-		setPopupConsentState((prevState) => ({
-			...prevState,
-			isOpen: false,
-		}));
-	}, [setPopupConsentState]);
-
 	const [messagePopupState, setMessagePopupState] = useState<{
 		type: 'error' | 'success' | 'info',
 		message: {
 			title: string,
 			description: string
 		},
-		onClose: (e) => Promise<void>
+		onClose: () => Promise<void>
 	} | null>(null);
 
-	const showMessagePopup = useCallback((message, type: 'error' | 'success' | 'info' = 'error') => {
+	const showMessagePopup = useCallback((message: { title: string, description: string }, type: 'error' | 'success' | 'info' = 'error') => {
 		setMessagePopupState((prevState) => ({
 			...prevState,
 			isOpen: true,
@@ -69,7 +63,7 @@ export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren)
 			{children}
 			{isLoggedIn && (
 				<>
-					<IssuanceConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
+					<IssuanceConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} />
 					{messagePopupState && (
 						<MessagePopup type={messagePopupState.type} message={messagePopupState.message} onClose={messagePopupState.onClose} />
 					)}

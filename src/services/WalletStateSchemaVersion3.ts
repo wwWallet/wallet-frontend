@@ -13,7 +13,7 @@ export const SCHEMA_VERSION = 3;
 
 export type CredentialKeyPair = {
 	kid: string,
-	did: string,
+	did?: string,
 	alg: string,
 	publicKey: JWK,
 	privateKey: JWK,

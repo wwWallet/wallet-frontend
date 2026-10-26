@@ -11,12 +11,14 @@ export async function verifyRequestUriAndCerts(request_uri: string, response_uri
 		"-----BEGIN CERTIFICATE-----\n" + parsedHeader.x5c[0] + "\n-----END CERTIFICATE-----"
 	);
 
-	if (OPENID4VP_SAN_DNS_CHECK && (!altNames || altNames.length === 0)) {
-		throw new Error("NONTRUSTED_VERIFIER: SAN not found");
-	}
+	if (OPENID4VP_SAN_DNS_CHECK) {
+		if (!altNames || altNames.length === 0) {
+			throw new Error("NONTRUSTED_VERIFIER: SAN not found");
+		}
 
-	if (OPENID4VP_SAN_DNS_CHECK && !altNames.includes(new URL(response_uri).hostname)) {
-		throw new Error("NONTRUSTED_VERIFIER: Hostname not in SAN");
+		if (!altNames.includes(new URL(response_uri).hostname)) {
+			throw new Error("NONTRUSTED_VERIFIER: Hostname not in SAN");
+		}
 	}
 
 	if (OPENID4VP_SAN_DNS_CHECK_SSL_CERTS) {
@@ -27,7 +29,7 @@ export async function verifyRequestUriAndCerts(request_uri: string, response_uri
 			headers: {
 				Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!)
 			}
-		}).catch(() => null);
+		}).catch((): null => null);
 
 		if (!response) {
 			throw new Error("Could not get SSL certificate for " + new URL(request_uri).hostname);
