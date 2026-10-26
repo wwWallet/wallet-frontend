@@ -1,12 +1,12 @@
 import * as oauth4webapi from 'oauth4webapi';
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
 import { MODE } from '@/config';
 import * as jose from 'jose';
 import { useWalletProvider } from '../../WalletProvider';
 import type { DpopState } from './accessToken';
-import SessionContext from '@/context/SessionContext';
+import { useSessionContext } from '@/context/SessionContext';
 import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
@@ -24,7 +24,7 @@ function normalizeHeaders(h: any): Record<string, string> {
 
 export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
-	const { keystore, api: { updatePrivateData } } = useContext(SessionContext);
+	const { keystore, api: { updatePrivateData } } = useSessionContext();
 	const { requestWalletInstanceAttestation } = useWalletProvider();
 
 	const myCustomFetch = useMemo(() => {

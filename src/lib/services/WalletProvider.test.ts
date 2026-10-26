@@ -5,10 +5,9 @@ import { useWalletProvider } from "./WalletProvider";
 
 const mocks = vi.hoisted(() => ({ post: vi.fn() }));
 
-vi.mock("@/context/SessionContext", async () => {
-	const { createContext } = await import("react");
-	return { default: createContext({ api: { post: mocks.post } }) };
-});
+vi.mock("@/context/SessionContext", () => ({
+	useSessionContext: () => ({ api: { post: mocks.post } }),
+}));
 
 const publicJwk = { kty: "EC", crv: "P-256", x: "public-x", y: "public-y" };
 

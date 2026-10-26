@@ -128,10 +128,14 @@ export function useTokenRequest(): TokenRequestBuilder {
 	}, [httpProxy]);
 
 	const setWalletInstanceAttestation = useCallback((attestation: string | null, privateKey?: KeyLike) => {
-		if (attestation !== null && (!attestation || !privateKey)) {
+		if (attestation === null) {
+			clientAttestation.current = null;
+			return;
+		}
+		if (!attestation || !privateKey) {
 			throw new Error("Wallet Instance Attestation requires its bound private key");
 		}
-		clientAttestation.current = attestation === null ? null : { attestation, privateKey };
+		clientAttestation.current = { attestation, privateKey };
 	}, []);
 
 	const setClientId = useCallback((clientIdValue: string | null) => {
@@ -226,15 +230,15 @@ export function useTokenRequest(): TokenRequestBuilder {
 			token_endpoint: tokenEndpointURL.current,
 		};
 
-		const client: oauth4webapi.Client | null = clientId.current ? { client_id: clientId.current } : null;
-		if (clientAttestation.current && (!client || grantType.current === GrantType.PRE_AUTHORIZED_CODE)) {
+		const client: oauth4webapi.Client = { client_id: clientId.current ?? OPENID4VCI_REDIRECT_URI };
+		if (clientAttestation.current && (!clientId.current || grantType.current === GrantType.PRE_AUTHORIZED_CODE)) {
 			throw new Error("Attestation-based client authentication requires a client and a supported grant");
 		}
 		let attestationChallenge: string | undefined;
 		const getClientAuth = () => clientAttestation.current
 			? AttestationBasedClientAuth(clientAttestation.current.privateKey as CryptoKey, clientAttestation.current.attestation, { challenge: attestationChallenge })
 			: oauth4webapi.None();
-		const DPoP = client ? await getDPoPHandle(client) : null;
+		const DPoP = await getDPoPHandle(client);
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
 			[customFetch]: myCustomFetch,

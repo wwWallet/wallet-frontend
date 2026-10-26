@@ -105,6 +105,30 @@ describe("Token request attestation authentication", () => {
 		expect(new Set([0, 1, 2].map(index => payload(proof(index)).jti)).size).toBe(3);
 	});
 
+	it.each([null, ""])("rejects attested requests without an explicit client ID (%s)", async clientId => {
+		const request = builder();
+		request.setClientId(clientId);
+		request.setWalletInstanceAttestation("saved-wia", (await keypair()).privateKey);
+		await expect(request.execute()).rejects.toThrow("requires a client and a supported grant");
+		expect(mocks.post).not.toHaveBeenCalled();
+	});
+
+	it("uses the default client for an unattested refresh without a client ID", async () => {
+		const request = builder();
+		request.setClientId(null);
+		request.setGrantType(GrantType.REFRESH);
+		request.setRefreshToken("refresh");
+		await expect(request.execute()).resolves.toMatchObject({ response: { access_token: "token" } });
+		expect(new URLSearchParams(mocks.post.mock.calls[0][1]).get("client_id")).toBe("https://wallet.example/callback");
+	});
+
+	it("rejects an empty WIA even with a key", async () => {
+		const request = builder();
+		const keys = await keypair();
+		expect(() => request.setWalletInstanceAttestation("", keys.privateKey)).toThrow("bound private key");
+		expect(mocks.post).not.toHaveBeenCalled();
+	});
+
 	it("rejects a WIA without its key", () => {
 		expect(() => builder().setWalletInstanceAttestation("saved-wia")).toThrow("bound private key");
 		expect(mocks.post).not.toHaveBeenCalled();

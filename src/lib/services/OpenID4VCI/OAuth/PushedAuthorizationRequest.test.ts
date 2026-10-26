@@ -11,13 +11,12 @@ vi.mock("../../HttpProxy/HttpProxy", () => ({ useHttpProxy: () => ({ post: mocks
 vi.mock("../../WalletProvider", () => ({
 	useWalletProvider: () => ({ requestWalletInstanceAttestation: mocks.requestWia }),
 }));
-vi.mock("@/context/SessionContext", async () => {
-	const { createContext } = await import("react");
-	return { default: createContext({
+vi.mock("@/context/SessionContext", () => ({
+	useSessionContext: () => ({
 		keystore: { generateKeypairs: mocks.generateKeypairs },
 		api: { updatePrivateData: mocks.updatePrivateData },
-	}) };
-});
+	}),
+}));
 vi.mock("@/config", () => ({ MODE: "production" }));
 vi.mock("oauth4webapi", async importOriginal => ({
 	...await importOriginal<typeof import("oauth4webapi")>(),
