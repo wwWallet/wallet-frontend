@@ -14,23 +14,27 @@ export type FileToWrite<T = any> = {
 	 * The content to write to the file as a string.
 	 */
 	content: string;
-}
+};
 
 export type Tag = {
 	tag: 'meta' | 'link' | 'title';
 	props?: Record<string, string>;
 	textContent?: string;
-}
+};
 
 export type TagsMap = Map<string, Tag>;
 
-type ViteManifest = Record<string, {
-	file: string;
-	src?: string;
-	isEntry?: boolean;
-	css?: string[];
-	assets?: string[];
-} | undefined>;
+type ViteManifest = Record<
+	string,
+	| {
+			file: string;
+			src?: string;
+			isEntry?: boolean;
+			css?: string[];
+			assets?: string[];
+	  }
+	| undefined
+>;
 
 /**
  * Reads and parses the Vite manifest file to retrieve information about the generated assets.
@@ -41,7 +45,6 @@ export async function readViteManifest(basePath: string): Promise<ViteManifest> 
 	return JSON.parse(manifestContent) as ViteManifest;
 }
 
-
 export type TransformKeysToLowercase<T> = {
-	[K in keyof T as Lowercase<K & string>]: T[K]
+	[K in keyof T as Lowercase<K & string>]: T[K];
 };

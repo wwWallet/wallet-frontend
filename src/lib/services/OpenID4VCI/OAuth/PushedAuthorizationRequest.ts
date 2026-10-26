@@ -1,7 +1,7 @@
 import * as oauth4webapi from 'oauth4webapi';
-import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useCallback, useMemo } from "react";
-import { OpenidAuthorizationServerMetadata } from "wallet-common";
+import { useHttpProxy } from '../../HttpProxy/HttpProxy';
+import { useCallback, useMemo } from 'react';
+import { OpenidAuthorizationServerMetadata } from 'wallet-common';
 import { MODE } from '@/config';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
@@ -60,7 +60,7 @@ export function usePushedAuthorizationRequest() {
 	}, [httpProxy]);
 
 	const sendPushedAuthorizationRequest = useCallback(
-		async (asMeta: OpenidAuthorizationServerMetadata, params: Record<string,string>) => {
+		async (asMeta: OpenidAuthorizationServerMetadata, params: Record<string, string>) => {
 			const endpoint = asMeta.pushed_authorization_request_endpoint;
 			if (!endpoint) {
 				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
@@ -71,7 +71,7 @@ export function usePushedAuthorizationRequest() {
 			const code_verifier = oauth4webapi.generateRandomCodeVerifier();
 			const code_challenge = await oauth4webapi.calculatePKCECodeChallenge(code_verifier);
 			params.code_challenge = code_challenge;
-			params.code_challenge_method = "S256";
+			params.code_challenge_method = 'S256';
 
 			const body = new URLSearchParams(params);
 
@@ -80,16 +80,10 @@ export function usePushedAuthorizationRequest() {
 				pushed_authorization_request_endpoint: endpoint,
 			};
 
-			const response = await oauth4webapi.pushedAuthorizationRequest(
-				as,
-				client,
-				oauth4webapi.None(),
-				body,
-				{
-					[customFetch]: myCustomFetch,
-					[allowInsecureRequests]: isDev,
-				}
-			);
+			const response = await oauth4webapi.pushedAuthorizationRequest(as, client, oauth4webapi.None(), body, {
+				[customFetch]: myCustomFetch,
+				[allowInsecureRequests]: isDev,
+			});
 
 			const json = await response.json();
 			if (json?.error) {
@@ -100,7 +94,7 @@ export function usePushedAuthorizationRequest() {
 			}
 			return { request_uri: json.request_uri, code_verifier, rawResponse: json };
 		},
-		[myCustomFetch]
+		[myCustomFetch],
 	);
 
 	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);

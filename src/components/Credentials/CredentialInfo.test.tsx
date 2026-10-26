@@ -17,106 +17,105 @@ afterEach(() => {
 });
 
 describe('CredentialInfo Component', () => {
-
 	const parsedCredential = {
 		signedClaims: {
-			firstname: "John",
+			firstname: 'John',
 			address: {
-				street_address: "123 Main St",
+				street_address: '123 Main St',
 				locality: {
-					city: "Anytown",
+					city: 'Anytown',
 				},
 			},
-			date_of_birth: "1990-10-15T00:00:00.000Z",
+			date_of_birth: '1990-10-15T00:00:00.000Z',
 			age_over_18: true,
 			grade: 8,
-			expiry_date: 1773145579
+			expiry_date: 1773145579,
 		},
 		metadata: {
 			credential: {
 				TypeMetadata: {
 					claims: [
 						{
-							"path": ["firstname"],
-							"display": [
+							path: ['firstname'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "First Name",
-									"description": "The first name of the individual"
-								}
+									locale: 'en-US',
+									label: 'First Name',
+									description: 'The first name of the individual',
+								},
 							],
-							"svg_id": "firstname"
+							svg_id: 'firstname',
 						},
 						{
-							"path": ["address", "street_address"],
-							"display": [
+							path: ['address', 'street_address'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "Street Address",
-									"description": "The street address of the individual"
-								}
+									locale: 'en-US',
+									label: 'Street Address',
+									description: 'The street address of the individual',
+								},
 							],
-							"svg_id": "street_address"
+							svg_id: 'street_address',
 						},
 						{
-							"path": ["address", "locality", "city"],
-							"display": [
+							path: ['address', 'locality', 'city'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "City",
-									"description": "The city of the individual's address"
-								}
+									locale: 'en-US',
+									label: 'City',
+									description: "The city of the individual's address",
+								},
 							],
-							"svg_id": "city"
+							svg_id: 'city',
 						},
 						{
-							"path": ["date_of_birth"],
-							"display": [
+							path: ['date_of_birth'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "Date of Birth",
-									"description": "The birthdate of the individual"
-								}
+									locale: 'en-US',
+									label: 'Date of Birth',
+									description: 'The birthdate of the individual',
+								},
 							],
-							"svg_id": "date_of_birth"
+							svg_id: 'date_of_birth',
 						},
 						{
-							"path": ["expiry_date"],
-							"display": [
+							path: ['expiry_date'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "Expiry Date",
-									"description": "The Expiry Date"
-								}
+									locale: 'en-US',
+									label: 'Expiry Date',
+									description: 'The Expiry Date',
+								},
 							],
-							"svg_id": "expiry_date"
+							svg_id: 'expiry_date',
 						},
 						{
-							"path": ["age_over_18"],
-							"display": [
+							path: ['age_over_18'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "Over 18",
-									"description": "Indicates if the individual is over the age of 18"
-								}
+									locale: 'en-US',
+									label: 'Over 18',
+									description: 'Indicates if the individual is over the age of 18',
+								},
 							],
-							"svg_id": "age_over_18"
+							svg_id: 'age_over_18',
 						},
 						{
-							"path": ["grade"],
-							"display": [
+							path: ['grade'],
+							display: [
 								{
-									"locale": "en-US",
-									"label": "Grade",
-									"description": "The current grade level of the individual"
-								}
+									locale: 'en-US',
+									label: 'Grade',
+									description: 'The current grade level of the individual',
+								},
 							],
-							"svg_id": "grade"
-						}
-					]
-				}
-			}
-		}
+							svg_id: 'grade',
+						},
+					],
+				},
+			},
+		},
 	} satisfies CredentialInfoData;
 
 	it('renders without crashing', () => {
@@ -125,38 +124,33 @@ describe('CredentialInfo Component', () => {
 	});
 
 	it('renders without claims', () => {
-
 		const parsedCredential = {
 			signedClaims: {
-				given_name: "John",
+				given_name: 'John',
 			},
 			metadata: {
 				credential: {
-					TypeMetadata:
-						{}
-				}
-			}
+					TypeMetadata: {},
+				},
+			},
 		} satisfies CredentialInfoData;
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		expect(screen.getByTestId('credential-info')).toBeInTheDocument();
 		expect(screen.getByText('Given Name:')).toBeInTheDocument();
-
-
 	});
 
 	it('renders with empty claims array', () => {
-
 		const parsedCredential = {
 			signedClaims: {
-				given_name: "John",
+				given_name: 'John',
 			},
 			metadata: {
 				credential: {
 					TypeMetadata: {
-						claims: []
-					}
-				}
-			}
+						claims: [],
+					},
+				},
+			},
 		} satisfies CredentialInfoData;
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		const firstNameElement = screen.queryByText('Given Name:');
@@ -164,7 +158,6 @@ describe('CredentialInfo Component', () => {
 	});
 
 	it('renders claims when data is provided', () => {
-
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		expect(screen.getByText('First Name:')).toBeInTheDocument();
 		expect(screen.getByText('John')).toBeInTheDocument();
@@ -184,9 +177,7 @@ describe('CredentialInfo Component', () => {
 
 	it('renders non-empty Map claim values', () => {
 		const parsedCredential = {
-			signedClaims: new Map([
-				['person', new Map([['given_name', 'Ada']])],
-			]),
+			signedClaims: new Map([['person', new Map([['given_name', 'Ada']])]]),
 			metadata: {
 				credential: {
 					TypeMetadata: {
@@ -205,7 +196,6 @@ describe('CredentialInfo Component', () => {
 		expect(screen.getByText('Person:')).toBeInTheDocument();
 		expect(screen.getByText(/Ada/)).toBeInTheDocument();
 	});
-
 
 	it('renders claims when the dafult language not exists in display languages', () => {
 		i18n.changeLanguage('el'); // Change to greek
@@ -228,141 +218,140 @@ describe('CredentialInfo Component', () => {
 	});
 
 	it('renders claims with other language', () => {
-
 		const parsedCredential = {
 			signedClaims: {
-				firstname: "John",
+				firstname: 'John',
 				address: {
-					street_address: "123 Main St",
+					street_address: '123 Main St',
 					locality: {
-						city: "Anytown",
+						city: 'Anytown',
 					},
 				},
-				date_of_birth: "1990-10-15T00:00:00.000Z",
+				date_of_birth: '1990-10-15T00:00:00.000Z',
 				age_over_18: true,
 				grade: 8,
-				expiry_date: 1773145579
+				expiry_date: 1773145579,
 			},
 			metadata: {
 				credential: {
 					TypeMetadata: {
 						claims: [
 							{
-								"path": ["firstname"],
-								"display": [
+								path: ['firstname'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "First Name",
-										"description": "The first name of the individual"
+										locale: 'en-US',
+										label: 'First Name',
+										description: 'The first name of the individual',
 									},
 									{
-										"locale": "el-GR",
-										"label": "Όνομα",
-										"description": "Το όνομα του ατόμου"
-									}
+										locale: 'el-GR',
+										label: 'Όνομα',
+										description: 'Το όνομα του ατόμου',
+									},
 								],
-								"svg_id": "firstname"
+								svg_id: 'firstname',
 							},
 							{
-								"path": ["address", "street_address"],
-								"display": [
+								path: ['address', 'street_address'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "Street Address",
-										"description": "The street address of the individual"
+										locale: 'en-US',
+										label: 'Street Address',
+										description: 'The street address of the individual',
 									},
 									{
-										"locale": "el-GR",
-										"label": "Διεύθυνση",
-										"description": "Η διεύθυνση του ατόμου"
-									}
+										locale: 'el-GR',
+										label: 'Διεύθυνση',
+										description: 'Η διεύθυνση του ατόμου',
+									},
 								],
-								"svg_id": "street_address"
+								svg_id: 'street_address',
 							},
 							{
-								"path": ["address", "locality", "city"],
-								"display": [
+								path: ['address', 'locality', 'city'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "City",
-										"description": "The city of the individual's address"
+										locale: 'en-US',
+										label: 'City',
+										description: "The city of the individual's address",
 									},
 									{
-										"locale": "el-GR",
-										"label": "Πόλη",
-										"description": "Η πόλη της διεύθυνσης του ατόμου"
-									}
+										locale: 'el-GR',
+										label: 'Πόλη',
+										description: 'Η πόλη της διεύθυνσης του ατόμου',
+									},
 								],
-								"svg_id": "city"
+								svg_id: 'city',
 							},
 							{
-								"path": ["date_of_birth"],
-								"display": [
+								path: ['date_of_birth'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "Date of Birth",
-										"description": "The birthdate of the individual"
+										locale: 'en-US',
+										label: 'Date of Birth',
+										description: 'The birthdate of the individual',
 									},
 									{
-										"locale": "el-GR",
-										"label": "Ημερομηνία Γέννησης",
-										"description": "Η ημερομηνία γέννησης του ατόμου"
-									}
+										locale: 'el-GR',
+										label: 'Ημερομηνία Γέννησης',
+										description: 'Η ημερομηνία γέννησης του ατόμου',
+									},
 								],
-								"svg_id": "date_of_birth"
+								svg_id: 'date_of_birth',
 							},
 							{
-								"path": ["age_over_18"],
-								"display": [
+								path: ['age_over_18'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "Over 18",
-										"description": "Indicates if the individual is over the age of 18"
+										locale: 'en-US',
+										label: 'Over 18',
+										description: 'Indicates if the individual is over the age of 18',
 									},
 									{
-										"locale": "el-GR",
-										"label": "Άνω των 18",
-										"description": "Δηλώνει εάν το άτομο είναι άνω των 18 ετών"
-									}
+										locale: 'el-GR',
+										label: 'Άνω των 18',
+										description: 'Δηλώνει εάν το άτομο είναι άνω των 18 ετών',
+									},
 								],
-								"svg_id": "age_over_18"
+								svg_id: 'age_over_18',
 							},
 							{
-								"path": ["grade"],
-								"display": [
+								path: ['grade'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "Grade",
-										"description": "The current grade level of the individual"
+										locale: 'en-US',
+										label: 'Grade',
+										description: 'The current grade level of the individual',
 									},
 									{
-										"locale": "el-GR",
-										"label": "Βαθμίδα",
-										"description": "Η τρέχουσα βαθμίδα του ατόμου"
-									}
+										locale: 'el-GR',
+										label: 'Βαθμίδα',
+										description: 'Η τρέχουσα βαθμίδα του ατόμου',
+									},
 								],
-								"svg_id": "grade"
+								svg_id: 'grade',
 							},
 							{
-								"path": ["expiry_date"],
-								"display": [
+								path: ['expiry_date'],
+								display: [
 									{
-										"locale": "en-US",
-										"label": "Expiry Date",
-										"description": "The expiry date of the credential"
+										locale: 'en-US',
+										label: 'Expiry Date',
+										description: 'The expiry date of the credential',
 									},
 									{
-										"locale": "el-GR",
-										"label": "Ημερομηνία Λήξης",
-										"description": "Η ημερομηνία λήξης του πιστοποιητικού"
-									}
+										locale: 'el-GR',
+										label: 'Ημερομηνία Λήξης',
+										description: 'Η ημερομηνία λήξης του πιστοποιητικού',
+									},
 								],
-								"svg_id": "expiry_date"
-							}
-						]
-					}
-				}
-			}
+								svg_id: 'expiry_date',
+							},
+						],
+					},
+				},
+			},
 		} satisfies CredentialInfoData;
 
 		i18n.changeLanguage('el'); // Change to Italian
@@ -390,13 +379,15 @@ describe('CredentialInfo Component', () => {
 			metadata: {
 				credential: {
 					TypeMetadata: {
-						claims: [{
-							path: ['given_name'],
-							display: [
-								{ locale: 'el', label: 'Όνομα' },
-								{ locale: 'en', label: 'Given Name' },
-							],
-						}],
+						claims: [
+							{
+								path: ['given_name'],
+								display: [
+									{ locale: 'el', label: 'Όνομα' },
+									{ locale: 'en', label: 'Given Name' },
+								],
+							},
+						],
 					},
 				},
 			},

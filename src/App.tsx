@@ -14,10 +14,9 @@ const lazyWithDelay = <P extends object>(
 	delay: number = 1000,
 ): React.LazyExoticComponent<React.ComponentType<P>> => {
 	return React.lazy(() =>
-		Promise.all([
-			importFunction(),
-			new Promise<void>((resolve) => setTimeout(resolve, delay)),
-		]).then(([module]) => module)
+		Promise.all([importFunction(), new Promise<void>((resolve) => setTimeout(resolve, delay))]).then(
+			([module]) => module,
+		),
 	);
 };
 
@@ -47,19 +46,21 @@ function App() {
 			<Suspense fallback={<Spinner />}>
 				<UpdateNotification />
 				<Routes>
-					<Route element={
-						<PrivateRoute>
-							<Layout>
-								<Suspense fallback={<Spinner size='small' />}>
-									<FadeInContentTransition appear reanimateKey={location.pathname}>
-										<NotificationOfflineWarning />
-										<ResyncNotification />
-										<Outlet />
-									</FadeInContentTransition>
-								</Suspense>
-							</Layout>
-						</PrivateRoute>
-					}>
+					<Route
+						element={
+							<PrivateRoute>
+								<Layout>
+									<Suspense fallback={<Spinner size="small" />}>
+										<FadeInContentTransition appear reanimateKey={location.pathname}>
+											<NotificationOfflineWarning />
+											<ResyncNotification />
+											<Outlet />
+										</FadeInContentTransition>
+									</Suspense>
+								</Layout>
+							</PrivateRoute>
+						}
+					>
 						<Route path="/settings" element={<Settings />} />
 						<Route path="/" element={<Home />} />
 						<Route path="/credential/:batchId" element={<Credential />} />
@@ -72,11 +73,13 @@ function App() {
 						<Route path="/verification/result" element={<VerificationResult />} />
 						<Route path="/cb/*" element={<Home />} />
 					</Route>
-					<Route element={
-						<FadeInContentTransition reanimateKey={location.pathname}>
-							<Outlet />
-						</FadeInContentTransition>
-					}>
+					<Route
+						element={
+							<FadeInContentTransition reanimateKey={location.pathname}>
+								<Outlet />
+							</FadeInContentTransition>
+						}
+					>
 						<Route path="/login" element={<Login />} />
 						<Route path="/register" element={<Register />} />
 						<Route path="/login-state" element={<LoginState />} />

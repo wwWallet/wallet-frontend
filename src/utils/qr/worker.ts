@@ -25,7 +25,7 @@ SOFTWARE.
 */
 // @ts-ignore jsqr-es6 does not provide types currently
 /// <reference lib="webworker" />
-import jsQR from "jsqr-es6";
+import jsQR from 'jsqr-es6';
 
 type GrayscaleWeights = {
 	red: number;
@@ -34,8 +34,7 @@ type GrayscaleWeights = {
 	useIntegerApproximation: boolean;
 };
 
-let inversionAttempts: "dontInvert" | "onlyInvert" | "attemptBoth" =
-	"dontInvert";
+let inversionAttempts: 'dontInvert' | 'onlyInvert' | 'attemptBoth' = 'dontInvert';
 let grayscaleWeights: GrayscaleWeights = {
 	// weights for quick luma integer approximation (https://en.wikipedia.org/wiki/YUV#Full_swing_for_BT.601)
 	red: 77,
@@ -47,34 +46,31 @@ let grayscaleWeights: GrayscaleWeights = {
 const ctx = globalThis as unknown as DedicatedWorkerGlobalScope;
 
 ctx.onmessage = (event) => {
-	const id = event["data"]["id"];
-	const type = event["data"]["type"];
-	const data = event["data"]["data"];
+	const id = event['data']['id'];
+	const type = event['data']['type'];
+	const data = event['data']['data'];
 
 	switch (type) {
-		case "decode":
+		case 'decode':
 			decode(data, id);
 			break;
-		case "grayscaleWeights":
+		case 'grayscaleWeights':
 			setGrayscaleWeights(data);
 			break;
-		case "inversionMode":
+		case 'inversionMode':
 			setInversionMode(data);
 			break;
-		case "close":
+		case 'close':
 			// close after earlier messages in the event loop finished processing
 			ctx.close();
 			break;
 	}
 };
 
-function decode(
-	data: { data: Uint8ClampedArray; width: number; height: number },
-	requestId: number,
-): void {
-	const rgbaData = data["data"];
-	const width = data["width"];
-	const height = data["height"];
+function decode(data: { data: Uint8ClampedArray; width: number; height: number }, requestId: number): void {
+	const rgbaData = data['data'];
+	const width = data['width'];
+	const height = data['height'];
 	const result = jsQR(rgbaData, width, height, {
 		inversionAttempts: inversionAttempts,
 		greyScaleWeights: grayscaleWeights,
@@ -82,7 +78,7 @@ function decode(
 	if (!result) {
 		ctx.postMessage({
 			id: requestId,
-			type: "qrResult",
+			type: 'qrResult',
 			data: null,
 		});
 		return;
@@ -90,7 +86,7 @@ function decode(
 
 	ctx.postMessage({
 		id: requestId,
-		type: "qrResult",
+		type: 'qrResult',
 		data: result.data,
 		// equivalent to cornerPoints of native BarcodeDetector
 		cornerPoints: [
@@ -104,24 +100,24 @@ function decode(
 
 function setGrayscaleWeights(data: GrayscaleWeights) {
 	// update grayscaleWeights in a closure compiler compatible fashion
-	grayscaleWeights.red = data["red"];
-	grayscaleWeights.green = data["green"];
-	grayscaleWeights.blue = data["blue"];
-	grayscaleWeights.useIntegerApproximation = data["useIntegerApproximation"];
+	grayscaleWeights.red = data['red'];
+	grayscaleWeights.green = data['green'];
+	grayscaleWeights.blue = data['blue'];
+	grayscaleWeights.useIntegerApproximation = data['useIntegerApproximation'];
 }
 
-function setInversionMode(inversionMode: "original" | "invert" | "both") {
+function setInversionMode(inversionMode: 'original' | 'invert' | 'both') {
 	switch (inversionMode) {
-		case "original":
-			inversionAttempts = "dontInvert";
+		case 'original':
+			inversionAttempts = 'dontInvert';
 			break;
-		case "invert":
-			inversionAttempts = "onlyInvert";
+		case 'invert':
+			inversionAttempts = 'onlyInvert';
 			break;
-		case "both":
-			inversionAttempts = "attemptBoth";
+		case 'both':
+			inversionAttempts = 'attemptBoth';
 			break;
 		default:
-			throw new Error("Invalid inversion mode");
+			throw new Error('Invalid inversion mode');
 	}
 }

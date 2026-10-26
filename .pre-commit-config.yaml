@@ -20,5 +20,5 @@ repos:
     hooks:
       - id: editorconfig-checker
         name: Check .editorconfig rules
-        args: ["-no-color"]
+        args: ['-no-color']
         types_or: [text]

@@ -16,7 +16,8 @@ const JsonViewer = ({ name, value, depth = 0 }: JsonViewerProps) => {
 	const [expanded, setExpanded] = useState(depth === 0);
 	const [showFullString, setShowFullString] = useState(false);
 
-	const isObject = (val: unknown): val is Record<string, unknown> => Boolean(val) && typeof val === 'object' && !Array.isArray(val);
+	const isObject = (val: unknown): val is Record<string, unknown> =>
+		Boolean(val) && typeof val === 'object' && !Array.isArray(val);
 	const isArray = Array.isArray;
 
 	const toggleExpanded = () => setExpanded((prev) => !prev);
@@ -34,9 +35,8 @@ const JsonViewer = ({ name, value, depth = 0 }: JsonViewerProps) => {
 				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
 					{expanded ? '▼' : '▶'} {name && `"${name}"`}: [Array({value.length})]
 				</span>
-				{expanded && value.map((item, idx) => (
-					<JsonViewer key={idx} name={String(idx)} value={item} depth={depth + 1} />
-				))}
+				{expanded &&
+					value.map((item, idx) => <JsonViewer key={idx} name={String(idx)} value={item} depth={depth + 1} />)}
 			</div>
 		);
 	}
@@ -46,11 +46,12 @@ const JsonViewer = ({ name, value, depth = 0 }: JsonViewerProps) => {
 		return (
 			<div className={`${indentClass}`}>
 				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
-					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {"{"}Map({value.size}){"}"}
+					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {'{'}Map({value.size}){'}'}
 				</span>
-				{expanded && entries.map(([key, mapValue], idx) => (
-					<JsonViewer key={`${String(key)}-${idx}`} name={String(key)} value={mapValue} depth={depth + 1} />
-				))}
+				{expanded &&
+					entries.map(([key, mapValue], idx) => (
+						<JsonViewer key={`${String(key)}-${idx}`} name={String(key)} value={mapValue} depth={depth + 1} />
+					))}
 			</div>
 		);
 	}
@@ -60,11 +61,9 @@ const JsonViewer = ({ name, value, depth = 0 }: JsonViewerProps) => {
 		return (
 			<div className={`${indentClass}`}>
 				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
-					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {"{"}Object({keys.length}){"}"}
+					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {'{'}Object({keys.length}){'}'}
 				</span>
-				{expanded && keys.map((key) => (
-					<JsonViewer key={key} name={key} value={value[key]} depth={depth + 1} />
-				))}
+				{expanded && keys.map((key) => <JsonViewer key={key} name={key} value={value[key]} depth={depth + 1} />)}
 			</div>
 		);
 	}
@@ -74,19 +73,14 @@ const JsonViewer = ({ name, value, depth = 0 }: JsonViewerProps) => {
 
 	if (typeof value === 'string') {
 		const shouldTruncate = value.length > MAX_STRING_LENGTH;
-		displayValue = showFullString || !shouldTruncate
-			? `"${value}"`
-			: `"${value.slice(0, MAX_STRING_LENGTH)}..."`;
+		displayValue = showFullString || !shouldTruncate ? `"${value}"` : `"${value.slice(0, MAX_STRING_LENGTH)}..."`;
 
 		return (
 			<div className={`${indentClass} break-all`}>
 				<span className="text-lm-gray-800 dark:text-dm-gray-200">{name && `"${name}"`}:</span>{' '}
 				<span className={valueClass}>{displayValue}</span>
 				{shouldTruncate && (
-					<button
-						onClick={toggleString}
-						className="ml-2 text-xs text-lm-gray-900 dark:text-dm-gray-100 underline"
-					>
+					<button onClick={toggleString} className="ml-2 text-xs text-lm-gray-900 dark:text-dm-gray-100 underline">
 						{showFullString ? `${t('common.showLess')}` : `${t('common.showMore')}`}
 					</button>
 				)}

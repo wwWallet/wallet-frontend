@@ -1,28 +1,28 @@
-import { createLucideIcon } from "lucide-react";
+import { createLucideIcon } from 'lucide-react';
 
-export const UsbStickDotIcon = createLucideIcon("usb-stick-dot", [
+export const UsbStickDotIcon = createLucideIcon('usb-stick-dot', [
 	[
-		"path",
+		'path',
 		{
-			"d": "M18 8v10a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z",
-			"key": "1pvj0n"
-		}
+			d: 'M18 8v10a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z',
+			key: '1pvj0n',
+		},
 	],
 	[
-		"path",
+		'path',
 		{
-			"d": "M8 7V2h8v5",
-			"key": "payjgv"
-		}
+			d: 'M8 7V2h8v5',
+			key: 'payjgv',
+		},
 	],
 	[
-		"circle",
+		'circle',
 		{
-			"cx": "12",
-			"cy": "15",
-			"r": "1",
-			"fill": "currentColor",
-			"key": "3me149"
-		}
-	]
+			cx: '12',
+			cy: '15',
+			r: '1',
+			fill: 'currentColor',
+			key: '3me149',
+		},
+	],
 ]);

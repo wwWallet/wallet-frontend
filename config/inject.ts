@@ -27,11 +27,11 @@ export type InjectConfigOptions = {
 	 * Map of tags to later be injected into the HTML file.
 	 * Used to pass tags generated during file injection (e.g. manifest icons) to the HTML injection step.
 	 */
-	tagsToInject?: TagsMap
-}
+	tagsToInject?: TagsMap;
+};
 
 export async function injectConfigFiles({ destDir, config, tagsToInject }: InjectConfigOptions) {
-	if (await readdir(destDir).catch(() => false) === false) {
+	if ((await readdir(destDir).catch(() => false)) === false) {
 		throw new Error(`Destination directory ${destDir} does not exist or is not readable.`);
 	}
 
@@ -65,12 +65,12 @@ export type InjectHtmlOptions = {
 	/**
 	 * Optional map of additional tags to inject into the HTML.
 	 */
-	tagsToInject?: TagsMap
+	tagsToInject?: TagsMap;
 	/**
 	 * Optional branding hash for cache-busting branding assets.
 	 */
 	brandingHash?: string;
-}
+};
 
 /**
  * Injects meta tags into the built HTML file based on environment variables and branding assets.
@@ -87,14 +87,51 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 	(function injectSocialMetaTags() {
 		const tags: Tag[] = [
 			{ tag: 'title', textContent: config.WALLET_NAME, props: {} },
-			{ tag: 'meta', props: { name: 'description', content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
-			{ tag: 'meta', props: { name: 'keywords', content: 'wwWallet, web wallet, wallet, secure storage, verifiable credentials, digital credentials, credentials management' } },
-			{ tag: 'meta', props: { property: 'og:title', content: `${config.WALLET_NAME}: Secure Storage and Management of Verifiable Credentials` } },
-			{ tag: 'meta', props: { property: 'og:description', content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{
+				tag: 'meta',
+				props: {
+					name: 'description',
+					content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.`,
+				},
+			},
+			{
+				tag: 'meta',
+				props: {
+					name: 'keywords',
+					content:
+						'wwWallet, web wallet, wallet, secure storage, verifiable credentials, digital credentials, credentials management',
+				},
+			},
+			{
+				tag: 'meta',
+				props: {
+					property: 'og:title',
+					content: `${config.WALLET_NAME}: Secure Storage and Management of Verifiable Credentials`,
+				},
+			},
+			{
+				tag: 'meta',
+				props: {
+					property: 'og:description',
+					content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.`,
+				},
+			},
 			{ tag: 'meta', props: { property: 'og:url', content: config.STATIC_PUBLIC_URL || '' } },
 			{ tag: 'meta', props: { property: 'og:type', content: 'website' } },
-			{ tag: 'meta', props: { name: 'twitter:title', content: `${config.WALLET_NAME}: Secure Storage and Management of Verifiable Credentials` } },
-			{ tag: 'meta', props: { name: 'twitter:description', content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{
+				tag: 'meta',
+				props: {
+					name: 'twitter:title',
+					content: `${config.WALLET_NAME}: Secure Storage and Management of Verifiable Credentials`,
+				},
+			},
+			{
+				tag: 'meta',
+				props: {
+					name: 'twitter:description',
+					content: `${config.WALLET_NAME} is a secure web wallet for storing and managing verifiable credentials.`,
+				},
+			},
 			{ tag: 'meta', props: { name: 'twitter:card', content: 'summary_large_image' } },
 		];
 

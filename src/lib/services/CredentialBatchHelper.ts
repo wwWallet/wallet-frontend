@@ -1,9 +1,12 @@
-import { WalletState, WalletStateCredential } from "@/services/WalletStateSchemaVersion3";
-import { compareBy } from "../../util";
-import { ExtendedVcEntity } from "@/context/CredentialsContext";
+import { WalletState, WalletStateCredential } from '@/services/WalletStateSchemaVersion3';
+import { compareBy } from '../../util';
+import { ExtendedVcEntity } from '@/context/CredentialsContext';
 
-
-export async function getLeastUsedCredentialInstance(batchId: number, cList: ExtendedVcEntity[], walletState: WalletState): Promise<WalletStateCredential | null> {
+export async function getLeastUsedCredentialInstance(
+	batchId: number,
+	cList: ExtendedVcEntity[],
+	walletState: WalletState,
+): Promise<WalletStateCredential | null> {
 	const credByBatchId = cList.filter((c) => c.batchId === batchId)[0];
 	const instances = credByBatchId.instances;
 	instances.sort(compareBy((c) => c.sigCount));

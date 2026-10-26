@@ -22,7 +22,23 @@ import { H2 } from '../../components/Shared/Heading';
 import PageHeading from '../../components/Shared/PageHeading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Clock, Database, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
+import {
+	Bell,
+	Clock,
+	Database,
+	Info,
+	KeyRound,
+	Languages,
+	Laptop,
+	Moon,
+	ShieldCheck,
+	SlidersHorizontal,
+	Smartphone,
+	Sun,
+	SunMoon,
+	Trash2,
+	UserCog,
+} from 'lucide-react';
 import { APP_VERSION, WEBAUTHN_RPID } from '@/config';
 import { clearWalletCache } from '@/services/clearWalletCache';
 import { signalAllAcceptedCredentials } from '@/util-webauthn';
@@ -36,20 +52,19 @@ import { SETTINGS_TAB_IDS } from './tabs';
 import WebauthnRegistration from './components/WebauthnRegistration';
 import WebauthnCredentialItem, { useWebauthnCredentialName } from './components/WebauthnCredentialItem';
 
-type UpgradePrfState = (
-	{
-		state: "authenticate",
-		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
-		webauthnCredential: WebauthnCredential,
-		abortController: AbortController,
-	}
+type UpgradePrfState =
 	| {
-		state: "err",
-		err: any,
-		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
-		webauthnCredential?: WebauthnCredential,
-	}
-);
+			state: 'authenticate';
+			prfKeyInfo: WebauthnPrfEncryptionKeyInfo;
+			webauthnCredential: WebauthnCredential;
+			abortController: AbortController;
+	  }
+	| {
+			state: 'err';
+			err: any;
+			prfKeyInfo: WebauthnPrfEncryptionKeyInfo;
+			webauthnCredential?: WebauthnCredential;
+	  };
 
 const CLEAR_CACHE_SUCCESS_QUERY_PARAM = 'cacheCleared';
 
@@ -76,10 +91,11 @@ const Settings = () => {
 
 	useEffect(() => {
 		if (
-			!notifications
-			|| clearCacheSuccessHandled.current
-			|| searchParams.get(CLEAR_CACHE_SUCCESS_QUERY_PARAM) !== 'true'
-		) return;
+			!notifications ||
+			clearCacheSuccessHandled.current ||
+			searchParams.get(CLEAR_CACHE_SUCCESS_QUERY_PARAM) !== 'true'
+		)
+			return;
 
 		clearCacheSuccessHandled.current = true;
 		const nextParams = new URLSearchParams(searchParams);
@@ -122,9 +138,7 @@ const Settings = () => {
 	const [successMessage, setSuccessMessage] = useState('');
 	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
 	const requestedTab = searchParams.get('tab');
-	const activeTab = requestedTab && SETTINGS_TAB_IDS.includes(requestedTab)
-		? requestedTab
-		: 'general';
+	const activeTab = requestedTab && SETTINGS_TAB_IDS.includes(requestedTab) ? requestedTab : 'general';
 
 	const setActiveTab = (tab: string) => {
 		if (tab === activeTab) {
@@ -142,14 +156,13 @@ const Settings = () => {
 
 	const { getCalculatedWalletState } = keystore;
 
-	const signalAcceptedWebauthnCredentials = async (
-		currentUserData: UserData,
-	): Promise<void> => {
+	const signalAcceptedWebauthnCredentials = async (currentUserData: UserData): Promise<void> => {
 		await signalAllAcceptedCredentials({
 			rpId: WEBAUTHN_RPID,
 			userId: toBase64Url(new TextEncoder().encode(currentUserData.uuid)),
-			allAcceptedCredentialIds: currentUserData.webauthnCredentials
-				.map(credential => toBase64Url(credential.credentialId)),
+			allAcceptedCredentialIds: currentUserData.webauthnCredentials.map((credential) =>
+				toBase64Url(credential.credentialId),
+			),
 		});
 	};
 
@@ -166,17 +179,17 @@ const Settings = () => {
 				allAcceptedCredentialIds: [],
 			});
 			const userHandleB64u = new TextEncoder().encode(userData.uuid);
-			const cachedUser = keystore.getCachedUsers()
+			const cachedUser = keystore
+				.getCachedUsers()
 				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
 			await logout();
+		} catch (err) {
+			console.log('Error = ', err);
 		}
-		catch (err) {
-			console.log('Error = ', err)
-		}
-	}
+	};
 
 	const handleDelete = async () => {
 		if (unlocked) {
@@ -189,95 +202,87 @@ const Settings = () => {
 		}
 	};
 
-	const onDeleteAccountClick = useCallback(
-		async () => {
-			setUnlockMainKeyError('');
-			setUnlockInProgress(true);
-			try {
-				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
-				setUnlocked(true);
-				openDeleteConfirmation();
-			} catch (e) {
-				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e instanceof AppError ? e.errorId : undefined) {
-					case 'canceled':
-						break;
+	const onDeleteAccountClick = useCallback(async () => {
+		setUnlockMainKeyError('');
+		setUnlockInProgress(true);
+		try {
+			await keystore.getPasswordOrPrfKeyFromSession(async () => true);
+			setUnlocked(true);
+			openDeleteConfirmation();
+		} catch (e) {
+			// Using a switch here so the t() argument can be a literal, to ease searching
+			switch (e instanceof AppError ? e.errorId : undefined) {
+				case 'canceled':
+					break;
 
-					case 'prf_retry_failed':
-						setUnlockMainKeyError(t('loginSignup.passkeyLoginFailedTryAgain'));
-						break;
+				case 'prf_retry_failed':
+					setUnlockMainKeyError(t('loginSignup.passkeyLoginFailedTryAgain'));
+					break;
 
-					case 'prf_not_supported':
-						setUnlockMainKeyError(t('loginSignup.loginKeystoreFailed'));
-						break;
+				case 'prf_not_supported':
+					setUnlockMainKeyError(t('loginSignup.loginKeystoreFailed'));
+					break;
 
-					default:
-						throw e;
-				}
-			} finally {
-				setUnlockInProgress(false);
+				default:
+					throw e;
 			}
-		},
-		[keystore, t],
-	);
+		} finally {
+			setUnlockInProgress(false);
+		}
+	}, [keystore, t]);
 
-	const refreshData = useCallback(
-		async () => {
-			keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
-			try {
-				const response = await api.get('/user/session/account-info');
-				const s = keystore.getCalculatedWalletState();
-				if (!s) {
-					return;
-				}
-				const refreshedUserData: UserData = {
-					...response.data,
-					settings: s.settings,
-				};
-				console.log(refreshedUserData);
-				setUserData(refreshedUserData);
-				dispatchEvent(new CustomEvent("settingsChanged"));
-				return refreshedUserData;
-			} catch (error) {
-				console.error('Failed to fetch data', error);
-				return null;
+	const refreshData = useCallback(async () => {
+		keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
+		try {
+			const response = await api.get('/user/session/account-info');
+			const s = keystore.getCalculatedWalletState();
+			if (!s) {
+				return;
 			}
-		},
-		[
-			api,
-			keystore, // To react if credentials are modified in a different tab
-			setUserData,
-		],
-	);
+			const refreshedUserData: UserData = {
+				...response.data,
+				settings: s.settings,
+			};
+			console.log(refreshedUserData);
+			setUserData(refreshedUserData);
+			dispatchEvent(new CustomEvent('settingsChanged'));
+			return refreshedUserData;
+		} catch (error) {
+			console.error('Failed to fetch data', error);
+			return null;
+		}
+	}, [
+		api,
+		keystore, // To react if credentials are modified in a different tab
+		setUserData,
+	]);
 
-	useEffect(
-		() => {
-			refreshData();
-		},
-		[refreshData],
-	);
+	useEffect(() => {
+		refreshData();
+	}, [refreshData]);
 
 	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
 		const [newPrivateData, keystoreCommit] = keystore.deletePrf(credential.credentialId);
 		try {
-			const deleteResp = api.updatePrivateDataEtag(await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
-				privateData: serializePrivateData(newPrivateData),
-			}));
+			const deleteResp = api.updatePrivateDataEtag(
+				await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
+					privateData: serializePrivateData(newPrivateData),
+				}),
+			);
 			if (deleteResp.status === 204) {
 				await keystoreCommit();
 			} else {
-				console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
+				console.error('Failed to delete WebAuthn credential', deleteResp.status, deleteResp);
 			}
 			const refreshedUserData = await refreshData();
 			if (deleteResp.status === 204 && refreshedUserData) {
 				await signalAcceptedWebauthnCredentials(refreshedUserData);
 			}
-
 		} catch (e) {
-			console.error("Failed to delete WebAuthn credential", e);
+			console.error('Failed to delete WebAuthn credential', e);
 			if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
+				throw new AppError('x-private-data-etag', 'Private data version conflict', { cause: e });
 			}
 			throw e;
 		}
@@ -291,7 +296,7 @@ const Settings = () => {
 		if (renameResp.status === 204) {
 			return true;
 		} else {
-			console.error("Failed to rename WebAuthn credential", renameResp.status, renameResp);
+			console.error('Failed to rename WebAuthn credential', renameResp.status, renameResp);
 			return false;
 		}
 	};
@@ -301,42 +306,39 @@ const Settings = () => {
 			return;
 		}
 		try {
-			const [newPrivateData, keystoreCommit] = await keystore.upgradePrfKey(
-				prfKeyInfo,
-				async () => {
-					const abortController = new AbortController();
-					const webauthnCredential = userData.webauthnCredentials.find(cred => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId));
-					if (!webauthnCredential) {
-						throw new Error("Missing WebAuthn credential for PRF key");
-					}
-					setUpgradePrfState(
-						{
-							state: "authenticate",
-							prfKeyInfo,
-							webauthnCredential,
-							abortController,
-						}
-					);
-					return abortController.signal;
-				},
-			);
+			const [newPrivateData, keystoreCommit] = await keystore.upgradePrfKey(prfKeyInfo, async () => {
+				const abortController = new AbortController();
+				const webauthnCredential = userData.webauthnCredentials.find(
+					(cred) => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId),
+				);
+				if (!webauthnCredential) {
+					throw new Error('Missing WebAuthn credential for PRF key');
+				}
+				setUpgradePrfState({
+					state: 'authenticate',
+					prfKeyInfo,
+					webauthnCredential,
+					abortController,
+				});
+				return abortController.signal;
+			});
 			setUpgradePrfState(null);
 			try {
 				await api.updatePrivateData(newPrivateData);
 				await keystoreCommit();
 			} catch (e) {
-				console.error("Failed to upgrade PRF key", e);
+				console.error('Failed to upgrade PRF key', e);
 			}
 		} catch (e) {
-			console.error("Failed to upgrade PRF key", e);
+			console.error('Failed to upgrade PRF key', e);
 			if (e instanceof AppError && e.errorId === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw new AppError('x-private-data-etag', "Private data version conflict", { cause: e });
+				throw new AppError('x-private-data-etag', 'Private data version conflict', { cause: e });
 			}
 
-			console.error("Failed to upgrade PRF key", e);
+			console.error('Failed to upgrade PRF key', e);
 			setUpgradePrfState((state) => ({
-				state: "err",
+				state: 'err',
 				err: e,
 				prfKeyInfo,
 				webauthnCredential: state?.webauthnCredential,
@@ -345,19 +347,20 @@ const Settings = () => {
 	};
 
 	const onCancelUpgradePrfKey = () => {
-		if (upgradePrfState?.state === "authenticate") {
+		if (upgradePrfState?.state === 'authenticate') {
 			upgradePrfState.abortController.abort();
 		}
 		setUpgradePrfState(null);
 	};
 
 	const loggedInPasskey = userData?.webauthnCredentials.find(
-		cred => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId);
+		(cred) => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId,
+	);
 
 	const handleTokenMaxAgeChange = async (newMaxAge: string) => {
 		try {
 			if (isNaN(parseInt(newMaxAge))) {
-				throw new Error("Update token max age: newMaxAge is not a number");
+				throw new Error('Update token max age: newMaxAge is not a number');
 			}
 			const walletState = getCalculatedWalletState();
 			if (!walletState) {
@@ -384,7 +387,7 @@ const Settings = () => {
 	const handleObliviousChange = async (useOblivious: string) => {
 		try {
 			if (!['true', 'false'].includes(useOblivious)) {
-				throw new Error("Update useOblivious: invalid value");
+				throw new Error('Update useOblivious: invalid value');
 			}
 			const walletState = getCalculatedWalletState();
 			if (!walletState) {
@@ -406,13 +409,18 @@ const Settings = () => {
 		} catch (error) {
 			console.error('Failed to update settings', error);
 		}
-	}
+	};
 
-	const colorSchemeIcon = (
-		settings.colorScheme === 'light' ? <Sun size={18} />
-			: settings.colorScheme === 'dark' ? <Moon size={18} />
-				: (screenType === 'desktop' ? <Laptop size={18} /> : <Smartphone size={18} />)
-	);
+	const colorSchemeIcon =
+		settings.colorScheme === 'light' ? (
+			<Sun size={18} />
+		) : settings.colorScheme === 'dark' ? (
+			<Moon size={18} />
+		) : screenType === 'desktop' ? (
+			<Laptop size={18} />
+		) : (
+			<Smartphone size={18} />
+		);
 
 	const tabs: SettingsTab[] = [
 		{ id: 'general', label: t('pageSettings.title.general'), icon: <SlidersHorizontal size={16} /> },
@@ -437,7 +445,10 @@ const Settings = () => {
 										<SettingsSection title={t('pageSettings.title.language')} icon={<Languages size={18} />}>
 											<SettingsRow description={t('pageSettings.language.description')}>
 												<div className="relative inline-block min-w-36 [&_select]:cursor-pointer">
-													<LanguageSelector className="py-2 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-700 dark:border-dm-gray-400 dark:text-white rounded-lg shadow-xs text-sm font-medium inputDarkModeOverride appearance-none" showName={true} />
+													<LanguageSelector
+														className="py-2 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-700 dark:border-dm-gray-400 dark:text-white rounded-lg shadow-xs text-sm font-medium inputDarkModeOverride appearance-none"
+														showName={true}
+													/>
 												</div>
 											</SettingsRow>
 										</SettingsSection>
@@ -452,15 +463,9 @@ const Settings = () => {
 													value={settings.colorScheme}
 													onChange={(e) => setColorScheme(e.target.value as ColorScheme)}
 												>
-													<option value="system">
-														{t('pageSettings.appearance.colorScheme.system')}
-													</option>
-													<option value="light">
-														{t('pageSettings.appearance.colorScheme.light')}
-													</option>
-													<option value="dark">
-														{t('pageSettings.appearance.colorScheme.dark')}
-													</option>
+													<option value="system">{t('pageSettings.appearance.colorScheme.system')}</option>
+													<option value="light">{t('pageSettings.appearance.colorScheme.light')}</option>
+													<option value="dark">{t('pageSettings.appearance.colorScheme.dark')}</option>
 												</SettingsSelect>
 											</SettingsRow>
 										</SettingsSection>
@@ -477,35 +482,38 @@ const Settings = () => {
 													{t('pageSettings.clearCache.buttonText')}
 												</Button>
 											</SettingsRow>
-											{clearCacheError && <p role="alert" className="mt-3 text-sm text-lm-red dark:text-dm-red">{t('pageSettings.clearCache.errorMessage')}</p>}
+											{clearCacheError && (
+												<p role="alert" className="mt-3 text-sm text-lm-red dark:text-dm-red">
+													{t('pageSettings.clearCache.errorMessage')}
+												</p>
+											)}
 										</SettingsSection>
 
 										<SettingsSection
 											title={t('pageSettings.title.appVersion')}
 											icon={<Info size={18} />}
-											actions={updateAvailable && (
-												<Bell size={20} className="text-lm-green dark:text-dm-green" />
-											)}
+											actions={updateAvailable && <Bell size={20} className="text-lm-green dark:text-dm-green" />}
 										>
 											{updateAvailable ? (
-												<p className='mb-2 text-sm text-lm-gray-800 dark:text-dm-gray-200'>
+												<p className="mb-2 text-sm text-lm-gray-800 dark:text-dm-gray-200">
 													<Trans
 														i18nKey="pageSettings.appVersion.descriptionOldVersion"
 														values={{ react_app_version: APP_VERSION }}
 														components={{
-															reloadButton:
+															reloadButton: (
 																<button
 																	id="reload-update-version"
-																	className='text-primary dark:text-brand-light underline cursor-pointer'
+																	className="text-primary dark:text-brand-light underline cursor-pointer"
 																	onClick={() => window.location.reload()}
-																/>,
+																/>
+															),
 															strong: <strong />,
 															br: <br />,
 														}}
 													/>
 												</p>
 											) : (
-												<p className='mb-2 text-sm text-lm-gray-800 dark:text-dm-gray-200'>
+												<p className="mb-2 text-sm text-lm-gray-800 dark:text-dm-gray-200">
 													{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: APP_VERSION })}
 												</p>
 											)}
@@ -516,10 +524,8 @@ const Settings = () => {
 								{activeTab === 'privacy' && (
 									<>
 										<SettingsSection title={t('pageSettings.title.rememberIssuer')} icon={<Clock size={18} />}>
-											<SettingsRow
-												description={t('pageSettings.rememberIssuer.description')}
-											>
-												<div className='flex gap-2 items-center'>
+											<SettingsRow description={t('pageSettings.rememberIssuer.description')}>
+												<div className="flex gap-2 items-center">
 													<SettingsSelect
 														defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 														onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
@@ -528,7 +534,9 @@ const Settings = () => {
 														<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
 														<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
 														<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
-														<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
+														<option value={`${30 * 24 * 3600}`}>
+															{t('pageSettings.rememberIssuer.options.month')}
+														</option>
 													</SettingsSelect>
 													{successMessage && (
 														<div className="text-sm text-lm-green dark:text-dm-green whitespace-nowrap">
@@ -540,15 +548,13 @@ const Settings = () => {
 										</SettingsSection>
 
 										<SettingsSection title={t('pageSettings.oblivious.title')} icon={<ShieldCheck size={18} />}>
-											<SettingsRow
-												description={t('pageSettings.oblivious.description')}
-											>
-												<div className='flex gap-2 items-center'>
+											<SettingsRow description={t('pageSettings.oblivious.description')}>
+												<div className="flex gap-2 items-center">
 													<SettingsSelect
 														defaultValue={userData.settings.useOblivious}
 														onChange={(e) => handleObliviousChange(e.target.value)}
 														disabled={!isOnline}
-														title={!isOnline ? t("common.offlineTitle") : undefined}
+														title={!isOnline ? t('common.offlineTitle') : undefined}
 													>
 														<option value="false">{t('pageSettings.oblivious.disabled')}</option>
 														<option value="true">{t('pageSettings.oblivious.gunet')}</option>
@@ -577,13 +583,17 @@ const Settings = () => {
 													.slice()
 													.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
 													.sort((a, b) => Number(b.id === loggedInPasskey?.id) - Number(a.id === loggedInPasskey?.id))
-													.map(cred => (
+													.map((cred) => (
 														<WebauthnCredentialItem
 															key={cred.id}
 															credential={cred}
 															prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
 															isCurrent={cred.id === loggedInPasskey?.id}
-															onDelete={!(loggedInPasskey && cred.id === loggedInPasskey.id) && showDelete && (() => deleteWebauthnCredential(cred))}
+															onDelete={
+																!(loggedInPasskey && cred.id === loggedInPasskey.id) &&
+																showDelete &&
+																(() => deleteWebauthnCredential(cred))
+															}
 															onRename={onRenameWebauthnCredential}
 															onUpgradePrfKey={onUpgradePrfKey}
 														/>
@@ -596,14 +606,16 @@ const Settings = () => {
 											icon={<Trash2 size={18} />}
 											variant="danger"
 										>
-											{unlockMainKeyError && <p className="mb-2 text-sm text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
+											{unlockMainKeyError && (
+												<p className="mb-2 text-sm text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>
+											)}
 											<SettingsRow description={t('pageSettings.deleteAccount.description')}>
 												<Button
 													id="delete-account"
 													onClick={onDeleteAccountClick}
 													variant="delete"
 													disabled={unlockInProgress || !isOnline}
-													title={!isOnline ? t("common.offlineTitle") : ""}
+													title={!isOnline ? t('common.offlineTitle') : ''}
 												>
 													<Trash2 size={18} />
 													{t('pageSettings.deleteAccount.buttonText')}
@@ -620,12 +632,7 @@ const Settings = () => {
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
 					onClose={closeDeleteConfirmation}
-					message={
-						<Trans
-							i18nKey="pageSettings.deleteAccount.message"
-							components={{ strong: <strong /> }}
-						/>
-					}
+					message={<Trans i18nKey="pageSettings.deleteAccount.message" components={{ strong: <strong /> }} />}
 					loading={loading}
 				/>
 
@@ -636,48 +643,35 @@ const Settings = () => {
 					isClearing={clearCacheInProgress}
 				/>
 
-				<Dialog
-					open={upgradePrfState !== null}
-					onCancel={onCancelUpgradePrfKey}
-				>
-					{upgradePrfState?.state === "authenticate"
-						? <>
-							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent='center'></H2>
-							<p className='mb-2 dark:text-white'>
+				<Dialog open={upgradePrfState !== null} onCancel={onCancelUpgradePrfKey}>
+					{upgradePrfState?.state === 'authenticate' ? (
+						<>
+							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent="center"></H2>
+							<p className="mb-2 dark:text-white">
 								{t('pageSettings.upgradePrfKey.description', { passkeyLabel: upgradePrfPasskeyLabel })}
 							</p>
-							<div className='flex gap-2 justify-center align-center'>
-								<Button
-									onClick={onCancelUpgradePrfKey}
-								>
-									{t('common.cancel')}
-								</Button>
+							<div className="flex gap-2 justify-center align-center">
+								<Button onClick={onCancelUpgradePrfKey}>{t('common.cancel')}</Button>
 							</div>
 						</>
-						: <>
-							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent='center'></H2>
+					) : (
+						<>
+							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent="center"></H2>
 							<Trans
 								i18nKey="pageSettings.upgradePrfKey.error"
 								values={{ passkeyLabel: upgradePrfPasskeyLabel }}
-								components={{ p: <p className='mb-2 dark:text-white' /> }}
+								components={{ p: <p className="mb-2 dark:text-white" /> }}
 							/>
-							<div className='flex gap-2 justify-center align-center'>
-								<Button
-									onClick={onCancelUpgradePrfKey}
-								>
-									{t('common.cancel')}
-								</Button>
-								{upgradePrfState?.state === "err" && (
-									<Button
-										variant='primary'
-										onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-									>
+							<div className="flex gap-2 justify-center align-center">
+								<Button onClick={onCancelUpgradePrfKey}>{t('common.cancel')}</Button>
+								{upgradePrfState?.state === 'err' && (
+									<Button variant="primary" onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}>
 										{t('common.tryAgain')}
 									</Button>
 								)}
 							</div>
 						</>
-					}
+					)}
 				</Dialog>
 			</div>
 		</>

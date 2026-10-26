@@ -1,4 +1,4 @@
-import type { BluetoothConnectionResult } from "./IBluetoothTransport";
+import type { BluetoothConnectionResult } from './IBluetoothTransport';
 
 export interface MdocTypeDetails {
 	requestedDocType: string | null;
@@ -11,10 +11,10 @@ export interface MdocRequest extends MdocTypeDetails {
 }
 
 export interface IMdocAppCommunication {
-	generateEngagementQR(credential: any) :Promise<string>;
-	startClient(onDeviceSelected?: () => void) :Promise<BluetoothConnectionResult>;
-	connectRequiresUserGesture() :boolean;
-	getMdocRequest() :Promise<MdocRequest>;
-	sendMdocResponse() :Promise<void>;
-	terminateSession() :Promise<void>;
+	generateEngagementQR(credential: any): Promise<string>;
+	startClient(onDeviceSelected?: () => void): Promise<BluetoothConnectionResult>;
+	connectRequiresUserGesture(): boolean;
+	getMdocRequest(): Promise<MdocRequest>;
+	sendMdocResponse(): Promise<void>;
+	terminateSession(): Promise<void>;
 }

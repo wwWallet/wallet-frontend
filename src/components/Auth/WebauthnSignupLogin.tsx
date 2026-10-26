@@ -27,10 +27,10 @@ const FormInputRow = ({
 	label,
 	name,
 }: {
-	IconComponent: LucideIcon,
-	children: React.ReactNode,
-	label: string,
-	name: string,
+	IconComponent: LucideIcon;
+	children: React.ReactNode;
+	label: string;
+	name: string;
 }) => (
 	<div className="mb-4 relative">
 		<label className="block text-lm-gray-800 dark:text-dm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
@@ -51,14 +51,14 @@ const FormInputField = ({
 	value,
 	type,
 }: {
-	ariaLabel?: string,
-	disabled?: boolean,
-	name: string,
-	onChange: ChangeEventHandler<HTMLInputElement>,
-	placeholder?: string,
-	required?: boolean,
-	value: string,
-	type?: 'text',
+	ariaLabel?: string;
+	disabled?: boolean;
+	name: string;
+	onChange: ChangeEventHandler<HTMLInputElement>;
+	placeholder?: string;
+	required?: boolean;
+	value: string;
+	type?: 'text';
 }) => {
 	return (
 		<div className="relative">
@@ -83,10 +83,10 @@ const AccountSwitcherList = ({
 	items,
 	showFade,
 }: {
-	variant: 'desktop' | 'mobile',
-	ariaLabel: string,
-	items: React.ReactNode,
-	showFade: boolean,
+	variant: 'desktop' | 'mobile';
+	ariaLabel: string;
+	items: React.ReactNode;
+	showFade: boolean;
 }) => (
 	<div className="relative">
 		<ul
@@ -118,21 +118,21 @@ const WebauthnSignupLogin = ({
 	isAccountSwitcherOpen = false,
 	setIsAccountSwitcherOpen = () => undefined,
 }: {
-	isLogin: boolean,
-	isSubmitting: boolean,
-	setIsSubmitting: (isSubmitting: boolean) => void,
-	error: React.ReactNode,
-	setError: (error: React.ReactNode) => void,
-	setIsAwaitingRedirect: (isAwaitingRedirect: boolean) => void,
-	isAccountSwitcherOpen?: boolean,
-	setIsAccountSwitcherOpen?: (isOpen: boolean) => void,
+	isLogin: boolean;
+	isSubmitting: boolean;
+	setIsSubmitting: (isSubmitting: boolean) => void;
+	error: React.ReactNode;
+	setError: (error: React.ReactNode) => void;
+	setIsAwaitingRedirect: (isAwaitingRedirect: boolean) => void;
+	isAccountSwitcherOpen?: boolean;
+	setIsAccountSwitcherOpen?: (isOpen: boolean) => void;
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useSessionContext();
 	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
-	const [name, setName] = useState("");
+	const [name, setName] = useState('');
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<((accept: boolean) => void) | null>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
@@ -145,12 +145,9 @@ const WebauthnSignupLogin = ({
 	const loginableCachedUsers = cachedUsers.filter((cachedUser) => cachedUser?.prfKeys?.length > 0);
 	const activeCachedUser = loginableCachedUsers[0] ?? null;
 
-	useEffect(
-		() => {
-			setError("");
-		},
-		[isLogin, setError],
-	);
+	useEffect(() => {
+		setError('');
+	}, [isLogin, setError]);
 
 	useEffect(() => {
 		if (isAccountSwitcherOpen && loginableCachedUsers.length === 0) {
@@ -244,20 +241,22 @@ const WebauthnSignupLogin = ({
 						<Trans
 							i18nKey="loginSignup.passkeySignupPrfNotSupported"
 							components={{
-								docLink: <a
-									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-									className="font-medium text-lm-gray-900 hover:underline dark:text-dm-gray-100"
-									aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
-								/>
+								docLink: (
+									<a
+										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility"
+										target="blank_"
+										className="font-medium text-lm-gray-900 hover:underline dark:text-dm-gray-100"
+										aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
+									/>
+								),
 							}}
-						/>
+						/>,
 					);
 					break;
 
 				default:
 					if (result.val?.errorId === 'prfRetryFailed') {
 						setRetrySignupFrom(result.val?.retryFrom);
-
 					} else {
 						setError(t('loginSignup.passkeySignupPrfRetryFailed'));
 						throw result;
@@ -276,7 +275,6 @@ const WebauthnSignupLogin = ({
 
 		if (isLogin) {
 			await onLogin([webauthnHint]);
-
 		} else {
 			await onSignup(name, [webauthnHint]);
 		}
@@ -303,7 +301,7 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onCancel = () => {
-		console.log("onCancel");
+		console.log('onCancel');
 		setInProgress(false);
 		setNeedPrfRetry(false);
 		setPrfRetryAccepted(false);
@@ -320,36 +318,39 @@ const WebauthnSignupLogin = ({
 	const accountListItems = loginableCachedUsers.map((cachedUser, index) => {
 		return (
 			<li key={cachedUser.userHandleB64u} className="w-full flex items-center gap-4">
-			<button
-				id={`switch-login-cached-user-${index}-loginsignup`}
-				type="button"
-				onClick={async () => {
-					setIsAccountSwitcherOpen(false);
-					await onLoginCachedUser(cachedUser);
-				}}
-				disabled={isSubmitting}
-				aria-label={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-				title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-				className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border border-lm-gray-400 dark:border-dm-gray-600 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
-			>
-				<div aria-hidden="true" className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shrink-0 select-none">
-					<User size={20} />
-				</div>
-				<span className="flex-1 min-w-0 text-sm font-semibold text-lm-gray-900 dark:text-white truncate">
-					{cachedUser.displayName}
-				</span>
-			</button>
-			<button
-				id={`switch-forget-cached-user-${index}-loginsignup`}
-				type="button"
-				onClick={() => onForgetCachedUser(cachedUser)}
-				disabled={isSubmitting}
-				aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-				title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-				className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
-			>
-				<X size={18} />
-			</button>
+				<button
+					id={`switch-login-cached-user-${index}-loginsignup`}
+					type="button"
+					onClick={async () => {
+						setIsAccountSwitcherOpen(false);
+						await onLoginCachedUser(cachedUser);
+					}}
+					disabled={isSubmitting}
+					aria-label={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+					title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+					className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2.5 text-left rounded-lg border border-lm-gray-400 dark:border-dm-gray-600 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 bg-lm-gray-200 dark:bg-dm-gray-800 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-300 dark:hover:bg-dm-gray-700'}`}
+				>
+					<div
+						aria-hidden="true"
+						className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shrink-0 select-none"
+					>
+						<User size={20} />
+					</div>
+					<span className="flex-1 min-w-0 text-sm font-semibold text-lm-gray-900 dark:text-white truncate">
+						{cachedUser.displayName}
+					</span>
+				</button>
+				<button
+					id={`switch-forget-cached-user-${index}-loginsignup`}
+					type="button"
+					onClick={() => onForgetCachedUser(cachedUser)}
+					disabled={isSubmitting}
+					aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+					title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+					className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
+				>
+					<X size={18} />
+				</button>
 			</li>
 		);
 	});
@@ -404,180 +405,168 @@ const WebauthnSignupLogin = ({
 						showFade={loginableCachedUsers.length > 3}
 					/>
 				</div>
-			) : inProgress || retrySignupFrom
-				? (
-					needPrfRetry
-						? (
-							<div className="text-center">
-								{
-									prfRetryAccepted
-										? (
-											<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
-										)
-										: (
-											<>
-												<h3 className="text-xl md:text-2xl mt-4 mb-2 font-bold text-lm-gray-900 dark:text-white">{t('registerPasskey.messageDone')}</h3>
-												<p className="dark:text-white pb-3">
-													{isLogin
-														? t('loginSignup.authOnceMoreLogin')
-														: t('registerPasskey.authOnceMore')
-													}
-												</p>
-											</>
-										)
-								}
-								<div className='flex justify-center gap-4'>
-									<Button
-										id="cancel-prf-loginsignup"
-										onClick={() => resolvePrfRetryPrompt?.(false)}
-									>
-										{t('common.cancel')}
-									</Button>
-									<Button
-										id="continue-prf-loginsignup"
-										onClick={() => resolvePrfRetryPrompt?.(true)}
-										variant="primary"
-										disabled={prfRetryAccepted}
-									>
-										{t('common.continue')}
-									</Button>
-								</div>
-							</div>
-						)
-						: (
-							retrySignupFrom && !inProgress
-								? (
-									<div className="text-center">
-										<p className="dark:text-white pb-3">
-											<Trans
-												i18nKey="registerPasskey.messageErrorTryAgain"
-												components={{ br: <br /> }}
-											/>
-										</p>
-										<div className='flex justify-center gap-4'>
-
-											<Button
-												id="cancel-prf-loginsignup"
-												onClick={onCancel}
-											>
-												{t('common.cancel')}
-											</Button>
-											<Button
-												id="try-again-prf-loginsignup"
-												type="submit"
-												variant="secondary"
-											>
-												{t('common.tryAgain')}
-											</Button>
-										</div>
-									</div>
-								)
-								: (
-									<>
-										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
-										<Button
-											id="cancel-in-progress-prf-loginsignup"
-											onClick={onCancel}
-											additionalClassName='w-full'
-										>
-											{t('common.cancel')}
-										</Button>
-									</>
-								)
-						)
-				)
-				: (
-					<>
-						{!isLogin && (
+			) : inProgress || retrySignupFrom ? (
+				needPrfRetry ? (
+					<div className="text-center">
+						{prfRetryAccepted ? (
+							<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
+						) : (
 							<>
-								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={Wallet}>
-									<FormInputField
-										ariaLabel="Passkey name"
-										name="name"
-										onChange={(event) => setName(event.target.value)}
-										placeholder={t('loginSignup.enterPasskeyName')}
-										type="text"
-										value={name}
-										required
-									/>
-									<div className={`flex flex-row flex-nowrap text-lm-gray-500 text-sm italic ${nameByteLimitReached ? 'text-lm-red' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
-										<div
-											className={`text-lm-red dark:text-dm-red grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
-											aria-hidden={!nameByteLimitReached}
-										>
-											{t('loginSignup.reachedLengthLimit')}
-										</div>
-										<div
-											className={`text-right ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
-											aria-hidden={!nameByteLimitApproaching}
-										>
-											{nameByteLength + `/64`}
-										</div>
-									</div>
-								</FormInputRow>
-								{hasPolicyLinks && (
-									<label className="mb-4 text-sm relative block pl-6">
-										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" required />
-										<span>
-											<Trans
-												i18nKey="loginSignup.acceptPolicies"
-												components={{ policyLinks: <PolicyLinks /> }}
-											/>
-										</span>
-									</label>
-								)}
-							</>)}
-
-						{isLogin && activeCachedUser && (
-							<>
-								<CachedUsersList
-									account={activeCachedUser}
-									onSelect={onLoginCachedUser}
-									onSwitchAccount={() => setIsAccountSwitcherOpen(true)}
-									disabled={isSubmitting}
-								/>
-								<div className="my-4">
-									<SeparatorLine>{t('common.or')}</SeparatorLine>
-								</div>
+								<h3 className="text-xl md:text-2xl mt-4 mb-2 font-bold text-lm-gray-900 dark:text-white">
+									{t('registerPasskey.messageDone')}
+								</h3>
+								<p className="dark:text-white pb-3">
+									{isLogin ? t('loginSignup.authOnceMoreLogin') : t('registerPasskey.authOnceMore')}
+								</p>
 							</>
 						)}
-
-						{(
-							[
-								{ btnLabel: isLogin ? t('loginSignup.loginWithPasskey') : t('loginSignup.signUpWithPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>(isLogin && activeCachedUser ? "outline" : "primary") },
-								{ btnLabel: isLogin ? t('loginSignup.loginWithSecurityKey') : t('loginSignup.signUpWithSecurityKey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), hint: "security-key", },
-							].map(({ Icon, btnLabel, variant, hint }) => (
-								<div key={btnLabel} className={`mt-2 relative w-full flex flex-col justify-center passkey-button-${hint}`}>
-									<Button
-										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
-										type="submit"
-										variant={variant}
-										size="lg"
-										textSize="md"
-										additionalClassName="items-center justify-center relative"
-										disabled={!isLogin && (!isOnline || nameByteLimitReached)}
-										title={!isLogin ? (!isOnline ? t("common.offlineTitle") : nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : undefined) : undefined}
-										value={hint}
-									>
-										<div className="flex flex-col">
-											<div className="flex flex-row items-center justify-center w-full">
-												<Icon size={20} className="inline text-xl mr-2 shrink-0" />
-
-												{isSubmitting
-													? t('loginSignup.submitting')
-													: btnLabel
-												}
-											</div>
-										</div>
-									</Button>
-								</div>
-							))
-						)}
-
-						{error && <div role="alert" className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
+						<div className="flex justify-center gap-4">
+							<Button id="cancel-prf-loginsignup" onClick={() => resolvePrfRetryPrompt?.(false)}>
+								{t('common.cancel')}
+							</Button>
+							<Button
+								id="continue-prf-loginsignup"
+								onClick={() => resolvePrfRetryPrompt?.(true)}
+								variant="primary"
+								disabled={prfRetryAccepted}
+							>
+								{t('common.continue')}
+							</Button>
+						</div>
+					</div>
+				) : retrySignupFrom && !inProgress ? (
+					<div className="text-center">
+						<p className="dark:text-white pb-3">
+							<Trans i18nKey="registerPasskey.messageErrorTryAgain" components={{ br: <br /> }} />
+						</p>
+						<div className="flex justify-center gap-4">
+							<Button id="cancel-prf-loginsignup" onClick={onCancel}>
+								{t('common.cancel')}
+							</Button>
+							<Button id="try-again-prf-loginsignup" type="submit" variant="secondary">
+								{t('common.tryAgain')}
+							</Button>
+						</div>
+					</div>
+				) : (
+					<>
+						<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
+						<Button id="cancel-in-progress-prf-loginsignup" onClick={onCancel} additionalClassName="w-full">
+							{t('common.cancel')}
+						</Button>
 					</>
 				)
-			}
+			) : (
+				<>
+					{!isLogin && (
+						<>
+							<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={Wallet}>
+								<FormInputField
+									ariaLabel="Passkey name"
+									name="name"
+									onChange={(event) => setName(event.target.value)}
+									placeholder={t('loginSignup.enterPasskeyName')}
+									type="text"
+									value={name}
+									required
+								/>
+								<div
+									className={`flex flex-row flex-nowrap text-lm-gray-500 text-sm italic ${nameByteLimitReached ? 'text-lm-red' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}
+								>
+									<div
+										className={`text-lm-red dark:text-dm-red grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+										aria-hidden={!nameByteLimitReached}
+									>
+										{t('loginSignup.reachedLengthLimit')}
+									</div>
+									<div
+										className={`text-right ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+										aria-hidden={!nameByteLimitApproaching}
+									>
+										{nameByteLength + `/64`}
+									</div>
+								</div>
+							</FormInputRow>
+							{hasPolicyLinks && (
+								<label className="mb-4 text-sm relative block pl-6">
+									<input
+										className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer"
+										type="checkbox"
+										required
+									/>
+									<span>
+										<Trans i18nKey="loginSignup.acceptPolicies" components={{ policyLinks: <PolicyLinks /> }} />
+									</span>
+								</label>
+							)}
+						</>
+					)}
+
+					{isLogin && activeCachedUser && (
+						<>
+							<CachedUsersList
+								account={activeCachedUser}
+								onSelect={onLoginCachedUser}
+								onSwitchAccount={() => setIsAccountSwitcherOpen(true)}
+								disabled={isSubmitting}
+							/>
+							<div className="my-4">
+								<SeparatorLine>{t('common.or')}</SeparatorLine>
+							</div>
+						</>
+					)}
+
+					{[
+						{
+							btnLabel: isLogin ? t('loginSignup.loginWithPasskey') : t('loginSignup.signUpWithPasskey'),
+							Icon: KeyRoundIcon,
+							variant: coerce<Variant>(isLogin && activeCachedUser ? 'outline' : 'primary'),
+						},
+						{
+							btnLabel: isLogin ? t('loginSignup.loginWithSecurityKey') : t('loginSignup.signUpWithSecurityKey'),
+							Icon: UsbStickDotIcon,
+							variant: coerce<Variant>('outline'),
+							hint: 'security-key',
+						},
+					].map(({ Icon, btnLabel, variant, hint }) => (
+						<div key={btnLabel} className={`mt-2 relative w-full flex flex-col justify-center passkey-button-${hint}`}>
+							<Button
+								id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
+								type="submit"
+								variant={variant}
+								size="lg"
+								textSize="md"
+								additionalClassName="items-center justify-center relative"
+								disabled={!isLogin && (!isOnline || nameByteLimitReached)}
+								title={
+									!isLogin
+										? !isOnline
+											? t('common.offlineTitle')
+											: nameByteLimitReached
+												? t('loginSignup.reachedLengthLimit')
+												: undefined
+										: undefined
+								}
+								value={hint}
+							>
+								<div className="flex flex-col">
+									<div className="flex flex-row items-center justify-center w-full">
+										<Icon size={20} className="inline text-xl mr-2 shrink-0" />
+
+										{isSubmitting ? t('loginSignup.submitting') : btnLabel}
+									</div>
+								</div>
+							</Button>
+						</div>
+					))}
+
+					{error && (
+						<div role="alert" className="text-lm-red dark:text-dm-red pt-2">
+							{error}
+						</div>
+					)}
+				</>
+			)}
 
 			{screenType !== 'desktop' && (
 				<BottomSheet

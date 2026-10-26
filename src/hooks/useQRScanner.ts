@@ -15,6 +15,6 @@ export const useQRScanner = (): QRScannerState => {
 	return {
 		isQRScannerOpen,
 		openQRScanner,
-		closeQRScanner
+		closeQRScanner,
 	};
 };

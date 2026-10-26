@@ -1,4 +1,4 @@
-export type BluetoothConnectionResult = "connected" | "cancelled" | "failed";
+export type BluetoothConnectionResult = 'connected' | 'cancelled' | 'failed';
 
 /**
  * Transport abstraction for the ISO 18013-5 proximity presentation flow.

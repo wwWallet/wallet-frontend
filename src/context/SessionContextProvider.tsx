@@ -21,23 +21,26 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig | null>(null);
 
 	// A unique id for each logged in tab
-	const [globalTabId] = useLocalStorage<string | null>("globalTabId", null);
-	const [tabId] = useSessionStorage<string | null>("tabId", null);
+	const [globalTabId] = useLocalStorage<string | null>('globalTabId', null);
+	const [tabId] = useSessionStorage<string | null>('tabId', null);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<(preserveUrlParams?: boolean) => void>();
 
 	// Memoize clearSession using useCallback
-	const clearSession = useCallback(async (preserveUrlParams: boolean = false) => {
-		// Keep search params so a pending flow can continue after a
-		// cross-tab logout; otherwise clean up the URL.
-		if (!(preserveUrlParams && window.location.search)) {
-			window.history.replaceState({}, '', window.location.pathname);
-		}
-		console.log('[Session Context] Clear Session');
-		api.clearSession();
-		await setAppBadgeCount(0);
-	}, [api]);
+	const clearSession = useCallback(
+		async (preserveUrlParams: boolean = false) => {
+			// Keep search params so a pending flow can continue after a
+			// cross-tab logout; otherwise clean up the URL.
+			if (!(preserveUrlParams && window.location.search)) {
+				window.history.replaceState({}, '', window.location.pathname);
+			}
+			console.log('[Session Context] Clear Session');
+			api.clearSession();
+			await setAppBadgeCount(0);
+		},
+		[api],
+	);
 
 	// Update the ref whenever clearSession changes
 	useEffect(() => {
@@ -71,12 +74,12 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 	useEffect(() => {
 		const S = getCalculatedWalletState();
 		if (S) {
-			if (S.settings['useOblivious'] === "true") {
+			if (S.settings['useOblivious'] === 'true') {
 				// To use oblivious, keys must be fetched.
 				// Delay setWalletStateLoaded till then.
 				async function fetchKeyConfigAndUpdate() {
 					if (!OHTTP_KEY_CONFIG) {
-						throw new Error("OHTTP key config URL is not configured");
+						throw new Error('OHTTP key config URL is not configured');
 					}
 					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
 					setObliviousKeyConfig(keyConfig);
@@ -90,16 +93,25 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 		}
 	}, [getCalculatedWalletState]);
 
-	const value: SessionContextValue = useMemo(() => ({
-		api,
-		isLoggedIn: isLoggedIn,
-		keystore,
-		logout,
-		obliviousKeyConfig
-	}), [api, keystore, logout, isLoggedIn, obliviousKeyConfig]);
+	const value: SessionContextValue = useMemo(
+		() => ({
+			api,
+			isLoggedIn: isLoggedIn,
+			keystore,
+			logout,
+			obliviousKeyConfig,
+		}),
+		[api, keystore, logout, isLoggedIn, obliviousKeyConfig],
+	);
 
 	useEffect(() => {
-		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
+		if (
+			api &&
+			keystore &&
+			api.isLoggedIn() === true &&
+			keystore.isOpen() === false &&
+			((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))
+		) {
 			// Fallback for the initial-mount race with the event listener below.
 			clearSession(true);
 		}
@@ -107,12 +119,8 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 
 	// Offline->online reconnection is handled by UriHandlerProvider's syncPrivateData flow.
 
-	if ((api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded))) {
-		return <></>
+	if (api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded)) {
+		return <></>;
 	}
-	return (
-		<SessionContext.Provider value={value}>
-			{children}
-		</SessionContext.Provider>
-	);
+	return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 };

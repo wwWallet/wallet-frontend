@@ -25,9 +25,9 @@ const StatusContext = createContext<StatusContextValue>({
 	updateAvailable: false,
 	connectivity: { navigatorOnline: null, Internet: null, speed: null },
 	pwaInstallable: null,
-	dismissPwaPrompt: () => { },
+	dismissPwaPrompt: () => {},
 	hidePwaPrompt: false,
-	updateOnlineStatus: async () => { },
+	updateOnlineStatus: async () => {},
 });
 
 export default StatusContext;

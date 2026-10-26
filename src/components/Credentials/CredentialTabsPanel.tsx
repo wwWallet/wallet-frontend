@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import CredentialTabs from "../../components/Credentials/CredentialTabs";
-import type { CredentialTab } from "../../components/Credentials/CredentialTabs";
+import React, { useState } from 'react';
+import CredentialTabs from '../../components/Credentials/CredentialTabs';
+import type { CredentialTab } from '../../components/Credentials/CredentialTabs';
 
 interface CredentialTabsPanelProps {
 	tabs: readonly CredentialTab[];
@@ -13,14 +13,8 @@ const CredentialTabsPanel = ({ tabs, defaultTab = 0, contentClassName = '' }: Cr
 
 	return (
 		<>
-			<CredentialTabs
-				tabs={tabs}
-				activeTab={activeTab}
-				onTabChange={setActiveTab}
-			/>
-			<div className={`py-2 ${contentClassName}`}>
-				{tabs[activeTab].component}
-			</div>
+			<CredentialTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+			<div className={`py-2 ${contentClassName}`}>{tabs[activeTab].component}</div>
 		</>
 	);
 };

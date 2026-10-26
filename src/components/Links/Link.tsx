@@ -8,23 +8,11 @@ type CommonProps = {
 	className?: string;
 };
 
-type Props = CommonProps & (
-	| { href: string; onClick?: never }
-	| { href?: never; onClick: React.MouseEventHandler<HTMLButtonElement> }
-);
+type Props = CommonProps &
+	({ href: string; onClick?: never } | { href?: never; onClick: React.MouseEventHandler<HTMLButtonElement> });
 
-const Link = ({
-	id,
-	children,
-	href,
-	onClick,
-	disabled = false,
-	title,
-	className = '',
-}: Props) => {
-	const interactionClassName = disabled
-		? 'grayscale opacity-75 cursor-not-allowed'
-		: 'cursor-pointer hover:underline';
+const Link = ({ id, children, href, onClick, disabled = false, title, className = '' }: Props) => {
+	const interactionClassName = disabled ? 'grayscale opacity-75 cursor-not-allowed' : 'cursor-pointer hover:underline';
 	const linkClassName = `text-lm-gray-900 dark:text-dm-gray-100 font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 ${interactionClassName} ${className}`;
 
 	if (href !== undefined) {
@@ -44,14 +32,7 @@ const Link = ({
 	}
 
 	return (
-		<button
-			id={id}
-			type="button"
-			onClick={onClick}
-			disabled={disabled}
-			title={title}
-			className={linkClassName}
-		>
+		<button id={id} type="button" onClick={onClick} disabled={disabled} title={title} className={linkClassName}>
 			{children}
 		</button>
 	);

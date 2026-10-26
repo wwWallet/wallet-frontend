@@ -8,12 +8,7 @@ type RuntimePrecacheEntry = {
 	revision: null;
 };
 
-const SCREENSHOT_FILES = [
-	'screen_mobile_1.png',
-	'screen_mobile_2.png',
-	'screen_tablet_1.png',
-	'screen_tablet_2.png',
-];
+const SCREENSHOT_FILES = ['screen_mobile_1.png', 'screen_mobile_2.png', 'screen_tablet_1.png', 'screen_tablet_2.png'];
 
 function withVersion(pathname: string, version: string): RuntimePrecacheEntry {
 	return {

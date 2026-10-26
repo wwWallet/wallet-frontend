@@ -67,7 +67,7 @@ export default defineConfig(async ({ mode }) => {
 					lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
 					useFlatConfig: true,
 					watchPath: './src',
-				}
+				},
 			}),
 			VitePWA({
 				registerType: 'autoUpdate',
@@ -81,7 +81,6 @@ export default defineConfig(async ({ mode }) => {
 					globIgnores: ['theme.css', 'index.html', 'runtime-precache.js'],
 				},
 			}),
-
 		],
 		resolve: {
 			alias: {
@@ -104,7 +103,7 @@ export default defineConfig(async ({ mode }) => {
 		build: {
 			manifest: true,
 			sourcemap: env.GENERATE_SOURCEMAP === 'true',
-			minify: env.GENERATE_SOURCEMAP !== 'true'
+			minify: env.GENERATE_SOURCEMAP !== 'true',
 		},
 	};
 

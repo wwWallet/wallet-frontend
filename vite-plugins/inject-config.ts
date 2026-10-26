@@ -14,11 +14,12 @@ export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 	process.env.BRANDING_HASH = brandingHash; // import.meta.env.BRANDING_HASH works in TS/JS
 	env.BRANDING_HASH = brandingHash; // BRANDING_HASH% works in index.html
 
-	const runInjectConfigFiles = () => injectConfigFiles({
-		destDir: resolve('public'),
-		config,
-		tagsToInject,
-	});
+	const runInjectConfigFiles = () =>
+		injectConfigFiles({
+			destDir: resolve('public'),
+			config,
+			tagsToInject,
+		});
 
 	return {
 		name: 'inject-config',
@@ -30,12 +31,12 @@ export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 					config,
 					brandingHash: env.BRANDING_HASH,
 					tagsToInject,
-				})
+				});
 
 				return {
 					html,
 					tags: [], // No additional tags to inject since we're directly modifying the HTML string
-				}
+				};
 			},
 		},
 		async buildStart() {

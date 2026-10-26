@@ -1,16 +1,13 @@
 import { BASE_PATH } from './config';
-import type {
-	TrustedScriptURL,
-	TrustedTypePolicyFactory,
-	TrustedTypesWindow,
-} from 'trusted-types/lib';
+import type { TrustedScriptURL, TrustedTypePolicyFactory, TrustedTypesWindow } from 'trusted-types/lib';
 
 const swScope = BASE_PATH.replace(/\/?$/, '/');
 const swPath = `${swScope}service-worker.js`;
 
-type WindowWithLegacyTrustedTypes = Window & Partial<TrustedTypesWindow> & {
-	TrustedTypes?: TrustedTypePolicyFactory;
-};
+type WindowWithLegacyTrustedTypes = Window &
+	Partial<TrustedTypesWindow> & {
+		TrustedTypes?: TrustedTypePolicyFactory;
+	};
 
 type ServiceWorkerScriptUrl = string | URL | TrustedScriptURL;
 
@@ -27,13 +24,13 @@ const tt = trustedTypesWindow.trustedTypes || trustedTypesWindow.TrustedTypes;
 
 const swPolicy = tt
 	? tt.createPolicy('sw-register', {
-		createScriptURL(url) {
-			if (url === swPath) {
-				return url;
-			}
-			throw new TypeError('Untrusted service worker URL blocked by Trusted Types policy');
-		}
-	})
+			createScriptURL(url) {
+				if (url === swPath) {
+					return url;
+				}
+				throw new TypeError('Untrusted service worker URL blocked by Trusted Types policy');
+			},
+		})
 	: null;
 
 if ('serviceWorker' in navigator) {
@@ -54,9 +51,8 @@ if ('serviceWorker' in navigator) {
 			scope: swScope,
 			// Always revalidate imports during service worker update checks.
 			updateViaCache: 'none',
-		})
-			.catch(err => {
-				console.error('Service worker registration failed:', err);
-			});
+		}).catch((err) => {
+			console.error('Service worker registration failed:', err);
+		});
 	});
 }

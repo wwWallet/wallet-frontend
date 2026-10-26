@@ -12,11 +12,13 @@ const ExpiredRibbon = ({ vcEntity, borderColor }: ExpiredRibbonProps) => {
 
 	return (
 		<>
-			{vcEntity && vcEntity.isExpired &&
-				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg rounded-br-xl border ${borderColor ?? 'border-lm-gray-100 dark:border-dm-gray-900'} ${vcEntity.isExpired ? 'bg-lm-red dark:bg-dm-red' : 'bg-lm-green dark:bg-dm-green'}`}>
+			{vcEntity && vcEntity.isExpired && (
+				<div
+					className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg rounded-br-xl border ${borderColor ?? 'border-lm-gray-100 dark:border-dm-gray-900'} ${vcEntity.isExpired ? 'bg-lm-red dark:bg-dm-red' : 'bg-lm-green dark:bg-dm-green'}`}
+				>
 					{t('expiredRibbon.expired')}
 				</div>
-			}
+			)}
 		</>
 	);
 };

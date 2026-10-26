@@ -1,8 +1,8 @@
-import type { HandleAuthorizationRequestError } from "wallet-common";
+import type { HandleAuthorizationRequestError } from 'wallet-common';
 
 const authorizationRequestErrorMessageKeyMap: Partial<Record<HandleAuthorizationRequestError, string>> = {
-	insufficient_credentials: "insufficientCredentials",
-	nontrusted_verifier: "nonTrustedVerifier",
+	insufficient_credentials: 'insufficientCredentials',
+	nontrusted_verifier: 'nonTrustedVerifier',
 };
 
 export function getAuthorizationRequestErrorMessageKey(error: unknown): string | undefined {

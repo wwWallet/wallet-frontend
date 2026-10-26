@@ -1,9 +1,7 @@
-import { CertificateChainValidationEngine } from "pkijs";
-import * as pkijs from "pkijs";
-import { fromBER } from "asn1js";
+import { CertificateChainValidationEngine } from 'pkijs';
+import * as pkijs from 'pkijs';
+import { fromBER } from 'asn1js';
 import * as jose from 'jose';
-
-
 
 // Assuming `certPEM` is a PEM-encoded certificate string
 const pemToBinary = (pem: string): ArrayBuffer => {
@@ -18,26 +16,24 @@ const pemToBinary = (pem: string): ArrayBuffer => {
 	return bytes.buffer;
 };
 
-
 export async function extractSAN(pemCert: string): Promise<string[] | null> {
 	const derCert = pemToBinary(pemCert);
 
 	const asn1 = fromBER(derCert);
 	if (asn1.offset === -1) {
-			throw new Error("Error parsing ASN.1 structure");
+		throw new Error('Error parsing ASN.1 structure');
 	}
 
 	const cert = new pkijs.Certificate({ schema: asn1.result });
 	if (!cert.extensions) {
 		return null;
 	}
-	const sanExtension = cert.extensions.find(ext => ext.extnID === "2.5.29.17"); // OID for SAN
+	const sanExtension = cert.extensions.find((ext) => ext.extnID === '2.5.29.17'); // OID for SAN
 	if (sanExtension?.parsedValue['altNames']) {
 		return sanExtension.parsedValue['altNames'].map((altName: { value: string }) => altName.value);
 	}
 	return null;
 }
-
 
 export function fromPemToPKIJSCertificate(pem: string): pkijs.Certificate {
 	const certBuffer = pemToBinary(pem);
@@ -57,9 +53,8 @@ export function toPem(b64Cert: string) {
 export async function validateChain(certChain: pkijs.Certificate[], trustAnchorCerts: string[]) {
 	const certChainValidationEngine = new CertificateChainValidationEngine({
 		trustedCerts: trustAnchorCerts.map((c) => fromPemToPKIJSCertificate(c)), // Trusted root certificates
-		certs: certChain,         // The certificate chain to validate
+		certs: certChain, // The certificate chain to validate
 	});
-
 
 	try {
 		const result = await certChainValidationEngine.verify();
@@ -92,21 +87,20 @@ export function binaryToPem(binaryData: any) {
 	pemString = `-----BEGIN CERTIFICATE-----\n${pemString}-----END CERTIFICATE-----`;
 
 	return pemString;
-};
-
-
+}
 
 export async function importCert(cert: string) {
 	// convert issuer cert to KeyLike
 	const issuerCertJose = await jose.importX509(cert, 'ES256', { extractable: true });
 	// convert issuer cert from KeyLike to JWK
-	const issuerCertJwk = await jose.exportJWK(issuerCertJose)
+	const issuerCertJwk = await jose.exportJWK(issuerCertJose);
 	// import issuer cert from JWK to CryptoKey
-	const importedCert = await crypto.subtle.importKey('jwk',
+	const importedCert = await crypto.subtle.importKey(
+		'jwk',
 		issuerCertJwk,
 		{ name: 'ECDSA', namedCurve: 'P-256' },
 		true,
-		['verify']
+		['verify'],
 	);
 	return importedCert;
 }

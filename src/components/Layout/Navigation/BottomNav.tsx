@@ -33,10 +33,30 @@ const BottomNav = ({ isOpen, toggle }: BottomNavProps) => {
 	const { t } = useTranslation();
 
 	const navItems: NavItem[] = [
-		{ icon: <Wallet size={20} />, id: 'credentials', path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
-		{ icon: <PlusCircle size={20} />, id: 'add', path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
+		{
+			icon: <Wallet size={20} />,
+			id: 'credentials',
+			path: '/',
+			alias: '/cb',
+			label: `${t('common.navItemCredentials')}`,
+			stepClass: 'step-2-small-screen',
+			counter: pendingTransactions?.length ?? undefined,
+		},
+		{
+			icon: <PlusCircle size={20} />,
+			id: 'add',
+			path: '/add',
+			label: `${t('common.navItemAddCredentialsSimple')}`,
+			stepClass: 'step-3-small-screen',
+		},
 		{ icon: <QrCode size={20} />, id: 'qr', path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
-		{ icon: <History size={20} />, id: 'activity', path: '/activity', label: `${t("common.navItemActivity")}`, stepClass: 'step-5-small-screen' },
+		{
+			icon: <History size={20} />,
+			id: 'activity',
+			path: '/activity',
+			label: `${t('common.navItemActivity')}`,
+			stepClass: 'step-5-small-screen',
+		},
 	];
 
 	const handleNavigate = (path: string) => {
@@ -56,12 +76,12 @@ const BottomNav = ({ isOpen, toggle }: BottomNavProps) => {
 	return (
 		<>
 			<div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t border-lm-gray-400 bg-lm-gray-100 px-4 pb-6 pt-4 dark:border-dm-gray-600 dark:bg-dm-gray-900 md:hidden">
-				{navItems.map(item => (
+				{navItems.map((item) => (
 					<button
 						id={`bottom-nav-item-${item.id}`}
 						key={item.path}
 						className={`relative ${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center gap-1 w-[20%] ${isActive(item) && !isOpen ? 'text-lm-gray-900 dark:text-white' : 'text-lm-gray-700 dark:text-dm-gray-300'}`} transition-colors duration-200`}
-						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
+						onClick={() => (item.isQR ? openQRScanner() : handleNavigate(item.path))}
 						title={item.label}
 					>
 						<div className="relative">
@@ -80,39 +100,39 @@ const BottomNav = ({ isOpen, toggle }: BottomNavProps) => {
 							{item.label}
 						</span>
 						{isActive(item) && !isOpen && (
-							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-lighter dark:bg-brand-light"></div>
+							<div
+								role="presentation"
+								className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-lighter dark:bg-brand-light"
+							></div>
 						)}
 					</button>
 				))}
 				<button
 					id="bottom-nav-item-profile"
-					key={t("common.navItemProfile")}
+					key={t('common.navItemProfile')}
 					className={`relative cursor-pointer flex flex-col items-center gap-1 w-[20%] relative ${isOpen ? 'text-lm-gray-900 dark:text-white' : 'text-lm-gray-700 dark:text-dm-gray-300'} transition-colors duration-200`}
 					onClick={toggle}
-					title={t("common.navItemProfile")}
+					title={t('common.navItemProfile')}
 				>
 					<UserCircle size={20} />
-					<span className="hidden 2xs:block text-xs">
-						{t("common.navItemProfile")}
-					</span>
+					<span className="hidden 2xs:block text-xs">{t('common.navItemProfile')}</span>
 					{updateAvailable && (
 						<Bell
 							size={16}
-							fill='currentColor'
+							fill="currentColor"
 							className="text-lm-green dark:text-dm-green absolute top-[-5px] right-[5px]"
 						/>
 					)}
 					{isOpen && (
-							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-lighter dark:bg-brand-light"></div>
-						)}
+						<div
+							role="presentation"
+							className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-lighter dark:bg-brand-light"
+						></div>
+					)}
 				</button>
 			</div>
 			{/* QR Code Scanner Modal */}
-			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={closeQRScanner}
-				/>
-			)}
+			{isQRScannerOpen && <QRCodeScanner onClose={closeQRScanner} />}
 		</>
 	);
 };

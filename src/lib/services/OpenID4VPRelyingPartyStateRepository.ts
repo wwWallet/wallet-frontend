@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useRef } from "react";
-import { IOpenID4VPRelyingPartyStateRepository } from "../interfaces/IOpenID4VPRelyingPartyStateRepository";
-import { OpenID4VPRelyingPartyState } from "../types/OpenID4VPRelyingPartyState";
+import { useCallback, useMemo, useRef } from 'react';
+import { IOpenID4VPRelyingPartyStateRepository } from '../interfaces/IOpenID4VPRelyingPartyStateRepository';
+import { OpenID4VPRelyingPartyState } from '../types/OpenID4VPRelyingPartyState';
 
 export function useOpenID4VPRelyingPartyStateRepository(): IOpenID4VPRelyingPartyStateRepository {
 	const state = useRef<OpenID4VPRelyingPartyState | null>(null);
@@ -12,7 +12,7 @@ export function useOpenID4VPRelyingPartyStateRepository(): IOpenID4VPRelyingPart
 	const retrieve = useCallback(async (): Promise<OpenID4VPRelyingPartyState> => {
 		const s = state.current;
 		if (!s) {
-			throw new Error("No state found in memory");
+			throw new Error('No state found in memory');
 		}
 		return s;
 	}, []);
@@ -20,10 +20,7 @@ export function useOpenID4VPRelyingPartyStateRepository(): IOpenID4VPRelyingPart
 	return useMemo(() => {
 		return {
 			store,
-			retrieve
-		}
-	}, [
-		store,
-		retrieve
-	]);
+			retrieve,
+		};
+	}, [store, retrieve]);
 }

@@ -5,7 +5,7 @@ body:
     id: problem-statement
     attributes:
       label: Problem Statement
-      description: "A clear and concise description of the problem or need you want this feature to address."
+      description: 'A clear and concise description of the problem or need you want this feature to address.'
     validations:
       required: true
 
@@ -13,7 +13,7 @@ body:
     id: proposed-solution
     attributes:
       label: Proposed Solution
-      description: "The solution you propose to address the problem."
+      description: 'The solution you propose to address the problem.'
       placeholder: |
         Describe your suggested solution in detail. Be sure to include:
         * The technical implementation and any key considerations.
@@ -26,7 +26,7 @@ body:
     id: additional-information
     attributes:
       label: Additional Information
-      description: "Any other relevant details, such as context, screenshots, external references, or links to related issues or discussions."
+      description: 'Any other relevant details, such as context, screenshots, external references, or links to related issues or discussions.'
 
   - type: markdown
     attributes:

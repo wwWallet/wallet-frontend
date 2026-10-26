@@ -5,7 +5,7 @@ type Option = {
 };
 
 export const languageOptions: Option[] = [
-	{ value: "en", label: "EN", name: "English" },
-	{ value: "el", label: "EL", name: "Ελληνικά" },
-	{ value: "pt", label: "PT", name: "Português" },
+	{ value: 'en', label: 'EN', name: 'English' },
+	{ value: 'el', label: 'EL', name: 'Ελληνικά' },
+	{ value: 'pt', label: 'PT', name: 'Português' },
 ];

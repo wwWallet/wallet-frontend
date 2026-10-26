@@ -15,7 +15,10 @@ import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
 
 // Utilities
-import { buildCredentialConfiguration, buildCredentialPortal } from '@/components/QueryableList/CredentialsDisplayUtils';
+import {
+	buildCredentialConfiguration,
+	buildCredentialPortal,
+} from '@/components/QueryableList/CredentialsDisplayUtils';
 import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
 import { buildPortalRedirectPopupContent } from '@/components/Popups/portalRedirectPopupContent';
 
@@ -56,7 +59,8 @@ const AddCredentials = () => {
 	const [recent, setRecent] = useState<string[]>([]);
 	const [credentialConfigurations, setCredentialConfigurations] = useState<CredentialConfiguration[]>([]);
 
-	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState<CredentialConfiguration | null>(null);
+	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] =
+		useState<CredentialConfiguration | null>(null);
 	const [selectedPortal, setSelectedPortal] = useState<CredentialPortal | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [messagePopupState, setMessagePopupState] = useState<MessagePopupState | null>(null);
@@ -97,19 +101,19 @@ const AddCredentials = () => {
 
 		const fetchRecentCredConfigs = async () => {
 			vcEntityList.map(async (vcEntity) => {
-				const identifierField = JSON.stringify([vcEntity.credentialConfigurationId, vcEntity.credentialIssuerIdentifier]);
+				const identifierField = JSON.stringify([
+					vcEntity.credentialConfigurationId,
+					vcEntity.credentialIssuerIdentifier,
+				]);
 				setRecent((currentArray) => {
-					const recentRecordExists = currentArray.some((rec) =>
-						rec === identifierField
-					);
+					const recentRecordExists = currentArray.some((rec) => rec === identifierField);
 
 					if (!recentRecordExists) {
 						return [...currentArray, identifierField];
 					}
 					return currentArray;
 				});
-
-			})
+			});
 		};
 
 		fetchRecentCredConfigs();
@@ -126,7 +130,7 @@ const AddCredentials = () => {
 
 	const sortedCredentialConfigurations = useMemo(() => {
 		return [...credentialConfigurations].sort((a, b) =>
-			a.credentialIssuerIdentifier.localeCompare(b.credentialIssuerIdentifier)
+			a.credentialIssuerIdentifier.localeCompare(b.credentialIssuerIdentifier),
 		);
 	}, [credentialConfigurations]);
 
@@ -154,23 +158,25 @@ const AddCredentials = () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
 				const { portals: fetchedPortals, issuers: fetchedIssuers } = response.data as IssuerDirectoryResponse;
-				setPortals(fetchedPortals
-					.filter((portal) => portal.visible)
-					.map((portal) => buildCredentialPortal(portal, filterItemByLang))
-					.filter(Boolean) as CredentialPortal[]);
+				setPortals(
+					fetchedPortals
+						.filter((portal) => portal.visible)
+						.map((portal) => buildCredentialPortal(portal, filterItemByLang))
+						.filter(Boolean) as CredentialPortal[],
+				);
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						if (!issuer.visible) {
 							return;
 						}
-						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier))!.metadata;
+						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier))!
+							.metadata;
 						const configs = await openID4VCI.getAvailableCredentialConfigurations(issuer.credentialIssuerIdentifier);
-
 
 						// add issuer
 						setIssuers((currentArray) => {
-							const issuerExists = currentArray.some((issuerMetadata) =>
-								issuerMetadata.credential_issuer === metadata.credential_issuer
+							const issuerExists = currentArray.some(
+								(issuerMetadata) => issuerMetadata.credential_issuer === metadata.credential_issuer,
 							);
 
 							if (!issuerExists) {
@@ -180,23 +186,28 @@ const AddCredentials = () => {
 						});
 
 						Object.keys(configs).forEach((key) => {
-							const credentialConfiguration = buildCredentialConfiguration(key, configs[key], metadata, filterItemByLang);
+							const credentialConfiguration = buildCredentialConfiguration(
+								key,
+								configs[key],
+								metadata,
+								filterItemByLang,
+							);
 							setCredentialConfigurations((currentArray) => {
-								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
-									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
+								const credentialConfigurationExists = currentArray.some(
+									({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
+										credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer,
 								);
 								if (!credentialConfigurationExists) {
 									return [...currentArray, credentialConfiguration];
 								}
 								return currentArray;
-							})
+							});
 						});
-					}
-					catch (err) {
+					} catch (err) {
 						console.error(err);
 						return null;
 					}
-				})
+				});
 			} catch (error) {
 				console.error('Error fetching issuers:', error);
 			}
@@ -207,13 +218,17 @@ const AddCredentials = () => {
 			(openID4VCI as typeof openID4VCI | null) &&
 			(filterItemByLang as typeof filterItemByLang | null)
 		) {
-			console.log("Fetching issuers...")
+			console.log('Fetching issuers...');
 			fetchIssuers();
 		}
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
-	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier: string | number) => {
-		const clickedPortal = portals.find((portal) => portal.identifierField === credentialConfigurationIdWithCredentialIssuerIdentifier);
+	const handleCredentialConfigurationClick = async (
+		credentialConfigurationIdWithCredentialIssuerIdentifier: string | number,
+	) => {
+		const clickedPortal = portals.find(
+			(portal) => portal.identifierField === credentialConfigurationIdWithCredentialIssuerIdentifier,
+		);
 		if (clickedPortal) {
 			setSelectedPortal(clickedPortal);
 			return {};
@@ -222,12 +237,18 @@ const AddCredentials = () => {
 		if (!result.ok) {
 			return {};
 		}
-		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier as string) as [string, string];
-		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId && conf.credentialIssuerIdentifier === credentialIssuerIdentifier);
+		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(
+			credentialConfigurationIdWithCredentialIssuerIdentifier as string,
+		) as [string, string];
+		const clickedCredentialConfiguration = credentialConfigurations.find(
+			(conf) =>
+				conf.credentialConfigurationId === credentialConfigurationId &&
+				conf.credentialIssuerIdentifier === credentialIssuerIdentifier,
+		);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
 		}
-	}
+	};
 
 	const handleCancel = () => {
 		setSelectedCredentialConfiguration(null);
@@ -248,11 +269,14 @@ const AddCredentials = () => {
 
 			const userHandleB64u = keystore.getUserHandleB64u();
 			if (userHandleB64u == null) {
-				console.error("Could not generate authorization request because user handle is null");
+				console.error('Could not generate authorization request because user handle is null');
 				return;
 			}
 
-			const result = await openID4VCI.generateAuthorizationRequest(credentialIssuerIdentifier, credentialConfigurationId);
+			const result = await openID4VCI.generateAuthorizationRequest(
+				credentialIssuerIdentifier,
+				credentialConfigurationId,
+			);
 			if ('url' in result) {
 				const { url } = result;
 				window.location.href = url!;
@@ -286,9 +310,9 @@ const AddCredentials = () => {
 						portalList={portals}
 						// recent={credentialConfigurations.length < 6 ? [] : recent}
 						recent={[]}
-						queryField='credentialConfigurationDisplayName'
-						translationPrefix='pageAddCredentials'
-						identifierField='identifierField'
+						queryField="credentialConfigurationDisplayName"
+						translationPrefix="pageAddCredentials"
+						identifierField="identifierField"
 						onClick={handleCredentialConfigurationClick}
 					/>
 				)}

@@ -14,7 +14,6 @@ export function buildCredentialRedirectPopupContent({
 	issuerMetadata: OpenidCredentialIssuerMetadata;
 	filterItemByLang: FilterItemByLang;
 }): { title: string; message: React.ReactNode } {
-
 	const issuerDisplay = filterItemByLang(issuerMetadata?.display);
 	const selectedCredentialConfiguration = credentialConfigurationId
 		? issuerMetadata?.credential_configurations_supported?.[credentialConfigurationId]
@@ -22,7 +21,9 @@ export function buildCredentialRedirectPopupContent({
 	const credentialDisplay = filterItemByLang(selectedCredentialConfiguration?.credential_metadata?.display);
 
 	const resolvedCredentialName = credentialDisplay?.name ?? credentialConfigurationId ?? 'Unknown';
-	const resolvedIssuerName = issuerDisplay?.name ?? (issuerMetadata?.credential_issuer ? new URL(issuerMetadata.credential_issuer).host : 'Unknown');
+	const resolvedIssuerName =
+		issuerDisplay?.name ??
+		(issuerMetadata?.credential_issuer ? new URL(issuerMetadata.credential_issuer).host : 'Unknown');
 	const resolvedCredentialDescription = credentialDisplay?.description ?? '';
 
 	return {

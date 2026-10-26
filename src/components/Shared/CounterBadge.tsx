@@ -30,17 +30,12 @@ export default function CounterBadge({
 	if (n <= 0) return null;
 
 	const text = n > max ? `${max}+` : `${n}`;
-	const base =
-		'inline-flex items-center justify-center min-w-6 h-6 px-2 text-xs font-semibold rounded-full';
+	const base = 'inline-flex items-center justify-center min-w-6 h-6 px-2 text-xs font-semibold rounded-full';
 	const scheme = active
 		? 'bg-lm-orange text-lm-gray-900 dark:bg-dm-orange dark:text-white'
 		: 'bg-lm-orange text-lm-gray-900 dark:bg-dm-orange dark:text-white';
 	const posClass =
-		position === 'top-right'
-			? 'absolute -top-2 -right-2'
-			: position === 'top-left'
-				? 'absolute -top-2 -left-2'
-				: '';
+		position === 'top-right' ? 'absolute -top-2 -right-2' : position === 'top-left' ? 'absolute -top-2 -left-2' : '';
 
 	return (
 		<span

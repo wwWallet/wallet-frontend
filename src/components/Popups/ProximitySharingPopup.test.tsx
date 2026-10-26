@@ -11,7 +11,6 @@ afterEach(() => {
 });
 
 describe('ProximitySharingPopup Component', () => {
-
 	it('uses the configured fallback language when it is not the first display entry', () => {
 		const credential = {
 			parsedCredential: {
@@ -19,13 +18,15 @@ describe('ProximitySharingPopup Component', () => {
 				metadata: {
 					credential: {
 						TypeMetadata: {
-							claims: [{
-								path: ['given_name'],
-								display: [
-									{ locale: 'el', label: 'Όνομα' },
-									{ locale: 'en', label: 'Given Name' },
-								],
-							}],
+							claims: [
+								{
+									path: ['given_name'],
+									display: [
+										{ locale: 'el', label: 'Όνομα' },
+										{ locale: 'en', label: 'Given Name' },
+									],
+								},
+							],
 						},
 					},
 				},
@@ -48,7 +49,7 @@ describe('ProximitySharingPopup Component', () => {
 				onConsent={() => {}}
 				onCancel={() => {}}
 				onClose={() => {}}
-			/>
+			/>,
 		);
 		expect(screen.getByText('Given Name')).toBeInTheDocument();
 	});
