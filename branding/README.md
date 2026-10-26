@@ -39,27 +39,29 @@ You can customize the visual theme of wwWallet. We're working on adding support 
 
 Create `branding/custom/theme.json`. It **must** stick to the format specified in [.schemas/theme.json](.schemas/theme.json).
 
-The following options are supported:
+The following options are supported. All fields shown below are required:
 
-```json5
+```json
 {
-  // Schema reference. (required)
-  $schema: '../.schemas/theme.schema.json',
-  // Brand color. (required)
-  brand: {
-    // The primary brand color. (required)
-    color: '<hex/hsl/rgb>',
-    // A light variant of the brand color. (required)
-    colorLight: '<hex/hsl/rgb>',
-    // An even lighter variant of the brand color. (required)
-    colorLighter: '<hex/hsl/rgb>',
-    // A dark variant of the brand color. (required)
-    colorDark: '<hex/hsl/rgb>',
-    // An even darker variant of the brand color. (required)
-    colorDarker: '<hex/hsl/rgb>',
-  },
+  "$schema": "../.schemas/theme.json",
+  "brand": {
+    "color": "<hex/hsl/rgb>",
+    "colorLight": "<hex/hsl/rgb>",
+    "colorLighter": "<hex/hsl/rgb>",
+    "colorDark": "<hex/hsl/rgb>",
+    "colorDarker": "<hex/hsl/rgb>"
+  }
 }
 ```
+
+| Property             | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `$schema`            | Schema used to validate the theme configuration. |
+| `brand.color`        | Primary brand color.                             |
+| `brand.colorLight`   | Light variant of the brand color.                |
+| `brand.colorLighter` | Lighter variant of the brand color.              |
+| `brand.colorDark`    | Dark variant of the brand color.                 |
+| `brand.colorDarker`  | Darker variant of the brand color.               |
 
 ### Theme option details
 
