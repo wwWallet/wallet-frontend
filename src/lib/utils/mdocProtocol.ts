@@ -204,14 +204,13 @@ export function getDeviceEngagement(uuid: string, publicKeyJWK: JsonWebKey) {
 
 	const themap = new Map<number, any>();
 	themap.set(0, '1.0');
-	//@ts-ignore
 	themap.set(1, [
 		1,
 		DataItem.fromData(
+			// @ts-expect-error
 			new Map([
 				[1, 2],
 				[-1, 1],
-
 				[-2, base64urlToUint8Array(publicKeyJWK.x)],
 				[-3, base64urlToUint8Array(publicKeyJWK.y)],
 			]),
