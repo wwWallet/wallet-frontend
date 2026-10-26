@@ -11,8 +11,12 @@ indent_style = tab
 [LICENSE]
 indent_style = space
 
+# Markdown list markers determine the required indentation width
+[*.md]
+indent_style = space
+
 # YAML does not allow tab indentation
-[*.{md,yml,yaml}]
+[*.{yml,yaml}]
 indent_style = space
 indent_size = 2
 
