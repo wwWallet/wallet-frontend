@@ -827,12 +827,12 @@ export class MetadataImage {
 <svg width="${this.IMAGE_WIDTH}" height="${this.IMAGE_HEIGHT}" viewBox="0 0 ${this.IMAGE_WIDTH} ${this.IMAGE_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 	<rect x="0" y="0" width="${this.IMAGE_WIDTH}" height="${this.IMAGE_HEIGHT}" fill="${colors.background}" />
 	<image y="${logoY}" x="${logoX}" width="${this.LOGO_SIZE}" height="${this.LOGO_SIZE}" xlink:href="data:${logoB64}" />
-	<g fill="${colors.text}" font-family="Inter SemiBold">
-		<svg x="${this.MARGIN}" y="50%" transform="translate(0 ${-(titleHeight / 2)})">
+	<g fill="${colors.text}" font-family="Inter" font-weight="600">
+		<g transform="translate(${this.MARGIN} ${(this.IMAGE_HEIGHT - titleHeight) / 2})">
 			<text y="1" dominant-baseline="hanging" font-size="${fontSize}">
 				${tspans}
 			</text>
-		</svg>
+		</g>
 	</g>
 </svg>
 `;
