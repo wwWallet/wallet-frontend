@@ -23,7 +23,7 @@ describe('Wallet Provider WIA request', () => {
 			'https://wallet.example/callback/',
 			'https://as.example/tenant/',
 		);
-		expect(mocks.post).toHaveBeenCalledWith('/wallet-provider/wallet-instance-attestation/generate', {
+		expect(mocks.post).toHaveBeenCalledWith('/wallet-provider/wallet-attestation/generate', {
 			jwks: [publicJwk],
 			openid4vci: {
 				client_id: 'https://wallet.example/callback/',

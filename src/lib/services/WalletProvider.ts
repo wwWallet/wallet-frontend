@@ -10,7 +10,7 @@ export function useWalletProvider() {
 	const requestWalletInstanceAttestation = useCallback(
 		async (publicJwk: JWK, clientId: string, authorizationServer: string) => {
 			try {
-				const response = await post('/wallet-provider/wallet-instance-attestation/generate', {
+				const response = await post('/wallet-provider/wallet-attestation/generate', {
 					jwks: [publicJwk],
 					openid4vci: {
 						client_id: clientId,
