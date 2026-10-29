@@ -1,5 +1,6 @@
 {
 	"Exclude": [
-		"^(node_modules|dist|build|public|coverage)/"
+		"^(node_modules|dist|build|public|coverage)/",
+		"\\.(js|ts|tsx)$"
 	]
 }
