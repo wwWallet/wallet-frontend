@@ -1,13 +1,16 @@
 import {
+	calculateJwkThumbprint,
 	compactDecrypt,
 	CompactDecryptResult,
 	CompactEncrypt,
 	CompactJWEHeaderParameters,
+	decodeJwt,
 	exportJWK,
 	generateKeyPair,
 	importJWK,
 	JWK,
 	KeyLike,
+	SignJWT,
 } from 'jose';
 import { generateDPoP } from '../../utils/dpop';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
@@ -216,8 +219,7 @@ export function useCredentialRequest() {
 						audience: string;
 				  }[]
 				| null = null;
-			let keyAttestation: string | null = null;
-
+			let keyAttestationProof: string | null = null;
 			let proofsToSend: string[] = [];
 
 			try {
@@ -235,18 +237,53 @@ export function useCredentialRequest() {
 					}
 					proofs = inputs;
 				} else if (proofType === 'attestation') {
-					const numberOfKeypairsToGenerate = numberOfProofs;
-					const [{ keypairs }, newPrivateData, keystoreCommit] =
-						await keystore.generateKeypairs(numberOfKeypairsToGenerate);
+					if (!c_nonce) {
+						throw new Error('Cannot create a KA-bound proof without an issuer nonce');
+					}
+
+					const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfProofs);
+					if (keypairs.length === 0) {
+						throw new Error('No credential keypairs were generated');
+					}
 					await updatePrivateData(newPrivateData);
 					await keystoreCommit();
-					const publicKeys = keypairs.map((kp) => kp.publicKey);
+					const publicKeys = keypairs.map(({ publicKey }) => ({ ...publicKey, key_ops: ['verify'] }));
 
 					const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
 					if (!requestKeyAttestationResponse) {
 						throw new Error('Failed to get key attestation from wallet-backend-server');
 					}
-					keyAttestation = requestKeyAttestationResponse.key_attestation;
+
+					const keyAttestation = requestKeyAttestationResponse.key_attestation;
+					const firstKey = keypairs[0];
+					const keyAttestationPayload = decodeJwt(keyAttestation);
+					const attestedKeys = keyAttestationPayload.attested_keys as JWK[] | undefined;
+					if (!attestedKeys?.[0]) {
+						throw new Error('Key attestation does not contain attested_keys[0]');
+					}
+					const [attestedKeyThumbprint, generatedKeyThumbprint] = await Promise.all([
+						calculateJwkThumbprint(attestedKeys[0]),
+						calculateJwkThumbprint(firstKey.publicKey),
+					]);
+					if (attestedKeyThumbprint !== generatedKeyThumbprint) {
+						throw new Error('Key attestation attested_keys[0] does not match the first generated credential key');
+					}
+
+					const signingKey = await importJWK(firstKey.privateKey, firstKey.alg);
+					const proofJwk: JWK = { ...firstKey.publicKey, key_ops: ['verify'] };
+					const proof = await new SignJWT({
+						aud: credentialIssuerMetadata.metadata.credential_issuer,
+						nonce: c_nonce,
+					})
+						.setIssuedAt()
+						.setProtectedHeader({
+							typ: 'openid4vci-proof+jwt',
+							alg: firstKey.alg,
+							key_attestation: keyAttestation,
+							jwk: proofJwk,
+						})
+						.sign(signingKey);
+					keyAttestationProof = proof;
 				}
 
 				if (cachedProofs || proofs) {
@@ -262,9 +299,9 @@ export function useCredentialRequest() {
 					credentialEndpointBody.proofs = {
 						jwt: proofsToSend,
 					};
-				} else if (keyAttestation) {
+				} else if (keyAttestationProof) {
 					credentialEndpointBody.proofs = {
-						attestation: [keyAttestation],
+						jwt: [keyAttestationProof],
 					};
 				} else {
 					throw new Error('Nor proofs, nor keyAttestation was defined before sending CredentialRequest');
