@@ -18,6 +18,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import {
+	getClientExtensionResultsForBackend,
 	signalUnknownCredential,
 	withAuthenticatorAttachmentFromHints,
 	withHintsFromAllowCredentials,
@@ -613,7 +614,7 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 												userHandle,
 											},
 											authenticatorAttachment: credential.authenticatorAttachment,
-											clientExtensionResults: credential.getClientExtensionResults(),
+											clientExtensionResults: getClientExtensionResultsForBackend(credential),
 										},
 									}),
 								);
@@ -756,7 +757,7 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 											transports: response.getTransports(),
 										},
 										authenticatorAttachment: credential.authenticatorAttachment,
-										clientExtensionResults: credential.getClientExtensionResults(),
+										clientExtensionResults: getClientExtensionResultsForBackend(credential),
 									},
 								}),
 							);
