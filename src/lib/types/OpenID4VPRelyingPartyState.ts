@@ -4,7 +4,7 @@ import { OpenID4VPClientMetadata, OpenID4VPResponseMode } from 'wallet-common';
 
 export { OpenID4VPResponseMode as ResponseMode };
 
-export const ResponseModeSchema = z.nativeEnum(OpenID4VPResponseMode);
+export const ResponseModeSchema = z.enum(OpenID4VPResponseMode);
 
 /**
  * serializable
