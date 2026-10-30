@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import { useSessionContext } from '@/context/SessionContext';
 
-import { getClientExtensionResultsForBackend, withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
+import { getMinimalClientExtensionResults, withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { AppError } from '@/errors';
 import { serializePrivateData } from '../../../services/keystore';
 
@@ -171,7 +171,7 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 								transports: response.getTransports(),
 							},
 							authenticatorAttachment: pendingCredential.authenticatorAttachment,
-							clientExtensionResults: getClientExtensionResultsForBackend(pendingCredential),
+							clientExtensionResults: getMinimalClientExtensionResults(pendingCredential),
 						},
 						privateData: serializePrivateData(newPrivateData),
 					}),
