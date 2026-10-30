@@ -75,10 +75,10 @@ function Slider<T extends object>({
 						id="previous-slide"
 						onClick={handlePrev}
 						disabled={currentSlide === 1}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 bg-lm-gray-800 rounded-md ${
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 rounded-md ${
 							currentSlide === 1
-								? 'opacity-50 cursor-not-allowed text-lm-gray-100'
-								: 'text-white hover:opacity-100 opacity-80'
+								? 'bg-lm-gray-800 opacity-50 cursor-not-allowed text-lm-gray-100'
+								: 'text-white bg-lm-gray-800/80 hover:bg-lm-gray-800'
 						}`}
 						aria-label={
 							currentSlide === 1
@@ -98,10 +98,10 @@ function Slider<T extends object>({
 						id="next-slide"
 						onClick={handleNext}
 						disabled={currentSlide === items.length}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 bg-lm-gray-800 rounded-md z-10 p-2 ${
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 rounded-md z-10 p-2 ${
 							currentSlide === items.length
-								? 'opacity-50 cursor-not-allowed text-lm-gray-100'
-								: 'text-white hover:opacity-100 opacity-80'
+								? 'bg-lm-gray-800 opacity-50 cursor-not-allowed text-lm-gray-100'
+								: 'text-white bg-lm-gray-800/80 hover:bg-lm-gray-800'
 						}`}
 						aria-label={
 							currentSlide === items.length

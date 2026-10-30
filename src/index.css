@@ -6,27 +6,39 @@
 @variant xm (@media (max-width: 479px));
 
 /* Theme Variables */
+/* Brand hover shades follow the current theme at 0.85 (light) / 1.15 (dark) brightness. */
 @theme {
 	--color-brand-lighter: var(--theme-brand-color-lighter);
+	--color-brand-lighter-hover: rgb(from var(--color-brand-lighter) calc(r * 0.85) calc(g * 0.85) calc(b * 0.85));
 	--color-brand-light: var(--theme-brand-color-light);
+	--color-brand-light-hover: rgb(from var(--color-brand-light) calc(r * 0.85) calc(g * 0.85) calc(b * 0.85));
 	--color-brand-base: var(--theme-brand-color);
 	--color-brand-dark: var(--theme-brand-color-dark);
+	--color-brand-dark-hover: rgb(
+		from var(--color-brand-dark) min(255, calc(r * 1.15)) min(255, calc(g * 1.15)) min(255, calc(b * 1.15))
+	);
 	--color-brand-darker: var(--theme-brand-color-darker);
+	--color-brand-darker-hover: rgb(
+		from var(--color-brand-darker) min(255, calc(r * 1.15)) min(255, calc(g * 1.15)) min(255, calc(b * 1.15))
+	);
 
 	--color-primary: var(--color-brand-base);
-	--color-primary-hover: var(--color-brand-dark);
+	--color-primary-hover: rgb(from var(--color-primary) calc(r * 0.85) calc(g * 0.85) calc(b * 0.85));
+	--color-primary-hover-dark: rgb(
+		from var(--color-primary) min(255, calc(r * 1.15)) min(255, calc(g * 1.15)) min(255, calc(b * 1.15))
+	);
 
 	--color-lm-red: hsl(3 76% 42%);
 	--color-lm-red-hover: hsl(3 76% 48%);
 	--color-lm-red-light: hsl(3 76% 93%);
 	--color-lm-red-dark: hsl(3 75% 38%);
-	--color-lm-red-dark-hover: hsl(3 75% 48%);
+	--color-lm-red-dark-hover: hsl(3 75% 32.3%);
 
 	--color-dm-red: hsl(3 100% 54%);
 	--color-dm-red-hover: hsl(3 100% 60%);
 	--color-dm-red-light: hsl(3 100% 95%);
 	--color-dm-red-dark: hsl(3 100% 40%);
-	--color-dm-red-dark-hover: hsl(3 100% 48%);
+	--color-dm-red-dark-hover: hsl(3 100% 46%);
 
 	--color-lm-orange: hsl(35 100% 50%);
 	--color-lm-orange-bg: hsl(35 100% 50%);
@@ -67,11 +79,14 @@
 	--color-lm-gray-50: hsl(0 0% 100%);
 	--color-lm-gray-100: hsl(220 8% 100%);
 	--color-lm-gray-200: hsl(220 8% 97.6%);
+	--color-lm-gray-200-hover: hsl(220 0.958% 82.96%);
 	--color-lm-gray-300: hsl(220 8% 93.3%);
 	--color-lm-gray-400: hsl(220 8% 88.6%);
 	--color-lm-gray-500: hsl(220 8% 80.8%);
 	--color-lm-gray-600: hsl(220 8% 66.7%);
+	--color-lm-gray-600-hover: hsl(220 5.229% 56.695%);
 	--color-lm-gray-700: hsl(220 8% 47.1%);
+	--color-lm-gray-700-hover: hsl(220 8% 40.035%);
 	--color-lm-gray-800: hsl(220 8% 21.2%);
 	--color-lm-gray-900: hsl(220 20% 5.7%);
 	--color-lm-gray-950: hsl(0 0% 0%);
@@ -81,12 +96,26 @@
 	--color-dm-gray-200: hsl(220 7% 79.6%);
 	--color-dm-gray-300: hsl(220 3% 63.3%);
 	--color-dm-gray-400: hsl(220 2% 50.4%);
+	--color-dm-gray-400-hover: hsl(220 2.714% 57.96%);
 	--color-dm-gray-500: hsl(220 3% 27.6%);
 	--color-dm-gray-600: hsl(220 4% 20.6%);
 	--color-dm-gray-700: hsl(220 5% 14.3%);
 	--color-dm-gray-800: hsl(220 9% 10.2%);
+	--color-dm-gray-800-hover: hsl(220 9% 11.73%);
 	--color-dm-gray-900: hsl(220 20% 5.7%);
 	--color-dm-gray-950: hsl(0 0% 0%);
+}
+
+/* Preserve the base colors in browsers without relative RGB color support. */
+@supports not (color: rgb(from red min(255, calc(r * 1.15)) g b)) {
+	:root {
+		--color-brand-lighter-hover: var(--color-brand-lighter);
+		--color-brand-light-hover: var(--color-brand-light);
+		--color-brand-dark-hover: var(--color-brand-dark);
+		--color-brand-darker-hover: var(--color-brand-darker);
+		--color-primary-hover: var(--color-primary);
+		--color-primary-hover-dark: var(--color-primary);
+	}
 }
 
 /* Keyframes */
