@@ -42,13 +42,13 @@
     "typescript": "~5.9.3",
     "uuid": "^11.1.1",
     "vite-plugin-pwa": "^0.21.1",
-    "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#v1.0.0",
+    "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#v2.0.0",
     "workbox-core": "^7.3.0",
     "workbox-expiration": "^7.3.0",
     "workbox-precaching": "^7.3.0",
     "workbox-routing": "^7.3.0",
     "workbox-strategies": "^7.3.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

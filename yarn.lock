@@ -6218,9 +6218,9 @@ w3c-xmlserializer@^5.0.0:
   dependencies:
     xml-name-validator "^5.0.0"
 
-"wallet-common@git+https://github.com/wwWallet/wallet-common.git#v1.0.0":
-  version "1.0.0"
-  resolved "git+https://github.com/wwWallet/wallet-common.git#6ebf7d6b827ccfff0893ef4f61a31318fa222ee5"
+"wallet-common@git+https://github.com/wwWallet/wallet-common.git#v2.0.0":
+  version "2.0.0"
+  resolved "git+https://github.com/wwWallet/wallet-common.git#a61e6da342145fa0b793f654a5d564f92fc5654c"
   dependencies:
     "@noble/curves" "^2.2.0"
     "@owf/mdoc" "^0.6.0"
@@ -6233,7 +6233,7 @@ w3c-xmlserializer@^5.0.0:
     jose "^5.9.6"
     pkijs "^3.2.4"
     reflect-metadata "^0.2.2"
-    zod "^3.24.1"
+    zod "^4.6.7"
 
 warning@^4.0.3:
   version "4.0.3"
@@ -6562,12 +6562,7 @@ zod-validation-error@^5.0.0:
   resolved "https://registry.yarnpkg.com/zod-validation-error/-/zod-validation-error-5.0.0.tgz#96db948070b7bfcb13bfec5134113e580f9eee38"
   integrity sha512-hmk+pkyKq7Q71PiWVSDUc3VfpzpvcRHZ3QPw9yEMVvmtCekaMeOHnbr3WbxfrgEnQTv6haGP4cmv0Ojmihzsxw==
 
-zod@^3.23.8, zod@^3.24.1:
-  version "3.25.76"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
-  integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
-
-"zod@^3.25.0 || ^4.0.0", zod@^4.3.6:
+"zod@^3.25.0 || ^4.0.0", zod@^4.3.6, zod@^4.6.7:
   version "4.6.7"
   resolved "https://registry.npmjs.org/zod/-/zod-4.6.7.tgz#e806cf64a7f4e37635ce9f2f52c04c3766f75e5b"
   integrity sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==
