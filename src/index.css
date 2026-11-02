@@ -79,7 +79,6 @@
 	--color-lm-gray-50: hsl(0 0% 100%);
 	--color-lm-gray-100: hsl(220 8% 100%);
 	--color-lm-gray-200: hsl(220 8% 97.6%);
-	--color-lm-gray-200-hover: hsl(220 0.958% 82.96%);
 	--color-lm-gray-300: hsl(220 8% 93.3%);
 	--color-lm-gray-400: hsl(220 8% 88.6%);
 	--color-lm-gray-500: hsl(220 8% 80.8%);
@@ -96,12 +95,10 @@
 	--color-dm-gray-200: hsl(220 7% 79.6%);
 	--color-dm-gray-300: hsl(220 3% 63.3%);
 	--color-dm-gray-400: hsl(220 2% 50.4%);
-	--color-dm-gray-400-hover: hsl(220 2.714% 57.96%);
 	--color-dm-gray-500: hsl(220 3% 27.6%);
 	--color-dm-gray-600: hsl(220 4% 20.6%);
 	--color-dm-gray-700: hsl(220 5% 14.3%);
 	--color-dm-gray-800: hsl(220 9% 10.2%);
-	--color-dm-gray-800-hover: hsl(220 9% 11.73%);
 	--color-dm-gray-900: hsl(220 20% 5.7%);
 	--color-dm-gray-950: hsl(0 0% 0%);
 }
