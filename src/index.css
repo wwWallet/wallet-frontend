@@ -6,27 +6,21 @@
 @variant xm (@media (max-width: 479px));
 
 /* Theme Variables */
-/* Brand hover shades follow the current theme at 0.85 (light) / 1.15 (dark) brightness. */
+/* Brand hover shades mix the current theme colors with 15% black (light) or white (dark). */
 @theme {
 	--color-brand-lighter: var(--theme-brand-color-lighter);
-	--color-brand-lighter-hover: rgb(from var(--color-brand-lighter) calc(r * 0.85) calc(g * 0.85) calc(b * 0.85));
+	--color-brand-lighter-hover: color-mix(in srgb, var(--color-brand-lighter) 85%, black);
 	--color-brand-light: var(--theme-brand-color-light);
-	--color-brand-light-hover: rgb(from var(--color-brand-light) calc(r * 0.85) calc(g * 0.85) calc(b * 0.85));
+	--color-brand-light-hover: color-mix(in srgb, var(--color-brand-light) 85%, black);
 	--color-brand-base: var(--theme-brand-color);
 	--color-brand-dark: var(--theme-brand-color-dark);
-	--color-brand-dark-hover: rgb(
-		from var(--color-brand-dark) min(255, calc(r * 1.15)) min(255, calc(g * 1.15)) min(255, calc(b * 1.15))
-	);
+	--color-brand-dark-hover: color-mix(in srgb, var(--color-brand-dark) 85%, white);
 	--color-brand-darker: var(--theme-brand-color-darker);
-	--color-brand-darker-hover: rgb(
-		from var(--color-brand-darker) min(255, calc(r * 1.15)) min(255, calc(g * 1.15)) min(255, calc(b * 1.15))
-	);
+	--color-brand-darker-hover: color-mix(in srgb, var(--color-brand-darker) 85%, white);
 
 	--color-primary: var(--color-brand-base);
-	--color-primary-hover: rgb(from var(--color-primary) calc(r * 0.85) calc(g * 0.85) calc(b * 0.85));
-	--color-primary-hover-dark: rgb(
-		from var(--color-primary) min(255, calc(r * 1.15)) min(255, calc(g * 1.15)) min(255, calc(b * 1.15))
-	);
+	--color-primary-hover: color-mix(in srgb, var(--color-primary) 85%, black);
+	--color-primary-hover-dark: color-mix(in srgb, var(--color-primary) 85%, white);
 
 	--color-lm-red: hsl(3 76% 42%);
 	--color-lm-red-hover: hsl(3 76% 48%);
@@ -101,18 +95,6 @@
 	--color-dm-gray-800: hsl(220 9% 10.2%);
 	--color-dm-gray-900: hsl(220 20% 5.7%);
 	--color-dm-gray-950: hsl(0 0% 0%);
-}
-
-/* Preserve the base colors in browsers without relative RGB color support. */
-@supports not (color: rgb(from red min(255, calc(r * 1.15)) g b)) {
-	:root {
-		--color-brand-lighter-hover: var(--color-brand-lighter);
-		--color-brand-light-hover: var(--color-brand-light);
-		--color-brand-dark-hover: var(--color-brand-dark);
-		--color-brand-darker-hover: var(--color-brand-darker);
-		--color-primary-hover: var(--color-primary);
-		--color-primary-hover-dark: var(--color-primary);
-	}
 }
 
 /* Keyframes */
