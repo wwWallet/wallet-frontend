@@ -82,9 +82,9 @@ const Button = React.forwardRef<HTMLButtonElement, Props>(function Button(
 			case 'invisible':
 				return `${commonClasses} ${sizeClasses} text-inherit bg-inherit border-none enabled:hover:bg-brand-lighter-hover dark:enabled:hover:bg-brand-darker-hover`;
 			case 'outline':
-				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 enabled:hover:bg-lm-gray-400 enabled:hover:border-lm-gray-700-hover dark:enabled:hover:bg-dm-gray-700 dark:enabled:hover:border-dm-gray-300`;
+				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 enabled:hover:bg-lm-gray-400 dark:enabled:hover:bg-dm-gray-700 dark:enabled:hover:border-dm-gray-300`;
 			default:
-				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-brand-lighter dark:bg-brand-darker border-lm-gray-600 dark:border-dm-gray-400 enabled:hover:bg-brand-lighter-hover enabled:hover:border-lm-gray-600-hover dark:enabled:hover:bg-brand-darker-hover dark:enabled:hover:border-dm-gray-300`;
+				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-brand-lighter dark:bg-brand-darker border-lm-gray-600 dark:border-dm-gray-400 enabled:hover:bg-brand-lighter-hover enabled:hover:border-lm-gray-700 dark:enabled:hover:bg-brand-darker-hover dark:enabled:hover:border-dm-gray-300`;
 		}
 	};
 
