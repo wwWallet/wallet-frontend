@@ -29,6 +29,7 @@ import {
 	addNewPresentationEvent,
 	addSaveCredentialIssuanceSessionEvent,
 	CurrentSchema,
+	findMergeBase,
 	foldOldEventsIntoBaseState,
 	foldState,
 	mergeEventHistories,
@@ -82,6 +83,37 @@ export function shouldMergeOpenKeystore(
 	targetUserHandleB64u: string,
 ): boolean {
 	return hasOpenKeystore && currentUserHandleB64u === targetUserHandleB64u;
+}
+
+type UnlockedContainer = [EncryptedContainer, CryptoKey, WalletStateContainerGeneric];
+
+function walletStatesEqual(left: WalletStateContainerGeneric, right: WalletStateContainerGeneric): boolean {
+	return (
+		jsonStringifyTaggedBinary([left.lastEventHash, left.S, left.events]) ===
+		jsonStringifyTaggedBinary([right.lastEventHash, right.S, right.events])
+	);
+}
+
+async function mergeIntoUnlockedContainer(
+	unlocked: UnlockedContainer,
+	localContainer: WalletStateContainerGeneric,
+): Promise<UnlockedContainer> {
+	const [remotePrivateData, remoteMainKey, remoteContainer] = unlocked;
+	const mergeBase = await findMergeBase(remoteContainer, localContainer);
+	if (mergeBase && mergeBase.uniqueEvents2.length === 0) {
+		return unlocked;
+	}
+	const mergedContainer = await mergeEventHistories(remoteContainer, localContainer);
+	if (walletStatesEqual(remoteContainer, mergedContainer)) {
+		return unlocked;
+	}
+
+	const { newContainer } = await keystore.updateWalletState(
+		[keystore.assertAsymmetricEncryptedContainer(remotePrivateData), remoteMainKey],
+		mergedContainer as CurrentSchema.WalletStateContainer,
+	);
+	const [newPrivateData, newMainKey] = newContainer;
+	return [newPrivateData, newMainKey, mergedContainer];
 }
 
 export interface LocalStorageKeystore {
@@ -420,12 +452,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 						unlockSuccess.privateData,
 					);
 					const [localContainer, ,] = await keystore.openPrivateData(localMainKey, localPrivateData);
-					const mergedContainer = await mergeEventHistories(remoteContainer, localContainer);
-					const { newContainer } = await keystore.updateWalletState(
-						[keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData), remoteMainKey],
-						mergedContainer as CurrentSchema.WalletStateContainer,
+					const [newPrivateDataEncryptedContainer, newMainKey, mergedContainer] = await mergeIntoUnlockedContainer(
+						[unlockSuccess.privateData, remoteMainKey, remoteContainer],
+						localContainer,
 					);
-					const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
 					await writePrivateDataOnIdb(newPrivateDataEncryptedContainer, targetUserHandleB64u);
 					setPrivateData(newPrivateDataEncryptedContainer);
 					newEncryptedContainer = newPrivateDataEncryptedContainer;
@@ -436,7 +466,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					async function mergeWithLocalEncryptedPrivateData(
 						container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric],
 					): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
-						const [remotePrivateData, remoteMainKey, remoteWalletState] = container;
+						const [remotePrivateData, remoteMainKey] = container;
 						const userId = UserId.fromUserHandle(new Uint8Array(fromBase64Url(targetUserHandleB64u)));
 						const localUser = await getItem('users', userId.id);
 						if (!localUser) {
@@ -484,15 +514,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 							}
 						}
 
-						const mergedContainer = await mergeEventHistories(remoteWalletState, localContainer);
-
-						const { newContainer } = await keystore.updateWalletState(
-							[keystore.assertAsymmetricEncryptedContainer(remotePrivateData), remoteMainKey],
-							mergedContainer as CurrentSchema.WalletStateContainer,
-						);
-
-						const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-						return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
+						return await mergeIntoUnlockedContainer(container, localContainer);
 					}
 
 					const { privateData, mainKey } = unlockSuccess;
@@ -666,9 +688,21 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 			user: CachedUser | UserData | null,
 		): Promise<[EncryptedContainer, CommitCallback] | null> => {
-			const [unlockPrfResult] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
-			const updatedPrivateData = await finishUnlock(unlockPrfResult, user, credential, promptForPrfRetry);
-			return updatedPrivateData ? [updatedPrivateData, async () => {}] : null;
+			const [unlockPrfResult, upgradedPrivateData] = await keystore.unlockPrf(
+				encryptedPrivateData,
+				credential,
+				promptForPrfRetry,
+			);
+			const updatedPrivateData = await finishUnlock(
+				{
+					...unlockPrfResult,
+					privateData: upgradedPrivateData ?? unlockPrfResult.privateData,
+				},
+				user,
+				credential,
+				promptForPrfRetry,
+			);
+			return updatedPrivateData === unlockPrfResult.privateData ? null : [updatedPrivateData, async () => {}];
 		},
 		[finishUnlock],
 	);

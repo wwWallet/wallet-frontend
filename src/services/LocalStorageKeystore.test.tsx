@@ -228,7 +228,7 @@ describe('unlocking with locally cached encrypted private data', () => {
 
 	async function unlock(cachedUser = false) {
 		const { result } = renderHook(() => useLocalStorageKeystore(eventTarget));
-		let unlocked: Awaited<ReturnType<LocalStorageKeystore['unlockPrf']>>;
+		let unlocked: Awaited<ReturnType<LocalStorageKeystore['unlockPrf']>> = null;
 		await act(async () => {
 			unlocked = await result.current.unlockPrf(
 				remote,
@@ -237,7 +237,7 @@ describe('unlocking with locally cached encrypted private data', () => {
 				cachedUser ? { displayName: user.displayName, userHandleB64u: toBase64Url(userHandle), prfKeys: [] } : user,
 			);
 		});
-		return { result, encrypted: unlocked![0] };
+		return { result, encrypted: unlocked?.[0] ?? remote, needsUpload: unlocked !== null };
 	}
 
 	function expectRemoteFallback(result: { current: LocalStorageKeystore }, encrypted: keystoreApi.EncryptedContainer) {
@@ -250,10 +250,23 @@ describe('unlocking with locally cached encrypted private data', () => {
 	}
 
 	it.each([false, true])('uses the remote state when no local user exists (cached user: %s)', async (cachedUser) => {
-		const { result, encrypted } = await unlock(cachedUser);
+		const { result, encrypted, needsUpload } = await unlock(cachedUser);
+		expect(needsUpload).toBe(false);
 		expect(getItem).toHaveBeenCalledWith('users', 'merge-user');
 		expect(keystoreApi.parsePrivateData).not.toHaveBeenCalled();
 		expectRemoteFallback(result, encrypted);
+	});
+
+	it('requests an upload when unlocking upgrades legacy PRF metadata', async () => {
+		const upgraded = {
+			...remote,
+			prfKeys: [{ credentialId: new Uint8Array([0xaa]) }],
+		} as keystoreApi.EncryptedContainer;
+		vi.mocked(keystoreApi.unlockPrf).mockResolvedValueOnce([{ privateData: remote, mainKey: remoteKey }, upgraded]);
+		const { encrypted, needsUpload } = await unlock();
+		expect(encrypted).toBe(upgraded);
+		expect(needsUpload).toBe(true);
+		expect(put).toHaveBeenCalledWith({ userHandle: toBase64Url(userHandle), content: upgraded });
 	});
 
 	it.each([false, true])(
@@ -275,7 +288,7 @@ describe('unlocking with locally cached encrypted private data', () => {
 			// A second login can return B's passkey while A's keystore is still open.
 			// Use the same mounted hook so its current handle, private data and key remain A's.
 			vi.clearAllMocks();
-			let unlocked: Awaited<ReturnType<LocalStorageKeystore['unlockPrf']>>;
+			let unlocked: Awaited<ReturnType<LocalStorageKeystore['unlockPrf']>> = null;
 			await act(async () => {
 				unlocked = await result.current.unlockPrf(
 					remote,
@@ -290,7 +303,7 @@ describe('unlocking with locally cached encrypted private data', () => {
 			expect(keystoreApi.openPrivateData).toHaveBeenCalledWith(remoteKey, remote);
 			expect(put).toHaveBeenCalledOnce();
 			expect(result.current.getUserHandleB64u()).toBe(toBase64Url(userHandle));
-			expectRemoteFallback(result, unlocked![0]);
+			expectRemoteFallback(result, unlocked?.[0] ?? remote);
 		},
 	);
 
@@ -302,6 +315,19 @@ describe('unlocking with locally cached encrypted private data', () => {
 		expect(keystoreApi.openPrivateData).toHaveBeenCalledWith(remoteKey, remote);
 		expect(keystoreApi.unlockPrf).toHaveBeenCalledOnce();
 		expectRemoteFallback(result, encrypted);
+	});
+
+	it('keeps a remote fast-forward without re-encrypting or requesting an upload', async () => {
+		cacheLocal();
+		vi.mocked(mergeEventHistories).mockResolvedValueOnce(remoteState);
+		const { result, encrypted, needsUpload } = await unlock();
+		expect(mergeEventHistories).toHaveBeenCalledWith(remoteState, localState);
+		expect(keystoreApi.updateWalletState).not.toHaveBeenCalled();
+		expect(encrypted).toBe(remote);
+		expect(needsUpload).toBe(false);
+		expect(result.current.isOpen()).toBe(true);
+		expect(result.current.getCalculatedWalletState()).toBe(remoteState.S);
+		expect(put).toHaveBeenCalledWith({ userHandle: toBase64Url(userHandle), content: remote });
 	});
 
 	it('merges different local data with the remote main key without evaluating PRF again', async () => {
