@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { signalAllAcceptedCredentials, signalUnknownCredential } from './util-webauthn';
+import {
+	signalAllAcceptedCredentials,
+	signalUnknownCredential,
+	getMinimalClientExtensionResults,
+} from './util-webauthn';
 
 const options = {
 	credentialId: 'credential-id',
@@ -127,5 +131,45 @@ describe('signalAllAcceptedCredentials', () => {
 
 		expect(await signalAllAcceptedCredentials(allAcceptedCredentialsOptions)).toBe(false);
 		expect(warn).toHaveBeenCalledWith('Failed to signal all accepted WebAuthn credentials', error);
+	});
+});
+
+describe('getMinimalClientExtensionResults', () => {
+	it.each([true, false])('preserves enabled=%s and removes key material', (enabled) => {
+		const results = {
+			first: new ArrayBuffer(32),
+			second: new ArrayBuffer(32),
+		};
+		const extensions = {
+			prf: { enabled, results },
+			OtherExtension: { attribute: true },
+		};
+		const credential = {
+			getClientExtensionResults: () => extensions,
+		};
+
+		expect(getMinimalClientExtensionResults(credential)).toStrictEqual({
+			prf: { enabled },
+		});
+
+		expect(extensions.prf.results).toBe(results);
+	});
+
+	it('returns an empty object when PRF is absent', () => {
+		const credential = {
+			getClientExtensionResults: () => ({}),
+		};
+
+		expect(getMinimalClientExtensionResults(credential)).toStrictEqual({});
+	});
+
+	it('excludes PRF results when enabled is absent', () => {
+		const credential = {
+			getClientExtensionResults: () => ({
+				prf: { results: { first: new ArrayBuffer(32) } },
+			}),
+		};
+
+		expect(getMinimalClientExtensionResults(credential)).toStrictEqual({});
 	});
 });

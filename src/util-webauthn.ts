@@ -1,5 +1,12 @@
 import '@/types/webauthn';
 
+export function getMinimalClientExtensionResults(credential: Pick<PublicKeyCredential, 'getClientExtensionResults'>): {
+	prf?: { enabled: boolean };
+} {
+	const prf = credential.getClientExtensionResults().prf;
+	return typeof prf?.enabled === 'boolean' ? { prf: { enabled: prf.enabled } } : {};
+}
+
 export function withHintsFromAllowCredentials(
 	publicKey: PublicKeyCredentialRequestOptions,
 ): PublicKeyCredentialRequestOptions {
