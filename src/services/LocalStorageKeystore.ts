@@ -28,8 +28,8 @@ import {
 	addNewCredentialEvent,
 	addNewPresentationEvent,
 	addSaveCredentialIssuanceSessionEvent,
+	containsHistoryOf,
 	CurrentSchema,
-	findMergeBase,
 	foldOldEventsIntoBaseState,
 	foldState,
 	mergeEventHistories,
@@ -99,8 +99,8 @@ async function mergeIntoUnlockedContainer(
 	localContainer: WalletStateContainerGeneric,
 ): Promise<UnlockedContainer> {
 	const [remotePrivateData, remoteMainKey, remoteContainer] = unlocked;
-	const mergeBase = await findMergeBase(remoteContainer, localContainer);
-	if (mergeBase && mergeBase.uniqueEvents2.length === 0) {
+	if (await containsHistoryOf(remoteContainer, localContainer)) {
+		// remote already has everything local has
 		return unlocked;
 	}
 	const mergedContainer = await mergeEventHistories(remoteContainer, localContainer);

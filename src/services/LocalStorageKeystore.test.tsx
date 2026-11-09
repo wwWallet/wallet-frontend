@@ -330,6 +330,41 @@ describe('unlocking with locally cached encrypted private data', () => {
 		expect(put).toHaveBeenCalledWith({ userHandle: toBase64Url(userHandle), content: remote });
 	});
 
+	it('does not drop local-only events when the remote has folded more history into its base state', async () => {
+		const actualSchema = await vi.importActual<typeof import('./WalletStateSchema')>('./WalletStateSchema');
+		vi.mocked(mergeEventHistories).mockImplementation(actualSchema.mergeEventHistories);
+
+		// Shared history a, b, c.
+		let shared =
+			CurrentSchema.WalletStateOperations.initialWalletStateContainer() as CurrentSchema.WalletStateContainer;
+		shared = await actualSchema.addNewCredentialEvent(shared, 'a', '', '', 0, '', '', 0, 1);
+		shared = await actualSchema.addNewCredentialEvent(shared, 'b', '', '', 0, '', '', 0, 2);
+		shared = await actualSchema.addNewCredentialEvent(shared, 'c', '', '', 0, '', '', 0, 3);
+
+		// Another browser folded a and b into the base state and uploaded: events = [c].
+		const foldedRemote = await actualSchema.foldNextEvent(await actualSchema.foldNextEvent(shared));
+		// This browser was offline, still has [a, b, c], and received a new credential d.
+		const localWithNewEvent = await actualSchema.addNewCredentialEvent(shared, 'd', '', '', 0, '', '', 0, 4);
+
+		vi.mocked(keystoreApi.openPrivateData).mockImplementation(async (key, data) => {
+			const container = data.jwe === remote.jwe ? foldedRemote : localWithNewEvent;
+			return [container, key, container.S as CurrentSchema.WalletState];
+		});
+		cacheLocal();
+
+		const { encrypted, needsUpload } = await unlock();
+
+		// Event d exists only locally, so the remote must not be used as-is.
+		expect(encrypted).not.toBe(remote);
+		expect(needsUpload).toBe(true);
+		expect(keystoreApi.updateWalletState).toHaveBeenCalledOnce();
+		const [, uploadedContainer] = vi.mocked(keystoreApi.updateWalletState).mock.calls[0];
+		const uploadedCredentialIds = actualSchema
+			.foldState(uploadedContainer)
+			.credentials.map((credential) => credential.credentialId);
+		expect(uploadedCredentialIds).toContain(4);
+	});
+
 	it('merges different local data with the remote main key without evaluating PRF again', async () => {
 		cacheLocal();
 		const { result, encrypted } = await unlock();
