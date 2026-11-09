@@ -95,10 +95,10 @@ export function getMetaConfigFromEnvConfig(config: EnvConfigMap): ClientMetaConf
  * Transforms a Zod object schema's keys to lowercase.
  * Returns a properly typed Zod schema.
  */
-function transformSchemaKeysToLowercase<T extends z.ZodRawShape>(
+function transformSchemaKeysToLowercase<T extends Record<string, z.ZodType>>(
 	schema: z.ZodObject<T>,
 ): z.ZodObject<{ [K in keyof TransformKeysToLowercase<T>]: z.ZodOptional<z.ZodString> }> {
-	const shape: Record<string, z.ZodTypeAny> = {};
+	const shape: Record<string, z.ZodType> = {};
 	for (const [key, value] of Object.entries(schema.shape)) {
 		shape[key.toLowerCase()] = value;
 	}

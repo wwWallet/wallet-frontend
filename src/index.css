@@ -6,27 +6,33 @@
 @variant xm (@media (max-width: 479px));
 
 /* Theme Variables */
+/* Brand hover shades mix the current theme colors with 15% black (light) or white (dark). */
 @theme {
 	--color-brand-lighter: var(--theme-brand-color-lighter);
+	--color-brand-lighter-hover: color-mix(in srgb, var(--color-brand-lighter) 85%, black);
 	--color-brand-light: var(--theme-brand-color-light);
+	--color-brand-light-hover: color-mix(in srgb, var(--color-brand-light) 85%, black);
 	--color-brand-base: var(--theme-brand-color);
 	--color-brand-dark: var(--theme-brand-color-dark);
+	--color-brand-dark-hover: color-mix(in srgb, var(--color-brand-dark) 85%, white);
 	--color-brand-darker: var(--theme-brand-color-darker);
+	--color-brand-darker-hover: color-mix(in srgb, var(--color-brand-darker) 85%, white);
 
 	--color-primary: var(--color-brand-base);
-	--color-primary-hover: var(--color-brand-dark);
+	--color-primary-hover: color-mix(in srgb, var(--color-primary) 85%, black);
+	--color-primary-hover-dark: color-mix(in srgb, var(--color-primary) 85%, white);
 
 	--color-lm-red: hsl(3 76% 42%);
 	--color-lm-red-hover: hsl(3 76% 48%);
 	--color-lm-red-light: hsl(3 76% 93%);
 	--color-lm-red-dark: hsl(3 75% 38%);
-	--color-lm-red-dark-hover: hsl(3 75% 48%);
+	--color-lm-red-dark-hover: hsl(3 75% 32.3%);
 
 	--color-dm-red: hsl(3 100% 54%);
 	--color-dm-red-hover: hsl(3 100% 60%);
 	--color-dm-red-light: hsl(3 100% 95%);
 	--color-dm-red-dark: hsl(3 100% 40%);
-	--color-dm-red-dark-hover: hsl(3 100% 48%);
+	--color-dm-red-dark-hover: hsl(3 100% 46%);
 
 	--color-lm-orange: hsl(35 100% 50%);
 	--color-lm-orange-bg: hsl(35 100% 50%);
