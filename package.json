@@ -37,7 +37,7 @@
     "sharp": "^0.35.4",
     "styled-components": "^6.1.13",
     "swiper": "^12.1.2",
-    "tailwindcss": "^4.1.17",
+    "tailwindcss": "^4.3.5",
     "ts-results": "^3.3.0",
     "typescript": "~5.9.3",
     "uuid": "^11.1.1",
@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "@tailwindcss/vite": "^4.1.17",
+    "@tailwindcss/vite": "^4.3.5",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
