@@ -401,6 +401,38 @@ async function mergeDivergentHistoriesWithStrategies(
 }
 
 /**
+ * Hash of the latest event in `container`'s history: the hash of its last
+ * event, or `lastEventHash` if all history is folded into the base state.
+ */
+async function headHash(container: WalletStateContainerGeneric): Promise<string> {
+	const lastEv = last(container.events);
+	return lastEv ? getSchema(lastEv.schemaVersion).calculateEventHash(lastEv) : container.lastEventHash;
+}
+
+/**
+ * Determine whether every event in `other` is already part of `container`'s
+ * history, either as an explicit event or folded into its base state.
+ *
+ * This is conservative: it may return `false` when `container` has folded
+ * history past `other`'s latest event, since that event's hash is then no
+ * longer recorded. It never returns `true` unless `container` provably
+ * contains all of `other`'s history, because event hashes form a chain.
+ */
+export async function containsHistoryOf(
+	container: WalletStateContainerGeneric,
+	other: WalletStateContainerGeneric,
+): Promise<boolean> {
+	const otherHead = await headHash(other);
+	if (otherHead === container.lastEventHash) {
+		return true;
+	}
+	if (container.events.some((e) => e.parentHash === otherHead)) {
+		return true;
+	}
+	return otherHead === (await headHash(container));
+}
+
+/**
  * Divide `container1` and `container2` into shared and respective unique
  * events, and determine which base state a merged container should be based on.
  *

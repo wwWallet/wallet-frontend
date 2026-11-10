@@ -8,6 +8,7 @@ import {
 	addNewKeypairEvent,
 	addNewPresentationEvent,
 	addSaveCredentialIssuanceSessionEvent,
+	containsHistoryOf,
 	CurrentSchema,
 	findMergeBase,
 	foldNextEvent,
@@ -628,5 +629,66 @@ describe('The current WalletStateSchema version', () => {
 			S: container.S,
 			events: [...container.events, expectEvent4, expectEvent5, expectEvent6, expectEvent7, expectEvent8],
 		});
+	});
+});
+
+describe('containsHistoryOf', () => {
+	async function sharedHistory(): Promise<CurrentSchema.WalletStateContainer> {
+		let container = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
+		container = await addNewCredentialEvent(container, 'a', '', '');
+		container = await addNewCredentialEvent(container, 'b', '', '');
+		container = await addNewCredentialEvent(container, 'c', '', '');
+		return container;
+	}
+
+	it('returns true for identical containers.', async () => {
+		const container = await sharedHistory();
+		assert.isTrue(await containsHistoryOf(container, container));
+	});
+
+	it('returns true when the other container has no events.', async () => {
+		const container = await sharedHistory();
+		const empty = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
+		assert.isTrue(await containsHistoryOf(container, empty));
+		const fullyFolded = await foldOldEventsIntoBaseState(container, -1);
+		assert.isTrue(await containsHistoryOf(container, fullyFolded));
+		assert.isTrue(await containsHistoryOf(fullyFolded, fullyFolded));
+	});
+
+	it('returns true when the container is ahead of the other.', async () => {
+		const shared = await sharedHistory();
+		const ahead = await addNewCredentialEvent(shared, 'd', '', '');
+		assert.isTrue(await containsHistoryOf(ahead, shared));
+		assert.isFalse(await containsHistoryOf(shared, ahead));
+	});
+
+	it('returns true when the container has folded history and the other is behind.', async () => {
+		const shared = await sharedHistory();
+		const folded = await foldNextEvent(await foldNextEvent(await addNewCredentialEvent(shared, 'd', '', '')));
+		assert.isTrue(await containsHistoryOf(folded, shared));
+	});
+
+	it('returns false when the container has folded history and the other has a new event.', async () => {
+		const shared = await sharedHistory();
+		const folded = await foldNextEvent(await foldNextEvent(shared));
+		const withNewEvent = await addNewCredentialEvent(shared, 'd', '', '');
+		// findMergeBase swaps its outputs for this pair, so this is the case where
+		// checking findMergeBase(...).uniqueEvents2 would drop event d.
+		assert.isFalse(await containsHistoryOf(folded, withNewEvent));
+	});
+
+	it('returns false for diverged histories.', async () => {
+		const shared = await sharedHistory();
+		const left = await addNewCredentialEvent(shared, 'd1', '', '');
+		const right = await addNewCredentialEvent(shared, 'd2', '', '');
+		assert.isFalse(await containsHistoryOf(left, right));
+		assert.isFalse(await containsHistoryOf(right, left));
+	});
+
+	it("conservatively returns false when the container has folded past the other's latest event.", async () => {
+		const shared = await sharedHistory();
+		const foldedPast = await foldOldEventsIntoBaseState(await addNewCredentialEvent(shared, 'd', '', ''), -1);
+		const ahead = await addNewCredentialEvent(foldedPast, 'e', '', '');
+		assert.isFalse(await containsHistoryOf(ahead, shared));
 	});
 });
