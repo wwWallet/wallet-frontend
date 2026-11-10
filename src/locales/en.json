@@ -67,6 +67,32 @@
 		"showQrCode": "Show QR Code",
 		"trustedVerifierHeading": "Continue with a trusted verifier"
 	},
+	"dcqlCredentials": {
+		"add": "Add",
+		"change": "Change",
+		"changeOrAdd": "Change or add",
+		"chooseAnother": "Choose another",
+		"chooseWhatToShare": "Choose what to share",
+		"combinationsDescription": "Any of these combinations satisfy the verifier's request.",
+		"combinationsLimited": "This request has more combinations than can be shown. Showing the first {{count}}.",
+		"consent": "I have reviewed this information and agree to send it to {{verifier}}.",
+		"includeOptional": "Include optional information",
+		"informationYoullShare": "Information you'll share",
+		"issuedOn": "Issued {{date}}",
+		"noCombination": "No available combination meets the required request.",
+		"optionalCredentialOption": "Optional credential option",
+		"optionalInformation": "Optional information",
+		"remove": "Remove",
+		"removeCredential": "Remove this credential",
+		"requiredCombinations": "Required credential combinations",
+		"reviewDescription": "Review what you will share with {{verifier}}.",
+		"reviewDetails": "Review details",
+		"reviewNext": "You can review or change individual credentials next.",
+		"step": "Step {{current}} of {{total}}",
+		"title": "Send credentials",
+		"walletCredentialCount_one": "You have {{count}} {{name}} credential in your wallet.",
+		"walletCredentialCount_other": "You have {{count}} {{name}} credentials in your wallet."
+	},
 	"expiredRibbon": {
 		"expired": "Expired"
 	},

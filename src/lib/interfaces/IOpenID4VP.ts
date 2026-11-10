@@ -1,3 +1,4 @@
+import type { DcqlSelection } from 'wallet-common';
 import { ExtendedVcEntity } from '@/context/CredentialsContext';
 import { ParsedTransactionData } from '../services/OpenID4VP/TransactionData/parseTransactionData';
 import type { ConformantCredentialsMap, ConformantCredentialsRecord } from '@/types/credentialSelection';
@@ -22,9 +23,9 @@ export interface IOpenID4VP {
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
-	): Promise<Map<string, number>>;
+	): Promise<DcqlSelection>;
 	sendAuthorizationResponse(
-		selectionMap: Map<string, number>,
+		selectionMap: DcqlSelection,
 		vcEntitylist: ExtendedVcEntity[],
 	): Promise<SendAuthorizationResponseResult>;
 }
