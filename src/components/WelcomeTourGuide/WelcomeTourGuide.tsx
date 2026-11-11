@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import Tour from 'reactour';
-import type { ReactourStep } from 'reactour';
+import { TourProvider, useTour } from '@reactour/tour';
+import type { StepType } from '@reactour/tour';
 import { useTranslation } from 'react-i18next';
 
 import useScreenType from '../../hooks/useScreenType';
@@ -14,10 +14,9 @@ interface TourGuideProps {
 	isOpen: boolean;
 }
 
-const TourGuide = ({ toggleMenu, isOpen }: TourGuideProps) => {
-	const [isTourOpen, setIsTourOpen] = useState(false);
+const TourGuideContent = ({ toggleMenu, isOpen }: TourGuideProps) => {
+	const { setIsOpen: setIsTourOpen, setSteps } = useTour();
 	const [isModalOpen, setIsModalOpen] = useState(true);
-	const [steps, setSteps] = useState<ReactourStep[]>([]);
 	const { api } = useSessionContext();
 	const { authenticationType, showWelcome } = api.getSession();
 	const { t } = useTranslation();
@@ -31,7 +30,7 @@ const TourGuide = ({ toggleMenu, isOpen }: TourGuideProps) => {
 				return stepName;
 			}
 		};
-		const commonSteps: ReactourStep[] = [
+		const commonSteps: StepType[] = [
 			{
 				selector: '.step-1',
 				content: <p className="text-lm-gray-900">{t('tourGuide.tourStep1')}</p>,
@@ -60,8 +59,11 @@ const TourGuide = ({ toggleMenu, isOpen }: TourGuideProps) => {
 			{
 				selector: '.step-6',
 				content: <p className="text-lm-gray-900">{t('tourGuide.tourStep6')}</p>,
+				resizeObservables: ['.step-6'],
 			},
 			{
+				selector: '[data-tour-no-target]',
+				position: 'center',
 				content: () => (
 					<>
 						<p className="mt-2 text-lm-gray-900">{t('tourGuide.tourComplete')}</p>
@@ -90,8 +92,8 @@ const TourGuide = ({ toggleMenu, isOpen }: TourGuideProps) => {
 			};
 		});
 
-		setSteps(updatedSteps);
-	}, [t, toggleMenu, isOpen, screenType]);
+		setSteps?.(updatedSteps);
+	}, [t, toggleMenu, isOpen, screenType, setSteps, setIsTourOpen]);
 
 	const startTour = () => {
 		setIsModalOpen(false);
@@ -116,19 +118,24 @@ const TourGuide = ({ toggleMenu, isOpen }: TourGuideProps) => {
 		}
 	};
 
-	return (
-		<div>
-			{renderModal()}
-			<Tour
-				steps={steps}
-				isOpen={isTourOpen}
-				rounded={5}
-				onRequestClose={() => setIsTourOpen(false)}
-				disableInteraction={true}
-				className="reactour_close"
-			/>
-		</div>
-	);
+	return <div>{renderModal()}</div>;
 };
+
+const TourGuide = (props: TourGuideProps) => (
+	<TourProvider
+		steps={[]}
+		styles={{
+			maskArea: (base) => ({ ...base, rx: 5 }),
+			popover: (base, state) => ({
+				...base,
+				marginLeft: state?.horizontalAlign === 'right' && /top|bottom/.test(state.position) ? 20 : 0,
+			}),
+		}}
+		position="right"
+		disableInteraction
+	>
+		<TourGuideContent {...props} />
+	</TourProvider>
+);
 
 export default TourGuide;
