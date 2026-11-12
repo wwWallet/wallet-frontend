@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import * as walletCommonModule from 'wallet-common';
 import type { ClaimPath, CredentialClaimPath, DcqlMatches, DcqlSelection, DcqlSelectedCredential } from 'wallet-common';
 import { ChevronDown, Trash2 } from 'lucide-react';
@@ -425,14 +425,13 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 				<div className="min-h-0 flex-auto overflow-y-auto overflow-x-hidden px-4 pb-4">
 					{currentStep === 0 ? (
 						<div className="space-y-4 text-lm-gray-900 dark:text-dm-gray-100">
-							<div>
-								<h3 className="text-xl font-semibold">{t('dcqlCredentials.chooseWhatToShare')}</h3>
-								{hasRequiredSets && combinations.length > 1 && (
-									<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">
-										{t('dcqlCredentials.combinationsDescription')}
-									</p>
-								)}
-							</div>
+							<p className="text-sm text-lm-gray-800 dark:text-dm-gray-300">
+								<Trans
+									i18nKey="dcqlCredentials.combinationsDescription"
+									values={{ verifier: prettyDomain(options.verifierDomainName) }}
+									components={{ strong: <strong /> }}
+								/>
+							</p>
 							{!hasRequiredSets ? null : combinations.length ? (
 								<fieldset className="space-y-2">
 									<legend className="sr-only">{t('dcqlCredentials.requiredCombinations')}</legend>
@@ -467,13 +466,16 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 									{t('dcqlCredentials.combinationsLimited', { count: MAX_REQUIRED_COMBINATIONS })}
 								</p>
 							)}
-							<p className="text-sm text-lm-gray-600 dark:text-dm-gray-300">{t('dcqlCredentials.reviewNext')}</p>
 							{optionalChoices}
 						</div>
 					) : (
 						<div className="space-y-4 text-lm-gray-900 dark:text-dm-gray-100">
-							<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">
-								{t('dcqlCredentials.reviewDescription', { verifier: prettyDomain(options.verifierDomainName) })}
+							<p className="text-sm text-lm-gray-800 dark:text-dm-gray-300">
+								<Trans
+									i18nKey="dcqlCredentials.reviewDescription"
+									values={{ verifier: prettyDomain(options.verifierDomainName) }}
+									components={{ strong: <strong /> }}
+								/>
 							</p>
 							{options.parsedTransactionData?.map((data, index) => {
 								const Component = data.ui;
@@ -618,10 +620,19 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 								<input
 									type="checkbox"
 									className="mt-0.5 shrink-0 accent-primary"
+									aria-label={t('dcqlCredentials.consentAria', {
+										verifier: prettyDomain(options.verifierDomainName),
+									})}
 									checked={reviewed}
 									onChange={(event) => setReviewed(event.target.checked)}
 								/>
-								<span>{t('dcqlCredentials.consent', { verifier: prettyDomain(options.verifierDomainName) })}</span>
+								<span>
+									<Trans
+										i18nKey="dcqlCredentials.consent"
+										values={{ verifier: prettyDomain(options.verifierDomainName) }}
+										components={{ strong: <strong /> }}
+									/>
+								</span>
 							</label>
 						</div>
 					)}

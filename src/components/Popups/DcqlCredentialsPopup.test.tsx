@@ -100,7 +100,7 @@ function review() {
 }
 function send(resolve: ReturnType<typeof vi.fn>): DcqlSelection {
 	review();
-	fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consent' }));
+	fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' }));
 	fireEvent.click(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' }));
 	expect(resolve).toHaveBeenCalledOnce();
 	return resolve.mock.calls[0][0] as DcqlSelection;
@@ -188,8 +188,8 @@ describe('DCQL credential selection', () => {
 		fireEvent.click(optional);
 		review();
 		expect(screen.queryByRole('checkbox', { name: 'credential-5' })).not.toBeInTheDocument();
-		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consent' })).toBeInTheDocument();
-		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consent' }));
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' }));
 		fireEvent.click(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' }));
 		expect([...(resolve.mock.calls[0][0] as DcqlSelection).keys()]).toEqual(['r0', 'r3']);
 	});
