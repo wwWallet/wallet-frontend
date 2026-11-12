@@ -13,7 +13,10 @@ interface PopupLayoutProps {
 	useDefaultContentPadding?: boolean;
 	children: ReactNode;
 	padding?: string;
+	desktopWidthClassName?: string;
 	shouldCloseOnOverlayClick?: boolean;
+	fixedHeight?: boolean;
+	fitContentHeight?: boolean;
 }
 
 const PopupLayout = ({
@@ -25,7 +28,10 @@ const PopupLayout = ({
 	useDefaultContentPadding = true,
 	children,
 	padding = 'p-4',
+	desktopWidthClassName = 'w-full sm:w-1/2 md:w-5/12 lg:w-1/3',
 	shouldCloseOnOverlayClick = true,
+	fixedHeight = false,
+	fitContentHeight = false,
 }: PopupLayoutProps) => {
 	const [showLoading, setShowLoading] = useState(false);
 
@@ -62,19 +68,21 @@ const PopupLayout = ({
 		<Modal
 			isOpen={isOpen}
 			onRequestClose={onClose}
-			className={`relative overflow-y-auto overflow-x-hidden bg-lm-gray-100 dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600 ${fullScreen ? 'flex flex-col space-between w-full h-full' : 'w-full sm:w-1/2 md:w-5/12 lg:w-1/3 max-h-[90vh] rounded-lg shadow-lg m-4'}`}
+			className={`relative ${fixedHeight ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} bg-lm-gray-100 dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600 ${fullScreen ? 'flex flex-col space-between w-full h-full' : `${desktopWidthClassName} ${fitContentHeight ? 'flex max-h-[min(42rem,90dvh)] flex-col' : fixedHeight ? 'h-[min(42rem,90dvh)]' : 'max-h-[90vh]'} rounded-lg shadow-lg m-4`}`}
 			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50 bg-lm-gray-100 dark:bg-dm-gray-900' : 'bg-lm-gray-900/50 dark:bg-dm-gray-500/50 backdrop-blur-xs z-50'}`}
 			bodyOpenClassName="overflow-hidden"
 			shouldCloseOnOverlayClick={shouldCloseOnOverlayClick}
 		>
-			<div className={`${fullScreen && 'h-full'} ${fullScreen && !useDefaultContentPadding && 'flex flex-col'}`}>
+			<div
+				className={`${(fullScreen || fixedHeight) && !fitContentHeight && 'h-full'} ${(fixedHeight || (fullScreen && !useDefaultContentPadding)) && 'min-h-0 flex flex-col'} ${fitContentHeight && 'flex-auto'}`}
+			>
 				{fullScreen && (
 					<div className={`z-60 ${!useDefaultContentPadding && 'shrink-0'}`}>
 						<Header />
 					</div>
 				)}
 				<div
-					className={`${fullScreen && 'flex flex-col justify-between'} ${fullScreen && !useDefaultContentPadding && 'min-h-0 flex-1'} ${useDefaultContentPadding && padding} ${fullScreen && useDefaultContentPadding && 'px-6 pt-3 pb-20'}`}
+					className={`${fullScreen && !fixedHeight && 'flex flex-col justify-between'} ${(fixedHeight || (fullScreen && !useDefaultContentPadding)) && `min-h-0 ${fitContentHeight ? 'flex-auto' : 'flex-1'} flex flex-col`} ${useDefaultContentPadding && padding} ${fullScreen && useDefaultContentPadding && !fixedHeight && 'px-6 pt-3 pb-20'}`}
 				>
 					{children}
 				</div>

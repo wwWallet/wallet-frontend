@@ -1,19 +1,15 @@
+import type { DcqlCredentialMatch, DcqlSelection } from 'wallet-common';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ParsedTransactionData } from '@/lib/services/OpenID4VP/TransactionData/parseTransactionData';
 
 export interface RequestedCredentialField {
 	name: string;
 	purpose: string;
-	path?: Array<string | null>;
+	path?: Array<string | number | null>;
 }
 
-export interface ConformantCredentialEntry {
-	credentials: number[];
-	requestedFields: RequestedCredentialField[];
-}
-
-export type ConformantCredentialsMap = Map<string, ConformantCredentialEntry>;
-export type ConformantCredentialsRecord = Record<string, ConformantCredentialEntry>;
+export type ConformantCredentialsMap = Map<string, DcqlCredentialMatch>;
+export type ConformantCredentialsRecord = Record<string, DcqlCredentialMatch>;
 
 export interface CredentialSelectionOptions {
 	conformantCredentialsMap: ConformantCredentialsRecord;
@@ -25,7 +21,7 @@ export interface CredentialSelectionOptions {
 export interface CredentialSelectionPopupState {
 	isOpen: boolean;
 	options: CredentialSelectionOptions | null;
-	resolve: (value: Map<string, number>) => void;
+	resolve: (value: DcqlSelection) => void;
 	reject: () => void;
 }
 

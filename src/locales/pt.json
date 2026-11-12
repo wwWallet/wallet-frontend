@@ -55,6 +55,31 @@
 		"showQrCode": "Mostrar código QR",
 		"trustedVerifierHeading": "Continuar com um verificador de confiança"
 	},
+	"dcqlCredentials": {
+		"add": "Adicionar",
+		"change": "Alterar",
+		"changeOrAdd": "Alterar ou adicionar",
+		"chooseAnother": "Escolher outra",
+		"combinationsDescription": "Qualquer uma destas combinações satisfaz o pedido de <strong>{{verifier}}</strong>. A seguir, pode rever ou alterar credenciais individuais.",
+		"combinationsLimited": "Este pedido tem mais combinações do que é possível apresentar. São mostradas as primeiras {{count}}.",
+		"consent": "Revisei estas informações e concordo em enviá-las a <strong>{{verifier}}</strong>.",
+		"consentAria": "Revisei estas informações e concordo em enviá-las a {{verifier}}.",
+		"includeOptional": "Incluir informações opcionais",
+		"informationYoullShare": "Informações que irá partilhar",
+		"issuedOn": "Emitida em {{date}}",
+		"noCombination": "Nenhuma combinação disponível satisfaz o pedido.",
+		"optionalCredentialOption": "Opção de credencial opcional",
+		"optionalInformation": "Informações opcionais",
+		"remove": "Remover",
+		"removeCredential": "Remover esta credencial",
+		"requiredCombinations": "Combinações de credenciais necessárias",
+		"reviewDescription": "Reveja o que irá partilhar com <strong>{{verifier}}</strong>.",
+		"reviewDetails": "Rever detalhes",
+		"step": "Passo {{current}} de {{total}}",
+		"title": "Enviar credenciais",
+		"walletCredentialCount_one": "Tem {{count}} credencial {{name}} na sua carteira.",
+		"walletCredentialCount_other": "Tem {{count}} credenciais {{name}} na sua carteira."
+	},
 	"expiredRibbon": {
 		"expired": "Expirada"
 	},
