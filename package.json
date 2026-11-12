@@ -1,6 +1,6 @@
 {
   "name": "wallet-frontend",
-  "version": "0.6.2-1",
+  "version": "0.6.3",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -81,7 +81,7 @@
     "vite": "^8.3.7",
     "vite-plugin-checker": "^1.0.0",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^3.2.6"
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": ">=24"
