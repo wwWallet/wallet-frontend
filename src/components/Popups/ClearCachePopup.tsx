@@ -32,7 +32,7 @@ const ClearCachePopup = ({ isOpen, onClose, onConfirm, isClearing }: ClearCacheP
 					{t('pageSettings.clearCache.confirmMessage')}
 				</p>
 				<div className="flex justify-end space-x-2 pt-4">
-					<Button id="close-clear-cache-popup" onClick={handleClose} disabled={isClearing}>
+					<Button id="close-clear-cache-popup" variant="text" onClick={handleClose} disabled={isClearing}>
 						{t('common.cancel')}
 					</Button>
 					<Button id="confirm-clear-cache" variant="primary" onClick={onConfirm} disabled={isClearing}>

@@ -157,14 +157,14 @@ const CredentialShareMenu = ({
 						<h2 className="text-xl font-bold text-lm-gray-900 dark:text-white">
 							{t('credentialShareMenu.buttonLabel')}
 						</h2>
-						<button
+						<Button
 							id="cancel-share-credential"
-							type="button"
+							variant="text"
 							onClick={() => setIsOpen(false)}
-							className="-mr-2 shrink-0 rounded-lg px-2 py-1.5 text-sm font-semibold text-lm-gray-900 transition-colors duration-150 hover:bg-lm-gray-200 focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-dm-gray-100 dark:hover:bg-dm-gray-800"
+							additionalClassName="-mr-2"
 						>
 							{t('common.cancel')}
-						</button>
+						</Button>
 					</div>
 					<div id="share-credential-menu-popup">{menuContent}</div>
 				</BottomSheet>

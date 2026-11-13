@@ -560,7 +560,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, vcEntityList }: Sel
 					screenType === 'desktop' ? 'sticky bottom-0 px-4 py-3' : 'fixed bottom-0 px-6 pb-4 pt-4'
 				}`}
 			>
-				<Button id="cancel-select-credentials" onClick={onClose}>
+				<Button id="cancel-select-credentials" variant="text" onClick={onClose}>
 					{t('common.cancel')}
 				</Button>
 

@@ -67,7 +67,7 @@ const MessagePopup = ({ type, message, onClose }: MessagePopupProps) => {
 			<hr className={`mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600`} />
 			<p className="mb-2 mt-4 dark:text-white">{description}</p>
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button id="close-message-popup" onClick={onClose}>
+				<Button id="close-message-popup" variant="primary" onClick={onClose}>
 					{t('messagePopup.close')}
 				</Button>
 			</div>

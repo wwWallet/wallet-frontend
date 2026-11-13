@@ -83,6 +83,7 @@ const WebauthnLogin = ({ filteredUser }: WebauthnLoginProps) => {
 				<div className="flex flex-row gap-4 justify-center mr-2">
 					<Button
 						id="cancel-login-state"
+						variant="outline"
 						onClick={() => navigate('/')}
 						disabled={isSubmitting}
 						additionalClassName="w-full"
