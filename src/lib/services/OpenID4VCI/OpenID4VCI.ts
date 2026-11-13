@@ -39,6 +39,13 @@ type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialI
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
+export function isKeyAttestationRequired(
+	proofType: 'jwt' | 'attestation',
+	jwtMetadata?: { key_attestations_required?: unknown },
+): boolean {
+	return proofType === 'attestation' || (proofType === 'jwt' && jwtMetadata?.key_attestations_required != null);
+}
+
 const textDecoder = new TextDecoder();
 
 const getNextPollAt = (intervalMaybe: unknown): number => {
@@ -395,6 +402,7 @@ export function useOpenID4VCI({
 			const { credentialResponse } = await credentialRequestBuilder.execute(
 				flowState.credentialConfigurationId,
 				selectedProofType,
+				isKeyAttestationRequired(selectedProofType, credConf.proof_types_supported?.jwt),
 			);
 
 			console.log('Response = ', credentialResponse);

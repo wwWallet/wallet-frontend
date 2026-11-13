@@ -19,6 +19,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { useSessionContext } from '@/context/SessionContext';
 import { OpenidCredentialIssuerMetadata } from 'wallet-common';
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from '@/config';
+import type { CredentialKeyPair } from '@/services/keystore';
 
 /**
  * Compression options for jose v4 using native Browser/Node CompressionStream API.
@@ -34,6 +35,40 @@ export const compressionOptions = {
 		return new Uint8Array(await new Response(stream).arrayBuffer());
 	},
 };
+
+async function generateKeyAttestationJwtProof(
+	firstKey: CredentialKeyPair,
+	keyAttestation: string,
+	audience: string,
+	nonce: string | null,
+): Promise<string> {
+	const attestedKeys = decodeJwt(keyAttestation).attested_keys;
+	if (!Array.isArray(attestedKeys) || !attestedKeys[0] || typeof attestedKeys[0] !== 'object') {
+		throw new Error('Key attestation does not contain attested_keys[0]');
+	}
+	const [attestedKeyThumbprint, generatedKeyThumbprint] = await Promise.all([
+		calculateJwkThumbprint(attestedKeys[0] as JWK),
+		calculateJwkThumbprint(firstKey.publicKey),
+	]);
+	if (attestedKeyThumbprint !== generatedKeyThumbprint) {
+		throw new Error('Key attestation attested_keys[0] does not match the first generated credential key');
+	}
+
+	const signingKey = await importJWK(firstKey.privateKey, firstKey.alg);
+	const proofJwk: JWK = { ...firstKey.publicKey, key_ops: ['verify'] };
+	return new SignJWT({
+		aud: audience,
+		...(nonce ? { nonce } : {}),
+	})
+		.setIssuedAt()
+		.setProtectedHeader({
+			typ: 'openid4vci-proof+jwt',
+			alg: firstKey.alg,
+			key_attestation: keyAttestation,
+			jwk: proofJwk,
+		})
+		.sign(signingKey);
+}
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -188,7 +223,8 @@ export function useCredentialRequest() {
 		async (
 			credentialConfigurationId: string,
 			proofType: 'jwt' | 'attestation',
-			cachedProofs?: unknown[],
+			keyAttestationRequired: boolean,
+			cachedProofs?: { jwt?: string[]; attestation?: string[] },
 		): Promise<{ credentialResponse: any }> => {
 			console.log('Executing credential request...');
 			const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
@@ -200,7 +236,9 @@ export function useCredentialRequest() {
 
 			const [credentialIssuerMetadata, clientId] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
-				proofType === 'jwt' ? openID4VCIHelper.getClientId(credentialIssuerIdentifier) : Promise.resolve(null),
+				proofType === 'jwt' && !keyAttestationRequired
+					? openID4VCIHelper.getClientId(credentialIssuerIdentifier)
+					: Promise.resolve(null),
 			]);
 			if (!credentialIssuerMetadata) {
 				throw new Error('Missing issuer metadata');
@@ -212,35 +250,12 @@ export function useCredentialRequest() {
 				credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE
 					? OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE
 					: (credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1);
-			let proofs:
-				| {
-						nonce?: string;
-						issuer: string;
-						audience: string;
-				  }[]
-				| null = null;
-			let keyAttestationProof: string | null = null;
-			let proofsToSend: string[] = [];
+			let proofsToSend: { jwt?: string[]; attestation?: string[] };
 
 			try {
-				if (proofType === 'jwt') {
-					if (!clientId) {
-						throw new Error('Missing client id for JWT proof');
-					}
-					const inputs = [];
-					for (let i = 0; i < numberOfProofs; i++) {
-						inputs.push({
-							nonce: c_nonce ?? undefined,
-							issuer: clientId.client_id,
-							audience: credentialIssuerMetadata.metadata.credential_issuer,
-						});
-					}
-					proofs = inputs;
-				} else if (proofType === 'attestation') {
-					if (!c_nonce) {
-						throw new Error('Cannot create a KA-bound proof without an issuer nonce');
-					}
-
+				if (cachedProofs) {
+					proofsToSend = cachedProofs;
+				} else if (keyAttestationRequired) {
 					const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfProofs);
 					if (keypairs.length === 0) {
 						throw new Error('No credential keypairs were generated');
@@ -251,61 +266,36 @@ export function useCredentialRequest() {
 
 					const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
 					if (!requestKeyAttestationResponse) {
-						throw new Error('Failed to get key attestation from wallet-backend-server');
+						throw new Error('Failed to get key attestation from wallet provider.');
 					}
-
 					const keyAttestation = requestKeyAttestationResponse.key_attestation;
-					const firstKey = keypairs[0];
-					const keyAttestationPayload = decodeJwt(keyAttestation);
-					const attestedKeys = keyAttestationPayload.attested_keys as JWK[] | undefined;
-					if (!attestedKeys?.[0]) {
-						throw new Error('Key attestation does not contain attested_keys[0]');
-					}
-					const [attestedKeyThumbprint, generatedKeyThumbprint] = await Promise.all([
-						calculateJwkThumbprint(attestedKeys[0]),
-						calculateJwkThumbprint(firstKey.publicKey),
-					]);
-					if (attestedKeyThumbprint !== generatedKeyThumbprint) {
-						throw new Error('Key attestation attested_keys[0] does not match the first generated credential key');
-					}
 
-					const signingKey = await importJWK(firstKey.privateKey, firstKey.alg);
-					const proofJwk: JWK = { ...firstKey.publicKey, key_ops: ['verify'] };
-					const proof = await new SignJWT({
-						aud: credentialIssuerMetadata.metadata.credential_issuer,
-						nonce: c_nonce,
-					})
-						.setIssuedAt()
-						.setProtectedHeader({
-							typ: 'openid4vci-proof+jwt',
-							alg: firstKey.alg,
-							key_attestation: keyAttestation,
-							jwk: proofJwk,
-						})
-						.sign(signingKey);
-					keyAttestationProof = proof;
-				}
-
-				if (cachedProofs || proofs) {
-					if (cachedProofs) {
-						proofsToSend = cachedProofs as string[];
-					} else if (!cachedProofs && proofs) {
-						const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
-						await updatePrivateData(newPrivateData);
-						await keystoreCommit();
-						proofsToSend = proof_jwts;
+					if (proofType === 'attestation') {
+						proofsToSend = { attestation: [keyAttestation] };
+					} else {
+						const keyAttestationProof = await generateKeyAttestationJwtProof(
+							keypairs[0],
+							keyAttestation,
+							credentialIssuerMetadata.metadata.credential_issuer,
+							c_nonce,
+						);
+						proofsToSend = { jwt: [keyAttestationProof] };
 					}
-
-					credentialEndpointBody.proofs = {
-						jwt: proofsToSend,
-					};
-				} else if (keyAttestationProof) {
-					credentialEndpointBody.proofs = {
-						jwt: [keyAttestationProof],
-					};
 				} else {
-					throw new Error('Nor proofs, nor keyAttestation was defined before sending CredentialRequest');
+					if (!clientId) {
+						throw new Error('Missing client id for JWT proof');
+					}
+					const inputs = Array.from({ length: numberOfProofs }, () => ({
+						nonce: c_nonce ?? undefined,
+						issuer: clientId.client_id,
+						audience: credentialIssuerMetadata.metadata.credential_issuer,
+					}));
+					const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(inputs);
+					await updatePrivateData(newPrivateData);
+					await keystoreCommit();
+					proofsToSend = { jwt: proof_jwts };
 				}
+				credentialEndpointBody.proofs = proofsToSend;
 			} catch (err) {
 				console.error(err);
 				throw new Error('Failed to generate proof');
@@ -541,7 +531,7 @@ export function useCredentialRequest() {
 					setDpopNonce(credentialResponse.headers?.['dpop-nonce'] as string);
 					await setDpopHeader();
 					// response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-					return await execute(credentialConfigurationId, proofType, proofsToSend);
+					return await execute(credentialConfigurationId, proofType, keyAttestationRequired, proofsToSend);
 				}
 				throw new Error('Credential Request failed');
 			}
