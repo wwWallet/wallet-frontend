@@ -234,12 +234,6 @@ html.dark body {
 	text-overflow: ellipsis;
 }
 
-button.reactour__close {
-	width: 15px;
-	top: 12px;
-	right: 12px;
-}
-
 /* Animations for new credentials */
 @keyframes highlight-filter {
 	0%,
