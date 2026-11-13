@@ -27,6 +27,7 @@
     "pkijs": "^3.2.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-focus-lock": "^2.13.7",
     "react-i18next": "^13.0.2",
     "react-modal": "^3.16.1",
     "react-qr-code": "^2.0.15",

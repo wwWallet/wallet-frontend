@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import type { PropsWithChildren } from 'react';
 import { TourProvider, useTour } from '@reactour/tour';
 import type { StepType } from '@reactour/tour';
+import FocusLock from 'react-focus-lock';
 import { useTranslation } from 'react-i18next';
 
 import useScreenType from '../../hooks/useScreenType';
@@ -13,6 +15,12 @@ interface TourGuideProps {
 	toggleMenu: () => void;
 	isOpen: boolean;
 }
+
+const TourFocusLock = ({ children }: PropsWithChildren) => (
+	<FocusLock className="contents" returnFocus>
+		{children}
+	</FocusLock>
+);
 
 const TourGuideContent = ({ toggleMenu, isOpen }: TourGuideProps) => {
 	const { setIsOpen: setIsTourOpen, setSteps } = useTour();
@@ -133,6 +141,7 @@ const TourGuide = (props: TourGuideProps) => (
 		}}
 		position="right"
 		disableInteraction
+		Wrapper={TourFocusLock}
 	>
 		<TourGuideContent {...props} />
 	</TourProvider>
