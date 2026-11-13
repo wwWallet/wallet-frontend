@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type Variant = 'primary' | 'secondary' | 'delete' | 'invisible' | 'outline' | 'custom' | 'default';
+export type Variant = 'primary' | 'secondary' | 'delete' | 'invisible' | 'outline' | 'text' | 'custom' | 'default';
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
@@ -83,6 +83,8 @@ const Button = React.forwardRef<HTMLButtonElement, Props>(function Button(
 				return `${commonClasses} ${sizeClasses} text-inherit bg-inherit border-none enabled:hover:bg-brand-lighter-hover dark:enabled:hover:bg-brand-darker-hover`;
 			case 'outline':
 				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 enabled:hover:bg-lm-gray-400 dark:enabled:hover:bg-dm-gray-700 dark:enabled:hover:border-dm-gray-300`;
+			case 'text':
+				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-dm-gray-100 bg-transparent border-transparent !shadow-none enabled:hover:bg-lm-gray-300 dark:enabled:hover:bg-dm-gray-700`;
 			default:
 				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-brand-lighter dark:bg-brand-darker border-lm-gray-600 dark:border-dm-gray-400 enabled:hover:bg-brand-lighter-hover enabled:hover:border-lm-gray-700 dark:enabled:hover:bg-brand-darker-hover dark:enabled:hover:border-dm-gray-300`;
 		}

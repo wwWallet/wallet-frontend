@@ -556,7 +556,9 @@ const ProximitySharingPopup = ({
 				>
 					{status === PROXIMITY_SHARING_STATUS.SCAN && (
 						<div className="flex w-full justify-between gap-2">
-							<Button onClick={onCancel}>{t('common.cancel')}</Button>
+							<Button variant="text" onClick={onCancel}>
+								{t('common.cancel')}
+							</Button>
 							{requiresUserGesture && (
 								<Button variant="primary" onClick={onConnect}>
 									{t('qrShareMdoc.connectToVerifier')}
@@ -564,10 +566,16 @@ const ProximitySharingPopup = ({
 							)}
 						</div>
 					)}
-					{status === PROXIMITY_SHARING_STATUS.PAIRING && <Button onClick={onCancel}>{t('common.cancel')}</Button>}
+					{status === PROXIMITY_SHARING_STATUS.PAIRING && (
+						<Button variant="outline" onClick={onCancel}>
+							{t('common.cancel')}
+						</Button>
+					)}
 					{status === PROXIMITY_SHARING_STATUS.CONNECTION_FAILED && (
 						<div className="flex w-full justify-between gap-2">
-							<Button onClick={onClose}>{t('messagePopup.close')}</Button>
+							<Button variant="outline" onClick={onClose}>
+								{t('messagePopup.close')}
+							</Button>
 							<Button variant="primary" onClick={onConnect}>
 								{t('common.tryAgain')}
 							</Button>
@@ -575,7 +583,9 @@ const ProximitySharingPopup = ({
 					)}
 					{status === PROXIMITY_SHARING_STATUS.REVIEW && (
 						<div className="flex w-full justify-between gap-2">
-							<Button onClick={onCancel}>{t('common.cancel')}</Button>
+							<Button variant="outline" onClick={onCancel}>
+								{t('common.cancel')}
+							</Button>
 							<Button variant="primary" onClick={onConsent}>
 								{t('qrShareMdoc.shareItems', { count: requestedItems.length })}
 							</Button>

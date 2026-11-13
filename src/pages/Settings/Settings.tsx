@@ -651,7 +651,9 @@ const Settings = () => {
 								{t('pageSettings.upgradePrfKey.description', { passkeyLabel: upgradePrfPasskeyLabel })}
 							</p>
 							<div className="flex gap-2 justify-center align-center">
-								<Button onClick={onCancelUpgradePrfKey}>{t('common.cancel')}</Button>
+								<Button variant="outline" onClick={onCancelUpgradePrfKey}>
+									{t('common.cancel')}
+								</Button>
 							</div>
 						</>
 					) : (
@@ -663,7 +665,9 @@ const Settings = () => {
 								components={{ p: <p className="mb-2 dark:text-white" /> }}
 							/>
 							<div className="flex gap-2 justify-center align-center">
-								<Button onClick={onCancelUpgradePrfKey}>{t('common.cancel')}</Button>
+								<Button variant="text" onClick={onCancelUpgradePrfKey}>
+									{t('common.cancel')}
+								</Button>
 								{upgradePrfState?.state === 'err' && (
 									<Button variant="primary" onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}>
 										{t('common.tryAgain')}

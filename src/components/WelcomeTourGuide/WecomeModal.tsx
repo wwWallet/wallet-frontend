@@ -34,7 +34,7 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }: WelcomeModalProps) => {
 			<p className="text-center text-lm-gray-800 dark:text-dm-gray-50 mb-4">{t('welcomeModal.question')}</p>
 
 			<div className="flex justify-center gap-2 pt-4">
-				<Button id="close-welcome-modal" onClick={onClose}>
+				<Button id="close-welcome-modal" variant="text" onClick={onClose}>
 					{t('welcomeModal.dismissButton')}
 				</Button>
 				<Button id="start-tour-welcome-modal" variant="primary" onClick={onStartTour}>

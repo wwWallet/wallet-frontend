@@ -7,6 +7,7 @@ import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
 import Button from '../Buttons/Button';
+import CloseButton from '../Buttons/CloseButton';
 import { ArrowLeft, CheckCircle, QrCode, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface QRScannerProps {
@@ -200,23 +201,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 							{t('qrCodeScanner.title')}
 						</h2>
 
-						<Button id="close-qr-code-scanner-perm" variant="outline" square={true} onClick={handleClose}>
-							<svg
-								className="w-3 h-3"
-								aria-hidden="true"
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 14 14"
-							>
-								<path
-									stroke="currentColor"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-								/>
-							</svg>
-						</Button>
+						<CloseButton id="close-qr-code-scanner-perm" size="sm" onClick={handleClose} />
 					</div>
 					<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 					<p className="text-lm-red dark:text-dm-red">{t('qrCodeScanner.cameraPermissionAllow')}</p>
@@ -226,16 +211,20 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 				!loading && (
 					<>
 						<div>
-							{screenType === 'mobile' ? (
-								<div className="flex">
-									<button
+							{screenType !== 'desktop' ? (
+								<div className="flex items-start">
+									<Button
 										id="close-qr-code-scanner-mobile"
+										variant="text"
+										size="sm"
+										square={true}
 										onClick={handleClose}
-										className="mr-2"
-										aria-label="Go back to the previous page"
+										ariaLabel={t('common.back')}
+										title={t('common.back')}
+										additionalClassName="mr-2 !rounded-full"
 									>
-										<ArrowLeft size={20} className="text-2xl text-lm-gray-900 dark:text-dm-gray-100" />
-									</button>
+										<ArrowLeft size={20} aria-hidden="true" />
+									</Button>
 									<H1 heading={t('qrCodeScanner.title')} />
 								</div>
 							) : (
@@ -244,24 +233,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 										<QrCode size={20} className="inline mr-1 mb-1" />
 										{t('qrCodeScanner.title')}
 									</h2>
-									<Button id="close-qr-code-scanner" onClick={handleClose}>
-										<svg
-											className="w-3 h-3"
-											aria-hidden="true"
-											xmlns="http://www.w3.org/2000/svg"
-											fill="none"
-											viewBox="0 0 14 14"
-										>
-											<path
-												stroke="currentColor"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth="2"
-												d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-											/>
-										</svg>
-									</Button>
-									<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+									<CloseButton id="close-qr-code-scanner" size="sm" onClick={handleClose} />
 								</div>
 							)}
 

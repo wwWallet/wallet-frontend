@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FingerprintIcon, QrCodeIcon } from 'lucide-react';
 import PopupLayout from './PopupLayout';
 import { UsbStickDotIcon } from '../Shared/CustomIcons';
+import CloseButton from '../Buttons/CloseButton';
 
 const PasskeyInfoPopup = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -56,29 +57,12 @@ const PasskeyInfoPopup = () => {
 						>
 							{t('passkeyInfoPopup.title')}
 						</h2>
-						<button
+						<CloseButton
 							id="dismiss-passkey-info-popup"
-							type="button"
-							className="md:absolute top-6 right-6 text-lm-gray-900 dark:text-dm-gray-100 bg-transparent hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600 transition-all rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center focus-visible:outline-2 focus-visible:outline-offset-2"
 							onClick={handleClose}
-							aria-label={t('passkeyInfoPopup.closeAriaLabel')}
-						>
-							<svg
-								className="w-3 h-3"
-								aria-hidden="true"
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 14 14"
-							>
-								<path
-									stroke="currentColor"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-								/>
-							</svg>
-						</button>
+							ariaLabel={t('passkeyInfoPopup.closeAriaLabel')}
+							additionalClassName="md:absolute top-6 right-6 ml-auto"
+						/>
 					</div>
 					<div className="mb-6 space-y-2">
 						<p>{t('passkeyInfoPopup.description1')}</p>

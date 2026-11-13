@@ -34,7 +34,7 @@ const RedirectPopup = ({
 			<p className="mb-2 mt-4 text-lm-gray-900 dark:text-dm-gray-100">{popupMessage}</p>
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button id="cancel-redirect-popup" onClick={onClose}>
+				<Button id="cancel-redirect-popup" variant="text" onClick={onClose}>
 					{t('common.cancel')}
 				</Button>
 				<Button id="continue-redirect-popup" variant="primary" onClick={() => handleContinue()}>

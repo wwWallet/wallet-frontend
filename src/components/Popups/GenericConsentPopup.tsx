@@ -70,7 +70,7 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState }: Generi
 				<div
 					className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}
 				>
-					<Button id="cancel-select-credentials" onClick={onClose}>
+					<Button id="cancel-select-credentials" variant="outline" onClick={onClose}>
 						{t('common.cancel')}
 					</Button>
 

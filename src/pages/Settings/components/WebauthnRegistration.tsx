@@ -262,7 +262,7 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 					)}
 
 					<div className="pt-2 flex justify-center gap-2">
-						<Button id="cancel-add-passkey-settings" onClick={onCancel} disabled={isSubmitting}>
+						<Button id="cancel-add-passkey-settings" variant="outline" onClick={onCancel} disabled={isSubmitting}>
 							{t('common.cancel')}
 						</Button>
 
@@ -290,7 +290,7 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 				<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.authOnceMore')}</p>
 
 				<div className="flex justify-center gap-2">
-					<Button id="cancel-prf-passkey-settings" onClick={() => resolvePrfRetryPrompt?.(false)}>
+					<Button id="cancel-prf-passkey-settings" variant="outline" onClick={() => resolvePrfRetryPrompt?.(false)}>
 						{t('common.cancel')}
 					</Button>
 
@@ -311,7 +311,7 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteractNewPasskey')}</p>
 				</div>
 				<div className="flex justify-center mt-2">
-					<Button id="cancel-in-progress-prf-settings" onClick={onCancel}>
+					<Button id="cancel-in-progress-prf-settings" variant="outline" onClick={onCancel}>
 						{t('common.cancel')}
 					</Button>
 				</div>

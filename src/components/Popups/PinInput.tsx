@@ -193,7 +193,7 @@ function PinInput({
 			)}
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button id="cancel-pin-input" onClick={handleCancel}>
+				<Button id="cancel-pin-input" variant="text" onClick={handleCancel}>
 					{t('common.cancel')}
 				</Button>
 				<Button id="submit-pin-input" variant="primary" onClick={handleSubmit} disabled={isSubmitting}>

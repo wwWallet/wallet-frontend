@@ -2,7 +2,8 @@ import { useContext, useState } from 'react';
 import StatusContext from '@/context/StatusContext';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import { Bell, X } from 'lucide-react';
+import CloseButton from '../Buttons/CloseButton';
+import { Bell } from 'lucide-react';
 
 const UpdateNotification = () => {
 	const { updateAvailable } = useContext(StatusContext);
@@ -26,13 +27,7 @@ const UpdateNotification = () => {
 			<Button id="reload-update-notification" variant="outline" onClick={handleReload}>
 				{t('common.refresh')}
 			</Button>
-			<button
-				id="close-update-notification"
-				className="ml-2 text-inherit p-2 rounded hover:bg-dm-green-bg dark:hover:bg-lm-green-bg"
-				onClick={handleClose}
-			>
-				<X />
-			</button>
+			<CloseButton id="close-update-notification" tone="inherit" onClick={handleClose} additionalClassName="ml-2" />
 		</div>
 	);
 };
