@@ -1,9 +1,10 @@
 import { useContext } from 'react';
 import Button from '@/components/Buttons/Button';
+import CloseButton from '@/components/Buttons/CloseButton';
 import StatusContext from '@/context/StatusContext';
 import useScreenType from '@/hooks/useScreenType';
 import { useTranslation } from 'react-i18next';
-import { Download, X } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 const PWAInstallPrompt = () => {
 	const { pwaInstallable, dismissPwaPrompt, hidePwaPrompt } = useContext(StatusContext);
@@ -28,16 +29,11 @@ const PWAInstallPrompt = () => {
 						>
 							{t('pwaInstallPrompt.button.install')}
 						</Button>
-						<Button
+						<CloseButton
 							id="close-pwa-installable"
-							square={true}
-							size="sm"
 							title={t('pwaInstallPrompt.button.closeTitle')}
 							onClick={dismissPwaPrompt}
-							variant="invisible"
-						>
-							<X size={20} />
-						</Button>
+						/>
 					</div>
 				</div>
 			</div>
