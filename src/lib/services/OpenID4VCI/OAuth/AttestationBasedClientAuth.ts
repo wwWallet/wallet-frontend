@@ -56,9 +56,12 @@ export interface AttestationBasedClientAuthOptions extends oauth4webapi.ModifyAs
 }
 
 /**
- * Applies attest_jwt_client_auth using a key bound in the attestation's cnf.jwk.
+ * Implements attest_jwt_client_auth using a key bound in the attestation's cnf.jwk.
  * Each invocation signs a fresh proof. Challenges are supplied by the caller.
- * https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-11.html#section-5.1
+ *
+ * The ClientAuth callback follows the oauth4webapi PrivateKeyJwt API pattern.
+ * @see https://github.com/panva/oauth4webapi/blob/main/src/index.ts
+ * @see https://www.ietf.org/archive/id/draft-ietf-oauth-attestation-based-client-auth-12.html#section-5.1
  */
 export function AttestationBasedClientAuth(
 	clientPrivateKey: CryptoKey | oauth4webapi.PrivateKey,
