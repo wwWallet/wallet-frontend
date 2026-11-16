@@ -380,12 +380,7 @@ const WebauthnSignupLogin = ({
 					</p>
 				</div>
 				{showCancelButton && (
-					<Button
-						id="cancel-switch-account-bottom-loginsignup"
-						variant="subtle"
-						onClick={closeSwitcher}
-						additionalClassName="-mr-2"
-					>
+					<Button id="cancel-switch-account-bottom-loginsignup" variant="subtle" size="sm" onClick={closeSwitcher}>
 						{t('common.cancel')}
 					</Button>
 				)}
