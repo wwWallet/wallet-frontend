@@ -172,13 +172,7 @@ describe('CredentialInfo Component', () => {
 			},
 		} satisfies CredentialInfoData;
 
-		render(
-			<CredentialInfo
-				parsedCredential={parsedCredential}
-				requested={{ display: 'hide' }}
-				visibleFields={[['selected_field']]}
-			/>,
-		);
+		render(<CredentialInfo parsedCredential={parsedCredential} visibleFields={[['selected_field']]} />);
 		expect(screen.getByText('Selected Field:')).toBeInTheDocument();
 		expect(screen.queryByText('Hidden Field:')).not.toBeInTheDocument();
 	});

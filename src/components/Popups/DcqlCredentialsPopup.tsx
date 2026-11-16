@@ -1,15 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import * as walletCommonModule from 'wallet-common';
-import type { ClaimPath, CredentialClaimPath, DcqlMatches, DcqlSelection, DcqlSelectedCredential } from 'wallet-common';
-import { ChevronDown, Trash2 } from 'lucide-react';
+import type { DcqlMatches, DcqlSelection, DcqlSelectedCredential } from 'wallet-common';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import PopupLayout from './PopupLayout';
+import {
+	MAX_REQUIRED_COMBINATIONS,
+	completeRequiredCombinations,
+	credentialImageFilter,
+	disclosedDisplay,
+	normalizeDcqlMatches,
+	reconcileSelection,
+	selectionIsValid,
+} from './dcqlCredentialSelection';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
 import useScreenType from '@/hooks/useScreenType';
 import { useCredentialName } from '@/hooks/useCredentialName';
-import i18n from '@/i18n';
 import { prettyDomain } from '@/utils';
 import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 import type { CredentialSelectionPopupState, SetCredentialSelectionPopupState } from '@/types/credentialSelection';
@@ -21,98 +28,6 @@ interface Props {
 }
 
 const preferredLanguages = ['en-US'];
-const walletCommon =
-	(walletCommonModule as typeof walletCommonModule & { default?: typeof walletCommonModule }).default ??
-	walletCommonModule;
-const { dcqlSelectionIsValid, reconcileDcqlSelection } = walletCommon;
-
-interface RequiredCombination {
-	choices: (number | null)[];
-	queryIds: string[];
-}
-
-const MAX_REQUIRED_COMBINATIONS = 256;
-
-export function completeRequiredCombinations(
-	requirements: DcqlMatches[string]['requirements'],
-	matches: DcqlMatches,
-): { combinations: RequiredCombination[]; truncated: boolean } {
-	const required = requirements.map((set, index) => ({ set, index })).filter(({ set }) => set.required !== false);
-	let combinations: RequiredCombination[] = [{ choices: requirements.map(() => null), queryIds: [] }];
-	let truncated = false;
-	for (const { set, index } of required) {
-		const next: RequiredCombination[] = [];
-		const seen = new Set<string>();
-		collect: for (const combination of combinations) {
-			for (const option of set.options) {
-				if (!option.available || !option.queryIds.every((id) => matches[id]?.candidates.length)) continue;
-				const queryIds = [...new Set([...combination.queryIds, ...option.queryIds])];
-				const key = JSON.stringify([...queryIds].sort());
-				if (seen.has(key)) continue;
-				if (next.length === MAX_REQUIRED_COMBINATIONS) {
-					truncated = true;
-					break collect;
-				}
-				seen.add(key);
-				next.push({
-					choices: combination.choices.map((choice, i) => (i === index ? option.optionIndex : choice)),
-					queryIds,
-				});
-			}
-		}
-		combinations = next;
-	}
-	return { combinations, truncated };
-}
-
-function CredentialIssueDate({ credential }: { credential: ExtendedVcEntity }) {
-	const { t } = useTranslation();
-	const signed = credential.parsedCredential.validityInfo.signed;
-	const formatted =
-		signed instanceof Date && !Number.isNaN(signed.getTime())
-			? new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })
-					.format(signed)
-					.replace(/(\d{1,2}), (?=\d{4},)/, '$1 ')
-			: null;
-	return formatted ? (
-		<span className="text-xs text-lm-gray-700 dark:text-dm-gray-300">
-			{t('dcqlCredentials.issuedOn', { date: formatted })}
-		</span>
-	) : null;
-}
-
-function CredentialName({ credential }: { credential: ExtendedVcEntity }) {
-	const { i18n: translator } = useTranslation();
-	const languages = useMemo(() => [translator.language, ...preferredLanguages], [translator.language]);
-	const name = useCredentialName(
-		credential.parsedCredential?.metadata?.credential?.name,
-		credential.batchId,
-		languages,
-	);
-	return <>{name}</>;
-}
-
-function WalletCredentialCount({ credential, count }: { credential: ExtendedVcEntity; count: number }) {
-	const { t, i18n: translator } = useTranslation();
-	const languages = useMemo(() => [translator.language, ...preferredLanguages], [translator.language]);
-	const name = useCredentialName(
-		credential.parsedCredential?.metadata?.credential?.name,
-		credential.batchId,
-		languages,
-	);
-	return <>{t('dcqlCredentials.walletCredentialCount', { count, name })}</>;
-}
-
-function CredentialOptionText({ credential }: { credential: ExtendedVcEntity }) {
-	return (
-		<span className="flex min-w-0 flex-col gap-0.5">
-			<span className="font-semibold">
-				<CredentialName credential={credential} />
-			</span>
-			<CredentialIssueDate credential={credential} />
-		</span>
-	);
-}
 
 function RequestName({
 	id,
@@ -141,41 +56,6 @@ function RequestName({
 	);
 }
 
-function disclosedDisplay(credential: ExtendedVcEntity, instance: DcqlSelectedCredential) {
-	const toJson = (value: unknown): unknown =>
-		value instanceof Date || value instanceof Uint8Array
-			? value
-			: value instanceof Map
-				? Object.fromEntries([...value].map(([k, v]) => [k, toJson(v)]))
-				: Array.isArray(value)
-					? value.map(toJson)
-					: value && typeof value === 'object'
-						? Object.fromEntries(Object.entries(value).map(([k, v]) => [k, toJson(v)]))
-						: value;
-	const allClaims = toJson(instance.disclosedClaims) as Record<string, unknown>;
-	const disclosedPaths: ClaimPath[] = [];
-	const visit = (value: unknown, path: ClaimPath) => {
-		if (
-			value &&
-			typeof value === 'object' &&
-			!(value instanceof Date) &&
-			!(value instanceof Uint8Array) &&
-			Object.keys(value).length
-		)
-			Object.entries(value).forEach(([key, child]) =>
-				visit(child, [...path, Array.isArray(value) ? Number(key) : key]),
-			);
-		else disclosedPaths.push(path);
-	};
-	visit(allClaims, []);
-	const protocolFields = new Set(['cnf', 'iat', 'nbf', 'exp', 'iss', 'vct', 'vct#integrity', 'trust_anchor', 'status']);
-	const displayPaths = disclosedPaths.filter(
-		(path) =>
-			credential.parsedCredential.metadata.credential.format === 'mso_mdoc' || !protocolFields.has(String(path[0])),
-	);
-	return { allClaims, displayPaths };
-}
-
 function DisclosurePreview({
 	credential,
 	instance,
@@ -189,149 +69,136 @@ function DisclosurePreview({
 			<div>
 				<CredentialInfo
 					parsedCredential={{ signedClaims: allClaims, metadata: credential.parsedCredential.metadata }}
-					requested={{ display: 'hide' }}
 					visibleFields={displayPaths}
 					noInnerScroll
-					mainClassName="text-xs w-full"
+					stripedRows
+					mainClassName="text-[13px] w-full"
 				/>
 			</div>
 		</div>
 	);
 }
 
-function credentialImageFilter(credential: ExtendedVcEntity, instance: DcqlSelectedCredential): CredentialClaimPath[] {
-	const requiredPaths = (credential.parsedCredential.metadata.credential.TypeMetadata?.claims ?? [])
-		.filter((claim) => claim.required === true)
-		.map((claim) => claim.path);
-	return Array.from(
-		new Map(
-			[...instance.disclosurePaths, ...requiredPaths].map((path) => {
-				const imagePath = path.map((segment) => (segment === null ? '' : String(segment)));
-				return [JSON.stringify(imagePath), imagePath] as const;
-			}),
-		).values(),
-	);
-}
-
 export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEntityList }: Props) {
 	const { t } = useTranslation();
 	const screenType = useScreenType();
-	const matches = useMemo(() => {
-		const raw = popupState.options?.conformantCredentialsMap ?? {};
-		const source = Object.values(raw)[0]?.requirements;
-		const normalized = source?.length
-			? source.map((set) => ({ ...set, required: set.required !== false }))
-			: Object.keys(raw).map((id, setIndex) => ({
-					setIndex,
-					required: true,
-					options: [{ optionIndex: 0, queryIds: [id], available: !!raw[id].candidates.length }],
-				}));
-		return Object.fromEntries(
-			Object.entries(raw).map(([id, match]) => [id, { ...match, requirements: normalized }]),
-		) as DcqlMatches;
-	}, [popupState.options]);
+	const matches = useMemo(
+		() => normalizeDcqlMatches(popupState.options?.conformantCredentialsMap ?? {}),
+		[popupState.options],
+	);
 	const requirements = useMemo(() => Object.values(matches)[0]?.requirements ?? [], [matches]);
 	const { combinations, truncated } = useMemo(
 		() => completeRequiredCombinations(requirements, matches),
 		[requirements, matches],
 	);
 	const hasRequiredSets = requirements.some((set) => set.required !== false);
-	const [choices, setChoices] = useState<(number | null)[]>([]);
-	const [combinationIndex, setCombinationIndex] = useState(0);
-	const [selection, setSelection] = useState<DcqlSelection>(new Map());
-	const [step, setStep] = useState(0);
-	const [changing, setChanging] = useState<string | null>(null);
-	const [expanded, setExpanded] = useState<string | null>(null);
-	const changingMenuRef = useRef<HTMLDivElement>(null);
-	const [reviewed, setReviewed] = useState(false);
-	useEffect(() => {
-		if (!changing) return;
-		const closeOnOutsideClick = (event: PointerEvent) => {
-			if (!changingMenuRef.current?.contains(event.target as Node)) setChanging(null);
-		};
-		document.addEventListener('pointerdown', closeOnOutsideClick);
-		return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
-	}, [changing]);
-
-	// The credential context lists newest issuances first. Match that order when
-	// choosing a default, while preserving the matcher’s preferred claim set.
-	const preferred = (id: string): DcqlSelectedCredential[] => {
-		const candidates = matches[id]?.candidates ?? [];
-		const firstInInventory = vcEntityList?.find((vc) =>
-			candidates.some((candidate) => candidate.batchId === vc.batchId),
-		);
-		const candidate = candidates.find((item) => item.batchId === firstInInventory?.batchId) ?? candidates[0];
-		return candidate ? [candidate] : [];
-	};
-	const reconcile = (nextChoices: (number | null)[], previous: DcqlSelection): DcqlSelection => {
-		const active = reconcileDcqlSelection(matches, nextChoices, previous);
-		return new Map([...active].map(([id, instances]) => [id, previous.has(id) ? instances : preferred(id)]));
-	};
-	useEffect(() => {
-		if (!popupState.isOpen || !popupState.options) return;
-		const defaults = combinations[0]?.choices ?? requirements.map(() => null);
-		setChoices(defaults);
-		setCombinationIndex(0);
-		setSelection(reconcile(defaults, new Map()));
-		setStep(0);
-		setChanging(null);
-		setExpanded(null);
-		setReviewed(false);
-		// A newly opened request has new matches; inventory changes while open should
-		// not discard a user's choices.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [popupState.options, popupState.isOpen, requirements, combinations]);
-
-	const valid =
-		combinations.length > 0 &&
-		dcqlSelectionIsValid(matches, choices, selection) &&
-		[...selection.values()].flat().every((instance) => vcEntityList?.some((vc) => vc.batchId === instance.batchId));
 	const hasOptionalChoices = requirements.some(
 		(set) => set.required === false && set.options.some((option) => option.available),
 	);
 	const showSelectionStep = combinations.length !== 1 || hasOptionalChoices;
-	const currentStep = showSelectionStep ? step : 1;
+	const [choices, setChoices] = useState<(number | null)[]>([]);
+	const [selection, setSelection] = useState<DcqlSelection>(new Map());
+	const [stage, setStage] = useState<'combinations' | 'credentials' | 'review'>('combinations');
+	const hasStartedReview = useRef(false);
+	const [activeIndex, setActiveIndex] = useState(0);
+	const [slideById, setSlideById] = useState<Record<string, number>>({});
+	const [expanded, setExpanded] = useState<string | null>(null);
+	const [reviewed, setReviewed] = useState(false);
+	const [consentAttention, setConsentAttention] = useState(false);
+	const consentRef = useRef<HTMLInputElement>(null);
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const activePanelRef = useRef<HTMLElement>(null);
+	const alignActivePanelRef = useRef(false);
+	const reviewHeaderRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+	useEffect(() => {
+		if (!popupState.isOpen || !popupState.options) return;
+		const defaults = combinations[0]?.choices ?? requirements.map(() => null);
+		setChoices(defaults);
+		const initial = reconcileSelection(matches, defaults, new Map(), vcEntityList);
+		setSelection(
+			showSelectionStep
+				? initial
+				: new Map([...initial].map(([id, instances]) => [id, matches[id].candidates.length === 1 ? instances : []])),
+		);
+		setStage(showSelectionStep ? 'combinations' : 'credentials');
+		hasStartedReview.current = false;
+		setActiveIndex(0);
+		setSlideById({});
+		setExpanded(null);
+		setReviewed(false);
+		setConsentAttention(false);
+		// A newly opened request has new matches; inventory changes while open should
+		// not discard a user's choices.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [popupState.options, popupState.isOpen, requirements, combinations, showSelectionStep]);
+
+	const valid = combinations.length > 0 && selectionIsValid(matches, choices, selection, vcEntityList);
+	const currentStep = stage === 'combinations' ? 0 : 1;
+	const finalReview = stage === 'review';
+	const combinationIndex = Math.max(
+		0,
+		combinations.findIndex((combination) =>
+			combination.choices.every((choice, index) => requirements[index].required === false || choices[index] === choice),
+		),
+	);
 	const chooseCombination = (index: number) => {
 		const next = combinations[index].choices.map((choice, i) =>
 			requirements[i].required === false ? choices[i] : choice,
 		);
-		setCombinationIndex(index);
 		setChoices(next);
-		setSelection((previous) => reconcile(next, previous));
+		setSelection((previous) => reconcileSelection(matches, next, previous, vcEntityList));
+		hasStartedReview.current = false;
 		setReviewed(false);
 	};
 	const chooseOption = (index: number, optionIndex: number | null) => {
 		const next = choices.map((choice, i) => (i === index ? optionIndex : choice));
 		setChoices(next);
-		setSelection((previous) => reconcile(next, previous));
-		setChanging(null);
+		setSelection((previous) => reconcileSelection(matches, next, previous, vcEntityList));
+		hasStartedReview.current = false;
 		setReviewed(false);
 	};
-	const changeCredential = (
-		id: string,
-		batchId: number,
-		action: 'switch' | 'add' | 'remove',
-		candidate?: DcqlSelectedCredential,
-	) => {
+	const startCredentialReview = () => {
+		alignActivePanelRef.current = true;
+		if (!hasStartedReview.current) {
+			setSelection(
+				(previous) =>
+					new Map([...previous].map(([id, instances]) => [id, matches[id].candidates.length === 1 ? instances : []])),
+			);
+			setActiveIndex(0);
+			hasStartedReview.current = true;
+		}
+		setStage('credentials');
+	};
+	const setCredentialChoice = (id: string, candidate: DcqlSelectedCredential) => {
 		setSelection((previous) => {
 			const next = new Map(previous);
 			const current = previous.get(id) ?? [];
-			if (action === 'remove')
-				next.set(
-					id,
-					current.filter((item) => item.batchId !== batchId),
-				);
-			else if (candidate)
-				next.set(
-					id,
-					action === 'add'
-						? [...current, candidate]
-						: current.map((item) => (item.batchId === batchId ? candidate : item)),
-				);
+			next.set(
+				id,
+				matches[id].multiple
+					? current.some((item) => item.batchId === candidate.batchId)
+						? current.filter((item) => item.batchId !== candidate.batchId)
+						: [...current, candidate]
+					: [candidate],
+			);
 			return next;
 		});
-		setChanging(null);
 		setReviewed(false);
+	};
+	const setAllCredentials = (id: string, all: boolean) => {
+		setSelection((previous) => new Map(previous).set(id, all ? [...matches[id].candidates] : []));
+		setReviewed(false);
+	};
+	const toggleReviewDetails = (id: string) => {
+		if (expanded === id) {
+			setExpanded(null);
+			return;
+		}
+		const selected = selection.get(id)?.[0];
+		const index = matches[id].candidates.findIndex((candidate) => candidate === selected);
+		setSlideById((previous) => ({ ...previous, [id]: Math.max(0, index) }));
+		setExpanded(id);
 	};
 	const close = () => {
 		popupState.reject();
@@ -395,6 +262,161 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 			})}
 		</>
 	);
+	const activeIds = [...selection.keys()];
+	const activeId = activeIds[Math.min(activeIndex, Math.max(0, activeIds.length - 1))];
+	useLayoutEffect(() => {
+		if (!alignActivePanelRef.current || currentStep !== 1 || finalReview) return;
+		const container = scrollContainerRef.current;
+		const panel = activePanelRef.current;
+		if (!container || !panel) return;
+		alignActivePanelRef.current = false;
+		const nextTop = container.scrollTop + panel.getBoundingClientRect().top - container.getBoundingClientRect().top;
+		container.scrollTop = Math.max(0, Math.min(nextTop, container.scrollHeight - container.clientHeight));
+	}, [activeIndex, currentStep, finalReview]);
+	useLayoutEffect(() => {
+		if (!finalReview || !expanded) return;
+		const container = scrollContainerRef.current;
+		const header = reviewHeaderRefs.current[expanded];
+		if (!container || !header) return;
+		const viewport = container.getBoundingClientRect();
+		const row = header.getBoundingClientRect();
+		if (row.top < viewport.top) container.scrollTop += row.top - viewport.top;
+		else if (row.bottom > viewport.bottom) container.scrollTop += row.bottom - viewport.bottom;
+	}, [finalReview, expanded]);
+	useEffect(() => {
+		if (!popupState.isOpen || currentStep !== 1) return;
+		const onArrow = (event: KeyboardEvent) => {
+			if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+			const target = event.target as HTMLElement;
+			if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
+			const id = finalReview ? expanded : activeId;
+			const count = id ? matches[id]?.candidates.length : 0;
+			if (!id || !count || count < 2) return;
+			event.preventDefault();
+			setSlideById((previous) => ({
+				...previous,
+				[id]: ((previous[id] ?? 0) + (event.key === 'ArrowRight' ? 1 : -1) + count) % count,
+			}));
+		};
+		document.addEventListener('keydown', onArrow);
+		return () => document.removeEventListener('keydown', onArrow);
+	}, [popupState.isOpen, currentStep, finalReview, expanded, activeId, matches]);
+	const imageFor = (credential: ExtendedVcEntity, candidate: DcqlSelectedCredential, thumbnail = false) => (
+		<CredentialImage
+			vcEntity={credential}
+			vcEntityInstances={credential.instances}
+			filter={credentialImageFilter(credential, candidate)}
+			fixedRatio={false}
+			imageFit="contain"
+			showRibbon={!thumbnail}
+			className={thumbnail ? 'w-full max-h-12 rounded-lg' : 'w-full max-h-[min(24rem,45dvh)] rounded-lg'}
+		/>
+	);
+	const panel = (id: string, inReview = false) => {
+		const candidates = matches[id]?.candidates ?? [];
+		const slide = Math.min(slideById[id] ?? 0, Math.max(0, candidates.length - 1));
+		const candidate = candidates[slide];
+		const credential = vcEntityList?.find((vc) => vc.batchId === candidate?.batchId);
+		if (!candidate || !credential) return null;
+		const selected = selection.get(id) ?? [];
+		const onlyCandidate = candidates.length === 1;
+		const multiple = matches[id].multiple;
+		const setSlide = (next: number) =>
+			setSlideById((previous) => ({
+				...previous,
+				[id]: (next + candidates.length) % candidates.length,
+			}));
+		return (
+			<div
+				className={`rounded-b-xl border border-lm-gray-400 bg-lm-gray-100 dark:border-dm-gray-600 dark:bg-dm-gray-900 ${inReview ? 'border-t-0' : ''}`}
+			>
+				{!inReview && (
+					<div className="flex items-center gap-3 bg-white p-3 dark:bg-dm-gray-800">
+						<div className="h-12 w-20 shrink-0">{imageFor(credential, candidate, true)}</div>
+						<div className="min-w-0">
+							<h3 className="font-semibold">
+								<RequestName id={id} matches={matches} inventory={vcEntityList} />
+							</h3>
+							<span className="mt-1 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+								{t(multiple ? 'dcqlCredentials.selectOneOrMore' : 'dcqlCredentials.selectOne')}
+							</span>
+						</div>
+					</div>
+				)}
+				<div className="space-y-3 p-3 sm:p-4">
+					<div className="flex items-center justify-center gap-2">
+						{!onlyCandidate && (
+							<button
+								type="button"
+								aria-label={t('dcqlCredentials.previousCredential')}
+								onClick={() => setSlide(slide - 1)}
+								className="shrink-0 rounded-md p-1 text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary"
+							>
+								<ChevronLeft aria-hidden="true" />
+							</button>
+						)}
+						<div className="relative w-full max-w-[405px] min-w-0">
+							{imageFor(credential, candidate)}
+							{!onlyCandidate && (
+								<label
+									className="absolute bottom-2 right-2 flex cursor-pointer rounded-full bg-white/95 p-1.5 shadow-md dark:bg-dm-gray-800"
+									title={t('dcqlCredentials.selectCredential')}
+								>
+									<input
+										type={multiple ? 'checkbox' : 'radio'}
+										name={`credential-${id}`}
+										aria-label={t('dcqlCredentials.selectCredentialNumber', { number: slide + 1 })}
+										checked={selected.some((item) => item.batchId === candidate.batchId)}
+										onChange={() => setCredentialChoice(id, candidate)}
+										className="h-5 w-5 appearance-none rounded-full border-2 border-primary bg-white checked:bg-primary checked:after:block checked:after:text-center checked:after:text-xs checked:after:leading-4 checked:after:text-white checked:after:content-['✓'] focus-visible:outline-2 focus-visible:outline-primary"
+									/>
+								</label>
+							)}
+						</div>
+						{!onlyCandidate && (
+							<button
+								type="button"
+								aria-label={t('dcqlCredentials.nextCredential')}
+								onClick={() => setSlide(slide + 1)}
+								className="shrink-0 rounded-md p-1 text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary"
+							>
+								<ChevronRight aria-hidden="true" />
+							</button>
+						)}
+					</div>
+					<div className="text-center text-xs text-lm-gray-700 dark:text-dm-gray-300">
+						{t('dcqlCredentials.slideCount', { current: slide + 1, total: candidates.length })}
+					</div>
+					{multiple && !onlyCandidate && (
+						<div className="flex justify-center gap-5 text-sm font-semibold text-primary">
+							<button
+								type="button"
+								onClick={() => setAllCredentials(id, true)}
+								className="hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+							>
+								{t('dcqlCredentials.selectAll')}
+							</button>
+							<button
+								type="button"
+								onClick={() => setAllCredentials(id, false)}
+								className="hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+							>
+								{t('dcqlCredentials.selectNone')}
+							</button>
+						</div>
+					)}
+					<div className="mx-auto max-w-[800px]">
+						<DisclosurePreview credential={credential} instance={candidate} />
+					</div>
+					<div
+						className={`mx-auto mt-3 max-w-[800px] text-sm font-bold text-primary dark:text-blue-300 ${inReview ? '' : 'text-right'}`}
+					>
+						{t('dcqlCredentials.selectedCount', { count: selected.length })}
+					</div>
+				</div>
+			</div>
+		);
+	};
 	if (!popupState.isOpen || !popupState.options) return null;
 	const options = popupState.options;
 
@@ -405,6 +427,8 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 			loading={false}
 			fullScreen={screenType !== 'desktop'}
 			desktopWidthClassName="w-full max-w-[44rem]"
+			desktopMaxHeightClassName={currentStep === 0 ? 'max-h-[min(42rem,90dvh)]' : 'max-h-[min(44rem,88dvh)]'}
+			desktopTopAnchored={currentStep === 1}
 			padding="p-0"
 			fixedHeight
 			fitContentHeight={screenType === 'desktop'}
@@ -422,7 +446,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 					</div>
 					<hr className="mb-3 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 				</div>
-				<div className="min-h-0 flex-auto overflow-y-auto overflow-x-hidden px-4 pb-4">
+				<div ref={scrollContainerRef} className="min-h-0 flex-auto overflow-y-auto overflow-x-hidden px-4 pb-4">
 					{currentStep === 0 ? (
 						<div className="space-y-4 text-lm-gray-900 dark:text-dm-gray-100">
 							<p className="text-sm text-lm-gray-800 dark:text-dm-gray-300">
@@ -469,10 +493,18 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 							{optionalChoices}
 						</div>
 					) : (
-						<div className="space-y-4 text-lm-gray-900 dark:text-dm-gray-100">
+						<div
+							className={
+								finalReview
+									? `flex flex-col gap-4 text-lm-gray-900 dark:text-dm-gray-100 ${activeIds.length >= 3 ? 'min-h-[28rem]' : activeIds.length === 2 ? 'min-h-[23rem]' : 'min-h-[18rem]'}`
+									: 'space-y-4 text-lm-gray-900 dark:text-dm-gray-100'
+							}
+						>
 							<p className="text-sm text-lm-gray-800 dark:text-dm-gray-300">
 								<Trans
-									i18nKey="dcqlCredentials.reviewDescription"
+									i18nKey={
+										finalReview ? 'dcqlCredentials.reviewDescription' : 'dcqlCredentials.credentialReviewDescription'
+									}
 									values={{ verifier: prettyDomain(options.verifierDomainName) }}
 									components={{ strong: <strong /> }}
 								/>
@@ -481,165 +513,129 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 								const Component = data.ui;
 								return <Component key={index} />;
 							})}
-							<div className="space-y-4">
-								{[...selection].map(([id, instances]) => (
-									<section key={id} className="space-y-3">
-										{instances.map((instance) => {
-											const credential = vcEntityList?.find((vc) => vc.batchId === instance.batchId);
-											if (!credential) return null;
-											const menuKey = `${id}-${instance.batchId}`;
-											const isExpanded = expanded === menuKey;
-											const credentialCount = new Set(matches[id].candidates.map((candidate) => candidate.batchId))
-												.size;
-											const alternatives = (vcEntityList ?? []).flatMap((vc) => {
-												const candidate = matches[id].candidates.find((item) => item.batchId === vc.batchId);
-												return candidate && !instances.some((item) => item.batchId === vc.batchId)
-													? [{ credential: vc, candidate }]
-													: [];
-											});
-											const canRemove = matches[id].multiple && instances.length > 1;
-											return (
-												<div
-													key={instance.batchId}
-													className="min-w-0 rounded-xl border border-lm-gray-400 dark:border-dm-gray-600 p-4"
+							{finalReview ? (
+								<div className="space-y-3">
+									{activeIds.map((id) => {
+										const candidate = selection.get(id)?.[0] ?? matches[id].candidates[0];
+										const credential = vcEntityList?.find((vc) => vc.batchId === candidate?.batchId);
+										const isExpanded = expanded === id;
+										return (
+											<section
+												key={id}
+												className="overflow-hidden rounded-xl border border-lm-gray-400 dark:border-dm-gray-600"
+											>
+												<button
+													type="button"
+													ref={(node) => {
+														reviewHeaderRefs.current[id] = node;
+													}}
+													aria-expanded={isExpanded}
+													onClick={() => toggleReviewDetails(id)}
+													className="flex w-full cursor-pointer items-center gap-3 bg-white p-3 text-left transition-colors hover:bg-[#f3f8ff] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary dark:bg-dm-gray-800 dark:hover:bg-dm-gray-700"
 												>
-													<div className="flex items-start justify-between gap-3">
-														<div className="flex min-w-0 flex-1 items-center gap-4">
-															<div className="w-24 shrink-0 sm:w-32">
-																<CredentialImage
-																	vcEntity={credential}
-																	vcEntityInstances={credential.instances}
-																	className="w-full rounded-lg"
-																	filter={credentialImageFilter(credential, instance)}
-																/>
-															</div>
-															<div className="min-w-0">
-																<h3 className="font-semibold">
-																	<CredentialName credential={credential} />
-																</h3>
-															</div>
-														</div>
-														{canRemove && (
-															<button
-																type="button"
-																aria-label={t('dcqlCredentials.removeCredential')}
-																className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-lm-red-dark transition-colors hover:bg-lm-gray-200 focus-visible:outline-2 focus-visible:outline-primary dark:text-red-400 dark:hover:bg-dm-gray-800"
-																onClick={() => changeCredential(id, instance.batchId, 'remove')}
-															>
-																<Trash2 size={16} aria-hidden="true" />
-																{t('dcqlCredentials.remove')}
-															</button>
-														)}
+													<div className="h-12 w-20 shrink-0">
+														{credential && imageFor(credential, candidate, true)}
 													</div>
-													{alternatives.length > 0 && (
-														<div ref={changing === menuKey ? changingMenuRef : undefined} className="relative mt-3">
-															<p className="mb-2 text-sm text-lm-gray-700 dark:text-dm-gray-300">
-																<WalletCredentialCount credential={credential} count={credentialCount} />
-															</p>
-															<button
-																type="button"
-																className="inline-flex items-center gap-2 rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-																aria-expanded={changing === menuKey}
-																onClick={() => setChanging(changing === menuKey ? null : menuKey)}
-															>
-																{t('dcqlCredentials.chooseAnother')}
-																<ChevronDown
-																	size={16}
-																	aria-hidden="true"
-																	className={changing === menuKey ? 'rotate-180' : ''}
-																/>
-															</button>
-															{changing === menuKey && (
-																<div className="absolute left-0 top-full z-20 mt-2 max-h-[min(18rem,40dvh)] w-full space-y-1 overflow-y-auto rounded-lg border border-lm-gray-400 bg-lm-gray-100 p-2 shadow-xl dark:border-dm-gray-600 dark:bg-dm-gray-900">
-																	{alternatives.map(({ credential: alternative, candidate }) =>
-																		matches[id].multiple ? (
-																			<div
-																				key={alternative.batchId}
-																				className="rounded-lg px-2 py-2 hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800"
-																			>
-																				<p className="font-medium text-sm">
-																					<CredentialOptionText credential={alternative} />
-																				</p>
-																				<div className="flex gap-2 mt-1">
-																					<Button
-																						variant="outline"
-																						size="sm"
-																						onClick={() => changeCredential(id, instance.batchId, 'switch', candidate)}
-																					>
-																						{t('dcqlCredentials.change')}
-																					</Button>
-																					<Button
-																						variant="outline"
-																						size="sm"
-																						onClick={() => changeCredential(id, instance.batchId, 'add', candidate)}
-																					>
-																						{t('dcqlCredentials.add')}
-																					</Button>
-																				</div>
-																			</div>
-																		) : (
-																			<button
-																				key={alternative.batchId}
-																				type="button"
-																				className="block w-full rounded-lg px-2 py-2 text-left cursor-pointer hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800 focus-visible:outline-2 focus-visible:outline-primary"
-																				onClick={() => changeCredential(id, instance.batchId, 'switch', candidate)}
-																			>
-																				<span className="block font-medium text-sm">
-																					<CredentialOptionText credential={alternative} />
-																				</span>
-																			</button>
-																		),
-																	)}
-																</div>
+													<div className="min-w-0 flex-1">
+														<h3 className="font-semibold">
+															<RequestName id={id} matches={matches} inventory={vcEntityList} />
+														</h3>
+														<span className="mt-1 inline-block rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+															{t(
+																matches[id].multiple ? 'dcqlCredentials.selectOneOrMore' : 'dcqlCredentials.selectOne',
 															)}
-														</div>
-													)}
-													<div className="mt-4 border-t border-lm-gray-400 pt-4 dark:border-dm-gray-600">
-														<button
-															type="button"
-															className="flex w-full items-center justify-between gap-2 text-left font-semibold text-primary"
-															aria-expanded={isExpanded}
-															onClick={() => setExpanded(isExpanded ? null : menuKey)}
-														>
-															<span>{t('dcqlCredentials.informationYoullShare')}</span>
-															<ChevronDown size={20} aria-hidden="true" className={isExpanded ? 'rotate-180' : ''} />
-														</button>
-														{isExpanded && (
-															<div className="mt-3">
-																<DisclosurePreview credential={credential} instance={instance} />
-															</div>
-														)}
+														</span>
 													</div>
-												</div>
-											);
-										})}
-									</section>
-								))}
-							</div>
-							<label className="flex items-start gap-2 text-sm leading-5">
-								<input
-									type="checkbox"
-									className="mt-0.5 shrink-0 accent-primary"
-									aria-label={t('dcqlCredentials.consentAria', {
-										verifier: prettyDomain(options.verifierDomainName),
+													<span className="flex shrink-0 flex-col items-end text-sm text-primary">
+														<strong>
+															{t(isExpanded ? 'dcqlCredentials.hideDetails' : 'dcqlCredentials.showDetails')}
+														</strong>
+														<small className="text-lm-gray-700 dark:text-dm-gray-300">
+															{t('dcqlCredentials.selectedCount', { count: selection.get(id)?.length ?? 0 })}
+														</small>
+													</span>
+													<ChevronDown size={18} aria-hidden="true" className={isExpanded ? 'rotate-180' : ''} />
+												</button>
+												{isExpanded && panel(id, true)}
+											</section>
+										);
 									})}
-									checked={reviewed}
-									onChange={(event) => setReviewed(event.target.checked)}
-								/>
-								<span>
-									<Trans
-										i18nKey="dcqlCredentials.consent"
-										values={{ verifier: prettyDomain(options.verifierDomainName) }}
-										components={{ strong: <strong /> }}
+								</div>
+							) : (
+								<div className="space-y-2">
+									{activeIds.map((id, index) =>
+										index === activeIndex ? (
+											<section key={id} ref={activePanelRef}>
+												{panel(id)}
+											</section>
+										) : (
+											<div
+												key={id}
+												className="flex items-center gap-3 rounded-lg border border-lm-gray-400 bg-white p-2 dark:border-dm-gray-600 dark:bg-dm-gray-800"
+											>
+												<div className="h-12 w-16 shrink-0">
+													{(() => {
+														const candidate = selection.get(id)?.[0] ?? matches[id].candidates[0];
+														const credential = vcEntityList?.find((vc) => vc.batchId === candidate?.batchId);
+														return credential && imageFor(credential, candidate, true);
+													})()}
+												</div>
+												<div>
+													<h3 className="text-sm font-semibold">
+														<RequestName id={id} matches={matches} inventory={vcEntityList} />
+													</h3>
+													<span className="text-xs text-lm-gray-700 dark:text-dm-gray-300">
+														{t('dcqlCredentials.selectedCount', { count: selection.get(id)?.length ?? 0 })}
+													</span>
+												</div>
+											</div>
+										),
+									)}
+								</div>
+							)}
+							{finalReview && (
+								<label
+									className={`mt-auto flex items-start gap-2 rounded-lg p-3 text-sm leading-5 ${consentAttention ? 'bg-red-50 dark:bg-red-950/30' : 'bg-white dark:bg-dm-gray-800'}`}
+								>
+									<input
+										ref={consentRef}
+										type="checkbox"
+										className="mt-0.5 shrink-0 accent-primary"
+										aria-label={t('dcqlCredentials.consentAria', {
+											verifier: prettyDomain(options.verifierDomainName),
+										})}
+										aria-invalid={consentAttention}
+										aria-describedby={consentAttention ? 'dcql-consent-error' : undefined}
+										checked={reviewed}
+										onChange={(event) => {
+											setReviewed(event.target.checked);
+											setConsentAttention(false);
+										}}
 									/>
-								</span>
-							</label>
+									<span>
+										<Trans
+											i18nKey="dcqlCredentials.consent"
+											values={{ verifier: prettyDomain(options.verifierDomainName) }}
+											components={{ strong: <strong /> }}
+										/>
+										{consentAttention && (
+											<span
+												id="dcql-consent-error"
+												role="alert"
+												className="mt-1 block text-xs font-semibold text-lm-red-dark dark:text-red-400"
+											>
+												{t('dcqlCredentials.consentRequired')}
+											</span>
+										)}
+									</span>
+								</label>
+							)}
 						</div>
 					)}
 				</div>
 				<div className="z-10 shrink-0 bg-lm-gray-100 dark:bg-dm-gray-900 border-t border-lm-gray-400 dark:border-dm-gray-600 shadow-2xl flex justify-between px-4 py-3">
 					<Button id="cancel-select-credentials" onClick={close}>
-						{t('common.cancel')}
+						{t('dcqlCredentials.cancelPresentation')}
 					</Button>
 					<div className="flex gap-2">
 						{currentStep === 1 && showSelectionStep && (
@@ -647,7 +643,14 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 								id="previous-select-credentials"
 								variant="outline"
 								onClick={() => {
-									setStep(0);
+									if (finalReview) {
+										alignActivePanelRef.current = true;
+										setStage('credentials');
+										setActiveIndex(activeIds.length - 1);
+									} else if (activeIndex > 0) {
+										alignActivePanelRef.current = true;
+										setActiveIndex(activeIndex - 1);
+									} else setStage('combinations');
 									setReviewed(false);
 								}}
 							>
@@ -655,21 +658,49 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 							</Button>
 						)}
 						<Button
-							id={currentStep === 0 ? 'next-select-credentials' : 'send-select-credentials'}
+							id={currentStep === 0 || !finalReview ? 'next-select-credentials' : 'send-select-credentials'}
 							variant="primary"
-							disabled={!valid || (currentStep === 1 && !reviewed)}
+							disabled={currentStep === 0 ? !valid : !finalReview && (!activeId || !selection.get(activeId)?.length)}
 							onClick={() => {
-								if (!valid) return;
 								if (currentStep === 0) {
-									setStep(1);
+									if (!valid) return;
+									startCredentialReview();
 									return;
 								}
-								if (!reviewed) return;
+								if (!finalReview) {
+									if (!activeId || !selection.get(activeId)?.length) return;
+									if (activeIndex < activeIds.length - 1) {
+										alignActivePanelRef.current = true;
+										setActiveIndex(activeIndex + 1);
+									} else {
+										setStage('review');
+										setExpanded(null);
+									}
+									return;
+								}
+								if (!reviewed) {
+									setConsentAttention(true);
+									consentRef.current?.scrollIntoView?.({ block: 'nearest' });
+									consentRef.current?.focus();
+									return;
+								}
+								if (!valid) {
+									const missingId = activeIds.find((id) => !selection.get(id)?.length);
+									if (missingId) {
+										setExpanded(missingId);
+										reviewHeaderRefs.current[missingId]?.focus();
+									}
+									return;
+								}
 								popupState.resolve(selection);
 								setPopupState((current) => ({ ...current, isOpen: false }));
 							}}
 						>
-							{currentStep === 0 ? t('dcqlCredentials.reviewDetails') : t('common.navItemSendCredentialsSimple')}
+							{currentStep === 0
+								? t('dcqlCredentials.reviewDetails')
+								: finalReview
+									? t('common.navItemSendCredentialsSimple')
+									: t('common.next')}
 						</Button>
 					</div>
 				</div>

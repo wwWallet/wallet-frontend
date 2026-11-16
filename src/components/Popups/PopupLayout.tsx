@@ -17,6 +17,8 @@ interface PopupLayoutProps {
 	shouldCloseOnOverlayClick?: boolean;
 	fixedHeight?: boolean;
 	fitContentHeight?: boolean;
+	desktopMaxHeightClassName?: string;
+	desktopTopAnchored?: boolean;
 }
 
 const PopupLayout = ({
@@ -32,6 +34,8 @@ const PopupLayout = ({
 	shouldCloseOnOverlayClick = true,
 	fixedHeight = false,
 	fitContentHeight = false,
+	desktopMaxHeightClassName = 'max-h-[min(42rem,90dvh)]',
+	desktopTopAnchored = false,
 }: PopupLayoutProps) => {
 	const [showLoading, setShowLoading] = useState(false);
 
@@ -68,8 +72,8 @@ const PopupLayout = ({
 		<Modal
 			isOpen={isOpen}
 			onRequestClose={onClose}
-			className={`relative ${fixedHeight ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} bg-lm-gray-100 dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600 ${fullScreen ? 'flex flex-col space-between w-full h-full' : `${desktopWidthClassName} ${fitContentHeight ? 'flex max-h-[min(42rem,90dvh)] flex-col' : fixedHeight ? 'h-[min(42rem,90dvh)]' : 'max-h-[90vh]'} rounded-lg shadow-lg m-4`}`}
-			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50 bg-lm-gray-100 dark:bg-dm-gray-900' : 'bg-lm-gray-900/50 dark:bg-dm-gray-500/50 backdrop-blur-xs z-50'}`}
+			className={`relative ${fixedHeight ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} bg-lm-gray-100 dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600 ${fullScreen ? 'flex flex-col space-between w-full h-full' : `${desktopWidthClassName} ${fitContentHeight ? `flex ${desktopMaxHeightClassName} flex-col` : fixedHeight ? 'h-[min(42rem,90dvh)]' : 'max-h-[90vh]'} rounded-lg shadow-lg ${desktopTopAnchored ? 'mx-4 mt-[8dvh] mb-[4dvh]' : 'm-4'}`}`}
+			overlayClassName={`fixed inset-0 flex ${desktopTopAnchored && !fullScreen ? 'items-start' : 'items-center'} justify-center ${fullScreen ? 'z-50 bg-lm-gray-100 dark:bg-dm-gray-900' : 'bg-lm-gray-900/50 dark:bg-dm-gray-500/50 backdrop-blur-xs z-50'}`}
 			bodyOpenClassName="overflow-hidden"
 			shouldCloseOnOverlayClick={shouldCloseOnOverlayClick}
 		>

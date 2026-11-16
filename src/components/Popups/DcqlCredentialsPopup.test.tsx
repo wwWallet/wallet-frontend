@@ -2,24 +2,28 @@ import { useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { DcqlMatches, DcqlRequirement, DcqlSelection } from 'wallet-common';
-import DcqlCredentialsPopup, { completeRequiredCombinations } from './DcqlCredentialsPopup';
+import DcqlCredentialsPopup from './DcqlCredentialsPopup';
+import { completeRequiredCombinations } from './dcqlCredentialSelection';
 import type { CredentialSelectionPopupState } from '@/types/credentialSelection';
 import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
+const { credentialImageProps, credentialInfoProps } = vi.hoisted(() => ({
+	credentialImageProps: vi.fn(),
+	credentialInfoProps: vi.fn(),
+}));
+
 vi.mock('./PopupLayout', () => ({ default: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
-vi.mock('../Credentials/CredentialImage', () => ({ default: () => <span /> }));
+vi.mock('../Credentials/CredentialImage', () => ({
+	default: (props: unknown) => {
+		credentialImageProps(props);
+		return null;
+	},
+}));
 vi.mock('../Credentials/CredentialInfo', () => ({
-	default: ({
-		parsedCredential,
-		visibleFields,
-	}: {
-		parsedCredential: { signedClaims: unknown };
-		visibleFields: unknown;
-	}) => (
-		<pre data-testid="disclosure" data-fields={JSON.stringify(visibleFields)}>
-			{JSON.stringify(parsedCredential.signedClaims)}
-		</pre>
-	),
+	default: (props: unknown) => {
+		credentialInfoProps(props);
+		return null;
+	},
 }));
 vi.mock('@/hooks/useCredentialName', () => ({
 	useCredentialName: (_: unknown, batchId: number) => `credential-${batchId}`,
@@ -82,36 +86,36 @@ const inventory = [6, 5, 4, 3, 2, 1].map((batchId) => ({
 
 function mount(conformantCredentialsMap = matches, credentials = inventory) {
 	const resolve = vi.fn();
+	const reject = vi.fn();
 	function Wrapper() {
 		const [state, setState] = useState<CredentialSelectionPopupState>({
 			isOpen: true,
 			options: { conformantCredentialsMap, verifierDomainName: 'verifier.invalid', verifierPurpose: '' },
 			resolve,
-			reject: vi.fn(),
+			reject,
 		});
 		return <DcqlCredentialsPopup popupState={state} setPopupState={setState} vcEntityList={credentials} />;
 	}
 	render(<Wrapper />);
-	return resolve;
+	return { resolve, reject };
 }
-function review() {
-	const button = screen.queryByRole('button', { name: 'dcqlCredentials.reviewDetails' });
-	if (button) fireEvent.click(button);
-}
-function send(resolve: ReturnType<typeof vi.fn>): DcqlSelection {
-	review();
-	fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' }));
-	fireEvent.click(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' }));
-	expect(resolve).toHaveBeenCalledOnce();
-	return resolve.mock.calls[0][0] as DcqlSelection;
-}
+const next = () => fireEvent.click(screen.getByRole('button', { name: 'common.next' }));
+const begin = () => fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.reviewDetails' }));
+const select = () => fireEvent.click(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber' }));
+const consent = () => fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' }));
+const send = () => fireEvent.click(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' }));
 function withRequirements(sets: DcqlRequirement[]): DcqlMatches {
 	return Object.fromEntries(
 		Object.entries(matches).map(([id, match]) => [id, { ...match, requirements: sets }]),
 	) as DcqlMatches;
 }
 
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	vi.restoreAllMocks();
+	credentialImageProps.mockClear();
+	credentialInfoProps.mockClear();
+});
 
 describe('DCQL credential selection', () => {
 	it('deduplicates complete required combinations and excludes unavailable and optional options', () => {
@@ -162,103 +166,238 @@ describe('DCQL credential selection', () => {
 		expect(result.truncated).toBe(true);
 	});
 
-	it('sends the chosen required combination and an optional credential', () => {
-		const resolve = mount();
-		fireEvent.click(screen.getAllByRole('radio')[1]);
-		fireEvent.click(screen.getByRole('checkbox', { name: 'credential-5' }));
-		expect([...send(resolve).keys()]).toEqual(['r1', 'r2', 'r3']);
+	it('uses radio selection for a single-choice type and preserves the exact candidate', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r0'], available: true }] },
+		];
+		const { resolve } = mount(withRequirements(sets));
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.nextCredential' }));
+		select();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.previousCredential' }));
+		next();
+		fireEvent.click(screen.getByRole('button', { name: /dcqlCredentials.showDetails/ }));
+		expect(credentialInfoProps.mock.lastCall?.[0]).toEqual(
+			expect.objectContaining({
+				parsedCredential: expect.objectContaining({ signedClaims: matches.r0.candidates[1].disclosedClaims }),
+			}),
+		);
+		consent();
+		send();
+		expect(resolve).toHaveBeenCalledOnce();
+		const selected = (resolve.mock.calls[0][0] as DcqlSelection).get('r0');
+		expect(selected).toEqual([matches.r0.candidates[1]]);
+		expect(selected?.[0]).toBe(matches.r0.candidates[1]);
 	});
 
-	it('requires every query when credential sets are absent', () => {
-		const resolve = mount({
+	it('sends a required combination with an optional credential', () => {
+		const { resolve } = mount();
+		fireEvent.click(screen.getAllByRole('radio')[1]);
+		fireEvent.click(screen.getByRole('checkbox', { name: 'credential-5' }));
+		begin();
+		next();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		next();
+		next();
+		consent();
+		send();
+		expect([...(resolve.mock.calls[0][0] as DcqlSelection).keys()]).toEqual(['r1', 'r2', 'r3']);
+	});
+
+	it('requires each query when requirement sets are absent', () => {
+		const { resolve } = mount({
 			r0: { ...matches.r0, requirements: [] },
 			r1: { ...matches.r1, requirements: [] },
 		});
-		expect([...send(resolve).keys()]).toEqual(['r0', 'r1']);
+		select();
+		next();
+		next();
+		consent();
+		send();
+		expect([...(resolve.mock.calls[0][0] as DcqlSelection).keys()]).toEqual(['r0', 'r1']);
 	});
 
-	it('puts optional choices in step one when there is one required combination', () => {
+	it('allows an optional-only request', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: false, options: [{ optionIndex: 0, queryIds: ['r3'], available: true }] },
+		];
+		const { resolve } = mount({ r3: { ...matches.r3, requirements: sets } });
+		fireEvent.click(screen.getByRole('checkbox', { name: 'credential-5' }));
+		begin();
+		next();
+		consent();
+		send();
+		expect([...(resolve.mock.calls[0][0] as DcqlSelection).keys()]).toEqual(['r3']);
+	});
+
+	it('keeps a credential choice when returning through the combination step', () => {
 		const sets: DcqlRequirement[] = [
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r0'], available: true }] },
 			{ setIndex: 1, required: false, options: [{ optionIndex: 0, queryIds: ['r3'], available: true }] },
 		];
-		const resolve = mount(withRequirements(sets));
-		const optional = screen.getByRole('checkbox', { name: 'credential-5' });
-		expect(screen.getByText('dcqlCredentials.step')).toBeInTheDocument();
-		fireEvent.click(optional);
-		review();
-		expect(screen.queryByRole('checkbox', { name: 'credential-5' })).not.toBeInTheDocument();
-		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' })).toBeInTheDocument();
-		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' }));
-		fireEvent.click(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' }));
-		expect([...(resolve.mock.calls[0][0] as DcqlSelection).keys()]).toEqual(['r0', 'r3']);
+		const { resolve } = mount(withRequirements(sets));
+		begin();
+		select();
+		next();
+		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
+		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
+		begin();
+		expect(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber' })).toBeChecked();
+		next();
+		consent();
+		send();
+		expect((resolve.mock.calls[0][0] as DcqlSelection).get('r0')).toEqual([matches.r0.candidates[0]]);
 	});
 
-	it('shows only optional controls when there are no required sets', () => {
+	it('adds and removes individual credentials in a multiple-choice query', () => {
 		const sets: DcqlRequirement[] = [
-			{ setIndex: 0, required: false, options: [{ optionIndex: 0, queryIds: ['r3'], available: true }] },
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r2'], available: true }] },
 		];
-		const resolve = mount(withRequirements(sets));
-		expect(screen.queryByRole('radio')).not.toBeInTheDocument();
-		expect(screen.queryByText('dcqlCredentials.noCombination')).not.toBeInTheDocument();
-		fireEvent.click(screen.getByRole('checkbox', { name: 'credential-5' }));
-		expect([...send(resolve).keys()]).toEqual(['r3']);
+		const { resolve } = mount({ r2: { ...matches.r2, requirements: sets } });
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' }));
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.nextCredential' }));
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' }));
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.previousCredential' }));
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' }));
+		next();
+		fireEvent.click(screen.getByRole('button', { name: /dcqlCredentials.showDetails/ }));
+		expect(credentialInfoProps.mock.lastCall?.[0]).toEqual(
+			expect.objectContaining({
+				parsedCredential: expect.objectContaining({ signedClaims: matches.r2.candidates[1].disclosedClaims }),
+			}),
+		);
+		consent();
+		send();
+		expect((resolve.mock.calls[0][0] as DcqlSelection).get('r2')).toEqual([matches.r2.candidates[1]]);
 	});
 
-	it('skips step one when the only required combination has no optional choices', () => {
+	it('supports multiple choice, select all and select none, and resets consent after a review edit', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r2'], available: true }] },
+		];
+		const { resolve } = mount({ r2: { ...matches.r2, requirements: sets } });
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' })).not.toBeChecked();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' })).toBeChecked();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectNone' }));
+		expect(screen.getByRole('button', { name: 'common.next' })).toBeDisabled();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		next();
+		expect(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' })).toBeEnabled();
+		send();
+		const consentCheckbox = screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' });
+		expect(consentCheckbox).toHaveFocus();
+		expect(screen.getByRole('alert')).toHaveTextContent('dcqlCredentials.consentRequired');
+		expect(resolve).not.toHaveBeenCalled();
+		consent();
+		expect(screen.queryByText('dcqlCredentials.consentRequired')).not.toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: /dcqlCredentials.showDetails/ }));
+		expect(screen.getByRole('button', { name: /dcqlCredentials.hideDetails/ })).toBeInTheDocument();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectNone' }));
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' })).not.toBeChecked();
+		expect(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' })).toBeEnabled();
+		send();
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' })).toHaveFocus();
+		expect(resolve).not.toHaveBeenCalled();
+		consent();
+		send();
+		expect(resolve).not.toHaveBeenCalled();
+		expect(screen.getByRole('button', { name: /dcqlCredentials.hideDetails/ })).toHaveFocus();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		consent();
+		send();
+		expect((resolve.mock.calls[0][0] as DcqlSelection).get('r2')).toEqual(matches.r2.candidates);
+	});
+
+	it('keeps claim exclusions, nested paths and image disclosure filters', () => {
 		const sets: DcqlRequirement[] = [
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r0'], available: true }] },
 		];
-		const resolve = mount(withRequirements(sets));
-		expect(screen.queryByRole('button', { name: 'dcqlCredentials.reviewDetails' })).not.toBeInTheDocument();
-		expect([...send(resolve).keys()]).toEqual(['r0']);
+		const rich = {
+			...candidate(1),
+			disclosurePaths: [['person', 'name'], ['sub']],
+			disclosedClaims: { person: { name: 'Ada' }, iat: 123, iss: 'issuer', sub: 'subject-id' },
+		};
+		const richInventory = inventory.map((vc) =>
+			vc.batchId === 1
+				? ({
+						...vc,
+						parsedCredential: {
+							...vc.parsedCredential,
+							metadata: {
+								...vc.parsedCredential.metadata,
+								credential: {
+									...vc.parsedCredential.metadata.credential,
+									TypeMetadata: {
+										claims: [
+											{ path: ['required'], required: true },
+											{ path: ['person', 'name'], display: [{ locale: 'en', label: 'Person name' }] },
+										],
+									},
+								},
+							},
+						},
+					} as ExtendedVcEntity)
+				: vc,
+		);
+		mount({ r0: { ...matches.r0, candidates: [rich], credentials: [1], requirements: sets } }, richInventory);
+		expect(credentialInfoProps).toHaveBeenCalledWith(
+			expect.objectContaining({
+				parsedCredential: expect.objectContaining({
+					signedClaims: rich.disclosedClaims,
+					metadata: richInventory[5].parsedCredential.metadata,
+				}),
+				visibleFields: [['person', 'name']],
+			}),
+		);
+		expect(credentialImageProps).toHaveBeenCalledWith(
+			expect.objectContaining({ filter: [['person', 'name'], ['required']] }),
+		);
 	});
 
-	it('cannot send when a required query has no matching credential', () => {
+	it('retains protocol fields for mdoc credentials', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r1'], available: true }] },
+		];
+		const mdocInventory = inventory.map((vc) =>
+			vc.batchId === 2
+				? ({
+						...vc,
+						parsedCredential: {
+							...vc.parsedCredential,
+							metadata: {
+								...vc.parsedCredential.metadata,
+								credential: {
+									...vc.parsedCredential.metadata.credential,
+									format: 'mso_mdoc',
+								},
+							},
+						},
+					} as ExtendedVcEntity)
+				: vc,
+		);
+		const mdocCandidate = {
+			...matches.r1.candidates[0],
+			disclosedClaims: { preferred: 'value-2', iat: 123, sub: 'subject-id' },
+		};
+		mount({ r1: { ...matches.r1, candidates: [mdocCandidate], requirements: sets } }, mdocInventory);
+		expect(credentialInfoProps).toHaveBeenCalledWith(
+			expect.objectContaining({ visibleFields: [['preferred'], ['iat']] }),
+		);
+	});
+
+	it('cancels through the existing rejection flow', () => {
+		const { reject, resolve } = mount();
+		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.cancelPresentation' }));
+		expect(reject).toHaveBeenCalledOnce();
+		expect(resolve).not.toHaveBeenCalled();
+		expect(screen.queryByRole('button', { name: 'dcqlCredentials.cancelPresentation' })).not.toBeInTheDocument();
+	});
+
+	it('blocks step one when a required query has no matching credential', () => {
 		const sets: DcqlRequirement[] = [
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r4'], available: true }] },
 		];
 		mount({ r4: { ...matches.r4, requirements: sets } });
 		expect(screen.getByRole('button', { name: 'dcqlCredentials.reviewDetails' })).toBeDisabled();
-	});
-
-	it('starts with the newest matching credential and can switch to another', () => {
-		const resolve = mount();
-		review();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.chooseAnother' }));
-		fireEvent.click(screen.getByRole('button', { name: /credential-1/ }));
-		const selection = send(resolve);
-		expect(selection.get('r0')?.[0]).toMatchObject({ batchId: 1, disclosedClaims: { preferred: 'value-1' } });
-	});
-
-	it('can add a second credential when the query allows multiple', () => {
-		const resolve = mount();
-		fireEvent.click(screen.getAllByRole('radio')[1]);
-		review();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.chooseAnother' }));
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.add' }));
-		expect(
-			send(resolve)
-				.get('r2')
-				?.map(({ batchId }) => batchId),
-		).toEqual([4, 3]);
-	});
-
-	it('removes an added credential from its card header', () => {
-		const resolve = mount();
-		fireEvent.click(screen.getAllByRole('radio')[1]);
-		review();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.chooseAnother' }));
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.add' }));
-		const removeButtons = screen.getAllByRole('button', { name: 'dcqlCredentials.removeCredential' });
-		expect(removeButtons).toHaveLength(2);
-		expect(removeButtons[0].parentElement?.querySelector('h3')).toBeInTheDocument();
-		fireEvent.click(removeButtons[0]);
-		expect(screen.queryByRole('button', { name: 'dcqlCredentials.removeCredential' })).not.toBeInTheDocument();
-		expect(
-			send(resolve)
-				.get('r2')
-				?.map(({ batchId }) => batchId),
-		).toEqual([3]);
 	});
 });
