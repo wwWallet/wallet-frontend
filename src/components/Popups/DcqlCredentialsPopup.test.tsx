@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { DcqlMatches, DcqlRequirement, DcqlSelection } from 'wallet-common';
 import DcqlCredentialsPopup from './DcqlCredentialsPopup';
-import { completeRequiredCombinations } from './dcqlCredentialSelection';
+import { completeRequiredCombinations, reconcileSelection } from './dcqlCredentialSelection';
 import type { CredentialSelectionPopupState } from '@/types/credentialSelection';
 import type { ExtendedVcEntity } from '@/context/CredentialsContext';
 
@@ -229,6 +229,26 @@ describe('DCQL credential selection', () => {
 		expect([...(resolve.mock.calls[0][0] as DcqlSelection).keys()]).toEqual(['r3']);
 	});
 
+	it('does not open an empty review for an optional-only request', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: false, options: [{ optionIndex: 0, queryIds: ['r3'], available: true }] },
+		];
+		mount({ r3: { ...matches.r3, requirements: sets } });
+		begin();
+		expect(screen.getByRole('alert')).toHaveTextContent('dcqlCredentials.emptyResponse');
+		expect(screen.getByRole('button', { name: 'dcqlCredentials.reviewDetails' })).toBeInTheDocument();
+	});
+
+	it('does not open a review when optional options are unavailable', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: false, options: [{ optionIndex: 0, queryIds: ['r4'], available: false }] },
+		];
+		mount({ r4: { ...matches.r4, requirements: sets } });
+		begin();
+		expect(screen.getByRole('alert')).toHaveTextContent('dcqlCredentials.emptyResponse');
+		expect(screen.getByRole('button', { name: 'dcqlCredentials.cancelPresentation' })).toBeInTheDocument();
+	});
+
 	it('keeps a credential choice when returning through the combination step', () => {
 		const sets: DcqlRequirement[] = [
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r0'], available: true }] },
@@ -246,6 +266,61 @@ describe('DCQL credential selection', () => {
 		consent();
 		send();
 		expect((resolve.mock.calls[0][0] as DcqlSelection).get('r0')).toEqual([matches.r0.candidates[0]]);
+	});
+
+	it('preserves a required selection when enabling an optional credential', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r0'], available: true }] },
+			{ setIndex: 1, required: false, options: [{ optionIndex: 0, queryIds: ['r3'], available: true }] },
+		];
+		mount(withRequirements(sets));
+		begin();
+		select();
+		next();
+		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
+		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
+		fireEvent.click(screen.getAllByRole('checkbox')[0]);
+		begin();
+		expect(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber' })).toBeChecked();
+	});
+
+	it('preserves selected credentials for query IDs that remain active', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r2'], available: true }] },
+			{
+				setIndex: 1,
+				required: true,
+				options: [
+					{ optionIndex: 0, queryIds: ['r2'], available: true },
+					{ optionIndex: 1, queryIds: ['r2'], available: true },
+				],
+			},
+		];
+		const previous = new Map([['r2', matches.r2.candidates]]);
+		const result = reconcileSelection({ r2: { ...matches.r2, requirements: sets } }, [0, 1], previous, inventory);
+		expect(result.get('r2')).toBe(previous.get('r2'));
+		expect(result.has('r1')).toBe(false);
+	});
+
+	it('starts newly active multi-candidate queries empty', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r2'], available: true }] },
+		];
+		const result = reconcileSelection({ r2: { ...matches.r2, requirements: sets } }, [0], new Map(), inventory);
+		expect(result.get('r2')).toEqual([]);
+	});
+
+	it('preselects the only candidate for a multiple query', () => {
+		const sets: DcqlRequirement[] = [
+			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r1'], available: true }] },
+		];
+		const result = reconcileSelection(
+			{ r1: { ...matches.r1, multiple: true, requirements: sets } },
+			[0],
+			new Map(),
+			inventory,
+		);
+		expect(result.get('r1')).toEqual([matches.r1.candidates[0]]);
 	});
 
 	it('adds and removes individual credentials in a multiple-choice query', () => {

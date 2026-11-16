@@ -95,7 +95,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 	const hasOptionalChoices = requirements.some(
 		(set) => set.required === false && set.options.some((option) => option.available),
 	);
-	const showSelectionStep = combinations.length !== 1 || hasOptionalChoices;
+	const showSelectionStep = combinations.length !== 1 || hasOptionalChoices || !hasRequiredSets;
 	const [choices, setChoices] = useState<(number | null)[]>([]);
 	const [selection, setSelection] = useState<DcqlSelection>(new Map());
 	const [stage, setStage] = useState<'combinations' | 'credentials' | 'review'>('combinations');
@@ -104,6 +104,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 	const [slideById, setSlideById] = useState<Record<string, number>>({});
 	const [expanded, setExpanded] = useState<string | null>(null);
 	const [reviewed, setReviewed] = useState(false);
+	const [emptyResponseAttention, setEmptyResponseAttention] = useState(false);
 	const [consentAttention, setConsentAttention] = useState(false);
 	const consentRef = useRef<HTMLInputElement>(null);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +128,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 		setSlideById({});
 		setExpanded(null);
 		setReviewed(false);
+		setEmptyResponseAttention(false);
 		setConsentAttention(false);
 		// A newly opened request has new matches; inventory changes while open should
 		// not discard a user's choices.
@@ -134,6 +136,19 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 	}, [popupState.options, popupState.isOpen, requirements, combinations, showSelectionStep]);
 
 	const valid = combinations.length > 0 && selectionIsValid(matches, choices, selection, vcEntityList);
+	const combinationValid =
+		combinations.length > 0 &&
+		selectionIsValid(
+			matches,
+			choices,
+			new Map(
+				[...selection].map(([id, instances]) => [
+					id,
+					instances.length ? instances : matches[id].candidates.slice(0, 1),
+				]),
+			),
+			vcEntityList,
+		);
 	const currentStep = stage === 'combinations' ? 0 : 1;
 	const finalReview = stage === 'review';
 	const combinationIndex = Math.max(
@@ -148,15 +163,15 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 		);
 		setChoices(next);
 		setSelection((previous) => reconcileSelection(matches, next, previous, vcEntityList));
-		hasStartedReview.current = false;
 		setReviewed(false);
+		setEmptyResponseAttention(false);
 	};
 	const chooseOption = (index: number, optionIndex: number | null) => {
 		const next = choices.map((choice, i) => (i === index ? optionIndex : choice));
 		setChoices(next);
 		setSelection((previous) => reconcileSelection(matches, next, previous, vcEntityList));
-		hasStartedReview.current = false;
 		setReviewed(false);
+		setEmptyResponseAttention(false);
 	};
 	const startCredentialReview = () => {
 		alignActivePanelRef.current = true;
@@ -490,6 +505,11 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 									{t('dcqlCredentials.combinationsLimited', { count: MAX_REQUIRED_COMBINATIONS })}
 								</p>
 							)}
+							{emptyResponseAttention && (
+								<p role="alert" className="text-sm font-semibold text-lm-red-dark dark:text-red-400">
+									{t('dcqlCredentials.emptyResponse')}
+								</p>
+							)}
 							{optionalChoices}
 						</div>
 					) : (
@@ -660,10 +680,16 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 						<Button
 							id={currentStep === 0 || !finalReview ? 'next-select-credentials' : 'send-select-credentials'}
 							variant="primary"
-							disabled={currentStep === 0 ? !valid : !finalReview && (!activeId || !selection.get(activeId)?.length)}
+							disabled={
+								currentStep === 0 ? !combinationValid : !finalReview && (!activeId || !selection.get(activeId)?.length)
+							}
 							onClick={() => {
 								if (currentStep === 0) {
-									if (!valid) return;
+									if (!combinationValid) return;
+									if (!selection.size) {
+										setEmptyResponseAttention(true);
+										return;
+									}
 									startCredentialReview();
 									return;
 								}

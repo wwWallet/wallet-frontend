@@ -67,7 +67,7 @@ export function reconcileSelection(
 			const candidates = matches[id].candidates;
 			const newest = inventory?.find((vc) => candidates.some((candidate) => candidate.batchId === vc.batchId));
 			const preferred = candidates.find((candidate) => candidate.batchId === newest?.batchId) ?? candidates[0];
-			return [id, preferred ? [preferred] : []];
+			return [id, candidates.length > 1 ? [] : preferred ? [preferred] : []];
 		}),
 	);
 }

@@ -75,6 +75,7 @@
 		"consentAria": "I have reviewed this information and agree to send it to {{verifier}}.",
 		"consentRequired": "Please confirm consent before sending.",
 		"credentialReviewDescription": "Review each credential type and choose which credentials to include.",
+		"emptyResponse": "Select at least one credential before reviewing the details.",
 		"hideDetails": "Hide details",
 		"includeOptional": "Include optional information",
 		"nextCredential": "Next credential",
