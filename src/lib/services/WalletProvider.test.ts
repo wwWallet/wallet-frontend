@@ -12,7 +12,9 @@ vi.mock('@/context/SessionContext', () => ({
 const publicJwk = { kty: 'EC', crv: 'P-256', x: 'public-x', y: 'public-y' };
 
 describe('Wallet Provider WIA request', () => {
-	beforeEach(() => mocks.post.mockReset());
+	beforeEach(() => {
+		mocks.post.mockReset();
+	});
 	afterEach(() => vi.restoreAllMocks());
 
 	it('uses authenticated backend post with the public key, client ID and AS issuer', async () => {
