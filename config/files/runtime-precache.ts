@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { findLogoFiles } from '../branding';
-import { getManifestRevisionFromContent, MANIFEST_ICON_SIZES } from './manifest';
+import { findLogoFiles } from '../branding.ts';
+import { getManifestRevisionFromContent, MANIFEST_ICON_SIZES } from './manifest.ts';
 
 type RuntimePrecacheEntry = {
 	url: string;

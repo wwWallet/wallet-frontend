@@ -2,9 +2,9 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
-import { MetadataImage } from '../branding';
-import { EnvConfigMap } from '../config';
-import { TagsMap } from '../utils/resources';
+import { MetadataImage } from '../branding.ts';
+import type { EnvConfigMap } from '../config.ts';
+import type { TagsMap } from '../utils/resources.ts';
 
 const execFileAsync = promisify(execFile);
 const METADATA_IMAGE_TIMEOUT_MS = 3000;

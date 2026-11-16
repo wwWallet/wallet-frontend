@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"target": "ES2024",
+		"lib": [
+			"ES2024",
+			"DOM",
+			"ESNext.Array",
+			"ESNext.Collection",
+			"ESNext.Error",
+			"ESNext.Iterator",
+			"ESNext.Promise"
+		],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"types": ["node"],
+		"allowImportingTsExtensions": true,
+		"rewriteRelativeImportExtensions": true,
+		"moduleDetection": "force",
+		"noEmit": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"noFallthroughCasesInSwitch": true,
+		"verbatimModuleSyntax": true,
+		"erasableSyntaxOnly": true
+	},
+	"include": ["config/**/*.ts", "vite-plugins/**/*.ts", "vite.config*.ts", "vitest.config.ts", "setup-vitest.ts"]
+}

@@ -1,11 +1,12 @@
 import crypto from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { copyScreenshots, generateAllIcons, getManifestIconEntries, Icons } from '../branding';
+import { copyScreenshots, generateAllIcons, getManifestIconEntries } from '../branding.ts';
+import type { Icons } from '../branding.ts';
 import type { ManifestOptions } from 'vite-plugin-pwa';
-import { type EnvConfigMap } from '../config';
-import { type Tag } from '../utils/resources';
-import { pathWithBase } from '../utils/paths';
+import type { EnvConfigMap } from '../config.ts';
+import type { Tag } from '../utils/resources.ts';
+import { pathWithBase } from '../utils/paths.ts';
 
 export const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
 

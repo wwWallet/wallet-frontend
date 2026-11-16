@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { findLogoFiles, getBrandingHash } from '../branding';
-import { getManifestRevisionFromContent } from './manifest';
-import runtimePrecache from './runtime-precache';
+import { findLogoFiles, getBrandingHash } from '../branding.ts';
+import { getManifestRevisionFromContent } from './manifest.ts';
+import runtimePrecache from './runtime-precache.ts';
 
 type RuntimePrecacheEntry = {
 	url: string;

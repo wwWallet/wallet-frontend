@@ -1,12 +1,12 @@
 import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 const nodeTests = '**/services/*.test.ts';
 
 export default defineConfig({
 	resolve: {
 		alias: {
-			'@': resolve(__dirname, './src'),
+			'@': resolve(import.meta.dirname, './src'),
 		},
 	},
 	test: {

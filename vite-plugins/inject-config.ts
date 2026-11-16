@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
-import { Plugin } from 'vite';
-import { EnvConfigMapSchema, getBrandingHash, injectConfigFiles, injectHtml } from '../config';
-import { Tag } from '../config/utils/resources';
+import type { Plugin } from 'vite';
+import { EnvConfigMapSchema, getBrandingHash, injectConfigFiles, injectHtml } from '../config/index.ts';
+import type { Tag } from '../config/utils/resources.ts';
 
 export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 	const config = EnvConfigMapSchema.parse(env);

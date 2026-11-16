@@ -1,5 +1,5 @@
-import { Tag } from './resources';
-import { ClientMetaConfig } from '../config';
+import type { Tag } from './resources.ts';
+import type { ClientMetaConfig } from '../config.ts';
 
 export function getTagSortingPriority(el: Element): number {
 	const tag = el.tagName.toLowerCase();
