@@ -20,7 +20,7 @@ const FullscreenImg = ({ isOpen, onClose, content }: FullscreenImgProps) => {
 			{content}
 			<CloseButton
 				id="close-full-screen-img"
-				iconSize={32}
+				iconSize={28}
 				onClick={onClose}
 				additionalClassName="fixed top-4 right-4 z-50 !text-white !bg-black/40 enabled:hover:!bg-black/60 dark:!bg-white/15 dark:enabled:hover:!bg-white/25"
 			/>

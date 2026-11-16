@@ -9,13 +9,14 @@ import { useSessionContext } from '@/context/SessionContext';
 import useScreenType from '@/hooks/useScreenType';
 
 import Button, { Variant } from '../../components/Buttons/Button';
+import CloseButton from '../../components/Buttons/CloseButton';
 import CachedUsersList from './CachedUsersList';
 import SeparatorLine from '../Shared/SeparatorLine';
 import BottomSheet from '../Popups/BottomSheet';
 
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet, X } from 'lucide-react';
+import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
@@ -340,17 +341,13 @@ const WebauthnSignupLogin = ({
 						{cachedUser.displayName}
 					</span>
 				</button>
-				<button
+				<CloseButton
 					id={`switch-forget-cached-user-${index}-loginsignup`}
-					type="button"
 					onClick={() => onForgetCachedUser(cachedUser)}
 					disabled={isSubmitting}
-					aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+					ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 					title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-					className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
-				>
-					<X size={18} />
-				</button>
+				/>
 			</li>
 		);
 	});

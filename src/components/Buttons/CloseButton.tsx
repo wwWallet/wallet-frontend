@@ -19,7 +19,9 @@ const CloseButton = ({
 }: CloseButtonProps) => {
 	const { t } = useTranslation();
 	const toneClassName =
-		tone === 'inherit' ? '!text-inherit enabled:hover:!bg-lm-gray-500/50 dark:enabled:hover:!bg-dm-gray-500/50' : '';
+		tone === 'inherit'
+			? '!text-inherit !bg-transparent enabled:hover:!bg-lm-gray-500/50 dark:enabled:hover:!bg-dm-gray-500/50'
+			: '!bg-transparent enabled:hover:!bg-lm-gray-400 dark:enabled:hover:!bg-dm-gray-600';
 
 	return (
 		<Button

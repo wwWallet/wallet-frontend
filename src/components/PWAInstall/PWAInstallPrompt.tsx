@@ -31,6 +31,7 @@ const PWAInstallPrompt = () => {
 						</Button>
 						<CloseButton
 							id="close-pwa-installable"
+							tone="inherit"
 							title={t('pwaInstallPrompt.button.closeTitle')}
 							onClick={dismissPwaPrompt}
 						/>
