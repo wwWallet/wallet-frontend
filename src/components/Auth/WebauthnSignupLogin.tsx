@@ -382,7 +382,7 @@ const WebauthnSignupLogin = ({
 				{showCancelButton && (
 					<Button
 						id="cancel-switch-account-bottom-loginsignup"
-						variant="text"
+						variant="subtle"
 						onClick={closeSwitcher}
 						additionalClassName="-mr-2"
 					>
@@ -421,7 +421,7 @@ const WebauthnSignupLogin = ({
 							</>
 						)}
 						<div className="flex justify-center gap-4">
-							<Button id="cancel-prf-loginsignup" variant="outline" onClick={() => resolvePrfRetryPrompt?.(false)}>
+							<Button id="cancel-prf-loginsignup" variant="subtle" onClick={() => resolvePrfRetryPrompt?.(false)}>
 								{t('common.cancel')}
 							</Button>
 							<Button
@@ -440,7 +440,7 @@ const WebauthnSignupLogin = ({
 							<Trans i18nKey="registerPasskey.messageErrorTryAgain" components={{ br: <br /> }} />
 						</p>
 						<div className="flex justify-center gap-4">
-							<Button id="cancel-prf-loginsignup" variant="outline" onClick={onCancel}>
+							<Button id="cancel-prf-loginsignup" variant="subtle" onClick={onCancel}>
 								{t('common.cancel')}
 							</Button>
 							<Button id="try-again-prf-loginsignup" type="submit" variant="secondary">
@@ -453,7 +453,7 @@ const WebauthnSignupLogin = ({
 						<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 						<Button
 							id="cancel-in-progress-prf-loginsignup"
-							variant="outline"
+							variant="subtle"
 							onClick={onCancel}
 							additionalClassName="w-full"
 						>

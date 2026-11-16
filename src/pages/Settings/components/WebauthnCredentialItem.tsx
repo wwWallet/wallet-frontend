@@ -124,7 +124,7 @@ const WebauthnCredentialItem = ({
 								<Button
 									id="cancel-editing-settings"
 									size="sm"
-									variant="outline"
+									variant="subtle"
 									onClick={onCancelEditing}
 									disabled={submitting}
 									ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}

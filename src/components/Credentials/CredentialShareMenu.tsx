@@ -159,7 +159,7 @@ const CredentialShareMenu = ({
 						</h2>
 						<Button
 							id="cancel-share-credential"
-							variant="text"
+							variant="subtle"
 							onClick={() => setIsOpen(false)}
 							additionalClassName="-mr-2"
 						>

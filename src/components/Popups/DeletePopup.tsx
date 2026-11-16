@@ -29,7 +29,7 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }: DeletePop
 			<hr className="mb-2 border-t border-lm-gray-500 dark:border-dm-gray-500" />
 			<p className="mb-2 mt-4 text-lm-gray-800 dark:text-dm-gray-200">{message}</p>
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button id="close-delete-popup" variant="text" onClick={onClose}>
+				<Button id="close-delete-popup" variant="subtle" onClick={onClose}>
 					{t('common.cancel')}
 				</Button>
 				<Button id="confirm-delete-popup" variant="delete" onClick={onConfirm}>

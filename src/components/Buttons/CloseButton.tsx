@@ -25,7 +25,7 @@ const CloseButton = ({
 		<Button
 			{...props}
 			size={size}
-			variant="text"
+			variant="subtle"
 			square={true}
 			ariaLabel={ariaLabel ?? t('common.close')}
 			additionalClassName={`shrink-0 !rounded-full ${toneClassName} ${additionalClassName}`}

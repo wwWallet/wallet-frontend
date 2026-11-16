@@ -215,7 +215,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 								<div className="flex items-start">
 									<Button
 										id="close-qr-code-scanner-mobile"
-										variant="text"
+										variant="subtle"
 										size="sm"
 										square={true}
 										onClick={handleClose}
