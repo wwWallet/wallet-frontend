@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 import { TourProvider, useTour } from '@reactour/tour';
 import type { StepType } from '@reactour/tour';
+import '@reactour/tour/dist/index.css';
 import FocusLock from 'react-focus-lock';
 import { useTranslation } from 'react-i18next';
 
@@ -16,14 +17,19 @@ interface TourGuideProps {
 	isOpen: boolean;
 }
 
+const focusAddCredentialCard = () => {
+	requestAnimationFrame(() => document.getElementById('add-credential-card')?.focus());
+};
+
 const TourFocusLock = ({ children }: PropsWithChildren) => (
-	<FocusLock className="contents" returnFocus>
+	<FocusLock className="contents" onDeactivation={focusAddCredentialCard}>
 		{children}
 	</FocusLock>
 );
 
 const TourGuideContent = ({ toggleMenu, isOpen }: TourGuideProps) => {
-	const { setIsOpen: setIsTourOpen, setSteps } = useTour();
+	const { setIsOpen: setIsTourOpen, setSteps, setCurrentStep } = useTour();
+	const stepKeysRef = useRef<string[]>([]);
 	const [isModalOpen, setIsModalOpen] = useState(true);
 	const { api } = useSessionContext();
 	const { authenticationType, showWelcome } = api.getSession();
@@ -72,6 +78,7 @@ const TourGuideContent = ({ toggleMenu, isOpen }: TourGuideProps) => {
 			{
 				selector: '[data-tour-no-target]',
 				position: 'center',
+				padding: { mask: 0 },
 				content: () => (
 					<>
 						<p className="mt-2 text-lm-gray-900">{t('tourGuide.tourComplete')}</p>
@@ -100,8 +107,27 @@ const TourGuideContent = ({ toggleMenu, isOpen }: TourGuideProps) => {
 			};
 		});
 
+		const stepKeys = [
+			'step-1',
+			'step-2',
+			'step-3',
+			...(screenType !== 'desktop' ? ['step-4'] : []),
+			'step-5',
+			'step-6',
+			'complete',
+		];
+		const prevStepKeys = stepKeysRef.current;
+		stepKeysRef.current = stepKeys;
+
 		setSteps?.(updatedSteps);
-	}, [t, toggleMenu, isOpen, screenType, setSteps, setIsTourOpen]);
+
+		if (prevStepKeys.length > 0 && prevStepKeys.join() !== stepKeys.join()) {
+			setCurrentStep((prev) => {
+				const index = stepKeys.indexOf(prevStepKeys[prev]);
+				return index >= 0 ? index : Math.min(prev, stepKeys.length - 1);
+			});
+		}
+	}, [t, toggleMenu, isOpen, screenType, setSteps, setCurrentStep, setIsTourOpen]);
 
 	const startTour = () => {
 		setIsModalOpen(false);
@@ -134,11 +160,10 @@ const TourGuide = (props: TourGuideProps) => (
 		steps={[]}
 		styles={{
 			maskArea: (base) => ({ ...base, rx: 5 }),
-			popover: (base, state) => ({
-				...base,
-				marginLeft: state?.horizontalAlign === 'right' && /top|bottom/.test(state.position) ? 20 : 0,
-			}),
+			popover: (base) => ({ ...base, maxWidth: 'min(353px, calc(100vw - 32px))', borderRadius: 5 }),
+			close: (base) => ({ ...base, width: 15, height: 15, top: 12, right: 12 }),
 		}}
+		padding={{ mask: 10, popover: [10, 20, 10, 0] }}
 		position="right"
 		disableInteraction
 		Wrapper={TourFocusLock}
