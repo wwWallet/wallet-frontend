@@ -58,6 +58,10 @@ export const CLEAR_SESSION_EVENT = 'clearSession';
 export type ApiEventType = typeof CLEAR_SESSION_EVENT;
 const events: EventTarget = new EventTarget();
 
+export type ClearSessionOptions = {
+	preservePrivateDataEtag?: boolean;
+};
+
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>;
 	get(path: string): Promise<AxiosResponse>;
@@ -67,7 +71,7 @@ export interface BackendApi {
 	getSession(): SessionState;
 	isLoggedIn(): boolean;
 	// getAppToken(): string | undefined,
-	clearSession(): void;
+	clearSession(options?: ClearSessionOptions): void;
 	getAppToken(): string | null;
 
 	getAllVerifiers(): Promise<Verifier[]>;
@@ -416,11 +420,16 @@ export function useApi(isOnlineProp: boolean | null = true): BackendApi {
 		return sessionState !== null;
 	}, [sessionState]);
 
-	const clearSession = useCallback((): void => {
-		clearSessionStorage();
-		removePrivateDataEtag();
-		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
-	}, [clearSessionStorage, removePrivateDataEtag]);
+	const clearSession = useCallback(
+		(options: ClearSessionOptions = {}): void => {
+			clearSessionStorage();
+			if (!options.preservePrivateDataEtag) {
+				removePrivateDataEtag();
+			}
+			events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
+		},
+		[clearSessionStorage, removePrivateDataEtag],
+	);
 
 	const shouldShowWelcomeOnSignup = useCallback((): boolean => {
 		const queryParams = new URLSearchParams(window.location.search);
