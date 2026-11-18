@@ -316,8 +316,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						if (!res) {
 							return;
 						}
+						cleanCurrentUrl();
 						if ('url' in res && typeof res.url === 'string' && res.url) {
-							cleanCurrentUrl();
 							window.location.href = res.url;
 						}
 					})
