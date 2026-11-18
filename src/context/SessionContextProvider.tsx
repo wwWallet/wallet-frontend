@@ -2,7 +2,11 @@ import React, { useContext, useEffect, useCallback, useRef, useMemo, useState } 
 
 import StatusContext from './StatusContext';
 import { useApi } from '../api';
-import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import {
+	KeystoreEvent,
+	type CloseSessionTabLocalOptions,
+	useLocalStorageKeystore,
+} from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
@@ -25,18 +29,18 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 	const [tabId] = useSessionStorage<string | null>('tabId', null);
 
 	// Use a ref to hold a stable reference to the clearSession function
-	const clearSessionRef = useRef<(preserveUrlParams?: boolean) => void>();
+	const clearSessionRef = useRef<(options?: CloseSessionTabLocalOptions) => void>();
 
 	// Memoize clearSession using useCallback
 	const clearSession = useCallback(
-		async (preserveUrlParams: boolean = false) => {
+		async ({ preserveUrlParams = false, preservePrivateDataEtag = false }: CloseSessionTabLocalOptions = {}) => {
 			// Keep search params so a pending flow can continue after a
 			// cross-tab logout; otherwise clean up the URL.
 			if (!(preserveUrlParams && window.location.search)) {
 				window.history.replaceState({}, '', window.location.pathname);
 			}
 			console.log('[Session Context] Clear Session');
-			api.clearSession();
+			api.clearSession({ preservePrivateDataEtag });
 			await setAppBadgeCount(0);
 		},
 		[api],
@@ -56,9 +60,9 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 	useEffect(() => {
 		// Handler function that calls the current clearSession function
 		const handleClearSession = (event: Event) => {
-			const preserveUrlParams = (event as CustomEvent)?.detail?.preserveUrlParams ?? false;
+			const options = ((event as CustomEvent)?.detail ?? {}) as CloseSessionTabLocalOptions;
 			if (clearSessionRef.current) {
-				clearSessionRef.current(preserveUrlParams);
+				clearSessionRef.current(options);
 			}
 		};
 
@@ -113,7 +117,7 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 			((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))
 		) {
 			// Fallback for the initial-mount race with the event listener below.
-			clearSession(true);
+			clearSession({ preserveUrlParams: true, preservePrivateDataEtag: true });
 		}
 	}, [globalTabId, tabId, clearSession, api, keystore]);
 
