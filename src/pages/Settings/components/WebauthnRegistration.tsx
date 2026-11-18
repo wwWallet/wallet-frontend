@@ -329,8 +329,13 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 				</Dialog>
 			</div>
 			{authenticatorAlreadyRegistered && (
-				<div role="alert" className="mt-2 text-sm text-[#ff6600e8] dark:text-[#ff6600e8] break-words">
-					{t('registerPasskey.alreadyRegisteredMessage')}
+				<div
+					role="alert"
+					className="w-full mt-2 rounded-lg bg-lm-orange/10 dark:bg-dm-orange/10 border border-lm-orange/30 dark:border-dm-orange/30 px-3 py-2"
+				>
+					<span className="text-sm text-lm-gray-900 dark:text-white break-words">
+						{t('registerPasskey.alreadyRegisteredMessage')}
+					</span>
 				</div>
 			)}
 		</>
