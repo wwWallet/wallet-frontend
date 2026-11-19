@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import type { DcqlMatches, DcqlSelection, DcqlSelectedCredential } from 'wallet-common';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import PopupLayout from './PopupLayout';
 import {
 	MAX_REQUIRED_COMBINATIONS,
@@ -15,6 +15,7 @@ import {
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
+import Slider from '../Shared/Slider';
 import useScreenType from '@/hooks/useScreenType';
 import { useCredentialName } from '@/hooks/useCredentialName';
 import { prettyDomain } from '@/utils';
@@ -336,11 +337,6 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 		const selected = selection.get(id) ?? [];
 		const onlyCandidate = candidates.length === 1;
 		const multiple = matches[id].multiple;
-		const setSlide = (next: number) =>
-			setSlideById((previous) => ({
-				...previous,
-				[id]: (next + candidates.length) % candidates.length,
-			}));
 		return (
 			<div
 				className={`rounded-b-xl border border-lm-gray-400 bg-lm-gray-100 dark:border-dm-gray-600 dark:bg-dm-gray-900 ${inReview ? 'border-t-0' : ''}`}
@@ -359,49 +355,63 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 					</div>
 				)}
 				<div className="space-y-3 p-3 sm:p-4">
-					<div className="flex items-center justify-center gap-2">
-						{!onlyCandidate && (
-							<button
-								type="button"
-								aria-label={t('dcqlCredentials.previousCredential')}
-								onClick={() => setSlide(slide - 1)}
-								className="shrink-0 rounded-md p-1 text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary"
-							>
-								<ChevronLeft aria-hidden="true" />
-							</button>
-						)}
-						<div className="relative w-full max-w-[405px] min-w-0">
-							{imageFor(credential, candidate)}
-							{!onlyCandidate && (
-								<label
-									className="absolute bottom-2 right-2 flex cursor-pointer rounded-full bg-white/95 p-1.5 shadow-md dark:bg-dm-gray-800"
-									title={t('dcqlCredentials.selectCredential')}
-								>
-									<input
-										type={multiple ? 'checkbox' : 'radio'}
-										name={`credential-${id}`}
-										aria-label={t('dcqlCredentials.selectCredentialNumber', { number: slide + 1 })}
-										checked={selected.some((item) => item.batchId === candidate.batchId)}
-										onChange={() => setCredentialChoice(id, candidate)}
-										className="h-5 w-5 appearance-none rounded-full border-2 border-primary bg-white checked:bg-primary checked:after:block checked:after:text-center checked:after:text-xs checked:after:leading-4 checked:after:text-white checked:after:content-['✓'] focus-visible:outline-2 focus-visible:outline-primary"
-									/>
-								</label>
-							)}
-						</div>
-						{!onlyCandidate && (
-							<button
-								type="button"
-								aria-label={t('dcqlCredentials.nextCredential')}
-								onClick={() => setSlide(slide + 1)}
-								className="shrink-0 rounded-md p-1 text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-primary"
-							>
-								<ChevronRight aria-hidden="true" />
-							</button>
-						)}
-					</div>
-					<div className="text-center text-xs text-lm-gray-700 dark:text-dm-gray-300">
-						{t('dcqlCredentials.slideCount', { current: slide + 1, total: candidates.length })}
-					</div>
+					{onlyCandidate ? (
+						<div className="relative mx-auto w-full max-w-[405px] min-w-0">{imageFor(credential, candidate)}</div>
+					) : (
+						<Slider
+							items={candidates}
+							initialSlide={slide + 1}
+							onSlideChange={(index) => setSlideById((previous) => ({ ...previous, [id]: index }))}
+							className="mx-auto w-full md:max-w-[560px] xm:px-4 px-16 sm:px-24 md:px-8 [&_#previous-slide]:-left-1 [&_#next-slide]:-right-1"
+							renderSlideContent={(slideCandidate, index) => {
+								const slideCredential = vcEntityList?.find((vc) => vc.batchId === slideCandidate.batchId);
+								if (!slideCredential) return null;
+								return (
+									<div
+										role="button"
+										tabIndex={index === slide ? 0 : -1}
+										aria-pressed={selected.some((item) => item.batchId === slideCandidate.batchId)}
+										onClick={(event) => {
+											if (!(event.target as HTMLElement).closest('label')) setCredentialChoice(id, slideCandidate);
+										}}
+										onKeyDown={(event) => {
+											if (
+												(event.key === 'Enter' || event.key === ' ') &&
+												!(event.target as HTMLElement).closest('label')
+											) {
+												event.preventDefault();
+												setCredentialChoice(id, slideCandidate);
+											}
+										}}
+										className="relative w-full cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+									>
+										{imageFor(slideCredential, slideCandidate)}
+										<div
+											className={`absolute inset-0 rounded-xl transition-opacity bg-lm-gray-300 dark:bg-dm-gray-600 ${
+												selected.some((item) => item.batchId === slideCandidate.batchId)
+													? 'opacity-0'
+													: 'opacity-[0.35]'
+											}`}
+										/>
+										<label
+											className="absolute bottom-3 right-3 z-10 flex cursor-pointer rounded-full bg-white/95 p-1.5 shadow-md dark:bg-dm-gray-800"
+											title={t('dcqlCredentials.selectCredential')}
+											onClick={(event) => event.stopPropagation()}
+										>
+											<input
+												type={multiple ? 'checkbox' : 'radio'}
+												name={`credential-${id}`}
+												aria-label={t('dcqlCredentials.selectCredentialNumber', { number: index + 1 })}
+												checked={selected.some((item) => item.batchId === slideCandidate.batchId)}
+												onChange={() => setCredentialChoice(id, slideCandidate)}
+												className="h-6 w-6 appearance-none rounded-full border-2 border-primary bg-white checked:bg-primary checked:after:block checked:after:text-center checked:after:text-xs checked:after:leading-5 checked:after:text-white checked:after:content-['✓'] focus-visible:outline-2 focus-visible:outline-primary"
+											/>
+										</label>
+									</div>
+								);
+							}}
+						/>
+					)}
 					{multiple && !onlyCandidate && (
 						<div className="flex justify-center gap-5 text-sm font-semibold text-primary">
 							<button

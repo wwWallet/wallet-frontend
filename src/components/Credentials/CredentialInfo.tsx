@@ -302,7 +302,6 @@ const CredentialInfo = ({
 	requested = undefined,
 	visibleFields = undefined,
 	noInnerScroll = false,
-	stripedRows = false,
 }: CredentialInfoProps) => {
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
@@ -465,7 +464,6 @@ const CredentialInfo = ({
 		return { showRequired, showRequested };
 	})();
 
-	let stripeRowIndex = 0;
 	const renderClaims = (data: NestedClaims, currentPath: string[] = []): ReactNode[] => {
 		return Object.entries(data ?? {}).map(([key, node]) => {
 			const label = node.display?.label || null;
@@ -496,15 +494,10 @@ const CredentialInfo = ({
 					</div>
 				);
 			} else {
-				const stripeClass = stripedRows
-					? stripeRowIndex++ % 2 === 0
-						? 'bg-primary/10 dark:bg-primary/20'
-						: 'bg-lm-gray-300/60 dark:bg-dm-gray-700'
-					: '';
 				return (
 					<div
 						key={fullPath}
-						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${stripeClass} ${
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${
 							(isRequested || isRequired) && requestedDisplay === 'highlight'
 								? `bg-lm-gray-300 shadow ${screenType === 'desktop' ? 'dark:bg-dm-gray-700' : 'dark:bg-dm-gray-800'}`
 								: ''
