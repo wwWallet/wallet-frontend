@@ -36,7 +36,6 @@ interface CredentialInfoProps {
 	requested?: RequestedClaims;
 	visibleFields?: ClaimPath[];
 	noInnerScroll?: boolean;
-	stripedRows?: boolean;
 }
 
 interface FullscreenImage {

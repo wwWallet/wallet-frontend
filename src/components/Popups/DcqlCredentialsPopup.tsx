@@ -72,7 +72,6 @@ function DisclosurePreview({
 					parsedCredential={{ signedClaims: allClaims, metadata: credential.parsedCredential.metadata }}
 					visibleFields={displayPaths}
 					noInnerScroll
-					stripedRows
 					mainClassName="text-[13px] w-full"
 				/>
 			</div>
@@ -338,6 +337,10 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 		if (!candidate || !credential) return null;
 		const selected = selection.get(id) ?? [];
 		const onlyCandidate = candidates.length === 1;
+		const lockedSingleCandidate =
+			onlyCandidate &&
+			selected.some((item) => item.batchId === candidate.batchId) &&
+			requirements.some((set) => set.required !== false && set.options.some((option) => option.queryIds.includes(id)));
 		const multiple = matches[id].multiple;
 		return (
 			<div
@@ -355,38 +358,67 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 							</span>
 						</div>
 						{multiple && !onlyCandidate && (
-							<button
-								type="button"
-								onClick={() => setAllCredentials(id, selected.length !== candidates.length)}
-								className="shrink-0 text-sm font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary xm:hidden"
-							>
-								{t(selected.length === candidates.length ? 'dcqlCredentials.deselectAll' : 'dcqlCredentials.selectAll')}
-							</button>
-						)}
-						<span className="shrink-0 text-right text-sm font-bold text-primary xm:hidden">
-							{t('dcqlCredentials.selectedCount', { count: selected.length })}
-						</span>
-						{multiple && !onlyCandidate && (
-							<div className="hidden basis-full items-center justify-between gap-3 xm:flex">
-								<span className="text-left text-sm font-bold text-primary">
+							<div className="basis-full flex items-center justify-between gap-3 md:hidden">
+								<span className="text-left text-sm font-bold text-primary dark:text-white">
 									{t('dcqlCredentials.selectedCount', { count: selected.length })}
 								</span>
-								<button
-									type="button"
+								<Button
+									variant="outline"
+									size="sm"
 									onClick={() => setAllCredentials(id, selected.length !== candidates.length)}
-									className="shrink-0 text-sm font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
 								>
 									{t(
 										selected.length === candidates.length ? 'dcqlCredentials.deselectAll' : 'dcqlCredentials.selectAll',
 									)}
-								</button>
+								</Button>
+							</div>
+						)}
+						{multiple && !onlyCandidate && (
+							<div className="hidden items-center justify-between gap-3 md:flex md:basis-auto">
+								<span className="text-left text-sm font-bold text-primary dark:text-white">
+									{t('dcqlCredentials.selectedCount', { count: selected.length })}
+								</span>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setAllCredentials(id, selected.length !== candidates.length)}
+									additionalClassName="shrink-0"
+								>
+									{t(
+										selected.length === candidates.length ? 'dcqlCredentials.deselectAll' : 'dcqlCredentials.selectAll',
+									)}
+								</Button>
 							</div>
 						)}
 					</div>
 				)}
 				<div className="space-y-3 p-3 sm:p-4">
 					{onlyCandidate ? (
-						<div className="relative mx-auto w-full max-w-[405px] min-w-0">{imageFor(credential, candidate)}</div>
+						<div className="relative mx-auto w-full max-w-[405px] min-w-0">
+							{imageFor(credential, candidate)}
+							{lockedSingleCandidate && (
+								<label
+									className="absolute bottom-3 right-3 z-10 flex cursor-not-allowed rounded-full bg-white/95 p-[3px] shadow-md dark:bg-dm-gray-800"
+									title={t('dcqlCredentials.selectCredential')}
+								>
+									<input
+										type="radio"
+										name={`credential-${id}`}
+										aria-label={t('dcqlCredentials.selectCredentialNumber', { number: 1 })}
+										checked
+										disabled
+										readOnly
+										className="peer sr-only"
+									/>
+									<span
+										aria-hidden="true"
+										className="flex h-6 w-6 items-center justify-center rounded-full border border-primary bg-primary text-base font-bold leading-none text-white"
+									>
+										✓
+									</span>
+								</label>
+							)}
+						</div>
 					) : (
 						<Slider
 							items={candidates}
@@ -423,7 +455,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 											className={`absolute inset-0 rounded-lg transition-opacity bg-lm-gray-300 dark:bg-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-[0.35]'}`}
 										/>
 										<label
-											className="absolute bottom-3 right-3 z-10 flex cursor-pointer rounded-full bg-white/95 p-1.5 shadow-md dark:bg-dm-gray-800"
+											className="absolute bottom-3 right-3 z-10 flex cursor-pointer rounded-full bg-white/95 p-[3px] shadow-md dark:bg-dm-gray-800"
 											title={t('dcqlCredentials.selectCredential')}
 											onClick={(event) => {
 												event.preventDefault();
@@ -479,7 +511,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 					<div className="flex items-center justify-between gap-4 mb-3">
 						<h2 className="text-2xl font-bold text-lm-gray-900 dark:text-dm-gray-100">{t('dcqlCredentials.title')}</h2>
 						{showSelectionStep && (
-							<span className="text-sm text-lm-gray-600 dark:text-dm-gray-300">
+							<span className="text-sm text-lm-gray-700 dark:text-dm-gray-200">
 								{t('dcqlCredentials.step', { current: currentStep + 1, total: 2 })}
 							</span>
 						)}
@@ -489,7 +521,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 				<div ref={scrollContainerRef} className="min-h-0 flex-auto overflow-y-auto overflow-x-hidden px-4 pb-4">
 					{currentStep === 0 ? (
 						<div className="space-y-4 text-lm-gray-900 dark:text-dm-gray-100">
-							<p className="text-sm text-lm-gray-800 dark:text-dm-gray-300">
+							<p className="text-sm text-lm-gray-800 dark:text-dm-gray-200">
 								<Trans
 									i18nKey="dcqlCredentials.combinationsDescription"
 									values={{ verifier: prettyDomain(options.verifierDomainName) }}
@@ -576,7 +608,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 													}}
 													aria-expanded={isExpanded}
 													onClick={() => toggleReviewDetails(id)}
-													className="flex w-full cursor-pointer items-center gap-3 bg-white p-3 text-left transition-colors hover:bg-[#f3f8ff] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary dark:bg-dm-gray-800 dark:hover:bg-dm-gray-700"
+													className={`flex w-full cursor-pointer items-center gap-3 p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary ${isExpanded ? 'bg-[#f3f8ff]' : 'bg-white hover:bg-[#e8f1ff]'} dark:bg-dm-gray-800 dark:hover:bg-dm-gray-700`}
 												>
 													<div className="h-12 w-20 shrink-0">
 														{credential && imageFor(credential, candidate, true)}
@@ -591,7 +623,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 															)}
 														</span>
 													</div>
-													<span className="flex shrink-0 flex-col items-end text-sm text-primary">
+													<span className="flex shrink-0 flex-col items-end text-sm text-primary dark:text-white">
 														<strong>
 															{t(isExpanded ? 'dcqlCredentials.hideDetails' : 'dcqlCredentials.showDetails')}
 														</strong>
