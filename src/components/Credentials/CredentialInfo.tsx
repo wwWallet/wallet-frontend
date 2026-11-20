@@ -35,7 +35,6 @@ interface CredentialInfoProps {
 	fallbackClaims?: AugmentedClaimMetadataEntry[];
 	requested?: RequestedClaims;
 	visibleFields?: ClaimPath[];
-	noInnerScroll?: boolean;
 }
 
 interface FullscreenImage {
@@ -220,7 +219,6 @@ const formatClaimValue = (
 	imageAlt: string,
 	fullscreenTitle: string,
 	onImageClick: (image: FullscreenImage) => void,
-	noInnerScroll: boolean,
 ): ReactNode => {
 	const renderImg = (src: string) => (
 		<button
@@ -236,9 +234,7 @@ const formatClaimValue = (
 
 	const renderJson = (v: unknown) => (
 		<div className="w-full">
-			<div
-				className={`${noInnerScroll ? 'overflow-visible' : 'max-h-40 resize-y overflow-auto'} bg-white dark:bg-dm-gray-800 border rounded px-2 rounded-xl`}
-			>
+			<div className="max-h-40 resize-y overflow-auto rounded-xl border bg-white px-2 dark:bg-dm-gray-800">
 				<JsonViewer value={v} />
 			</div>
 		</div>
@@ -300,7 +296,6 @@ const CredentialInfo = ({
 	fallbackClaims = undefined,
 	requested = undefined,
 	visibleFields = undefined,
-	noInnerScroll = false,
 }: CredentialInfoProps) => {
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
@@ -425,7 +420,7 @@ const CredentialInfo = ({
 		const fullscreenTitle = t('pageCredentials.credentialFullScreenTitle', {
 			friendlyName: label,
 		});
-		const formattedValue = formatClaimValue(rawValue, imageAlt, fullscreenTitle, setFullscreenImage, noInnerScroll);
+		const formattedValue = formatClaimValue(rawValue, imageAlt, fullscreenTitle, setFullscreenImage);
 
 		addToNestedObject(nestedClaims, claim.path, display, formattedValue, claim.required);
 	});

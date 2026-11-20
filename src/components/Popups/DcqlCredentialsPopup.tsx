@@ -71,7 +71,6 @@ function DisclosurePreview({
 				<CredentialInfo
 					parsedCredential={{ signedClaims: allClaims, metadata: credential.parsedCredential.metadata }}
 					visibleFields={displayPaths}
-					noInnerScroll
 					mainClassName="text-[13px] w-full"
 				/>
 			</div>
