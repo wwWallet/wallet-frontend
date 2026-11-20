@@ -18,22 +18,22 @@ export type DpopState = {
 	dpopAlg: string;
 };
 
-export type RequestWalletInstanceAttestation = ReturnType<typeof useWalletProvider>['requestWalletInstanceAttestation'];
+export type RequestWalletAttestation = ReturnType<typeof useWalletProvider>['requestWalletAttestation'];
 
-export async function requestTokenWalletInstanceAttestation(
-	requestWia: RequestWalletInstanceAttestation,
+export async function requestTokenWalletAttestation(
+	requestWia: RequestWalletAttestation,
 	publicJwk: jose.JWK | null | undefined,
 	clientId: string | null,
 	issuer: string,
 ): Promise<string> {
 	if (!publicJwk || !clientId) {
-		throw new Error('Wallet Instance Attestation requires the session public key and client ID');
+		throw new Error('Wallet Attestation requires the session public key and client ID');
 	}
 	const response = await requestWia({ ...publicJwk, key_ops: ['verify'] }, clientId, issuer);
 	if (!response) {
-		throw new Error('Failed to get Wallet Instance Attestation from wallet-backend-server');
+		throw new Error('Failed to get Wallet Attestation from wallet-backend-server');
 	}
-	return response.wallet_instance_attestation;
+	return response.wallet_attestation;
 }
 
 export type OAuthTokenRefreshRequest = {
@@ -67,7 +67,7 @@ export async function refreshAccessToken(
 	context: {
 		tokenRequestBuilder: TokenRequestBuilder;
 		now?: number;
-		requestWalletInstanceAttestation?: RequestWalletInstanceAttestation;
+		requestWalletAttestation?: RequestWalletAttestation;
 	},
 ): Promise<OAuthTokenRefreshResult> {
 	let dpop = request.dpop;
@@ -77,7 +77,7 @@ export async function refreshAccessToken(
 	const jti = generateRandomIdentifier(8);
 
 	if (request.attestationRequired && !dpop) {
-		throw new Error('Wallet Instance Attestation is missing its bound key');
+		throw new Error('Wallet Attestation is missing its bound key');
 	}
 
 	if (request.dpopSupported || request.attestationRequired) {
@@ -112,19 +112,19 @@ export async function refreshAccessToken(
 		};
 	}
 
-	let walletInstanceAttestation: string | null = null;
+	let walletAttestation: string | null = null;
 	if (request.attestationRequired) {
-		if (!context.requestWalletInstanceAttestation) {
+		if (!context.requestWalletAttestation) {
 			throw new Error('Missing Wallet Provider for client attestation');
 		}
-		walletInstanceAttestation = await requestTokenWalletInstanceAttestation(
-			context.requestWalletInstanceAttestation,
+		walletAttestation = await requestTokenWalletAttestation(
+			context.requestWalletAttestation,
 			dpopPublicKeyJwk,
 			request.clientId,
 			request.issuer,
 		);
 	}
-	context.tokenRequestBuilder.setWalletInstanceAttestation(walletInstanceAttestation, dpopPrivateKey as jose.KeyLike);
+	context.tokenRequestBuilder.setWalletAttestation(walletAttestation, dpopPrivateKey as jose.KeyLike);
 	context.tokenRequestBuilder.setTokenEndpoint(request.tokenEndpoint);
 	context.tokenRequestBuilder.setIssuer(request.issuer);
 	context.tokenRequestBuilder.setGrantType(GrantType.REFRESH);

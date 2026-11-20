@@ -60,7 +60,7 @@ describe('Token request attestation authentication', () => {
 			const keys = await keypair();
 			request.setGrantType(grant);
 			request.setRefreshToken('refresh');
-			request.setWalletInstanceAttestation('saved-wia', keys.privateKey);
+			request.setWalletAttestation('saved-wia', keys.privateKey);
 			await expect(request.execute()).resolves.toMatchObject({ response: { access_token: 'token' } });
 			expect(mocks.post.mock.calls[0][2]['oauth-client-attestation']).toBe('saved-wia');
 			const jwt = proof(0);
@@ -84,7 +84,7 @@ describe('Token request attestation authentication', () => {
 
 	it('retries an attestation challenge once with a fresh proof', async () => {
 		const request = builder();
-		request.setWalletInstanceAttestation('saved-wia', (await keypair()).privateKey);
+		request.setWalletAttestation('saved-wia', (await keypair()).privateKey);
 		mocks.post.mockResolvedValueOnce(challenge);
 		await request.execute();
 		expect(payload(proof(1))).toMatchObject({ challenge: 'challenge' });
@@ -94,7 +94,7 @@ describe('Token request attestation authentication', () => {
 
 	it('bounds repeated challenges and normalizes the final error', async () => {
 		const request = builder();
-		request.setWalletInstanceAttestation('saved-wia', (await keypair()).privateKey);
+		request.setWalletAttestation('saved-wia', (await keypair()).privateKey);
 		mocks.post.mockResolvedValue(challenge);
 		await expect(request.execute()).resolves.toMatchObject({ error: TokenRequestError.FAILED });
 		expect(mocks.post).toHaveBeenCalledTimes(2);
@@ -102,8 +102,8 @@ describe('Token request attestation authentication', () => {
 
 	it('preserves unauthenticated flows and clears authentication between sessions', async () => {
 		const request = builder();
-		request.setWalletInstanceAttestation('saved-wia', (await keypair()).privateKey);
-		request.setWalletInstanceAttestation(null);
+		request.setWalletAttestation('saved-wia', (await keypair()).privateKey);
+		request.setWalletAttestation(null);
 		await request.execute();
 		expect(mocks.post.mock.calls[0][2]['oauth-client-attestation']).toBeUndefined();
 	});
@@ -111,7 +111,7 @@ describe('Token request attestation authentication', () => {
 	it.each([true, false])('handles attestation and DPoP challenges in either order (%s)', async (attestationFirst) => {
 		const request = builder();
 		const keys = await keypair();
-		request.setWalletInstanceAttestation('saved-wia', keys.privateKey);
+		request.setWalletAttestation('saved-wia', keys.privateKey);
 		await request.setDpopHeader(keys.privateKey, { ...(await crypto.subtle.exportKey('jwk', keys.publicKey)) }, 'jti');
 		const nonce = {
 			status: 400,
@@ -132,7 +132,7 @@ describe('Token request attestation authentication', () => {
 	it.each([null, ''])('rejects attested requests without an explicit client ID (%s)', async (clientId) => {
 		const request = builder();
 		request.setClientId(clientId);
-		request.setWalletInstanceAttestation('saved-wia', (await keypair()).privateKey);
+		request.setWalletAttestation('saved-wia', (await keypair()).privateKey);
 		await expect(request.execute()).rejects.toThrow('requires a client and a supported grant');
 		expect(mocks.post).not.toHaveBeenCalled();
 	});
@@ -149,12 +149,12 @@ describe('Token request attestation authentication', () => {
 	it('rejects an empty WIA even with a key', async () => {
 		const request = builder();
 		const keys = await keypair();
-		expect(() => request.setWalletInstanceAttestation('', keys.privateKey)).toThrow('bound private key');
+		expect(() => request.setWalletAttestation('', keys.privateKey)).toThrow('bound private key');
 		expect(mocks.post).not.toHaveBeenCalled();
 	});
 
 	it('rejects a WIA without its key', () => {
-		expect(() => builder().setWalletInstanceAttestation('saved-wia')).toThrow('bound private key');
+		expect(() => builder().setWalletAttestation('saved-wia')).toThrow('bound private key');
 		expect(mocks.post).not.toHaveBeenCalled();
 	});
 });

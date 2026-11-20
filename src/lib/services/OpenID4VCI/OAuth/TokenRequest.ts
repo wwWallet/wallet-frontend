@@ -33,7 +33,7 @@ export enum TokenRequestError {
 }
 
 export interface TokenRequestBuilder {
-	setWalletInstanceAttestation(attestation: string | null, privateKey?: KeyLike): void;
+	setWalletAttestation(attestation: string | null, privateKey?: KeyLike): void;
 	setClientId(clientIdValue: string | null): void;
 	setIssuer(issuerValue: string): void;
 	setGrantType(grant: GrantType): void;
@@ -127,13 +127,13 @@ export function useTokenRequest(): TokenRequestBuilder {
 		};
 	}, [httpProxy]);
 
-	const setWalletInstanceAttestation = useCallback((attestation: string | null, privateKey?: KeyLike) => {
+	const setWalletAttestation = useCallback((attestation: string | null, privateKey?: KeyLike) => {
 		if (attestation === null) {
 			clientAttestation.current = null;
 			return;
 		}
 		if (!attestation || !privateKey) {
-			throw new Error('Wallet Instance Attestation requires its bound private key');
+			throw new Error('Wallet Attestation requires its bound private key');
 		}
 		clientAttestation.current = { attestation, privateKey };
 	}, []);
@@ -399,7 +399,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 	return useMemo(
 		() => ({
-			setWalletInstanceAttestation,
+			setWalletAttestation,
 			setClientId,
 			setIssuer,
 			setGrantType,
@@ -417,7 +417,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			execute,
 		}),
 		[
-			setWalletInstanceAttestation,
+			setWalletAttestation,
 			setClientId,
 			setIssuer,
 			setGrantType,

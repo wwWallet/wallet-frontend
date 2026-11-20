@@ -11,8 +11,8 @@ import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } fr
 import {
 	accessTokenIsValid,
 	refreshAccessToken,
-	requestTokenWalletInstanceAttestation,
-	type RequestWalletInstanceAttestation,
+	requestTokenWalletAttestation,
+	type RequestWalletAttestation,
 } from './OAuth/accessToken';
 import { useWalletProvider } from '../WalletProvider';
 import { useCredentialRequest } from './CredentialRequest';
@@ -63,7 +63,7 @@ async function refreshAccessTokenForFlowState(
 		openID4VCIHelper: IOpenID4VCITokenRefreshMetadataProvider;
 		openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository;
 		tokenRequestBuilder: TokenRequestBuilder;
-		requestWalletInstanceAttestation: RequestWalletInstanceAttestation;
+		requestWalletAttestation: RequestWalletAttestation;
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
 	if (!flowState.tokenResponse?.data?.refresh_token) {
@@ -102,7 +102,7 @@ async function refreshAccessTokenForFlowState(
 			},
 			{
 				tokenRequestBuilder: context.tokenRequestBuilder,
-				requestWalletInstanceAttestation: context.requestWalletInstanceAttestation,
+				requestWalletAttestation: context.requestWalletAttestation,
 			},
 		);
 
@@ -140,7 +140,7 @@ async function ensureValidAccessTokenForFlowState(
 		openID4VCIHelper: IOpenID4VCITokenRefreshMetadataProvider;
 		openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository;
 		tokenRequestBuilder: TokenRequestBuilder;
-		requestWalletInstanceAttestation: RequestWalletInstanceAttestation;
+		requestWalletAttestation: RequestWalletAttestation;
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
 	if (accessTokenIsValid(flowState.tokenResponse?.data, context.now, context.refreshSkewSeconds)) {
@@ -198,7 +198,7 @@ export function useOpenID4VCI({
 	const openID4VCIPushedAuthorizationRequest = usePushedAuthorizationRequest();
 
 	const tokenRequestBuilder = useTokenRequest();
-	const { requestWalletInstanceAttestation } = useWalletProvider();
+	const { requestWalletAttestation } = useWalletProvider();
 	const credentialRequestBuilder = useCredentialRequest();
 	const deferredCredentialRequestBuilder = useCredentialRequest();
 
@@ -566,7 +566,7 @@ export function useOpenID4VCI({
 					'attest_jwt_client_auth',
 				);
 			if (attestationRequired && !flowState.dpop) {
-				throw new Error('Wallet Instance Attestation is missing its bound key');
+				throw new Error('Wallet Attestation is missing its bound key');
 			}
 
 			if (!flowState.dpop) {
@@ -605,15 +605,15 @@ export function useOpenID4VCI({
 				};
 			}
 
-			const walletInstanceAttestation = attestationRequired
-				? await requestTokenWalletInstanceAttestation(
-						requestWalletInstanceAttestation,
+			const walletAttestation = attestationRequired
+				? await requestTokenWalletAttestation(
+						requestWalletAttestation,
 						dpopPublicKeyJwk,
 						clientId?.client_id ?? null,
 						authzServerMetadata.authzServerMetadata.issuer,
 					)
 				: null;
-			tokenRequestBuilder.setWalletInstanceAttestation(walletInstanceAttestation, dpopPrivateKey as jose.KeyLike);
+			tokenRequestBuilder.setWalletAttestation(walletAttestation, dpopPrivateKey as jose.KeyLike);
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 			tokenRequestBuilder.setGrantType(
 				requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH,
@@ -694,7 +694,7 @@ export function useOpenID4VCI({
 			openID4VCIHelper,
 			credentialRequest,
 			tokenRequestBuilder,
-			requestWalletInstanceAttestation,
+			requestWalletAttestation,
 			getRememberIssuerAge,
 		],
 	);
@@ -808,7 +808,7 @@ export function useOpenID4VCI({
 			const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
-			tokenRequestBuilder.setWalletInstanceAttestation(null);
+			tokenRequestBuilder.setWalletAttestation(null);
 			tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
 			tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
 			if (txCode) {
@@ -1132,7 +1132,7 @@ export function useOpenID4VCI({
 						openID4VCIHelper,
 						openID4VCIClientStateRepository,
 						tokenRequestBuilder,
-						requestWalletInstanceAttestation,
+						requestWalletAttestation,
 					});
 				} catch (error) {
 					console.error(error);
@@ -1245,7 +1245,7 @@ export function useOpenID4VCI({
 		deferredCredentialRequestBuilder,
 		credentialEngine,
 		tokenRequestBuilder,
-		requestWalletInstanceAttestation,
+		requestWalletAttestation,
 	]);
 
 	useEffect(() => {

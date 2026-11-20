@@ -7,7 +7,7 @@ export function useWalletProvider() {
 		api: { post },
 	} = useSessionContext();
 
-	const requestWalletInstanceAttestation = useCallback(
+	const requestWalletAttestation = useCallback(
 		async (publicJwk: JWK, clientId: string, authorizationServer: string) => {
 			try {
 				const response = await post('/wallet-provider/wallet-attestation/generate', {
@@ -17,23 +17,19 @@ export function useWalletProvider() {
 						authorization_server: authorizationServer,
 					},
 				});
-				const { wallet_instance_attestation } = response.data;
-				if (
-					!wallet_instance_attestation ||
-					typeof wallet_instance_attestation !== 'string' ||
-					wallet_instance_attestation.length === 0
-				) {
+				const { wallet_attestation } = response.data;
+				if (!wallet_attestation || typeof wallet_attestation !== 'string' || wallet_attestation.length === 0) {
 					console.log('Cannot parse key_attestation from wallet-backend-server');
 					return null;
 				}
-				return { wallet_instance_attestation };
+				return { wallet_attestation };
 			} catch (err) {
-				console.error('Failed to request Wallet Instance Attestation', err);
+				console.error('Failed to request Wallet Attestation', err);
 				return null;
 			}
 		},
 		[post],
 	);
 
-	return useMemo(() => ({ requestWalletInstanceAttestation }), [requestWalletInstanceAttestation]);
+	return useMemo(() => ({ requestWalletAttestation }), [requestWalletAttestation]);
 }

@@ -18,9 +18,9 @@ describe('Wallet Provider WIA request', () => {
 	afterEach(() => vi.restoreAllMocks());
 
 	it('uses authenticated backend post with the public key, client ID and AS issuer', async () => {
-		mocks.post.mockResolvedValue({ data: { wallet_instance_attestation: 'provider-signed-wia' } });
+		mocks.post.mockResolvedValue({ data: { wallet_attestation: 'provider-signed-wia' } });
 		const { result } = renderHook(() => useWalletProvider());
-		const response = await result.current.requestWalletInstanceAttestation(
+		const response = await result.current.requestWalletAttestation(
 			publicJwk,
 			'https://wallet.example/callback/',
 			'https://as.example/tenant/',
@@ -32,16 +32,16 @@ describe('Wallet Provider WIA request', () => {
 				authorization_server: 'https://as.example/tenant/',
 			},
 		});
-		expect(response).toEqual({ wallet_instance_attestation: 'provider-signed-wia' });
+		expect(response).toEqual({ wallet_attestation: 'provider-signed-wia' });
 	});
 
-	it.each([undefined, null, {}, { wallet_instance_attestation: '' }, { wallet_instance_attestation: 123 }])(
+	it.each([undefined, null, {}, { wallet_attestation: '' }, { wallet_attestation: 123 }])(
 		'returns null for an invalid response: %j',
 		async (data) => {
 			mocks.post.mockResolvedValue({ data });
 			const { result } = renderHook(() => useWalletProvider());
 			await expect(
-				result.current.requestWalletInstanceAttestation(publicJwk, 'wallet', 'https://as.example'),
+				result.current.requestWalletAttestation(publicJwk, 'wallet', 'https://as.example'),
 			).resolves.toBeNull();
 		},
 	);
@@ -51,7 +51,7 @@ describe('Wallet Provider WIA request', () => {
 		mocks.post.mockRejectedValue(new Error('Backend unavailable'));
 		const { result } = renderHook(() => useWalletProvider());
 		await expect(
-			result.current.requestWalletInstanceAttestation(publicJwk, 'wallet', 'https://as.example'),
+			result.current.requestWalletAttestation(publicJwk, 'wallet', 'https://as.example'),
 		).resolves.toBeNull();
 	});
 });

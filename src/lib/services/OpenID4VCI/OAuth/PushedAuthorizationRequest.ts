@@ -28,7 +28,7 @@ export function usePushedAuthorizationRequest() {
 		keystore,
 		api: { updatePrivateData },
 	} = useSessionContext();
-	const { requestWalletInstanceAttestation } = useWalletProvider();
+	const { requestWalletAttestation } = useWalletProvider();
 
 	const myCustomFetch = useMemo(() => {
 		return async (url: string, options?: RequestInit) => {
@@ -77,7 +77,7 @@ export function usePushedAuthorizationRequest() {
 			}
 			const client: oauth4webapi.Client = { client_id: params.client_id };
 			let dpop: DpopState | undefined;
-			let walletInstanceAttestation: string | undefined;
+			let walletAttestation: string | undefined;
 
 			if (asMeta.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth')) {
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(1);
@@ -86,15 +86,15 @@ export function usePushedAuthorizationRequest() {
 				const { privateKey: privateJwk, publicKey: generatedPublicJwk, alg } = keypairs[0];
 				const publicJwk = { ...generatedPublicJwk, key_ops: ['verify'] };
 
-				const requestWalletInstanceAttestationResponse = await requestWalletInstanceAttestation(
+				const requestWalletAttestationResponse = await requestWalletAttestation(
 					publicJwk,
 					params.client_id,
 					asMeta.issuer,
 				);
-				if (!requestWalletInstanceAttestationResponse) {
-					throw new Error('Failed to get Wallet Instance Attestation from wallet-backend-server');
+				if (!requestWalletAttestationResponse) {
+					throw new Error('Failed to get Wallet Attestation from wallet-backend-server');
 				}
-				walletInstanceAttestation = requestWalletInstanceAttestationResponse.wallet_instance_attestation;
+				walletAttestation = requestWalletAttestationResponse.wallet_attestation;
 				params.dpop_jkt = await jose.calculateJwkThumbprint(publicJwk);
 				dpop = {
 					dpopAlg: alg,
@@ -122,8 +122,8 @@ export function usePushedAuthorizationRequest() {
 				oauth4webapi.pushedAuthorizationRequest(
 					as,
 					client,
-					privateKey && walletInstanceAttestation
-						? AttestationBasedClientAuth(privateKey, walletInstanceAttestation, { challenge })
+					privateKey && walletAttestation
+						? AttestationBasedClientAuth(privateKey, walletAttestation, { challenge })
 						: oauth4webapi.None(),
 					body,
 					{
@@ -137,7 +137,7 @@ export function usePushedAuthorizationRequest() {
 			const challenge = response.headers.get('OAuth-Client-Attestation-Challenge');
 			if (
 				privateKey &&
-				walletInstanceAttestation &&
+				walletAttestation &&
 				response.status === 400 &&
 				json?.error === 'use_attestation_challenge' &&
 				challenge
@@ -153,7 +153,7 @@ export function usePushedAuthorizationRequest() {
 			}
 			return { request_uri: json.request_uri, code_verifier, rawResponse: json, dpop };
 		},
-		[myCustomFetch, requestWalletInstanceAttestation, keystore, updatePrivateData],
+		[myCustomFetch, requestWalletAttestation, keystore, updatePrivateData],
 	);
 
 	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);

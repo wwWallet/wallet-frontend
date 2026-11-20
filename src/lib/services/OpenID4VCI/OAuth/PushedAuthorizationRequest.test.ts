@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('../../HttpProxy/HttpProxy', () => ({ useHttpProxy: () => ({ post: mocks.post }) }));
 vi.mock('../../WalletProvider', () => ({
-	useWalletProvider: () => ({ requestWalletInstanceAttestation: mocks.requestWia }),
+	useWalletProvider: () => ({ requestWalletAttestation: mocks.requestWia }),
 }));
 vi.mock('@/context/SessionContext', () => ({
 	useSessionContext: () => ({
@@ -73,7 +73,7 @@ describe('WIA retrieval before PAR', () => {
 			headers: { 'content-type': 'application/json' },
 			data: { request_uri: 'urn:example:par:request', expires_in: 60 },
 		});
-		mocks.requestWia.mockReset().mockResolvedValue({ wallet_instance_attestation: 'provider-signed-wia' });
+		mocks.requestWia.mockReset().mockResolvedValue({ wallet_attestation: 'provider-signed-wia' });
 	});
 
 	it('requests WIA before PAR and returns the matching flow key for encrypted persistence', async () => {
@@ -183,7 +183,7 @@ describe('WIA retrieval before PAR', () => {
 		mocks.requestWia.mockResolvedValue(null);
 		const { result } = renderHook(() => usePushedAuthorizationRequest());
 		await expect(result.current.sendPushedAuthorizationRequest(metadata, createParams())).rejects.toThrow(
-			'Failed to get Wallet Instance Attestation',
+			'Failed to get Wallet Attestation',
 		);
 		expect(mocks.post).not.toHaveBeenCalled();
 	});
