@@ -13,20 +13,21 @@ type WalletServiceWorkerGlobalScope = ServiceWorkerGlobalScope & {
 	readonly __RUNTIME_PRECACHE_MANIFEST?: Array<PrecacheEntry | string>;
 };
 
-const serviceWorker = self as unknown as WalletServiceWorkerGlobalScope;
+// Avoid the native global `serviceWorker` property when the bundle is not minified.
+const walletWorkerScope = self as unknown as WalletServiceWorkerGlobalScope;
 
 // Build/injection regenerates this file; byte changes trigger a service worker update.
-const runtimePrecachePolicy = serviceWorker.trustedTypes?.createPolicy('sw-register', {
+const runtimePrecachePolicy = walletWorkerScope.trustedTypes?.createPolicy('sw-register', {
 	createScriptURL: (url) => url,
 });
 importScripts(
 	(runtimePrecachePolicy?.createScriptURL('./runtime-precache.js') as unknown as string) ?? './runtime-precache.js',
 );
 
-const basePath = new URL(serviceWorker.registration.scope).pathname.replace(/\/?$/, '/') || '/';
+const basePath = new URL(walletWorkerScope.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 const appShellCacheName = `app-shell:${basePath}`;
 const appShellBypassPaths = import.meta.env.VITE_APP_SHELL_BYPASS_PATHS as string[];
-const runtimePrecacheManifest = serviceWorker.__RUNTIME_PRECACHE_MANIFEST || [];
+const runtimePrecacheManifest = walletWorkerScope.__RUNTIME_PRECACHE_MANIFEST || [];
 
 clientsClaim();
 cleanupOutdatedCaches();
@@ -67,7 +68,7 @@ const appShellStrategy = new NetworkFirst({
 });
 
 const createAppShellRequest = () =>
-	new Request(new URL(`${basePath}index.html`, serviceWorker.location.origin), {
+	new Request(new URL(`${basePath}index.html`, walletWorkerScope.location.origin), {
 		credentials: 'same-origin',
 		cache: 'reload',
 	});
@@ -134,13 +135,13 @@ registerRoute(
 
 let isFirstVisit = false;
 
-serviceWorker.addEventListener('install', (event) => {
-	isFirstVisit = !serviceWorker.registration.active;
+walletWorkerScope.addEventListener('install', (event) => {
+	isFirstVisit = !walletWorkerScope.registration.active;
 	event.waitUntil(caches.open(appShellCacheName).then((cache) => cache.add(createAppShellRequest())));
-	serviceWorker.skipWaiting();
+	walletWorkerScope.skipWaiting();
 });
 
-serviceWorker.addEventListener('activate', (event) => {
+walletWorkerScope.addEventListener('activate', (event) => {
 	event.waitUntil(
 		(async () => {
 			// Delete caches replaced by the scoped app shell and branding precache.
@@ -160,10 +161,10 @@ serviceWorker.addEventListener('activate', (event) => {
 			}
 
 			// Claim and reload clients
-			await serviceWorker.clients.claim();
+			await walletWorkerScope.clients.claim();
 
 			if (!isFirstVisit) {
-				const clients = await serviceWorker.clients.matchAll();
+				const clients = await walletWorkerScope.clients.matchAll();
 				clients.forEach((client) => {
 					(client as WindowClient).navigate(client.url);
 				});
