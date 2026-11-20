@@ -196,7 +196,9 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 					? current.some((item) => item.batchId === candidate.batchId)
 						? current.filter((item) => item.batchId !== candidate.batchId)
 						: [...current, candidate]
-					: [candidate],
+					: current.some((item) => item.batchId === candidate.batchId)
+						? []
+						: [candidate],
 			);
 			return next;
 		});
@@ -342,9 +344,9 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 				className={`rounded-b-xl border border-lm-gray-400 bg-lm-gray-100 dark:border-dm-gray-600 dark:bg-dm-gray-900 ${inReview ? 'border-t-0' : ''}`}
 			>
 				{!inReview && (
-					<div className="flex items-center gap-3 bg-white p-3 dark:bg-dm-gray-800">
+					<div className="flex flex-wrap items-center gap-3 bg-white p-3 dark:bg-dm-gray-800">
 						<div className="h-12 w-20 shrink-0">{imageFor(credential, candidate, true)}</div>
-						<div className="min-w-0">
+						<div className="min-w-0 flex-1">
 							<h3 className="font-semibold">
 								<RequestName id={id} matches={matches} inventory={vcEntityList} />
 							</h3>
@@ -352,6 +354,34 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 								{t(multiple ? 'dcqlCredentials.selectOneOrMore' : 'dcqlCredentials.selectOne')}
 							</span>
 						</div>
+						{multiple && !onlyCandidate && (
+							<button
+								type="button"
+								onClick={() => setAllCredentials(id, selected.length !== candidates.length)}
+								className="shrink-0 text-sm font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary xm:hidden"
+							>
+								{t(selected.length === candidates.length ? 'dcqlCredentials.deselectAll' : 'dcqlCredentials.selectAll')}
+							</button>
+						)}
+						<span className="shrink-0 text-right text-sm font-bold text-primary xm:hidden">
+							{t('dcqlCredentials.selectedCount', { count: selected.length })}
+						</span>
+						{multiple && !onlyCandidate && (
+							<div className="hidden basis-full items-center justify-between gap-3 xm:flex">
+								<span className="text-left text-sm font-bold text-primary">
+									{t('dcqlCredentials.selectedCount', { count: selected.length })}
+								</span>
+								<button
+									type="button"
+									onClick={() => setAllCredentials(id, selected.length !== candidates.length)}
+									className="shrink-0 text-sm font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+								>
+									{t(
+										selected.length === candidates.length ? 'dcqlCredentials.deselectAll' : 'dcqlCredentials.selectAll',
+									)}
+								</button>
+							</div>
+						)}
 					</div>
 				)}
 				<div className="space-y-3 p-3 sm:p-4">
@@ -361,16 +391,19 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 						<Slider
 							items={candidates}
 							initialSlide={slide + 1}
-							onSlideChange={(index) => setSlideById((previous) => ({ ...previous, [id]: index }))}
+							onSlideChange={(index) =>
+								setSlideById((previous) => (previous[id] === index ? previous : { ...previous, [id]: index }))
+							}
 							className="mx-auto w-full md:max-w-[560px] xm:px-4 px-16 sm:px-24 md:px-8 [&_#previous-slide]:-left-1 [&_#next-slide]:-right-1"
 							renderSlideContent={(slideCandidate, index) => {
 								const slideCredential = vcEntityList?.find((vc) => vc.batchId === slideCandidate.batchId);
 								if (!slideCredential) return null;
+								const isSelected = selected.some((item) => item.batchId === slideCandidate.batchId);
 								return (
 									<div
 										role="button"
 										tabIndex={index === slide ? 0 : -1}
-										aria-pressed={selected.some((item) => item.batchId === slideCandidate.batchId)}
+										aria-pressed={isSelected}
 										onClick={(event) => {
 											if (!(event.target as HTMLElement).closest('label')) setCredentialChoice(id, slideCandidate);
 										}}
@@ -383,60 +416,42 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 												setCredentialChoice(id, slideCandidate);
 											}
 										}}
-										className="relative w-full cursor-pointer rounded-xl focus-visible:outline-2 focus-visible:outline-primary"
+										className="relative w-full cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-primary"
 									>
 										{imageFor(slideCredential, slideCandidate)}
 										<div
-											className={`absolute inset-0 rounded-xl transition-opacity bg-lm-gray-300 dark:bg-dm-gray-600 ${
-												selected.some((item) => item.batchId === slideCandidate.batchId)
-													? 'opacity-0'
-													: 'opacity-[0.35]'
-											}`}
+											className={`absolute inset-0 rounded-lg transition-opacity bg-lm-gray-300 dark:bg-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-[0.35]'}`}
 										/>
 										<label
 											className="absolute bottom-3 right-3 z-10 flex cursor-pointer rounded-full bg-white/95 p-1.5 shadow-md dark:bg-dm-gray-800"
 											title={t('dcqlCredentials.selectCredential')}
-											onClick={(event) => event.stopPropagation()}
+											onClick={(event) => {
+												event.preventDefault();
+												event.stopPropagation();
+												setCredentialChoice(id, slideCandidate);
+											}}
 										>
 											<input
 												type={multiple ? 'checkbox' : 'radio'}
 												name={`credential-${id}`}
 												aria-label={t('dcqlCredentials.selectCredentialNumber', { number: index + 1 })}
-												checked={selected.some((item) => item.batchId === slideCandidate.batchId)}
-												onChange={() => setCredentialChoice(id, slideCandidate)}
-												className="h-6 w-6 appearance-none rounded-full border-2 border-primary bg-white checked:bg-primary checked:after:block checked:after:text-center checked:after:text-xs checked:after:leading-5 checked:after:text-white checked:after:content-['✓'] focus-visible:outline-2 focus-visible:outline-primary"
+												checked={isSelected}
+												className="peer sr-only"
 											/>
+											<span
+												aria-hidden="true"
+												className={`flex h-6 w-6 items-center justify-center rounded-full border border-primary text-base font-bold leading-none peer-focus-visible:outline-2 peer-focus-visible:outline-primary ${isSelected ? 'bg-primary text-white' : 'bg-white'}`}
+											>
+												{isSelected ? '✓' : ''}
+											</span>
 										</label>
 									</div>
 								);
 							}}
 						/>
 					)}
-					{multiple && !onlyCandidate && (
-						<div className="flex justify-center gap-5 text-sm font-semibold text-primary">
-							<button
-								type="button"
-								onClick={() => setAllCredentials(id, true)}
-								className="hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-							>
-								{t('dcqlCredentials.selectAll')}
-							</button>
-							<button
-								type="button"
-								onClick={() => setAllCredentials(id, false)}
-								className="hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-							>
-								{t('dcqlCredentials.selectNone')}
-							</button>
-						</div>
-					)}
 					<div className="mx-auto max-w-[800px]">
 						<DisclosurePreview credential={credential} instance={candidate} />
-					</div>
-					<div
-						className={`mx-auto mt-3 max-w-[800px] text-sm font-bold text-primary dark:text-blue-300 ${inReview ? '' : 'text-right'}`}
-					>
-						{t('dcqlCredentials.selectedCount', { count: selected.length })}
 					</div>
 				</div>
 			</div>
