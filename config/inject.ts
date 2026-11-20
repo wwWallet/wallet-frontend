@@ -1,18 +1,19 @@
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
-import { findLogoFiles } from './branding';
-import { EnvConfigMap, getMetaConfigFromEnvConfig } from './config';
-import robotsTxt from './files/robots';
-import wellKnownFiles from './files/well-known';
-import sitemapXml from './files/sitemap';
-import brandingManifest from './files/manifest';
-import themeCSS from './files/theme';
-import metadataImage from './files/metadata-image';
-import runtimePrecache from './files/runtime-precache';
-import { Tag, TagsMap } from './utils/resources';
-import { configMetaTag, getTagSortingPriority, insertTag } from './utils/tags';
-import { pathWithBase } from './utils/paths';
+import { findLogoFiles } from './branding.ts';
+import { getMetaConfigFromEnvConfig } from './config.ts';
+import type { EnvConfigMap } from './config.ts';
+import robotsTxt from './files/robots.ts';
+import wellKnownFiles from './files/well-known.ts';
+import sitemapXml from './files/sitemap.ts';
+import brandingManifest from './files/manifest.ts';
+import themeCSS from './files/theme.ts';
+import metadataImage from './files/metadata-image.ts';
+import runtimePrecache from './files/runtime-precache.ts';
+import type { Tag, TagsMap } from './utils/resources.ts';
+import { configMetaTag, getTagSortingPriority, insertTag } from './utils/tags.ts';
+import { pathWithBase } from './utils/paths.ts';
 
 export type InjectConfigOptions = {
 	/**

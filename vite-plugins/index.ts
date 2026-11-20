@@ -1,1 +1,1 @@
-export * from './inject-config';
+export * from './inject-config.ts';

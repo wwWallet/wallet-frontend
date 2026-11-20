@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TransformKeysToLowercase } from './utils/resources';
+import type { TransformKeysToLowercase } from './utils/resources.ts';
 
 /**
  * Vite-specific environment variables.

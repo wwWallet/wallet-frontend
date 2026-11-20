@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { EnvConfigMap } from '../config';
+import type { EnvConfigMap } from '../config.ts';
 import { writeFile } from 'node:fs/promises';
 
 /**

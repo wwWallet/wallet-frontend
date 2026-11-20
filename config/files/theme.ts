@@ -1,9 +1,9 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
-import { generateThemeCSS } from '../branding';
-import { TagsMap } from '../utils/resources';
-import { pathWithBase } from '../utils/paths';
-import { EnvConfigMap } from '../config';
+import { generateThemeCSS } from '../branding.ts';
+import type { TagsMap } from '../utils/resources.ts';
+import { pathWithBase } from '../utils/paths.ts';
+import type { EnvConfigMap } from '../config.ts';
 
 export default async function themeCSS(
 	destDir: string,

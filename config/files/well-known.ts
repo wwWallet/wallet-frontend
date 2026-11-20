@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { access, mkdir, rm, writeFile } from 'node:fs/promises';
-import { type FileToWrite } from '../utils/resources';
-import { type EnvConfigMap } from '../config';
+import type { FileToWrite } from '../utils/resources.ts';
+import type { EnvConfigMap } from '../config.ts';
 
 /**
  * Generates .well-known files.

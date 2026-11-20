@@ -8,7 +8,7 @@ import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
-import { InjectConfigPlugin } from './vite-plugins';
+import { InjectConfigPlugin } from './vite-plugins/index.ts';
 
 type LocalViteConfig = Partial<UserConfig>;
 

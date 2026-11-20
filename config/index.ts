@@ -1,3 +1,3 @@
-export * from './inject';
-export * from './branding';
-export * from './config';
+export * from './inject.ts';
+export * from './branding.ts';
+export * from './config.ts';
