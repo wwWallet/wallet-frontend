@@ -1,3 +1,4 @@
+import type { DcqlSelection } from 'wallet-common';
 import { IOpenID4VP } from '../../interfaces/IOpenID4VP';
 import { OpenID4VPServerAPI, OpenID4VPResponseMode } from 'wallet-common';
 import { OpenID4VPRelyingPartyState } from '../../types/OpenID4VPRelyingPartyState';
@@ -25,7 +26,7 @@ export function useOpenID4VP({
 		verifierDomainName: string,
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
-	) => Promise<Map<string, number>>;
+	) => Promise<DcqlSelection>;
 	showTransactionDataConsentPopup: (options: TransactionConsentOptions) => Promise<boolean>;
 }): IOpenID4VP {
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
@@ -40,7 +41,7 @@ export function useOpenID4VP({
 			verifierDomainName: string,
 			verifierPurpose: string,
 			parsedTransactionData?: ParsedTransactionData[],
-		): Promise<Map<string, number>> => {
+		): Promise<DcqlSelection> => {
 			return showCredentialSelectionPopup(
 				conformantCredentialsMap,
 				verifierDomainName,
@@ -135,7 +136,7 @@ export function useOpenID4VP({
 	);
 
 	const sendAuthorizationResponse = useCallback(
-		async (selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
+		async (selectionMap: DcqlSelection, vcEntityList: ExtendedVcEntity[]) => {
 			const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
 			if (!response || !(response as any).formData) {
 				return { state: 'skipped' as const };
