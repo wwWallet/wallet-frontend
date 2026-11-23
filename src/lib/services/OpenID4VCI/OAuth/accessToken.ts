@@ -21,7 +21,7 @@ export type DpopState = {
 export type RequestWalletAttestation = ReturnType<typeof useWalletProvider>['requestWalletAttestation'];
 
 export async function requestTokenWalletAttestation(
-	requestWia: RequestWalletAttestation,
+	requestWalletAttestation: RequestWalletAttestation,
 	publicJwk: jose.JWK | null | undefined,
 	clientId: string | null,
 	issuer: string,
@@ -29,7 +29,7 @@ export async function requestTokenWalletAttestation(
 	if (!publicJwk || !clientId) {
 		throw new Error('Wallet Attestation requires the session public key and client ID');
 	}
-	const response = await requestWia({ ...publicJwk, key_ops: ['verify'] }, clientId, issuer);
+	const response = await requestWalletAttestation({ ...publicJwk, key_ops: ['verify'] }, clientId, issuer);
 	if (!response) {
 		throw new Error('Failed to get Wallet Attestation from wallet-backend-server');
 	}
