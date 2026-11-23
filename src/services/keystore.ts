@@ -8,8 +8,7 @@ import * as didUtil from '@cef-ebsi/key-did-resolver/dist/util.js';
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { buildOpenId4VpSessionTranscriptBytes } from 'wallet-common';
-import { SDJwt } from '@sd-jwt/core';
+import { buildOpenId4VpSessionTranscriptBytes, getSdJwtHolderPublicKey } from 'wallet-common';
 import { withHintsFromAllowCredentials } from '@/util-webauthn';
 import {
 	addDeleteKeypairEvent,
@@ -971,23 +970,12 @@ export async function signJwtPresentation(
 	verifiableCredentials: any[],
 	transactionDataResponseParams?: { transaction_data_hashes: string[]; transaction_data_hashes_alg: string[] },
 ): Promise<{ vpjwt: string }> {
-	const hasher = (data: string | ArrayBuffer, alg: string) => {
-		const encoded = typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
-
-		return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
-	};
-
-	const inputJwt = await SDJwt.fromEncode(verifiableCredentials[0], hasher);
-	if (!inputJwt.jwt) {
-		throw new Error('SD-JWT payload is missing');
-	}
-	const { cnf } = inputJwt.jwt.payload as { cnf?: { jwk?: JWK } };
-
-	if (!cnf?.jwk) {
+	const holderPublicKey = await getSdJwtHolderPublicKey(verifiableCredentials[0]);
+	if (!holderPublicKey) {
 		throw new Error('Holder public key could not be resolved from cnf.jwk attribute');
 	}
 
-	const kid = await jose.calculateJwkThumbprint(cnf.jwk, 'sha256');
+	const kid = await jose.calculateJwkThumbprint(holderPublicKey as JWK, 'sha256');
 
 	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
 	if (!keypair) {
