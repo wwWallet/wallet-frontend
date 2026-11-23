@@ -14,6 +14,7 @@ import { useCredentialRequest } from './CredentialRequest';
 import { isKeyAttestationRequired } from './OpenID4VCI';
 
 const mocks = vi.hoisted(() => ({
+	profile: 'DEFAULT',
 	providerPost: vi.fn(),
 	issuerPost: vi.fn(),
 	generateKeypairs: vi.fn(),
@@ -35,6 +36,9 @@ vi.mock('@/context/SessionContext', () => ({
 }));
 vi.mock('@/config', async (importOriginal) => ({
 	...(await importOriginal<typeof import('@/config')>()),
+	get OPENID4VCI_PROFILE() {
+		return mocks.profile;
+	},
 	OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: 10,
 }));
 
@@ -49,6 +53,7 @@ describe('credential proof construction', () => {
 	});
 	beforeEach(async () => {
 		vi.clearAllMocks();
+		mocks.profile = 'DEFAULT';
 		const keys = await jose.generateKeyPair('ES256', { extractable: true });
 		const publicKey = await jose.exportJWK(keys.publicKey);
 		const privateKey = await jose.exportJWK(keys.privateKey);
@@ -101,6 +106,51 @@ describe('credential proof construction', () => {
 		});
 		await expect(jose.jwtVerify(proof, await jose.importJWK(header.jwk!, 'ES256'))).resolves.toBeDefined();
 	});
+
+	it.each([
+		{ profile: 'DEFAULT', reverse: true, count: 2 },
+		{ profile: 'ABCA12', reverse: true, count: 2 },
+		{ profile: 'WEBUILD', reverse: false, count: 1 },
+	])(
+		'uses $count credential JWT proofs for $profile with reversed keys: $reverse',
+		async ({ profile, reverse, count }) => {
+			mocks.profile = profile;
+			mocks.metadata.mockResolvedValue({
+				metadata: { credential_issuer: 'https://issuer.example', batch_credential_issuance: { batch_size: 2 } },
+			});
+			const keys = await Promise.all([
+				jose.generateKeyPair('ES256', { extractable: true }),
+				jose.generateKeyPair('ES256', { extractable: true }),
+			]);
+			const keypairs = await Promise.all(
+				keys.map(async ({ publicKey, privateKey }) => ({
+					publicKey: await jose.exportJWK(publicKey),
+					privateKey: await jose.exportJWK(privateKey),
+					alg: 'ES256',
+				})),
+			);
+			mocks.generateKeypairs.mockResolvedValue([{ keypairs }, {}, mocks.commit]);
+			const attestedKeys = keypairs.map(({ publicKey }) => publicKey);
+			if (reverse) attestedKeys.reverse();
+			const attestation = await new jose.SignJWT({ attested_keys: attestedKeys })
+				.setProtectedHeader({ alg: 'ES256' })
+				.sign(keys[0].privateKey);
+			mocks.providerPost.mockResolvedValue({ data: { key_attestation: attestation } });
+
+			await setup().execute('credential', 'jwt', true);
+
+			expect(mocks.generateKeypairs).toHaveBeenCalledWith(2);
+			const proofs: string[] = mocks.issuerPost.mock.calls[0][1].proofs.jwt;
+			expect(proofs).toHaveLength(count);
+			for (const [index, proof] of proofs.entries()) {
+				const { protectedHeader } = await jose.jwtVerify(proof, keys[index].publicKey, {
+					audience: 'https://issuer.example',
+					typ: 'openid4vci-proof+jwt',
+				});
+				expect(protectedHeader.key_attestation).toBe(attestation);
+			}
+		},
+	);
 
 	it('rejects a key attestation for a different key', async () => {
 		const keys = await jose.generateKeyPair('ES256');

@@ -33,6 +33,7 @@ export const ClientEnvConfigSchema = z.object({
 	DID_KEY_VERSION: z.string().optional(),
 	DISPLAY_CONSOLE: z.string().optional(),
 	WEBAUTHN_RPID: z.string().optional(),
+	OPENID4VCI_PROFILE: z.enum(['DEFAULT', 'ABCA12', 'WEBUILD']).optional(),
 	OPENID4VCI_PROOF_TYPE_PRECEDENCE: z.string().optional(),
 	OPENID4VP_SAN_DNS_CHECK: z.string().optional(),
 	OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: z.string().optional(),

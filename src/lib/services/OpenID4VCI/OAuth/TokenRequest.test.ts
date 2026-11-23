@@ -6,7 +6,11 @@ import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 
 const mocks = vi.hoisted(() => ({ post: vi.fn() }));
 vi.mock('../../HttpProxy/HttpProxy', () => ({ useHttpProxy: () => ({ post: mocks.post }) }));
-vi.mock('@/config', () => ({ MODE: 'production', OPENID4VCI_REDIRECT_URI: 'https://wallet.example/callback' }));
+vi.mock('@/config', () => ({
+	MODE: 'production',
+	OPENID4VCI_PROFILE: 'DEFAULT',
+	OPENID4VCI_REDIRECT_URI: 'https://wallet.example/callback',
+}));
 
 const success = {
 	status: 200,

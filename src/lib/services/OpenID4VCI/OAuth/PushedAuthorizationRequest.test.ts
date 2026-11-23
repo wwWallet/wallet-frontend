@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as jose from 'jose';
 import { createPrivateKey, createPublicKey } from 'node:crypto';
 import { usePushedAuthorizationRequest } from './PushedAuthorizationRequest';
@@ -23,14 +23,7 @@ vi.mock('@/context/SessionContext', () => ({
 		api: { updatePrivateData: mocks.updatePrivateData },
 	}),
 }));
-vi.mock('@/config', () => ({ MODE: 'production' }));
-vi.mock('oauth4webapi', async (importOriginal) => ({
-	...(await importOriginal<typeof import('oauth4webapi')>()),
-	// Node WebCrypto and jsdom use different ArrayBuffer realms. PKCE itself
-	// is unchanged by this feature; isolate that library call in this hook test.
-	calculatePKCECodeChallenge: async () => 'test-code-challenge',
-}));
-
+vi.mock('@/config', () => ({ MODE: 'production', OPENID4VCI_PROFILE: 'DEFAULT' }));
 vi.mock('jose', async (importOriginal) => ({
 	...(await importOriginal<typeof import('jose')>()),
 	// Browser jose returns CryptoKey; its Node entry returns KeyObject instead.
@@ -51,7 +44,11 @@ const createParams = () => ({
 });
 
 describe('WIA retrieval before PAR', () => {
+	afterEach(() => vi.unstubAllGlobals());
+
 	beforeEach(async () => {
+		// Match the ArrayBuffer realm of the Node WebCrypto installed by setup-vitest.
+		vi.stubGlobal('ArrayBuffer', Buffer.alloc(0).buffer.constructor);
 		const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
 		mocks.generateKeypairs.mockReset().mockResolvedValue([
 			{

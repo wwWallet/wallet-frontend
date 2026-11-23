@@ -1,22 +1,32 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import * as oauth from 'oauth4webapi';
 import * as jose from 'jose';
 import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
+
+const settings = vi.hoisted(() => ({ profile: 'DEFAULT' }));
+vi.mock('@/config', () => ({
+	get OPENID4VCI_PROFILE() {
+		return settings.profile;
+	},
+}));
 
 const as = { issuer: 'https://as.example/' };
 const client = { client_id: 'wallet' };
 
 describe('AttestationBasedClientAuth', () => {
-	it.each(['ES256', 'ES384', 'ES512', 'PS256', 'RS256'])('signs verifiable proofs using %s', async (alg) => {
-		const { privateKey, publicKey } = await oauth.generateKeyPair(alg);
-		const headers = new Headers();
-		await AttestationBasedClientAuth(privateKey, 'attestation')(as, client, new URLSearchParams(), headers);
-		const verified = await jose.jwtVerify(headers.get('OAuth-Client-Attestation-PoP')!, publicKey, {
-			audience: as.issuer,
-		});
-		expect(verified.protectedHeader.alg).toBe(alg);
-	});
+	it.each(['ES256', 'ES384', 'ES512', 'PS256', 'PS384', 'PS512', 'RS256', 'RS384', 'RS512'])(
+		'signs verifiable proofs using %s',
+		async (alg) => {
+			const { privateKey, publicKey } = await oauth.generateKeyPair(alg);
+			const headers = new Headers();
+			await AttestationBasedClientAuth(privateKey, 'attestation')(as, client, new URLSearchParams(), headers);
+			const verified = await jose.jwtVerify(headers.get('OAuth-Client-Attestation-PoP')!, publicKey, {
+				audience: as.issuer,
+			});
+			expect(verified.protectedHeader.alg).toBe(alg);
+		},
+	);
 	it('signs Ed25519 proofs with the fully specified algorithm identifier', async () => {
 		const { privateKey, publicKey } = await oauth.generateKeyPair('Ed25519');
 		const headers = new Headers();
@@ -43,10 +53,11 @@ describe('AttestationBasedClientAuth', () => {
 		await auth(as, client, body, headers);
 		const first = await jose.jwtVerify(headers.get('OAuth-Client-Attestation-PoP')!, publicKey, {
 			audience: as.issuer,
+			issuer: client.client_id,
 			typ: 'oauth-client-attestation-pop+jwt',
 		});
 		expect(first.protectedHeader).toMatchObject({ alg: 'ES256', kid: 'instance' });
-		expect(Object.keys(first.payload).sort()).toEqual(['aud', 'iat', 'jti']);
+		expect(Object.keys(first.payload).sort()).toEqual(['aud', 'iat', 'iss', 'jti']);
 		expect(first.payload.iat).toBeTypeOf('number');
 		expect(headers.get('OAuth-Client-Attestation')).toBe('signed-attestation');
 		expect([...body.entries()]).toEqual([
@@ -55,6 +66,21 @@ describe('AttestationBasedClientAuth', () => {
 		]);
 		await auth(as, client, body, headers);
 		expect(jose.decodeJwt(headers.get('OAuth-Client-Attestation-PoP')!).jti).not.toBe(first.payload.jti);
+	});
+
+	it.each(['ABCA12', 'WEBUILD'])('omits the proof issuer for the %s profile', async (profile) => {
+		settings.profile = profile;
+		try {
+			const { privateKey, publicKey } = await oauth.generateKeyPair('ES256');
+			const headers = new Headers();
+			await AttestationBasedClientAuth(privateKey, 'attestation')(as, client, new URLSearchParams(), headers);
+			const { payload } = await jose.jwtVerify(headers.get('OAuth-Client-Attestation-PoP')!, publicKey, {
+				audience: as.issuer,
+			});
+			expect(payload).not.toHaveProperty('iss');
+		} finally {
+			settings.profile = 'DEFAULT';
+		}
 	});
 
 	it('supports challenges, clock skew, and the library assertion customization hook', async () => {
@@ -71,11 +97,23 @@ describe('AttestationBasedClientAuth', () => {
 		expect(payload.iat).toBeGreaterThanOrEqual(Math.floor(Date.now() / 1000) + 29);
 	});
 
-	it('rejects missing attestations, empty challenges, and public keys', async () => {
+	it('rejects missing attestations, empty challenges, public keys, and empty key IDs', async () => {
 		const { privateKey, publicKey } = await oauth.generateKeyPair('ES256');
 		expect(() => AttestationBasedClientAuth(privateKey, '')).toThrow('clientAttestation');
 		expect(() => AttestationBasedClientAuth(privateKey, 'attestation', { challenge: '' })).toThrow('challenge');
 		expect(() => AttestationBasedClientAuth(publicKey, 'attestation')).toThrow();
+		expect(() => AttestationBasedClientAuth({ key: privateKey, kid: '' }, 'attestation')).toThrow('kid');
+	});
+
+	it('rejects undersized RSA keys before adding authentication to the request', async () => {
+		const { privateKey } = await oauth.generateKeyPair('RS256', { modulusLength: 1024 });
+		const body = new URLSearchParams({ scope: 'openid' });
+		const headers = new Headers();
+		await expect(AttestationBasedClientAuth(privateKey, 'attestation')(as, client, body, headers)).rejects.toThrow(
+			'modulusLength',
+		);
+		expect([...body.entries()]).toEqual([['scope', 'openid']]);
+		expect([...headers.entries()]).toEqual([]);
 	});
 
 	it.each(['client_secret', 'client_assertion', 'client_assertion_type', 'authorization'])(

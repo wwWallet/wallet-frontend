@@ -81,6 +81,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `DISPLAY_CONSOLE`: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
   - `WEBAUTHN_RPID`: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
   - `OPENID4VCI_REDIRECT_URI`: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
+  - `OPENID4VCI_PROFILE` defaults to `DEFAULT` (OpenID4VCI 1.0). Set `ABCA12` to omit `iss` from the client attestation proof while retaining the default credential proof behavior. Set `WEBUILD` for the WE BUILD attestation proof and single credential JWT proof rules.
   - `OPENID4VCI_PROOF_TYPE_PRECEDENCE`: Proof type precedence for OID4VCI (e.g., `"attestation,jwt"`).
   - `OPENID4VP_SAN_DNS_CHECK`: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri (`true` or `false`).
   - `OPENID4VP_SAN_DNS_CHECK_SSL_CERTS`: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.

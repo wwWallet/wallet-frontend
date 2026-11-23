@@ -20,6 +20,7 @@ import { useSessionContext } from '@/context/SessionContext';
 import { OpenidCredentialIssuerMetadata } from 'wallet-common';
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from '@/config';
 import type { CredentialKeyPair } from '@/services/keystore';
+import { getOpenID4VCIProfile } from './profiles';
 
 /**
  * Compression options for jose v4 using native Browser/Node CompressionStream API.
@@ -36,38 +37,43 @@ export const compressionOptions = {
 	},
 };
 
-async function generateKeyAttestationJwtProof(
-	firstKey: CredentialKeyPair,
+async function generateKeyAttestationJwtProofs(
+	keypairs: CredentialKeyPair[],
 	keyAttestation: string,
 	audience: string,
 	nonce: string | null,
-): Promise<string> {
+): Promise<string[]> {
 	const attestedKeys = decodeJwt(keyAttestation).attested_keys;
-	if (!Array.isArray(attestedKeys) || !attestedKeys[0] || typeof attestedKeys[0] !== 'object') {
-		throw new Error('Key attestation does not contain attested_keys[0]');
+	if (!Array.isArray(attestedKeys) || attestedKeys.length === 0) {
+		throw new Error('Key attestation does not contain attested keys');
 	}
-	const [attestedKeyThumbprint, generatedKeyThumbprint] = await Promise.all([
-		calculateJwkThumbprint(attestedKeys[0] as JWK),
-		calculateJwkThumbprint(firstKey.publicKey),
-	]);
-	if (attestedKeyThumbprint !== generatedKeyThumbprint) {
-		throw new Error('Key attestation attested_keys[0] does not match the first generated credential key');
-	}
+	const selected = getOpenID4VCIProfile().selectAttestedProofKeys(keypairs, attestedKeys);
+	const attestedThumbprints = new Set(
+		await Promise.all(selected.attestedKeys.map((key) => calculateJwkThumbprint(key))),
+	);
 
-	const signingKey = await importJWK(firstKey.privateKey, firstKey.alg);
-	const proofJwk: JWK = { ...firstKey.publicKey, key_ops: ['verify'] };
-	return new SignJWT({
-		aud: audience,
-		...(nonce ? { nonce } : {}),
-	})
-		.setIssuedAt()
-		.setProtectedHeader({
-			typ: 'openid4vci-proof+jwt',
-			alg: firstKey.alg,
-			key_attestation: keyAttestation,
-			jwk: proofJwk,
-		})
-		.sign(signingKey);
+	return Promise.all(
+		selected.keypairs.map(async ({ publicKey, privateKey, alg }) => {
+			if (!attestedThumbprints.has(await calculateJwkThumbprint(publicKey))) {
+				throw new Error('Generated credential key is missing from the key attestation');
+			}
+
+			const signingKey = await importJWK(privateKey, alg);
+			const proofJwk: JWK = { ...publicKey, key_ops: ['verify'] };
+			return new SignJWT({
+				aud: audience,
+				...(nonce ? { nonce } : {}),
+			})
+				.setIssuedAt()
+				.setProtectedHeader({
+					typ: 'openid4vci-proof+jwt',
+					alg,
+					key_attestation: keyAttestation,
+					jwk: proofJwk,
+				})
+				.sign(signingKey);
+		}),
+	);
 }
 
 export function useCredentialRequest() {
@@ -273,13 +279,13 @@ export function useCredentialRequest() {
 					if (proofType === 'attestation') {
 						proofsToSend = { attestation: [keyAttestation] };
 					} else {
-						const keyAttestationProof = await generateKeyAttestationJwtProof(
-							keypairs[0],
+						const keyAttestationProofs = await generateKeyAttestationJwtProofs(
+							keypairs,
 							keyAttestation,
 							credentialIssuerMetadata.metadata.credential_issuer,
 							c_nonce,
 						);
-						proofsToSend = { jwt: [keyAttestationProof] };
+						proofsToSend = { jwt: keyAttestationProofs };
 					}
 				} else {
 					if (!clientId) {
