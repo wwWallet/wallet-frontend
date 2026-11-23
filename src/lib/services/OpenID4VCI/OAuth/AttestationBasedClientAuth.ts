@@ -1,12 +1,6 @@
 import * as oauth4webapi from 'oauth4webapi';
 import { getOpenID4VCIProfile } from '../profiles';
 
-function assertString(value: unknown, name: string): asserts value is string {
-	if (typeof value !== 'string' || !value.length) {
-		throw new TypeError(`${name} must be a non-empty string`);
-	}
-}
-
 export interface AttestationBasedClientAuthOptions extends oauth4webapi.ModifyAssertionOptions {
 	challenge?: string;
 }
@@ -38,7 +32,9 @@ export function AttestationBasedClientAuth(
 			// Rebuild the remaining claims for attestation PoP.
 			// This drops sub, exp, nbf and future additions to oauth4webapi
 			const { aud, iat, iss, jti } = payload;
-			assertString(iss, 'client_id');
+			if (typeof iss !== 'string' || !iss.length) {
+				throw new TypeError('client_id must be a non-empty string');
+			}
 			for (const claim of Object.keys(payload)) {
 				delete payload[claim];
 			}
@@ -65,7 +61,9 @@ export function AttestationBasedClientAuth(
 		const assertion = new URLSearchParams();
 		await signAssertion(as, client, assertion, headers);
 		const proof = assertion.get('client_assertion');
-		assertString(proof, 'client_attestation_pop');
+		if (typeof proof !== 'string' || !proof.length) {
+			throw new Error('PrivateKeyJwt did not produce a client assertion');
+		}
 		body.set('client_id', client.client_id);
 		headers.set('OAuth-Client-Attestation', clientAttestation);
 		headers.set('OAuth-Client-Attestation-PoP', proof);
