@@ -18,6 +18,20 @@ export type DpopState = {
 	dpopAlg: string;
 };
 
+export class BearerTokenWithDpopKeyError extends Error {
+	constructor() {
+		super(
+			'The authorization server returned a Bearer access token for a session with a DPoP key. This combination is not supported by the wallet.',
+		);
+	}
+}
+
+export function assertAccessTokenCompatible(tokenType: string, dpop?: DpopState): void {
+	if (dpop && tokenType.toLowerCase() === 'bearer') {
+		throw new BearerTokenWithDpopKeyError();
+	}
+}
+
 export type RequestWalletAttestation = ReturnType<typeof useWalletProvider>['requestWalletAttestation'];
 
 export async function requestTokenWalletAttestation(
@@ -141,6 +155,8 @@ export async function refreshAccessToken(
 	if (!access_token) {
 		throw new Error('Missing access_token from refresh response');
 	}
+
+	assertAccessTokenCompatible(result.response.token_type, dpop);
 
 	const now = context.now ?? Math.floor(Date.now() / 1000);
 	return {

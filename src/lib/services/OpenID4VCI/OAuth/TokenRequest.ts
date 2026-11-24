@@ -11,6 +11,7 @@ const isDev = MODE === 'development';
 
 export type AccessToken = {
 	access_token: string;
+	token_type: string;
 	c_nonce: string;
 	expires_in: number;
 	c_nonce_expires_in: number;
@@ -392,6 +393,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		return {
 			response: {
 				access_token: result?.access_token,
+				token_type: result?.token_type,
 				c_nonce: result?.c_nonce,
 				c_nonce_expires_in: result?.c_nonce_expires_in,
 				expires_in: result?.expires_in,

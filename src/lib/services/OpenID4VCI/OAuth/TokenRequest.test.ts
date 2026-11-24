@@ -65,7 +65,9 @@ describe('Token request attestation authentication', () => {
 			request.setGrantType(grant);
 			request.setRefreshToken('refresh');
 			request.setWalletAttestation('saved-wia', keys.privateKey);
-			await expect(request.execute()).resolves.toMatchObject({ response: { access_token: 'token' } });
+			await expect(request.execute()).resolves.toMatchObject({
+				response: { access_token: 'token', token_type: 'bearer' },
+			});
 			expect(mocks.post.mock.calls[0][2]['oauth-client-attestation']).toBe('saved-wia');
 			const jwt = proof(0);
 			expect(payload(jwt)).toMatchObject({ aud: 'https://as.example/tenant' });

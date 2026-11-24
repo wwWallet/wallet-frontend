@@ -3,7 +3,7 @@ import { accessTokenIsValid, refreshAccessToken, requestTokenWalletAttestation }
 import * as jose from 'jose';
 import { GrantType } from './TokenRequest';
 
-const tokenRequestBuilder = () => ({
+const tokenRequestBuilder = (tokenType = 'bearer') => ({
 	setTokenEndpoint: vi.fn(),
 	setIssuer: vi.fn(),
 	setGrantType: vi.fn(),
@@ -23,6 +23,7 @@ const tokenRequestBuilder = () => ({
 	execute: vi.fn().mockResolvedValue({
 		response: {
 			access_token: 'new-access-token',
+			token_type: tokenType,
 			c_nonce: 'new-c-nonce',
 			expires_in: 60,
 			c_nonce_expires_in: 120,
@@ -66,7 +67,7 @@ describe('OAuth access token handling', () => {
 	it.each([true, false])(
 		'requests a fresh WIA with the original key during refresh (DPoP supported: %s)',
 		async (dpopSupported) => {
-			const builder = tokenRequestBuilder();
+			const builder = tokenRequestBuilder('dpop');
 			const keys = await jose.generateKeyPair('ES256', { extractable: true });
 			const dpop = {
 				dpopAlg: 'ES256',
@@ -103,6 +104,33 @@ describe('OAuth access token handling', () => {
 			assert.deepEqual(result.dpop?.dpopPrivateKeyJwk, dpop.dpopPrivateKeyJwk);
 		},
 	);
+
+	it('rejects a Bearer refresh response when the standalone attestation key is saved as DPoP state', async () => {
+		const builder = tokenRequestBuilder('BeArEr');
+		const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
+		const requestWalletAttestation = vi.fn().mockResolvedValue({ wallet_attestation: 'fresh-wia' });
+
+		await expect(
+			refreshAccessToken(
+				{
+					tokenEndpoint: 'https://issuer.example/token',
+					issuer: 'https://issuer.example',
+					clientId: 'wallet',
+					refreshToken: 'refresh',
+					attestationRequired: true,
+					dpopSupported: false,
+					dpop: {
+						dpopAlg: 'ES256',
+						dpopJti: 'session',
+						dpopPrivateKeyJwk: await jose.exportJWK(privateKey),
+						dpopPublicKeyJwk: await jose.exportJWK(publicKey),
+					},
+				},
+				{ tokenRequestBuilder: builder, requestWalletAttestation },
+			),
+		).rejects.toThrow('returned a Bearer access token for a session with a DPoP key');
+		expect(builder.setDpopHeader).not.toHaveBeenCalled();
+	});
 
 	it.each([true, false])(
 		'rejects missing public key material before refresh (DPoP supported: %s)',

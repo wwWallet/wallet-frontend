@@ -11,6 +11,8 @@ import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestBuilder, TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
 import {
 	accessTokenIsValid,
+	assertAccessTokenCompatible,
+	BearerTokenWithDpopKeyError,
 	refreshAccessToken,
 	requestTokenWalletAttestation,
 	type RequestWalletAttestation,
@@ -121,6 +123,9 @@ async function refreshAccessTokenForFlowState(
 				...flowState,
 				credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 			});
+		}
+		if (error instanceof BearerTokenWithDpopKeyError) {
+			throw error;
 		}
 	}
 	return flowState;
@@ -645,6 +650,8 @@ export function useOpenID4VCI({
 				throw new Error('Token request failed');
 			}
 
+			assertAccessTokenCompatible(result.response.token_type, flowState.dpop);
+
 			try {
 				// try to extract the response and update the OpenID4VCIClientStateRepository
 				const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
@@ -814,6 +821,8 @@ export function useOpenID4VCI({
 				console.error('Missing access_token from response');
 				throw new Error('Missing access_token from response');
 			}
+
+			assertAccessTokenCompatible(result.response.token_type, flowState.dpop);
 
 			flowState.tokenResponse = {
 				data: {
