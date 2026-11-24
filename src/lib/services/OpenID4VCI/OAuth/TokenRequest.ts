@@ -48,6 +48,7 @@ export interface TokenRequestBuilder {
 	setRedirectUri(uri: string): void;
 	setTokenEndpoint(endpoint: string): void;
 	setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string): Promise<void>;
+	clearDpopHeader(): void;
 	execute(): Promise<{ response: AccessToken } | { error: TokenRequestError; response?: any }>;
 }
 
@@ -192,6 +193,11 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 	const setDpopHeader = useCallback(async (dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, _jti: string) => {
 		dpopParams.current = { dpopPrivateKey, dpopPublicKeyJwk };
+		dpopHandle.current = null;
+	}, []);
+
+	const clearDpopHeader = useCallback(() => {
+		dpopParams.current = null;
 		dpopHandle.current = null;
 	}, []);
 
@@ -414,6 +420,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			setRedirectUri,
 			setTokenEndpoint,
 			setDpopHeader,
+			clearDpopHeader,
 			execute,
 		}),
 		[
@@ -432,6 +439,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			setRedirectUri,
 			setTokenEndpoint,
 			setDpopHeader,
+			clearDpopHeader,
 			execute,
 		],
 	);

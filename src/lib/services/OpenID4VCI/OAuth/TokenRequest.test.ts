@@ -112,6 +112,25 @@ describe('Token request attestation authentication', () => {
 		expect(mocks.post.mock.calls[0][2]['oauth-client-attestation']).toBeUndefined();
 	});
 
+	it('clears a previous DPoP key and nonce before a standalone attested token request', async () => {
+		const request = builder();
+		const keys = await keypair();
+		request.setWalletAttestation('saved-wia', keys.privateKey);
+		await request.setDpopHeader(keys.privateKey, { ...(await crypto.subtle.exportKey('jwk', keys.publicKey)) }, 'jti');
+		mocks.post.mockResolvedValueOnce({
+			...success,
+			headers: { ...success.headers, 'dpop-nonce': 'old-nonce' },
+			data: { ...success.data, token_type: 'DPoP' },
+		});
+		await expect(request.execute()).resolves.toMatchObject({ response: { access_token: 'token' } });
+		expect(mocks.post.mock.calls[0][2].dpop).toBeTruthy();
+
+		request.clearDpopHeader();
+		await expect(request.execute()).resolves.toMatchObject({ response: { access_token: 'token' } });
+		expect(mocks.post.mock.calls[1][2].dpop).toBeUndefined();
+		expect(proof(1)).toBeTruthy();
+	});
+
 	it.each([true, false])('handles attestation and DPoP challenges in either order (%s)', async (attestationFirst) => {
 		const request = builder();
 		const keys = await keypair();

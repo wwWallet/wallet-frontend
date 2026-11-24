@@ -94,7 +94,9 @@ export function usePushedAuthorizationRequest() {
 					throw new Error('Failed to get Wallet Attestation from wallet-backend-server');
 				}
 				walletAttestation = requestWalletAttestationResponse.wallet_attestation;
-				params.dpop_jkt = await jose.calculateJwkThumbprint(publicJwk);
+				if (asMeta.dpop_signing_alg_values_supported?.includes(alg)) {
+					params.dpop_jkt = await jose.calculateJwkThumbprint(publicJwk);
+				}
 				dpop = {
 					dpopAlg: alg,
 					dpopJti: crypto.randomUUID(),

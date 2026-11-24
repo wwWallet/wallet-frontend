@@ -53,38 +53,49 @@ describe('WIA retrieval before PAR', () => {
 		mocks.requestWia.mockReset().mockResolvedValue({ wallet_attestation: 'provider-signed-wia' });
 	});
 
-	it('requests WIA before PAR and returns the matching flow key for encrypted persistence', async () => {
-		const { result } = renderHook(() => usePushedAuthorizationRequest());
-		const response = await result.current.sendPushedAuthorizationRequest(metadata, createParams());
-		const [publicJwk, clientId, issuer] = mocks.requestWia.mock.calls[0];
-		expect(mocks.generateKeyPair).toHaveBeenCalledWith('ES256', { extractable: true });
-		expect(publicJwk).not.toHaveProperty('d');
-		expect(publicJwk.key_ops).toEqual(['verify']);
-		expect(clientId).toBe('https://wallet.example/callback/');
-		expect(issuer).toBe(metadata.issuer);
-		expect(mocks.requestWia.mock.invocationCallOrder[0]).toBeLessThan(mocks.post.mock.invocationCallOrder[0]);
-		expect(response.dpop?.dpopPublicKeyJwk).toEqual(publicJwk);
-		const privateKey = createPrivateKey({ key: response.dpop!.dpopPrivateKeyJwk, format: 'jwk' });
-		const { key_ops, ...publicKeyMaterial } = publicJwk;
-		expect(key_ops).toEqual(['verify']);
-		expect(createPublicKey(privateKey).export({ format: 'jwk' })).toEqual(publicKeyMaterial);
-		const body = new URLSearchParams(mocks.post.mock.calls[0][1]);
-		expect(body.get('dpop_jkt')).toBe(await jose.calculateJwkThumbprint(publicJwk));
-		expect(body.get('code_challenge_method')).toBe('S256');
-		expect(response.code_verifier).toBeTruthy();
-		const headers = mocks.post.mock.calls[0][2];
-		expect(headers['oauth-client-attestation']).toBe('provider-signed-wia');
-		const proof = await jose.jwtVerify(
-			headers['oauth-client-attestation-pop'],
-			await jose.importJWK(publicJwk, 'ES256'),
-			{
-				audience: metadata.issuer,
-				typ: 'oauth-client-attestation-pop+jwt',
-			},
-		);
-		expect(proof.payload.jti).toBeTruthy();
-		expect(body.has('client_assertion')).toBe(false);
-	});
+	it.each([
+		{ algorithms: undefined, bindsCode: false },
+		{ algorithms: [], bindsCode: false },
+		{ algorithms: ['ES384'], bindsCode: false },
+		{ algorithms: ['ES384', 'ES256'], bindsCode: true },
+	])(
+		'uses the attested key for PAR and requests code binding only with ES256 DPoP ($algorithms)',
+		async ({ algorithms, bindsCode }) => {
+			const { result } = renderHook(() => usePushedAuthorizationRequest());
+			const response = await result.current.sendPushedAuthorizationRequest(
+				{ ...metadata, dpop_signing_alg_values_supported: algorithms },
+				createParams(),
+			);
+			const [publicJwk, clientId, issuer] = mocks.requestWia.mock.calls[0];
+			expect(mocks.generateKeyPair).toHaveBeenCalledWith('ES256', { extractable: true });
+			expect(publicJwk).not.toHaveProperty('d');
+			expect(publicJwk.key_ops).toEqual(['verify']);
+			expect(clientId).toBe('https://wallet.example/callback/');
+			expect(issuer).toBe(metadata.issuer);
+			expect(mocks.requestWia.mock.invocationCallOrder[0]).toBeLessThan(mocks.post.mock.invocationCallOrder[0]);
+			expect(response.dpop?.dpopPublicKeyJwk).toEqual(publicJwk);
+			const privateKey = createPrivateKey({ key: response.dpop!.dpopPrivateKeyJwk, format: 'jwk' });
+			const { key_ops, ...publicKeyMaterial } = publicJwk;
+			expect(key_ops).toEqual(['verify']);
+			expect(createPublicKey(privateKey).export({ format: 'jwk' })).toEqual(publicKeyMaterial);
+			const body = new URLSearchParams(mocks.post.mock.calls[0][1]);
+			expect(body.get('dpop_jkt')).toBe(bindsCode ? await jose.calculateJwkThumbprint(publicJwk) : null);
+			expect(body.get('code_challenge_method')).toBe('S256');
+			expect(response.code_verifier).toBeTruthy();
+			const headers = mocks.post.mock.calls[0][2];
+			expect(headers['oauth-client-attestation']).toBe('provider-signed-wia');
+			const proof = await jose.jwtVerify(
+				headers['oauth-client-attestation-pop'],
+				await jose.importJWK(publicJwk, 'ES256'),
+				{
+					audience: metadata.issuer,
+					typ: 'oauth-client-attestation-pop+jwt',
+				},
+			);
+			expect(proof.payload.jti).toBeTruthy();
+			expect(body.has('client_assertion')).toBe(false);
+		},
+	);
 
 	it('retries a challenge error once with a fresh proof and preserves PKCE', async () => {
 		mocks.post.mockResolvedValueOnce({

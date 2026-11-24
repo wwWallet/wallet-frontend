@@ -580,7 +580,7 @@ export function useOpenID4VCI({
 			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
 
-			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
+			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported?.includes('ES256')) {
 				if (!dpopPrivateKey || !dpopPublicKeyJwk || !dpopPrivateKeyJwk) {
 					throw new Error('DPoP keys are not set');
 				}
@@ -591,6 +591,8 @@ export function useOpenID4VCI({
 					dpopPrivateKeyJwk: dpopPrivateKeyJwk,
 					dpopPublicKeyJwk: dpopPublicKeyJwk,
 				};
+			} else {
+				tokenRequestBuilder.clearDpopHeader();
 			}
 
 			const walletAttestation = attestationRequired

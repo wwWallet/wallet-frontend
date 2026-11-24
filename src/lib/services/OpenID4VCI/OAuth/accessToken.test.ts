@@ -19,6 +19,7 @@ const tokenRequestBuilder = () => ({
 	setRedirectUri: vi.fn(),
 	setWalletAttestation: vi.fn(),
 	setDpopHeader: vi.fn(),
+	clearDpopHeader: vi.fn(),
 	execute: vi.fn().mockResolvedValue({
 		response: {
 			access_token: 'new-access-token',
