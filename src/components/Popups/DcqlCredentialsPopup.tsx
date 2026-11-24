@@ -706,7 +706,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 					)}
 				</div>
 				<div className="z-10 shrink-0 bg-lm-gray-100 dark:bg-dm-gray-900 border-t border-lm-gray-400 dark:border-dm-gray-600 shadow-2xl flex justify-between px-4 py-3">
-					<Button id="cancel-select-credentials" onClick={close}>
+					<Button id="cancel-select-credentials" variant="subtle" onClick={close}>
 						{t('dcqlCredentials.cancelPresentation')}
 					</Button>
 					<div className="flex gap-2">
