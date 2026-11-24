@@ -34,6 +34,7 @@ interface CredentialInfoProps {
 	mainClassName?: string;
 	fallbackClaims?: AugmentedClaimMetadataEntry[];
 	requested?: RequestedClaims;
+	visibleFields?: ClaimPath[];
 }
 
 interface FullscreenImage {
@@ -203,6 +204,16 @@ const isDisplayClaim = (claim: AugmentedClaimMetadataEntry): boolean => {
 	return claim.display.some((d) => d.locale && d.label);
 };
 
+const fallbackDisplay = (path: ClaimPathSegments): ClaimDisplayEntry[] => [
+	{
+		locale: 'en',
+		label: String(path[path.length - 1])
+			.replace(/[_-]/g, ' ')
+			.replace(/\b\w/g, (letter) => letter.toUpperCase()),
+		description: '',
+	},
+];
+
 const formatClaimValue = (
 	value: unknown,
 	imageAlt: string,
@@ -223,7 +234,7 @@ const formatClaimValue = (
 
 	const renderJson = (v: unknown) => (
 		<div className="w-full">
-			<div className="max-h-40 resize-y bg-white dark:bg-dm-gray-800 overflow-auto border rounded px-2 rounded-xl">
+			<div className="max-h-40 resize-y overflow-auto rounded-xl border bg-white px-2 dark:bg-dm-gray-800">
 				<JsonViewer value={v} />
 			</div>
 		</div>
@@ -284,6 +295,7 @@ const CredentialInfo = ({
 	mainClassName = 'text-sm lg:text-base w-full',
 	fallbackClaims = undefined,
 	requested = undefined,
+	visibleFields = undefined,
 }: CredentialInfoProps) => {
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
@@ -292,7 +304,7 @@ const CredentialInfo = ({
 	const fallbackLanguage = getLanguage(fallbackLng);
 
 	const requestedFields = requested?.fields ?? null;
-	const requestedDisplay = requested?.display ?? undefined;
+	const requestedDisplay = visibleFields ? 'hide' : requested?.display;
 
 	const signedClaims = parsedCredential?.signedClaims;
 	const claims = parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
@@ -318,10 +330,12 @@ const CredentialInfo = ({
 				// Always keep if it is a display claim
 				if (isDisplayClaim(c)) return true;
 
-				// If requestedFields exists, also keep if the path is in requestedFields
-				if (requestedFields) {
+				// Keep fields selected for display even when they have no display metadata.
+				if (visibleFields || requestedFields) {
 					const joined = Array.isArray(c.path) ? c.path.join('.') : '';
-					return requestedFields.some((field) => (Array.isArray(field) ? field.join('.') : field) === joined);
+					return (visibleFields ?? requestedFields ?? []).some(
+						(field) => (Array.isArray(field) ? field.join('.') : field) === joined,
+					);
 				}
 
 				return false;
@@ -346,9 +360,10 @@ const CredentialInfo = ({
 	const pathToClaimIdx = new Map(expandedDisplayClaims.map((claim, idx) => [pathKey(claim.path), idx]));
 
 	const syntheticClaims: AugmentedClaimMetadataEntry[] = [];
+	const displayFields = visibleFields ?? (requestedFieldSet ? requestedFields : null);
 
-	if (requestedFieldSet && requestedFields) {
-		requestedFields.forEach((field) => {
+	if (displayFields) {
+		displayFields.forEach((field) => {
 			const pathArr = Array.isArray(field) ? field : [field];
 			if (pathArr.length === 0) return;
 			const joined = pathKey(pathArr);
@@ -361,13 +376,13 @@ const CredentialInfo = ({
 				if (!claim.display || !claim.display.some((d) => d.label)) {
 					expandedDisplayClaims[claimIdx] = {
 						...claim,
-						display: [{ locale: 'en', label: joined, description: '' }],
+						display: fallbackDisplay(pathArr),
 					};
 				}
 			} else if (value !== undefined) {
 				syntheticClaims.push({
 					path: pathArr as ClaimPath,
-					display: [{ locale: 'en', label: joined, description: '' }],
+					display: fallbackDisplay(pathArr),
 				});
 			}
 		});
@@ -375,19 +390,17 @@ const CredentialInfo = ({
 
 	const claimsWithDisplay = [...expandedDisplayClaims, ...syntheticClaims];
 
+	const visibleFieldSet = visibleFields ? new Set(visibleFields.map((path) => path.join('.'))) : requestedFieldSet;
 	const visibleClaims =
-		requestedDisplay === 'hide' && requestedFieldSet
+		requestedDisplay === 'hide' && visibleFieldSet
 			? claimsWithDisplay.filter((claim) => {
 					const joinedPath = claim.path?.join('.');
 					if (!joinedPath) return false;
 
-					if (claim.required === true) return true;
+					if (claim.required === true && !visibleFields) return true;
 
-					// Show if the claim is:
-					// - explicitly requested
-					// - a parent of a requested field
-					// - a child of a requested field
-					return Array.from(requestedFieldSet).some(
+					// Show selected fields and their parents or children.
+					return Array.from(visibleFieldSet).some(
 						(req) => joinedPath === req || joinedPath.startsWith(req + '.') || req.startsWith(joinedPath + '.'),
 					);
 				})
