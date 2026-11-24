@@ -11,7 +11,7 @@ Object.assign(globalThis, {
 	Uint8Array: Object.getPrototypeOf(Buffer.prototype).constructor,
 });
 import { useCredentialRequest } from './CredentialRequest';
-import { isKeyAttestationRequired } from './OpenID4VCI';
+import { getOpenID4VCIProfile } from './profiles';
 
 const mocks = vi.hoisted(() => ({
 	profile: 'DEFAULT',
@@ -43,14 +43,6 @@ vi.mock('@/config', async (importOriginal) => ({
 }));
 
 describe('credential proof construction', () => {
-	it('recognizes empty and populated JWT key attestation requirements', () => {
-		expect(isKeyAttestationRequired('jwt', {})).toBe(false);
-		expect(isKeyAttestationRequired('jwt', { key_attestations_required: {} })).toBe(true);
-		expect(
-			isKeyAttestationRequired('jwt', { key_attestations_required: { key_storage: ['iso_18045_moderate'] } }),
-		).toBe(true);
-		expect(isKeyAttestationRequired('attestation')).toBe(true);
-	});
 	beforeEach(async () => {
 		vi.clearAllMocks();
 		mocks.profile = 'DEFAULT';
@@ -78,6 +70,26 @@ describe('credential proof construction', () => {
 		result.current.setCredentialEndpoint('https://issuer.example/credential');
 		return result.current;
 	}
+
+	it.each(['DEFAULT', 'ABCA12'])('honors proof precedence and JWT attestation metadata for %s', (profile) => {
+		mocks.profile = profile;
+		const { selectCredentialProof } = getOpenID4VCIProfile();
+		expect(selectCredentialProof({ jwt: {}, attestation: {} }, ['attestation', 'jwt'])).toEqual({
+			proofType: 'attestation',
+			keyAttestationRequired: true,
+		});
+		expect(selectCredentialProof({ jwt: {} }, ['jwt']).keyAttestationRequired).toBe(false);
+		expect(selectCredentialProof({ jwt: { key_attestations_required: {} } }, ['jwt']).keyAttestationRequired).toBe(
+			true,
+		);
+	});
+
+	it('rejects WEBUILD credential configurations that do not advertise jwt', () => {
+		mocks.profile = 'WEBUILD';
+		expect(() => getOpenID4VCIProfile().selectCredentialProof({ attestation: {} }, ['attestation', 'jwt'])).toThrow(
+			'WEBUILD requires the issuer to advertise the jwt credential proof type',
+		);
+	});
 
 	it('sends a plain JWT when no key attestation is required', async () => {
 		await setup().execute('credential', 'jwt', false);
@@ -110,7 +122,7 @@ describe('credential proof construction', () => {
 	it.each([
 		{ profile: 'DEFAULT', reverse: true, count: 2 },
 		{ profile: 'ABCA12', reverse: true, count: 2 },
-		{ profile: 'WEBUILD', reverse: false, count: 1 },
+		{ profile: 'WEBUILD', reverse: true, count: 1 },
 	])(
 		'uses $count credential JWT proofs for $profile with reversed keys: $reverse',
 		async ({ profile, reverse, count }) => {
@@ -137,13 +149,18 @@ describe('credential proof construction', () => {
 				.sign(keys[0].privateKey);
 			mocks.providerPost.mockResolvedValue({ data: { key_attestation: attestation } });
 
-			await setup().execute('credential', 'jwt', true);
+			const { proofType, keyAttestationRequired } = getOpenID4VCIProfile().selectCredentialProof(
+				profile === 'WEBUILD' ? { jwt: {}, attestation: {} } : { jwt: { key_attestations_required: {} } },
+				['attestation', 'jwt'],
+			);
+			await setup().execute('credential', proofType, keyAttestationRequired);
 
 			expect(mocks.generateKeypairs).toHaveBeenCalledWith(2);
+			expect(mocks.issuerPost.mock.calls[0][1].proofs).not.toHaveProperty('attestation');
 			const proofs: string[] = mocks.issuerPost.mock.calls[0][1].proofs.jwt;
 			expect(proofs).toHaveLength(count);
 			for (const [index, proof] of proofs.entries()) {
-				const { protectedHeader } = await jose.jwtVerify(proof, keys[index].publicKey, {
+				const { protectedHeader } = await jose.jwtVerify(proof, keys[profile === 'WEBUILD' ? 1 : index].publicKey, {
 					audience: 'https://issuer.example',
 					typ: 'openid4vci-proof+jwt',
 				});

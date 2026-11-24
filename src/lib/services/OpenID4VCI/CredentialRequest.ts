@@ -47,7 +47,7 @@ async function generateKeyAttestationJwtProofs(
 	if (!Array.isArray(attestedKeys) || attestedKeys.length === 0) {
 		throw new Error('Key attestation does not contain attested keys');
 	}
-	const selected = getOpenID4VCIProfile().selectAttestedProofKeys(keypairs, attestedKeys);
+	const selected = await getOpenID4VCIProfile().selectAttestedProofKeys(keypairs, attestedKeys);
 	const attestedThumbprints = new Set(
 		await Promise.all(selected.attestedKeys.map((key) => calculateJwkThumbprint(key))),
 	);

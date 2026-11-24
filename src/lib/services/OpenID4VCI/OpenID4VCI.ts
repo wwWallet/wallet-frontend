@@ -1,3 +1,4 @@
+import { getOpenID4VCIProfile } from './profiles';
 import { IOpenID4VCI, TxCodeInputMetadata } from '../../interfaces/IOpenID4VCI';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
@@ -38,13 +39,6 @@ type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialI
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
-
-export function isKeyAttestationRequired(
-	proofType: 'jwt' | 'attestation',
-	jwtMetadata?: { key_attestations_required?: unknown },
-): boolean {
-	return proofType === 'attestation' || (proofType === 'jwt' && jwtMetadata?.key_attestations_required != null);
-}
 
 const textDecoder = new TextDecoder();
 
@@ -386,23 +380,17 @@ export function useOpenID4VCI({
 				throw new Error('Credential configuration is not set');
 			}
 
-			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
-			for (const proof_type of openid4vciProofTypePrecedence) {
-				if (proof_type === 'attestation' && credConf?.proof_types_supported?.attestation) {
-					selectedProofType = 'attestation';
-					break;
-				} else if (proof_type === 'jwt' && credConf?.proof_types_supported?.jwt) {
-					selectedProofType = 'jwt';
-					break;
-				}
-			}
+			const { proofType, keyAttestationRequired } = getOpenID4VCIProfile().selectCredentialProof(
+				credConf.proof_types_supported,
+				openid4vciProofTypePrecedence,
+			);
 
-			console.log('Selected proof type = ', selectedProofType);
+			console.log('Selected proof type = ', proofType);
 
 			const { credentialResponse } = await credentialRequestBuilder.execute(
 				flowState.credentialConfigurationId,
-				selectedProofType,
-				isKeyAttestationRequired(selectedProofType, credConf.proof_types_supported?.jwt),
+				proofType,
+				keyAttestationRequired,
 			);
 
 			console.log('Response = ', credentialResponse);
