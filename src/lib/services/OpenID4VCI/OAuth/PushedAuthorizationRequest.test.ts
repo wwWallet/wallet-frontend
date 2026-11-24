@@ -135,6 +135,27 @@ describe('WIA retrieval before PAR', () => {
 		expect(mocks.post).toHaveBeenCalledOnce();
 	});
 
+	it('rejects combined-only client attestation before contacting the provider or PAR endpoint', async () => {
+		const { result } = renderHook(() => usePushedAuthorizationRequest());
+		await expect(
+			result.current.sendPushedAuthorizationRequest(
+				{ ...metadata, token_endpoint_auth_methods_supported: ['attest_jwt_client_auth_dpop'] },
+				createParams(),
+			),
+		).rejects.toThrow('requires combined DPoP client attestation');
+		expect(mocks.requestWia).not.toHaveBeenCalled();
+		expect(mocks.post).not.toHaveBeenCalled();
+	});
+
+	it('uses standalone client attestation when both methods are advertised', async () => {
+		const { result } = renderHook(() => usePushedAuthorizationRequest());
+		await result.current.sendPushedAuthorizationRequest(
+			{ ...metadata, token_endpoint_auth_methods_supported: ['attest_jwt_client_auth_dpop', 'attest_jwt_client_auth'] },
+			createParams(),
+		);
+		expect(mocks.post.mock.calls[0][2]['oauth-client-attestation-pop']).toBeTruthy();
+	});
+
 	it('preserves existing PAR behavior when ABCA is not advertised', async () => {
 		const { result } = renderHook(() => usePushedAuthorizationRequest());
 		const response = await result.current.sendPushedAuthorizationRequest(

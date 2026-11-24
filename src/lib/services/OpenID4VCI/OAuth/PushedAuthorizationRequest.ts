@@ -70,12 +70,20 @@ export function usePushedAuthorizationRequest() {
 			if (!endpoint) {
 				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
 			}
+			const authMethods = asMeta.token_endpoint_auth_methods_supported;
+			const supportsStandaloneAttestation = authMethods?.includes('attest_jwt_client_auth');
+			if (!supportsStandaloneAttestation && authMethods?.includes('attest_jwt_client_auth_dpop')) {
+				throw new Error(
+					'The authorization server requires combined DPoP client attestation, which this wallet does not support',
+				);
+			}
+
 			const client: oauth4webapi.Client = { client_id: params.client_id };
 			let dpop: DpopState | undefined;
 			let privateKey: CryptoKey | undefined;
 			let walletAttestation: string | undefined;
 
-			if (asMeta.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth')) {
+			if (supportsStandaloneAttestation) {
 				const alg = 'ES256';
 				const keypair = await jose.generateKeyPair(alg, { extractable: true });
 				privateKey = keypair.privateKey as CryptoKey;
