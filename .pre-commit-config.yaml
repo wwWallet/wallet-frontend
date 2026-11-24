@@ -42,3 +42,9 @@ repos:
         entry: yarn typecheck
         language: system
         pass_filenames: false
+
+      - id: test
+        name: Run tests
+        entry: yarn test
+        language: system
+        pass_filenames: false
