@@ -322,9 +322,8 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 			vcEntity={credential}
 			vcEntityInstances={credential.instances}
 			filter={credentialImageFilter(credential, candidate)}
-			fixedRatio={false}
 			showRibbon={!thumbnail}
-			className={thumbnail ? 'w-full max-h-12 rounded-lg' : 'w-full max-h-[min(24rem,45dvh)] rounded-lg'}
+			className={thumbnail ? 'rounded-sm' : 'rounded-xl'}
 		/>
 	);
 	const panel = (id: string, inReview = false) => {
@@ -346,7 +345,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 			>
 				{!inReview && (
 					<div className="flex flex-wrap items-center gap-3 bg-white p-3 dark:bg-dm-gray-800">
-						<div className="h-12 w-20 shrink-0">{imageFor(credential, candidate, true)}</div>
+						<div className="w-20 shrink-0">{imageFor(credential, candidate, true)}</div>
 						<div className="min-w-0 flex-1">
 							<h3 className="font-semibold">
 								<RequestName id={id} matches={matches} inventory={vcEntityList} />
@@ -392,7 +391,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 				)}
 				<div className="space-y-3 p-3 sm:p-4">
 					{onlyCandidate ? (
-						<div className="relative mx-auto w-full max-w-[405px] min-w-0">
+						<div className="relative mx-auto w-full max-w-[405px] min-w-0 rounded-xl shadow-md">
 							{imageFor(credential, candidate)}
 							{lockedSingleCandidate && (
 								<label
@@ -446,11 +445,11 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 												setCredentialChoice(id, slideCandidate);
 											}
 										}}
-										className="relative w-full cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-primary"
+										className="relative inline-block w-full cursor-pointer rounded-xl shadow-md transition-shadow hover:shadow-xl focus-visible:outline-2 focus-visible:outline-primary"
 									>
 										{imageFor(slideCredential, slideCandidate)}
 										<div
-											className={`absolute inset-0 rounded-lg transition-opacity bg-lm-gray-300 dark:bg-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-[0.35]'}`}
+											className={`absolute inset-0 rounded-xl transition-opacity bg-lm-gray-300 dark:bg-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-[0.35]'}`}
 										/>
 										<label
 											className="absolute bottom-3 right-3 z-10 flex cursor-pointer rounded-full bg-white/95 p-[3px] shadow-md dark:bg-dm-gray-800"
@@ -608,9 +607,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 													onClick={() => toggleReviewDetails(id)}
 													className={`flex w-full cursor-pointer items-center gap-3 p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary ${isExpanded ? 'bg-[#f3f8ff]' : 'bg-white hover:bg-[#e8f1ff]'} dark:bg-dm-gray-800 dark:hover:bg-dm-gray-700`}
 												>
-													<div className="h-12 w-20 shrink-0">
-														{credential && imageFor(credential, candidate, true)}
-													</div>
+													<div className="w-20 shrink-0">{credential && imageFor(credential, candidate, true)}</div>
 													<div className="min-w-0 flex-1">
 														<h3 className="font-semibold">
 															<RequestName id={id} matches={matches} inventory={vcEntityList} />
@@ -648,7 +645,7 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 												key={id}
 												className="flex items-center gap-3 rounded-lg border border-lm-gray-400 bg-white p-2 dark:border-dm-gray-600 dark:bg-dm-gray-800"
 											>
-												<div className="h-12 w-16 shrink-0">
+												<div className="w-16 shrink-0">
 													{(() => {
 														const candidate = selection.get(id)?.[0] ?? matches[id].candidates[0];
 														const credential = vcEntityList?.find((vc) => vc.batchId === candidate?.batchId);
