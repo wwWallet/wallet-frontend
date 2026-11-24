@@ -28,7 +28,6 @@ interface CredentialImageProps {
 	borderColor?: string;
 	fixedRatio?: boolean;
 	preferredOrientation?: CredentialImageOrientation;
-	imageFit?: 'cover' | 'contain';
 }
 
 // Shared across all instances so e.g. the thumbnail and fullscreen popup reuse one resolution.
@@ -58,7 +57,6 @@ const CredentialImage = ({
 	borderColor = undefined,
 	fixedRatio = true,
 	preferredOrientation = fixedRatio ? 'landscape' : 'portrait',
-	imageFit = 'cover',
 }: CredentialImageProps) => {
 	const { i18n } = useTranslation();
 	const preferredLangs = i18n.languages;
@@ -131,7 +129,7 @@ const CredentialImage = ({
 						<img
 							src={imageSrc}
 							alt="Credential"
-							className={`w-full h-full ${imageFit === 'contain' ? 'object-contain' : 'object-cover object-top'} ${className ?? ''}`}
+							className={`w-full h-full object-cover object-top ${className ?? ''}`}
 							onClick={onClick}
 						/>
 						{showRibbon && <ExpiredRibbon vcEntity={vcEntity} borderColor={borderColor} />}

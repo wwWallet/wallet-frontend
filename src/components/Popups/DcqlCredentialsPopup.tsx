@@ -323,7 +323,6 @@ export default function DcqlCredentialsPopup({ popupState, setPopupState, vcEnti
 			vcEntityInstances={credential.instances}
 			filter={credentialImageFilter(credential, candidate)}
 			fixedRatio={false}
-			imageFit="contain"
 			showRibbon={!thumbnail}
 			className={thumbnail ? 'w-full max-h-12 rounded-lg' : 'w-full max-h-[min(24rem,45dvh)] rounded-lg'}
 		/>
