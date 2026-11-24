@@ -6,7 +6,6 @@ import { MODE } from '@/config';
 import * as jose from 'jose';
 import { useWalletProvider } from '../../WalletProvider';
 import type { DpopState } from './accessToken';
-import { useSessionContext } from '@/context/SessionContext';
 import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
@@ -24,10 +23,6 @@ function normalizeHeaders(h: any): Record<string, string> {
 
 export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
-	const {
-		keystore,
-		api: { updatePrivateData },
-	} = useSessionContext();
 	const { requestWalletAttestation } = useWalletProvider();
 
 	const myCustomFetch = useMemo(() => {
@@ -77,13 +72,17 @@ export function usePushedAuthorizationRequest() {
 			}
 			const client: oauth4webapi.Client = { client_id: params.client_id };
 			let dpop: DpopState | undefined;
+			let privateKey: CryptoKey | undefined;
 			let walletAttestation: string | undefined;
 
 			if (asMeta.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth')) {
-				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(1);
-				await updatePrivateData(newPrivateData);
-				await keystoreCommit();
-				const { privateKey: privateJwk, publicKey: generatedPublicJwk, alg } = keypairs[0];
+				const alg = 'ES256';
+				const keypair = await jose.generateKeyPair(alg, { extractable: true });
+				privateKey = keypair.privateKey as CryptoKey;
+				const [privateJwk, generatedPublicJwk] = await Promise.all([
+					jose.exportJWK(keypair.privateKey),
+					jose.exportJWK(keypair.publicKey),
+				]);
 				const publicJwk = { ...generatedPublicJwk, key_ops: ['verify'] };
 
 				const requestWalletAttestationResponse = await requestWalletAttestation(
@@ -117,7 +116,6 @@ export function usePushedAuthorizationRequest() {
 				pushed_authorization_request_endpoint: endpoint,
 			};
 
-			const privateKey = dpop ? ((await jose.importJWK(dpop.dpopPrivateKeyJwk, dpop.dpopAlg)) as CryptoKey) : undefined;
 			const sendPar = (challenge?: string) =>
 				oauth4webapi.pushedAuthorizationRequest(
 					as,
@@ -153,7 +151,7 @@ export function usePushedAuthorizationRequest() {
 			}
 			return { request_uri: json.request_uri, code_verifier, rawResponse: json, dpop };
 		},
-		[myCustomFetch, requestWalletAttestation, keystore, updatePrivateData],
+		[myCustomFetch, requestWalletAttestation],
 	);
 
 	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);

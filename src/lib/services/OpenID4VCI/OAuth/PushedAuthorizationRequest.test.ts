@@ -8,27 +8,17 @@ import { usePushedAuthorizationRequest } from './PushedAuthorizationRequest';
 const mocks = vi.hoisted(() => ({
 	post: vi.fn(),
 	requestWia: vi.fn(),
-	generateKeypairs: vi.fn(),
-	updatePrivateData: vi.fn(),
-	commit: vi.fn(),
+	generateKeyPair: vi.fn(),
 }));
 
 vi.mock('../../HttpProxy/HttpProxy', () => ({ useHttpProxy: () => ({ post: mocks.post }) }));
 vi.mock('../../WalletProvider', () => ({
 	useWalletProvider: () => ({ requestWalletAttestation: mocks.requestWia }),
 }));
-vi.mock('@/context/SessionContext', () => ({
-	useSessionContext: () => ({
-		keystore: { generateKeypairs: mocks.generateKeypairs },
-		api: { updatePrivateData: mocks.updatePrivateData },
-	}),
-}));
 vi.mock('@/config', () => ({ MODE: 'production', OPENID4VCI_PROFILE: 'DEFAULT' }));
 vi.mock('jose', async (importOriginal) => ({
 	...(await importOriginal<typeof import('jose')>()),
-	// Browser jose returns CryptoKey; its Node entry returns KeyObject instead.
-	importJWK: async (jwk: JsonWebKey) =>
-		crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, jwk.d ? ['sign'] : ['verify']),
+	generateKeyPair: mocks.generateKeyPair,
 }));
 
 const metadata = {
@@ -46,25 +36,15 @@ const createParams = () => ({
 describe('WIA retrieval before PAR', () => {
 	afterEach(() => vi.unstubAllGlobals());
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		// Match the ArrayBuffer realm of the Node WebCrypto installed by setup-vitest.
 		vi.stubGlobal('ArrayBuffer', Buffer.alloc(0).buffer.constructor);
-		const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
-		mocks.generateKeypairs.mockReset().mockResolvedValue([
-			{
-				keypairs: [
-					{
-						alg: 'ES256',
-						privateKey: await jose.exportJWK(privateKey),
-						publicKey: { ...(await jose.exportJWK(publicKey)), key_ops: [] },
-					},
-				],
-			},
-			'encrypted-container',
-			mocks.commit,
-		]);
-		mocks.updatePrivateData.mockReset().mockResolvedValue(undefined);
-		mocks.commit.mockReset().mockResolvedValue(undefined);
+		// Browser jose generates WebCrypto keys, while its Node entry generates KeyObjects.
+		mocks.generateKeyPair
+			.mockReset()
+			.mockImplementation(() =>
+				crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']),
+			);
 		mocks.post.mockReset().mockResolvedValue({
 			status: 201,
 			headers: { 'content-type': 'application/json' },
@@ -77,10 +57,7 @@ describe('WIA retrieval before PAR', () => {
 		const { result } = renderHook(() => usePushedAuthorizationRequest());
 		const response = await result.current.sendPushedAuthorizationRequest(metadata, createParams());
 		const [publicJwk, clientId, issuer] = mocks.requestWia.mock.calls[0];
-		expect(mocks.generateKeypairs).toHaveBeenCalledWith(1);
-		expect(mocks.updatePrivateData).toHaveBeenCalledWith('encrypted-container');
-		expect(mocks.updatePrivateData.mock.invocationCallOrder[0]).toBeLessThan(mocks.commit.mock.invocationCallOrder[0]);
-		expect(mocks.commit.mock.invocationCallOrder[0]).toBeLessThan(mocks.requestWia.mock.invocationCallOrder[0]);
+		expect(mocks.generateKeyPair).toHaveBeenCalledWith('ES256', { extractable: true });
 		expect(publicJwk).not.toHaveProperty('d');
 		expect(publicJwk.key_ops).toEqual(['verify']);
 		expect(clientId).toBe('https://wallet.example/callback/');
@@ -156,25 +133,21 @@ describe('WIA retrieval before PAR', () => {
 			},
 			createParams(),
 		);
-		expect(mocks.generateKeypairs).not.toHaveBeenCalled();
+		expect(mocks.generateKeyPair).not.toHaveBeenCalled();
 		expect(mocks.requestWia).not.toHaveBeenCalled();
 		expect(response.dpop).toBeUndefined();
 		expect(mocks.post).toHaveBeenCalledOnce();
 	});
 
-	it.each(['generateKeypairs', 'updatePrivateData', 'commit'] as const)(
-		'stops before WIA and PAR when %s fails',
-		async (step) => {
-			mocks[step].mockRejectedValue(new Error('Keystore persistence failed'));
-			const { result } = renderHook(() => usePushedAuthorizationRequest());
-			await expect(result.current.sendPushedAuthorizationRequest(metadata, createParams())).rejects.toThrow(
-				'Keystore persistence failed',
-			);
-			expect(mocks.requestWia).not.toHaveBeenCalled();
-			expect(mocks.post).not.toHaveBeenCalled();
-			expect(mocks.commit).toHaveBeenCalledTimes(step === 'commit' ? 1 : 0);
-		},
-	);
+	it('stops before WIA and PAR when key generation fails', async () => {
+		mocks.generateKeyPair.mockRejectedValue(new Error('Key generation failed'));
+		const { result } = renderHook(() => usePushedAuthorizationRequest());
+		await expect(result.current.sendPushedAuthorizationRequest(metadata, createParams())).rejects.toThrow(
+			'Key generation failed',
+		);
+		expect(mocks.requestWia).not.toHaveBeenCalled();
+		expect(mocks.post).not.toHaveBeenCalled();
+	});
 
 	it('stops before PAR when WIA generation fails', async () => {
 		mocks.requestWia.mockResolvedValue(null);
