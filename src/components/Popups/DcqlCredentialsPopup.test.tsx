@@ -31,7 +31,11 @@ vi.mock('@/hooks/useCredentialName', () => ({
 vi.mock('@/hooks/useScreenType', () => ({ default: () => 'desktop' }));
 vi.mock('react-i18next', async (original) => ({
 	...(await original<typeof import('react-i18next')>()),
-	useTranslation: () => ({ i18n: { language: 'en' }, t: (key: string) => key }),
+	useTranslation: () => ({
+		i18n: { language: 'en' },
+		t: (key: string, options?: Record<string, unknown>) =>
+			Object.values(options ?? {}).reduce((result, value) => `${result} ${String(value)}`, key),
+	}),
 }));
 
 const candidate = (batchId: number, field = 'preferred') => ({
@@ -101,8 +105,29 @@ function mount(conformantCredentialsMap = matches, credentials = inventory) {
 }
 const next = () => fireEvent.click(screen.getByRole('button', { name: 'common.next' }));
 const begin = () => fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.reviewDetails' }));
-const select = () => fireEvent.click(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber' }));
-const consent = () => fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' }));
+const select = (number = 1) =>
+	fireEvent.click(screen.getByRole('radio', { name: `dcqlCredentials.selectCredentialNumber ${number}` }));
+const nextCredential = () =>
+	fireEvent.click(
+		screen.getByRole('button', { name: /pageCredentials.slideButtonAriaLabelEnable pageCredentials.slideNext/ }),
+	);
+const previousCredential = () =>
+	fireEvent.click(
+		screen.getByRole('button', { name: /pageCredentials.slideButtonAriaLabelEnable pageCredentials.slidePrevious/ }),
+	);
+const setAllCredentials = (selected: boolean) =>
+	fireEvent.click(
+		screen.getAllByRole('button', {
+			name: selected ? 'dcqlCredentials.selectAll' : 'dcqlCredentials.deselectAll',
+		})[0],
+	);
+const visibleCredentialCheckboxes = () =>
+	screen.getAllByRole('checkbox', { name: /dcqlCredentials.selectCredentialNumber/ });
+const setVisibleCredentials = (selected: boolean) =>
+	visibleCredentialCheckboxes()
+		.filter((checkbox) => (checkbox as HTMLInputElement).checked !== selected)
+		.forEach((checkbox) => fireEvent.click(checkbox));
+const consent = () => fireEvent.click(screen.getByRole('checkbox', { name: /dcqlCredentials.consentAria/ }));
 const send = () => fireEvent.click(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' }));
 function withRequirements(sets: DcqlRequirement[]): DcqlMatches {
 	return Object.fromEntries(
@@ -171,9 +196,9 @@ describe('DCQL credential selection', () => {
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r0'], available: true }] },
 		];
 		const { resolve } = mount(withRequirements(sets));
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.nextCredential' }));
-		select();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.previousCredential' }));
+		nextCredential();
+		select(2);
+		previousCredential();
 		next();
 		fireEvent.click(screen.getByRole('button', { name: /dcqlCredentials.showDetails/ }));
 		expect(credentialInfoProps.mock.lastCall?.[0]).toEqual(
@@ -195,7 +220,7 @@ describe('DCQL credential selection', () => {
 		fireEvent.click(screen.getByRole('checkbox', { name: 'credential-5' }));
 		begin();
 		next();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		setAllCredentials(true);
 		next();
 		next();
 		consent();
@@ -261,7 +286,7 @@ describe('DCQL credential selection', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
 		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
 		begin();
-		expect(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber' })).toBeChecked();
+		expect(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber 1' })).toBeChecked();
 		next();
 		consent();
 		send();
@@ -281,7 +306,7 @@ describe('DCQL credential selection', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'common.previous' }));
 		fireEvent.click(screen.getAllByRole('checkbox')[0]);
 		begin();
-		expect(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber' })).toBeChecked();
+		expect(screen.getByRole('radio', { name: 'dcqlCredentials.selectCredentialNumber 1' })).toBeChecked();
 	});
 
 	it('preserves selected credentials for query IDs that remain active', () => {
@@ -328,11 +353,11 @@ describe('DCQL credential selection', () => {
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r2'], available: true }] },
 		];
 		const { resolve } = mount({ r2: { ...matches.r2, requirements: sets } });
-		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' }));
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.nextCredential' }));
-		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' }));
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.previousCredential' }));
-		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' }));
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber 1' }));
+		nextCredential();
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber 2' }));
+		previousCredential();
+		fireEvent.click(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber 1' }));
 		next();
 		fireEvent.click(screen.getByRole('button', { name: /dcqlCredentials.showDetails/ }));
 		expect(credentialInfoProps.mock.lastCall?.[0]).toEqual(
@@ -350,16 +375,16 @@ describe('DCQL credential selection', () => {
 			{ setIndex: 0, required: true, options: [{ optionIndex: 0, queryIds: ['r2'], available: true }] },
 		];
 		const { resolve } = mount({ r2: { ...matches.r2, requirements: sets } });
-		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' })).not.toBeChecked();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
-		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber' })).toBeChecked();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectNone' }));
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber 1' })).not.toBeChecked();
+		setAllCredentials(true);
+		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.selectCredentialNumber 1' })).toBeChecked();
+		setAllCredentials(false);
 		expect(screen.getByRole('button', { name: 'common.next' })).toBeDisabled();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		setAllCredentials(true);
 		next();
 		expect(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' })).toBeEnabled();
 		send();
-		const consentCheckbox = screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' });
+		const consentCheckbox = screen.getByRole('checkbox', { name: /dcqlCredentials.consentAria/ });
 		expect(consentCheckbox).toHaveFocus();
 		expect(screen.getByRole('alert')).toHaveTextContent('dcqlCredentials.consentRequired');
 		expect(resolve).not.toHaveBeenCalled();
@@ -367,17 +392,17 @@ describe('DCQL credential selection', () => {
 		expect(screen.queryByText('dcqlCredentials.consentRequired')).not.toBeInTheDocument();
 		fireEvent.click(screen.getByRole('button', { name: /dcqlCredentials.showDetails/ }));
 		expect(screen.getByRole('button', { name: /dcqlCredentials.hideDetails/ })).toBeInTheDocument();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectNone' }));
-		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' })).not.toBeChecked();
+		setVisibleCredentials(false);
+		expect(screen.getByRole('checkbox', { name: /dcqlCredentials.consentAria/ })).not.toBeChecked();
 		expect(screen.getByRole('button', { name: 'common.navItemSendCredentialsSimple' })).toBeEnabled();
 		send();
-		expect(screen.getByRole('checkbox', { name: 'dcqlCredentials.consentAria' })).toHaveFocus();
+		expect(screen.getByRole('checkbox', { name: /dcqlCredentials.consentAria/ })).toHaveFocus();
 		expect(resolve).not.toHaveBeenCalled();
 		consent();
 		send();
 		expect(resolve).not.toHaveBeenCalled();
 		expect(screen.getByRole('button', { name: /dcqlCredentials.hideDetails/ })).toHaveFocus();
-		fireEvent.click(screen.getByRole('button', { name: 'dcqlCredentials.selectAll' }));
+		setVisibleCredentials(true);
 		consent();
 		send();
 		expect((resolve.mock.calls[0][0] as DcqlSelection).get('r2')).toEqual(matches.r2.candidates);
