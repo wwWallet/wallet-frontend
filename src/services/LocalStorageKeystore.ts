@@ -75,6 +75,11 @@ export enum KeystoreEvent {
 	CloseSessionTabLocal = 'keystore.closeSessionTabLocal',
 }
 
+export type CloseSessionTabLocalOptions = {
+	preserveUrlParams?: boolean;
+	preservePrivateDataEtag?: boolean;
+};
+
 export type CommitCallback = () => Promise<void>;
 
 export function shouldMergeOpenKeystore(
@@ -291,8 +296,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const closeSessionTabLocal = useCallback(
-		async (preserveUrlParams: boolean = false): Promise<void> => {
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: { preserveUrlParams } }));
+		async (options: CloseSessionTabLocalOptions = {}): Promise<void> => {
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: options }));
 			setPrivateData(null);
 			setCalculatedWalletState(null);
 			clearSessionStorage();
@@ -364,7 +369,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			// When user logs in in any tab, log out in all other tabs.
 			// Preserve URL params only if discovered on initial mount
 			// (eg. returning from a redirect with a pending login).
-			closeSessionTabLocal(wasInitialMount);
+			closeSessionTabLocal({
+				preserveUrlParams: wasInitialMount,
+				// The newly active tab owns the shared ETag. Do not let this
+				// displaced tab delete synchronization state set during login.
+				preservePrivateDataEtag: true,
+			});
 		}
 	}, [closeSessionTabLocal, tabId, globalTabId]);
 

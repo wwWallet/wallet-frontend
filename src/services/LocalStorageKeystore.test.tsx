@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, cleanup, render, renderHook } from '@testing-library/react';
+import { act, cleanup, render, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { LocalStorageKeystore } from './LocalStorageKeystore';
@@ -160,6 +160,24 @@ describe('useLocalStorageKeystore', () => {
 			await act(async () => {
 				await unlockPromise;
 			});
+		}
+	});
+
+	it('requests private-data ETag preservation when another tab takes ownership', async () => {
+		window.localStorage.setItem('globalTabId', JSON.stringify('tab-b'));
+		const closeSessionListener = vi.fn();
+		eventTarget.addEventListener('keystore.closeSessionTabLocal', closeSessionListener);
+
+		try {
+			renderHook(() => useLocalStorageKeystore(eventTarget));
+
+			await waitFor(() => expect(closeSessionListener).toHaveBeenCalled());
+			const event = closeSessionListener.mock.calls[0][0] as CustomEvent;
+			expect(event.detail).toMatchObject({
+				preservePrivateDataEtag: true,
+			});
+		} finally {
+			eventTarget.removeEventListener('keystore.closeSessionTabLocal', closeSessionListener);
 		}
 	});
 });
