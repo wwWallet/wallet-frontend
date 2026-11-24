@@ -127,8 +127,13 @@ describe('credential proof construction', () => {
 		'uses $count credential JWT proofs for $profile with reversed keys: $reverse',
 		async ({ profile, reverse, count }) => {
 			mocks.profile = profile;
+			const maintenancePeriod = 32 * 24 * 60 * 60;
+			const now = Math.floor(Date.now() / 1000);
 			mocks.metadata.mockResolvedValue({
-				metadata: { credential_issuer: 'https://issuer.example', batch_credential_issuance: { batch_size: 2 } },
+				metadata: {
+					credential_issuer: 'https://issuer.example',
+					batch_credential_issuance: { batch_size: 2 },
+				},
 			});
 			const keys = await Promise.all([
 				jose.generateKeyPair('ES256', { extractable: true }),
@@ -144,7 +149,11 @@ describe('credential proof construction', () => {
 			mocks.generateKeypairs.mockResolvedValue([{ keypairs }, {}, mocks.commit]);
 			const attestedKeys = keypairs.map(({ publicKey }) => publicKey);
 			if (reverse) attestedKeys.reverse();
-			const attestation = await new jose.SignJWT({ attested_keys: attestedKeys })
+			const attestation = await new jose.SignJWT({
+				attested_keys: attestedKeys,
+				key_storage_status: { exp: now + maintenancePeriod },
+			})
+				.setExpirationTime(now + 60)
 				.setProtectedHeader({ alg: 'ES256' })
 				.sign(keys[0].privateKey);
 			mocks.providerPost.mockResolvedValue({ data: { key_attestation: attestation } });
@@ -168,6 +177,22 @@ describe('credential proof construction', () => {
 			}
 		},
 	);
+
+	it('rejects a WEBUILD key attestation with insufficient status maintenance', async () => {
+		mocks.profile = 'WEBUILD';
+		const { privateKey, publicKey } = await jose.generateKeyPair('ES256');
+		const now = Math.floor(Date.now() / 1000);
+		const attestation = await new jose.SignJWT({
+			attested_keys: [await jose.exportJWK(publicKey)],
+			key_storage_status: { exp: now + 30 * 24 * 60 * 60 },
+		})
+			.setProtectedHeader({ alg: 'ES256' })
+			.setExpirationTime(now + 60)
+			.sign(privateKey);
+		mocks.providerPost.mockResolvedValue({ data: { key_attestation: attestation } });
+		await expect(setup().execute('credential', 'jwt', true)).rejects.toThrow('Failed to generate proof');
+		expect(mocks.issuerPost).not.toHaveBeenCalled();
+	});
 
 	it('rejects a key attestation for a different key', async () => {
 		const keys = await jose.generateKeyPair('ES256');

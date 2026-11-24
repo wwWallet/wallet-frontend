@@ -275,6 +275,7 @@ export function useCredentialRequest() {
 						throw new Error('Failed to get key attestation from wallet provider.');
 					}
 					const keyAttestation = requestKeyAttestationResponse.key_attestation;
+					getOpenID4VCIProfile().attestationLifecycle?.checkKeyAttestation(keyAttestation);
 
 					if (proofType === 'attestation') {
 						proofsToSend = { attestation: [keyAttestation] };

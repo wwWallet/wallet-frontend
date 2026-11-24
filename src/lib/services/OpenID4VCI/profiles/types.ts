@@ -9,6 +9,10 @@ type CredentialProofTypes = {
 type AttestedProofKeys = { keypairs: CredentialKeyPair[]; attestedKeys: JWK[] };
 
 export interface OpenID4VCIProfile {
+	attestationLifecycle?: {
+		checkWalletAttestation(token: string, period?: number): void;
+		checkKeyAttestation(token: string, period?: number): void;
+	};
 	selectCredentialProof(
 		advertised: CredentialProofTypes | undefined,
 		precedence: readonly string[],
