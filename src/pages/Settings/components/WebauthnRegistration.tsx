@@ -85,6 +85,7 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 
 	const onBegin = useCallback(
 		async (webauthnHint: string) => {
+			setAuthenticatorAlreadyRegistered(false);
 			setBeginData(null);
 			setIsSubmitting(true);
 			setPendingCredential(null);
