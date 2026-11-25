@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import NotificationContext, { NotificationType, NotifyPayload } from './NotificationContext';
 import { setNotify } from './notifier';
-import { X } from 'lucide-react';
+import CloseButton from '@/components/Buttons/CloseButton';
 
 type NotificationItem = {
 	id: string;
@@ -147,14 +147,7 @@ const Toast: React.FC<{
 				<p className="text-sm">{item.message}</p>
 			</div>
 
-			<button
-				type="button"
-				onClick={onClose}
-				aria-label="Dismiss"
-				className="flex items-center justify-center cursor-pointer shrink-0 rounded-md p-1 hover:bg-lm-gray-500/50"
-			>
-				<X size={20} />
-			</button>
+			<CloseButton tone="inherit" onClick={onClose} />
 		</div>
 	);
 };
