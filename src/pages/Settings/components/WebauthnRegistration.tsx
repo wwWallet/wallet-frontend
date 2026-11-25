@@ -35,6 +35,7 @@ type WebauthnRegistrationBeginData = {
 };
 
 const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
+	const [authenticatorAlreadyRegistered, setAuthenticatorAlreadyRegistered] = useState(false);
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useSessionContext();
 	const [beginData, setBeginData] = useState<WebauthnRegistrationBeginData | null>(null);
@@ -74,10 +75,17 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 		return () => document.removeEventListener('mousedown', handler);
 	}, [menuOpen]);
 
+	useEffect(() => {
+		if (!authenticatorAlreadyRegistered) return;
+		const timeout = window.setTimeout(() => setAuthenticatorAlreadyRegistered(false), 30_000);
+		return () => window.clearTimeout(timeout);
+	}, [authenticatorAlreadyRegistered]);
+
 	const stateChooseName = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
 		async (webauthnHint: string) => {
+			setAuthenticatorAlreadyRegistered(false);
 			setBeginData(null);
 			setIsSubmitting(true);
 			setPendingCredential(null);
@@ -113,6 +121,9 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 					console.log('created', credential);
 					setPendingCredential(credential);
 				} catch (e) {
+					if (e instanceof DOMException && e.name === 'InvalidStateError') {
+						setAuthenticatorAlreadyRegistered(true);
+					}
 					if (!(e instanceof DOMException && e.name === 'AbortError')) {
 						console.error('Failed to register', e);
 					}
@@ -196,127 +207,139 @@ const WebauthnRegistration = ({ onSuccess }: { onSuccess: () => void }) => {
 	const registrationInProgress = Boolean(beginData || pendingCredential);
 
 	return (
-		<div ref={menuRef} className="relative inline-block">
-			<button
-				id="add-passkey-trigger"
-				type="button"
-				onClick={toggleMenu}
-				disabled={registrationInProgress || !isOnline}
-				aria-haspopup="menu"
-				aria-expanded={menuOpen}
-				title={!isOnline ? t('common.offlineTitle') : t('pageSettings.addPasskeyTitle')}
-				className={`rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 text-sm px-2 py-2 text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 enabled:hover:bg-lm-gray-400 dark:enabled:hover:bg-dm-gray-700 dark:enabled:hover:border-dm-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 ${registrationInProgress || !isOnline ? 'grayscale opacity-75 cursor-not-allowed' : 'hover:cursor-pointer'}`}
-			>
-				<Plus size={18} />
-				{t('pageSettings.addPasskey').replace(/:$/, '')}
-				<ChevronDown size={16} className={`transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
-			</button>
-
-			{menuOpen && (
-				<div
-					role="menu"
-					aria-label={t('pageSettings.addPasskeyTitle')}
-					className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} mt-2 min-w-56 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50 p-1`}
+		<>
+			<div ref={menuRef} className="relative inline-block">
+				<button
+					id="add-passkey-trigger"
+					type="button"
+					onClick={toggleMenu}
+					disabled={registrationInProgress || !isOnline}
+					aria-haspopup="menu"
+					aria-expanded={menuOpen}
+					title={!isOnline ? t('common.offlineTitle') : t('pageSettings.addPasskeyTitle')}
+					className={`rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 text-sm px-2 py-2 text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400 enabled:hover:bg-lm-gray-400 dark:enabled:hover:bg-dm-gray-700 dark:enabled:hover:border-dm-gray-300 focus-visible:outline-2 focus-visible:outline-offset-2 ${registrationInProgress || !isOnline ? 'grayscale opacity-75 cursor-not-allowed' : 'hover:cursor-pointer'}`}
 				>
-					{passkeyOptions(t).map(({ Icon, hint, btnLabel }) => (
-						<button
-							key={hint}
-							id={`add-passkey-settings-${hint}`}
-							role="menuitem"
-							type="button"
-							className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left cursor-pointer text-lm-gray-900 dark:text-white hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600"
-							onClick={() => {
-								setMenuOpen(false);
-								onBegin(hint);
-							}}
-						>
-							<Icon size={18} />
-							{btnLabel}
-						</button>
-					))}
-				</div>
-			)}
+					<Plus size={18} />
+					{t('pageSettings.addPasskey').replace(/:$/, '')}
+					<ChevronDown size={16} className={`transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+				</button>
 
-			<Dialog open={stateChooseName} onCancel={onCancel}>
-				<form onSubmit={onFinish}>
-					{pendingCredential ? (
-						<>
-							<H2 heading={t('registerPasskey.messageSuccess')} hr={false} flexJustifyContent="center" />
-							<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveName')}</p>
-							<input
-								type="text"
-								className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-								aria-label={t('registerPasskey.nameAriaLabel')}
-								autoFocus={true}
-								disabled={isSubmitting}
-								onChange={(event) => setName(event.target.value)}
-								placeholder={t('registerPasskey.namePlaceholder')}
-								value={name}
-							/>
-						</>
-					) : (
-						<div className="flex flex-col items-center gap-3 py-2">
-							<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
-							<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteract')}</p>
+				{menuOpen && (
+					<div
+						role="menu"
+						aria-label={t('pageSettings.addPasskeyTitle')}
+						className={`absolute ${menuAlign === 'left' ? 'left-0' : 'right-0'} mt-2 min-w-56 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50 p-1`}
+					>
+						{passkeyOptions(t).map(({ Icon, hint, btnLabel }) => (
+							<button
+								key={hint}
+								id={`add-passkey-settings-${hint}`}
+								role="menuitem"
+								type="button"
+								className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left cursor-pointer text-lm-gray-900 dark:text-white hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600"
+								onClick={() => {
+									setMenuOpen(false);
+									onBegin(hint);
+								}}
+							>
+								<Icon size={18} />
+								{btnLabel}
+							</button>
+						))}
+					</div>
+				)}
+
+				<Dialog open={stateChooseName} onCancel={onCancel}>
+					<form onSubmit={onFinish}>
+						{pendingCredential ? (
+							<>
+								<H2 heading={t('registerPasskey.messageSuccess')} hr={false} flexJustifyContent="center" />
+								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveName')}</p>
+								<input
+									type="text"
+									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
+									aria-label={t('registerPasskey.nameAriaLabel')}
+									autoFocus={true}
+									disabled={isSubmitting}
+									onChange={(event) => setName(event.target.value)}
+									placeholder={t('registerPasskey.namePlaceholder')}
+									value={name}
+								/>
+							</>
+						) : (
+							<div className="flex flex-col items-center gap-3 py-2">
+								<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
+								<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteract')}</p>
+							</div>
+						)}
+
+						<div className="pt-2 flex justify-center gap-2">
+							<Button id="cancel-add-passkey-settings" variant="subtle" onClick={onCancel} disabled={isSubmitting}>
+								{t('common.cancel')}
+							</Button>
+
+							{pendingCredential && (
+								<Button id="save-add-passkey-settings" type="submit" variant="primary" disabled={isSubmitting}>
+									{t('common.save')}
+								</Button>
+							)}
 						</div>
-					)}
+					</form>
+				</Dialog>
 
-					<div className="pt-2 flex justify-center gap-2">
-						<Button id="cancel-add-passkey-settings" variant="subtle" onClick={onCancel} disabled={isSubmitting}>
+				<Dialog open={needPrfRetry && !prfRetryAccepted} onCancel={() => resolvePrfRetryPrompt?.(false)}>
+					<H2
+						heading={
+							<span className="flex items-center justify-center gap-2">
+								<ShieldCheck size={20} className="text-lm-gray-700 dark:text-dm-gray-300" />
+								{t('registerPasskey.messageDone')}
+							</span>
+						}
+						flexJustifyContent="center"
+						hr={false}
+					/>
+					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.passkeyCreated')}</p>
+					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.authOnceMore')}</p>
+
+					<div className="flex justify-center gap-2">
+						<Button id="cancel-prf-passkey-settings" variant="subtle" onClick={() => resolvePrfRetryPrompt?.(false)}>
 							{t('common.cancel')}
 						</Button>
 
-						{pendingCredential && (
-							<Button id="save-add-passkey-settings" type="submit" variant="primary" disabled={isSubmitting}>
-								{t('common.save')}
-							</Button>
-						)}
+						<Button
+							id="continue-prf-passkey-settings"
+							onClick={() => resolvePrfRetryPrompt?.(true)}
+							variant="primary"
+							disabled={prfRetryAccepted}
+						>
+							{t('common.continue')}
+						</Button>
 					</div>
-				</form>
-			</Dialog>
+				</Dialog>
 
-			<Dialog open={needPrfRetry && !prfRetryAccepted} onCancel={() => resolvePrfRetryPrompt?.(false)}>
-				<H2
-					heading={
-						<span className="flex items-center justify-center gap-2">
-							<ShieldCheck size={20} className="text-lm-gray-700 dark:text-dm-gray-300" />
-							{t('registerPasskey.messageDone')}
-						</span>
-					}
-					flexJustifyContent="center"
-					hr={false}
-				/>
-				<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.passkeyCreated')}</p>
-				<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.authOnceMore')}</p>
-
-				<div className="flex justify-center gap-2">
-					<Button id="cancel-prf-passkey-settings" variant="subtle" onClick={() => resolvePrfRetryPrompt?.(false)}>
-						{t('common.cancel')}
-					</Button>
-
-					<Button
-						id="continue-prf-passkey-settings"
-						onClick={() => resolvePrfRetryPrompt?.(true)}
-						variant="primary"
-						disabled={prfRetryAccepted}
-					>
-						{t('common.continue')}
-					</Button>
+				<Dialog open={prfRetryAccepted} onCancel={onCancel}>
+					<div className="flex flex-col items-center gap-3 py-2">
+						<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
+						<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteractNewPasskey')}</p>
+					</div>
+					<div className="flex justify-center mt-2">
+						<Button id="cancel-in-progress-prf-settings" variant="subtle" onClick={onCancel}>
+							{t('common.cancel')}
+						</Button>
+					</div>
+				</Dialog>
+			</div>
+			{authenticatorAlreadyRegistered && (
+				<div
+					role="alert"
+					className="w-full mt-2 rounded-lg bg-lm-orange/10 dark:bg-dm-orange/10 border border-lm-orange/30 dark:border-dm-orange/30 px-3 py-2"
+				>
+					<span className="text-sm text-lm-gray-900 dark:text-white break-words">
+						{t('registerPasskey.alreadyRegisteredMessage')}
+					</span>
 				</div>
-			</Dialog>
-
-			<Dialog open={prfRetryAccepted} onCancel={onCancel}>
-				<div className="flex flex-col items-center gap-3 py-2">
-					<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
-					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteractNewPasskey')}</p>
-				</div>
-				<div className="flex justify-center mt-2">
-					<Button id="cancel-in-progress-prf-settings" variant="subtle" onClick={onCancel}>
-						{t('common.cancel')}
-					</Button>
-				</div>
-			</Dialog>
-		</div>
+			)}
+		</>
 	);
 };
 
