@@ -86,7 +86,14 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 					let bestBackCamera: ScannerDevice | null = null;
 
 					for (const device of videoDevices) {
-						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
+						// A camera that can't be opened, for example because another app holds it, is skipped.
+						const stream = await navigator.mediaDevices
+							.getUserMedia({ video: { deviceId: device.deviceId } })
+							.catch((error) => {
+								console.error('Error opening camera:', error);
+								return null;
+							});
+						if (!stream) continue;
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
 						// const isBackCamera = device.label.toLowerCase().includes('back');
@@ -197,7 +204,8 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 		<PopupLayout
 			isOpen={true}
 			onClose={handleClose}
-			loading={loading || !cameraReady}
+			// Camera setup never runs without permission, so cameraReady can't stand in for loading then.
+			loading={loading || (hasCameraPermission !== false && !cameraReady)}
 			fullScreen={screenType !== 'desktop'}
 		>
 			{hasCameraPermission === false ? (
