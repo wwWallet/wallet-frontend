@@ -27,6 +27,7 @@ interface ScannerDevice {
 const QRScanner = ({ onClose }: QRScannerProps) => {
 	const [devices, setDevices] = useState<ScannerDevice[]>([]);
 	const webcamRef = useRef<Webcam | null>(null);
+	const qrScannerRef = useRef<QrScanner | null>(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
@@ -64,6 +65,14 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 				console.error('Camera access denied:', error);
 				setHasCameraPermission(false);
 			});
+	}, []);
+
+	// A scanner left running reopens the camera by itself when the tab becomes visible again.
+	useEffect(() => {
+		return () => {
+			qrScannerRef.current?.destroy();
+			qrScannerRef.current = null;
+		};
 	}, []);
 
 	useEffect(() => {
@@ -147,43 +156,41 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 			if (webcamRef.current && webcamRef.current.stream) {
 				stopMediaTracks(webcamRef.current.stream);
 			}
+			qrScannerRef.current?.destroy();
+			qrScannerRef.current = null;
 			setCurrentDeviceIndex(newIndex);
 		}
 	};
 
 	const onUserMedia = () => {
-		if (webcamRef.current && webcamRef.current.video) {
-			const videoElement = webcamRef.current.video;
-			const qrScanner = new QrScanner(
-				videoElement,
-				(result) => {
-					console.log('decoded qr code:', result);
-					setQrDetected(true);
-					// Redirect to the URL found in the QR code
-					const scannedUrl = result.data;
-					setTimeout(() => {
-						setLoading(true);
-					}, 3000);
-					setTimeout(() => {
-						const baseUrl = window.location.origin;
-						const params = scannedUrl.split('?');
-						const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-						window.location.href = cvUrl;
-					}, 1000);
-				},
-				{ highlightScanRegion: true, highlightCodeOutline: false },
-			);
+		const video = webcamRef.current?.video;
+		// react-webcam can hand a new stream to the same <video>; the scanner already on it picks that up.
+		if (!video || qrScannerRef.current?.$video === video) return;
+		qrScannerRef.current?.destroy();
+		const qrScanner = new QrScanner(
+			video,
+			(result) => {
+				console.log('decoded qr code:', result);
+				setQrDetected(true);
+				// Redirect to the URL found in the QR code
+				const scannedUrl = result.data;
+				setTimeout(() => {
+					setLoading(true);
+				}, 3000);
+				setTimeout(() => {
+					const baseUrl = window.location.origin;
+					const params = scannedUrl.split('?');
+					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
+					window.location.href = cvUrl;
+				}, 1000);
+			},
+			{ highlightScanRegion: true, highlightCodeOutline: false },
+		);
+		qrScannerRef.current = qrScanner;
 
-			qrScanner.start().catch((err) => {
-				console.error('Error starting QR Scanner: ', err);
-				// Optionally update UI or state to reflect the error
-			});
-
-			return () => {
-				qrScanner.stop();
-				qrScanner.destroy();
-			};
-		}
+		qrScanner.start().catch((err) => {
+			console.error('Error starting QR Scanner: ', err);
+		});
 	};
 
 	return (
