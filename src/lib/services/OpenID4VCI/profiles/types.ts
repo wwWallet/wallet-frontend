@@ -1,4 +1,5 @@
 import type { JWK } from 'jose';
+import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
 import type { CredentialKeyPair } from '@/services/keystore';
 
 type CredentialProofTypes = {
@@ -9,6 +10,10 @@ type CredentialProofTypes = {
 type AttestedProofKeys = { keypairs: CredentialKeyPair[]; attestedKeys: JWK[] };
 
 export interface OpenID4VCIProfile {
+	resolvePreAuthorizedTokenPolicy(metadata: OpenidAuthorizationServerMetadata): {
+		clientAuthentication: 'anonymous' | 'attestation';
+		useDpop: boolean;
+	};
 	attestationLifecycle?: {
 		checkWalletAttestation(token: string, period?: number): void;
 		checkKeyAttestation(token: string, period?: number): void;

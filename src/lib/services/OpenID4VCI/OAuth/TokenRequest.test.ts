@@ -57,13 +57,14 @@ describe('Token request attestation authentication', () => {
 		vi.stubGlobal('ArrayBuffer', buffer.constructor);
 	});
 
-	it.each([GrantType.AUTHORIZATION_CODE, GrantType.REFRESH])(
+	it.each([GrantType.AUTHORIZATION_CODE, GrantType.REFRESH, GrantType.PRE_AUTHORIZED_CODE])(
 		'authenticates %s using the saved WIA and key',
 		async (grant) => {
 			const request = builder();
 			const keys = await keypair();
 			request.setGrantType(grant);
 			request.setRefreshToken('refresh');
+			request.setPreAuthorizedCode('offer-code');
 			request.setWalletAttestation('saved-wia', keys.privateKey);
 			await expect(request.execute()).resolves.toMatchObject({
 				response: { access_token: 'token', token_type: 'bearer' },
@@ -87,6 +88,24 @@ describe('Token request attestation authentication', () => {
 			expect(new URLSearchParams(mocks.post.mock.calls[0][1]).get('client_id')).toBe('wallet');
 		},
 	);
+
+	it('redeems an anonymous pre-authorized offer without DPoP for a Bearer issuer', async () => {
+		const request = builder();
+		request.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
+		request.setClientId(null);
+		request.setPreAuthorizedCode('offer-code');
+		request.setTxCode('12345');
+
+		await expect(request.execute()).resolves.toMatchObject({ response: { token_type: 'bearer' } });
+		const [, body, headers] = mocks.post.mock.calls[0];
+		expect(Object.fromEntries(new URLSearchParams(body))).toEqual({
+			grant_type: GrantType.PRE_AUTHORIZED_CODE,
+			'pre-authorized_code': 'offer-code',
+			tx_code: '12345',
+		});
+		expect(headers).not.toHaveProperty('dpop');
+		expect(headers).not.toHaveProperty('oauth-client-attestation');
+	});
 
 	it('retries an attestation challenge once with a fresh proof', async () => {
 		const request = builder();
@@ -133,8 +152,15 @@ describe('Token request attestation authentication', () => {
 		expect(proof(1)).toBeTruthy();
 	});
 
-	it.each([true, false])('handles attestation and DPoP challenges in either order (%s)', async (attestationFirst) => {
+	it.each([
+		{ grant: GrantType.AUTHORIZATION_CODE, attestationFirst: true },
+		{ grant: GrantType.AUTHORIZATION_CODE, attestationFirst: false },
+		{ grant: GrantType.PRE_AUTHORIZED_CODE, attestationFirst: true },
+		{ grant: GrantType.PRE_AUTHORIZED_CODE, attestationFirst: false },
+	])('handles challenges for $grant (attestation first: $attestationFirst)', async ({ grant, attestationFirst }) => {
 		const request = builder();
+		request.setGrantType(grant);
+		request.setPreAuthorizedCode('offer-code');
 		const keys = await keypair();
 		request.setWalletAttestation('saved-wia', keys.privateKey);
 		await request.setDpopHeader(keys.privateKey, { ...(await crypto.subtle.exportKey('jwk', keys.publicKey)) }, 'jti');
@@ -158,7 +184,7 @@ describe('Token request attestation authentication', () => {
 		const request = builder();
 		request.setClientId(clientId);
 		request.setWalletAttestation('saved-wia', (await keypair()).privateKey);
-		await expect(request.execute()).rejects.toThrow('requires a client and a supported grant');
+		await expect(request.execute()).rejects.toThrow('requires a client ID');
 		expect(mocks.post).not.toHaveBeenCalled();
 	});
 

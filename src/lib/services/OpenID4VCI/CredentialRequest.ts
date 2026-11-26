@@ -144,6 +144,7 @@ export function useCredentialRequest() {
 		(at: string) => {
 			accessTokenRef.current = at;
 			httpHeaders['Authorization'] = `Bearer ${at}`;
+			delete httpHeaders.dpop;
 		},
 		[httpHeaders],
 	);

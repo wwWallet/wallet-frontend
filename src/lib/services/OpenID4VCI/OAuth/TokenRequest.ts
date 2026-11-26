@@ -40,7 +40,7 @@ export interface TokenRequestBuilder {
 	setGrantType(grant: GrantType): void;
 	setAuthorizationCode(authzCode: string): void;
 	setPreAuthorizedCode(c: string): void;
-	setTxCode(c: string): void;
+	setTxCode(c: string | null): void;
 	setAuthorizationResponseUrl(url: string): void;
 	setState(state: string): void;
 	setCodeVerifier(codeVerifierValue: string): void;
@@ -160,7 +160,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		preAuthorizedCode.current = c;
 	}, []);
 
-	const setTxCode = useCallback((c: string) => {
+	const setTxCode = useCallback((c: string | null) => {
 		txCode.current = c;
 	}, []);
 
@@ -237,8 +237,8 @@ export function useTokenRequest(): TokenRequestBuilder {
 		};
 
 		const client: oauth4webapi.Client = { client_id: clientId.current ?? OPENID4VCI_REDIRECT_URI };
-		if (clientAttestation.current && (!clientId.current || grantType.current === GrantType.PRE_AUTHORIZED_CODE)) {
-			throw new Error('Attestation-based client authentication requires a client and a supported grant');
+		if (clientAttestation.current && !clientId.current) {
+			throw new Error('Attestation-based client authentication requires a client ID');
 		}
 		let attestationChallenge: string | undefined;
 		const getClientAuth = () =>
@@ -261,13 +261,11 @@ export function useTokenRequest(): TokenRequestBuilder {
 			if (!preAuthorizedCode.current) {
 				throw new Error('Pre-Authorized Code not set');
 			}
-			if (!dpopParams.current) {
-				throw new Error('DPoP parameters are not set');
-			}
 			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
 				as,
+				client,
+				clientId.current ? getClientAuth() : () => {},
 				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current ?? undefined },
-				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
 				options,
 			);
 		};

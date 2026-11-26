@@ -20,6 +20,15 @@ function checkAttestation(
 }
 
 export const WeBuildProfile: OpenID4VCIProfile = {
+	resolvePreAuthorizedTokenPolicy: (metadata) => {
+		if (!metadata.token_endpoint_auth_methods_supported?.includes('attest_jwt_client_auth')) {
+			throw new Error('The authorization server does not support standalone client attestation');
+		}
+		if (!metadata.dpop_signing_alg_values_supported?.includes('ES256')) {
+			throw new Error('WE BUILD pre-authorized issuance requires ES256 DPoP');
+		}
+		return { clientAuthentication: 'attestation', useDpop: true };
+	},
 	// The WE BUILD integration uses the OAuth attestation draft-12 proof claims.
 	clientAttestationProofClaims: () => ({}),
 	attestationLifecycle: {

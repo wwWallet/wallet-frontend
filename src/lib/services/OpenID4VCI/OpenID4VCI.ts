@@ -774,28 +774,36 @@ export function useOpenID4VCI({
 				.replace(/=/g, '');
 			flowState.state = state;
 
-			let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
-			let dpopPrivateKeyJwk: jose.JWK | null = null;
-			let dpopPublicKeyJwk: jose.JWK | null = null;
-			const jti = generateRandomIdentifier(18);
-			if (
-				authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported &&
-				authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported.includes('ES256')
-			) {
-				const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
-				[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
-					jose.exportJWK(privateKey),
-					jose.exportJWK(publicKey),
-				]);
+			tokenRequestBuilder.clearDpopHeader();
+			const asMetadata = authzServerMetadata.authzServerMetadata;
+			const { clientAuthentication, useDpop } = getOpenID4VCIProfile().resolvePreAuthorizedTokenPolicy(asMetadata);
+			const requiresAttestation = clientAuthentication === 'attestation';
 
-				dpopPrivateKey = privateKey;
-				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
-				flowState.dpop = {
-					dpopAlg: 'ES256',
-					dpopJti: jti,
-					dpopPrivateKeyJwk: dpopPrivateKeyJwk,
-					dpopPublicKeyJwk: dpopPublicKeyJwk,
-				};
+			const client = requiresAttestation ? await openID4VCIHelper.getClientId(credentialIssuer) : null;
+			let walletAttestation: string | null = null;
+			let privateKey: jose.KeyLike | undefined;
+			if (useDpop || requiresAttestation) {
+				const keypair = await jose.generateKeyPair('ES256', { extractable: true });
+				privateKey = keypair.privateKey;
+				const publicJwk = await jose.exportJWK(keypair.publicKey);
+				if (useDpop) {
+					const jti = generateRandomIdentifier(18);
+					await tokenRequestBuilder.setDpopHeader(privateKey, publicJwk, jti);
+					flowState.dpop = {
+						dpopAlg: 'ES256',
+						dpopJti: jti,
+						dpopPrivateKeyJwk: await jose.exportJWK(privateKey),
+						dpopPublicKeyJwk: publicJwk,
+					};
+				}
+				if (requiresAttestation) {
+					walletAttestation = await requestTokenWalletAttestation(
+						requestWalletAttestation,
+						publicJwk,
+						client?.client_id ?? null,
+						asMetadata.issuer,
+					);
+				}
 			}
 
 			// Persist state/code_verifier for later token exchange
@@ -805,12 +813,11 @@ export function useOpenID4VCI({
 			const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
-			tokenRequestBuilder.setWalletAttestation(null);
+			tokenRequestBuilder.setClientId(client?.client_id ?? null);
+			tokenRequestBuilder.setWalletAttestation(walletAttestation, privateKey);
 			tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
 			tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
-			if (txCode) {
-				tokenRequestBuilder.setTxCode(txCode);
-			}
+			tokenRequestBuilder.setTxCode(txCode ?? null);
 			const result = await tokenRequestBuilder.execute();
 			if ('error' in result) {
 				console.error(result.error);
@@ -823,6 +830,9 @@ export function useOpenID4VCI({
 			}
 
 			assertAccessTokenCompatible(result.response.token_type, flowState.dpop);
+			if (result.response.token_type.toLowerCase() === 'dpop' && !flowState.dpop) {
+				throw new Error('DPoP access token has no session key');
+			}
 
 			flowState.tokenResponse = {
 				data: {
@@ -844,6 +854,7 @@ export function useOpenID4VCI({
 			credentialRequest,
 			openID4VCIHelper,
 			resumePendingCredentialIssuance,
+			requestWalletAttestation,
 			keystore,
 			openID4VCIClientStateRepository,
 		],
