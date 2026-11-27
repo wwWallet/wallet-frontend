@@ -157,6 +157,26 @@ describe('CredentialInfo Component', () => {
 		expect(firstNameElement).not.toBeInTheDocument();
 	});
 
+	it('shows only selected disclosed fields in the consent preview', () => {
+		const parsedCredential = {
+			signedClaims: { selected_field: 'shared', hidden_field: 'private' },
+			metadata: {
+				credential: {
+					TypeMetadata: {
+						claims: [
+							{ path: ['selected_field'], display: [{ locale: 'en', label: 'Selected Field' }] },
+							{ path: ['hidden_field'], required: true, display: [{ locale: 'en', label: 'Hidden Field' }] },
+						],
+					},
+				},
+			},
+		} satisfies CredentialInfoData;
+
+		render(<CredentialInfo parsedCredential={parsedCredential} visibleFields={[['selected_field']]} />);
+		expect(screen.getByText('Selected Field:')).toBeInTheDocument();
+		expect(screen.queryByText('Hidden Field:')).not.toBeInTheDocument();
+	});
+
 	it('renders claims when data is provided', () => {
 		render(<CredentialInfo parsedCredential={parsedCredential} />);
 		expect(screen.getByText('First Name:')).toBeInTheDocument();

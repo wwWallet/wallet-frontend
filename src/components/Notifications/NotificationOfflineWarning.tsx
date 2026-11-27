@@ -6,7 +6,8 @@ import StatusContext from '@/context/StatusContext';
 import { useSessionContext } from '@/context/SessionContext';
 import SyncNotificationContext from '@/context/SyncNotificationContext';
 import { useSessionStorage } from '@/hooks/useStorage';
-import { TriangleAlert, X } from 'lucide-react';
+import CloseButton from '../Buttons/CloseButton';
+import { TriangleAlert } from 'lucide-react';
 
 function NotificationOfflineWarning(): React.ReactElement | null {
 	useTranslation(); // This ensures reactivity to language changes
@@ -40,9 +41,12 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 								<Trans i18nKey="layout.messageOffline" components={{ strong: <strong /> }} />
 							</p>
 						</div>
-						<button id="close-message-offline" className="ml-2" onClick={handleCloseMessageOffline}>
-							<X size={20} />
-						</button>
+						<CloseButton
+							id="close-message-offline"
+							tone="inherit"
+							onClick={handleCloseMessageOffline}
+							additionalClassName="ml-2"
+						/>
 					</>
 				)}
 			</div>

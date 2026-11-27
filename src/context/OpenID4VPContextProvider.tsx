@@ -1,5 +1,6 @@
+import type { DcqlSelection } from 'wallet-common';
 import React, { useState, useContext, useCallback } from 'react';
-import SelectCredentialsPopup from '../components/Popups/SelectCredentialsPopup';
+import DcqlCredentialsPopup from '../components/Popups/DcqlCredentialsPopup';
 import CredentialsContext from './CredentialsContext';
 import { useOpenID4VP } from '../lib/services/OpenID4VP/OpenID4VP';
 import OpenID4VPContext from './OpenID4VPContext';
@@ -31,7 +32,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 	});
 
 	const showPopup = useCallback(
-		(options: CredentialSelectionOptions): Promise<Map<string, number>> =>
+		(options: CredentialSelectionOptions): Promise<DcqlSelection> =>
 			new Promise((resolve, reject) => {
 				setPopupState({
 					isOpen: true,
@@ -62,7 +63,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 			verifierDomainName: string,
 			verifierPurpose: string,
 			parsedTransactionData?: CredentialSelectionOptions['parsedTransactionData'],
-		): Promise<Map<string, number>> => {
+		): Promise<DcqlSelection> => {
 			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData });
 		},
 		[showPopup],
@@ -83,7 +84,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 			{isLoggedIn && (
 				<>
 					<GenericConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} />
-					<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} vcEntityList={vcEntityList} />
+					<DcqlCredentialsPopup popupState={popupState} setPopupState={setPopupState} vcEntityList={vcEntityList} />
 				</>
 			)}
 		</OpenID4VPContext.Provider>

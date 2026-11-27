@@ -9,13 +9,14 @@ import { useSessionContext } from '@/context/SessionContext';
 import useScreenType from '@/hooks/useScreenType';
 
 import Button, { Variant } from '../../components/Buttons/Button';
+import CloseButton from '../../components/Buttons/CloseButton';
 import CachedUsersList from './CachedUsersList';
 import SeparatorLine from '../Shared/SeparatorLine';
 import BottomSheet from '../Popups/BottomSheet';
 
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet, X } from 'lucide-react';
+import { ChevronLeft, KeyRoundIcon, type LucideIcon, User, Wallet } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import { usePolicyLinks } from '@/hooks/usePolicyLinks';
@@ -340,17 +341,13 @@ const WebauthnSignupLogin = ({
 						{cachedUser.displayName}
 					</span>
 				</button>
-				<button
+				<CloseButton
 					id={`switch-forget-cached-user-${index}-loginsignup`}
-					type="button"
 					onClick={() => onForgetCachedUser(cachedUser)}
 					disabled={isSubmitting}
-					aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+					ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 					title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-					className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lm-gray-700 dark:text-dm-gray-300 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'}`}
-				>
-					<X size={18} />
-				</button>
+				/>
 			</li>
 		);
 	});
@@ -380,14 +377,9 @@ const WebauthnSignupLogin = ({
 					</p>
 				</div>
 				{showCancelButton && (
-					<button
-						id="cancel-switch-account-bottom-loginsignup"
-						type="button"
-						onClick={closeSwitcher}
-						className="-mr-2 shrink-0 px-2 py-1.5 rounded-lg text-sm font-semibold text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer hover:bg-lm-gray-200 dark:hover:bg-dm-gray-800 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2"
-					>
+					<Button id="cancel-switch-account-bottom-loginsignup" variant="subtle" size="sm" onClick={closeSwitcher}>
 						{t('common.cancel')}
-					</button>
+					</Button>
 				)}
 			</div>
 		</>
@@ -421,7 +413,7 @@ const WebauthnSignupLogin = ({
 							</>
 						)}
 						<div className="flex justify-center gap-4">
-							<Button id="cancel-prf-loginsignup" onClick={() => resolvePrfRetryPrompt?.(false)}>
+							<Button id="cancel-prf-loginsignup" variant="subtle" onClick={() => resolvePrfRetryPrompt?.(false)}>
 								{t('common.cancel')}
 							</Button>
 							<Button
@@ -440,7 +432,7 @@ const WebauthnSignupLogin = ({
 							<Trans i18nKey="registerPasskey.messageErrorTryAgain" components={{ br: <br /> }} />
 						</p>
 						<div className="flex justify-center gap-4">
-							<Button id="cancel-prf-loginsignup" onClick={onCancel}>
+							<Button id="cancel-prf-loginsignup" variant="subtle" onClick={onCancel}>
 								{t('common.cancel')}
 							</Button>
 							<Button id="try-again-prf-loginsignup" type="submit" variant="secondary">
@@ -451,7 +443,12 @@ const WebauthnSignupLogin = ({
 				) : (
 					<>
 						<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
-						<Button id="cancel-in-progress-prf-loginsignup" onClick={onCancel} additionalClassName="w-full">
+						<Button
+							id="cancel-in-progress-prf-loginsignup"
+							variant="subtle"
+							onClick={onCancel}
+							additionalClassName="w-full"
+						>
 							{t('common.cancel')}
 						</Button>
 					</>
