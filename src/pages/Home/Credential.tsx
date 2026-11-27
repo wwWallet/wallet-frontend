@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 // Config
 import { DEV_MODE } from '@/config';
+import { safeRedirect } from '@/utils/safeRedirect';
 import i18n from '@/i18n';
 
 // Contexts
@@ -131,7 +132,7 @@ const Credential = () => {
 	};
 
 	const redirectToVerifier = (verifier: Verifier) => {
-		window.location.href = verifier.url;
+		safeRedirect(verifier.url);
 	};
 
 	const shareMenu = (fullWidth: boolean = false) => {

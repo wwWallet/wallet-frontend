@@ -13,6 +13,7 @@ import StatusContext from '@/context/StatusContext';
 // Hooks
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+import { safeRedirect } from '@/utils/safeRedirect';
 
 // Utilities
 import {
@@ -259,7 +260,7 @@ const AddCredentials = () => {
 		setLoading(true);
 		try {
 			if (selectedPortal) {
-				window.location.href = selectedPortal.url;
+				safeRedirect(selectedPortal.url);
 				return;
 			}
 			if (!selectedCredentialConfiguration) {
@@ -279,7 +280,7 @@ const AddCredentials = () => {
 			);
 			if ('url' in result) {
 				const { url } = result;
-				window.location.href = url!;
+				safeRedirect(url);
 			}
 		} catch (err) {
 			console.error(err);
