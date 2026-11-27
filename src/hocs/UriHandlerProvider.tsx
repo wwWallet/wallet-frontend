@@ -20,6 +20,7 @@ import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
 import { getAuthorizationRequestErrorMessageKey } from '@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey';
 import { getAuthorizationResponseErrorMessageKey } from '@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey';
 import type { TxCodeInputMetadata } from '@/lib/interfaces/IOpenID4VCI';
+import { safeRedirect } from '@/utils/safeRedirect';
 
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
@@ -225,7 +226,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	useEffect(() => {
 		if (redirectUri) {
 			cleanCurrentUrl();
-			window.location.href = redirectUri;
+			safeRedirect(redirectUri);
 		}
 	}, [cleanCurrentUrl, redirectUri]);
 
@@ -318,7 +319,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						}
 						cleanCurrentUrl();
 						if ('url' in res && typeof res.url === 'string' && res.url) {
-							window.location.href = res.url;
+							safeRedirect(res.url);
 						}
 					})
 					.catch((err) => {
