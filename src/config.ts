@@ -51,6 +51,7 @@ export const CLOCK_TOLERANCE =
 export const STATIC_PUBLIC_URL = config.static_public_url || 'https://demo.wwwallet.org';
 export const WALLET_NAME = config.wallet_name || 'wwWallet';
 export const WALLET_TAGLINE: string | undefined = config.wallet_tagline;
+export const OPENID4VCI_PROFILE = config.openid4vci_profile ?? 'DEFAULT';
 export const OPENID4VCI_PROOF_TYPE_PRECEDENCE = config.openid4vci_proof_type_precedence || 'jwt';
 export const FOLD_EVENT_HISTORY_AFTER_SECONDS =
 	config.fold_event_history_after_seconds && !isNaN(parseInt(config.fold_event_history_after_seconds))

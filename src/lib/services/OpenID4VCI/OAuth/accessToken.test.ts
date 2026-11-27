@@ -1,8 +1,9 @@
-import { assert, describe, it, vi } from 'vitest';
-import { accessTokenIsValid, refreshAccessToken } from './accessToken';
+import { assert, describe, expect, it, vi } from 'vitest';
+import { accessTokenIsValid, refreshAccessToken, requestTokenWalletAttestation } from './accessToken';
+import * as jose from 'jose';
 import { GrantType } from './TokenRequest';
 
-const tokenRequestBuilder = () => ({
+const tokenRequestBuilder = (tokenType = 'bearer') => ({
 	setTokenEndpoint: vi.fn(),
 	setIssuer: vi.fn(),
 	setGrantType: vi.fn(),
@@ -16,10 +17,13 @@ const tokenRequestBuilder = () => ({
 	setClientId: vi.fn(),
 	setAdditionalParameters: vi.fn(),
 	setRedirectUri: vi.fn(),
+	setWalletAttestation: vi.fn(),
 	setDpopHeader: vi.fn(),
+	clearDpopHeader: vi.fn(),
 	execute: vi.fn().mockResolvedValue({
 		response: {
 			access_token: 'new-access-token',
+			token_type: tokenType,
 			c_nonce: 'new-c-nonce',
 			expires_in: 60,
 			c_nonce_expires_in: 120,
@@ -59,5 +63,172 @@ describe('OAuth access token handling', () => {
 		assert.deepEqual(builder.setGrantType.mock.calls[0], [GrantType.REFRESH]);
 		assert.deepEqual(builder.setRefreshToken.mock.calls[0], ['old-refresh-token']);
 		assert.deepEqual(builder.setAdditionalParameters.mock.calls[0], [{ scope: 'credential-scope' }]);
+	});
+	it.each([true, false])(
+		'requests a fresh WIA with the original key during refresh (DPoP supported: %s)',
+		async (dpopSupported) => {
+			const builder = tokenRequestBuilder('dpop');
+			const keys = await jose.generateKeyPair('ES256', { extractable: true });
+			const dpop = {
+				dpopAlg: 'ES256',
+				dpopJti: 'original',
+				dpopPrivateKeyJwk: await jose.exportJWK(keys.privateKey),
+				dpopPublicKeyJwk: await jose.exportJWK(keys.publicKey),
+			};
+			const requestWia = vi.fn().mockResolvedValue({ wallet_attestation: 'fresh-wia' });
+			const result = await refreshAccessToken(
+				{
+					tokenEndpoint: 'https://issuer.example/token',
+					issuer: 'https://issuer.example',
+					clientId: 'wallet',
+					refreshToken: 'refresh',
+					attestationRequired: true,
+					dpop,
+					dpopSupported,
+				},
+				{ tokenRequestBuilder: builder, requestWalletAttestation: requestWia },
+			);
+			expect(requestWia).toHaveBeenCalledWith(
+				{ ...dpop.dpopPublicKeyJwk, key_ops: ['verify'] },
+				'wallet',
+				'https://issuer.example',
+			);
+			expect(requestWia.mock.invocationCallOrder[0]).toBeLessThan(builder.execute.mock.invocationCallOrder[0]);
+			assert.strictEqual(builder.setWalletAttestation.mock.calls[0][0], 'fresh-wia');
+			expect(builder.setDpopHeader).toHaveBeenCalledTimes(dpopSupported ? 1 : 0);
+			expect(builder.setWalletAttestation.mock.calls[0][1]).toBeTruthy();
+			assert.strictEqual(
+				dpopSupported && builder.setWalletAttestation.mock.calls[0][1],
+				dpopSupported && builder.setDpopHeader.mock.calls[0][0],
+			);
+			assert.deepEqual(result.dpop?.dpopPrivateKeyJwk, dpop.dpopPrivateKeyJwk);
+		},
+	);
+
+	it('rejects a Bearer refresh response when the standalone attestation key is saved as DPoP state', async () => {
+		const builder = tokenRequestBuilder('BeArEr');
+		const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true });
+		const requestWalletAttestation = vi.fn().mockResolvedValue({ wallet_attestation: 'fresh-wia' });
+
+		await expect(
+			refreshAccessToken(
+				{
+					tokenEndpoint: 'https://issuer.example/token',
+					issuer: 'https://issuer.example',
+					clientId: 'wallet',
+					refreshToken: 'refresh',
+					attestationRequired: true,
+					dpopSupported: false,
+					dpop: {
+						dpopAlg: 'ES256',
+						dpopJti: 'session',
+						dpopPrivateKeyJwk: await jose.exportJWK(privateKey),
+						dpopPublicKeyJwk: await jose.exportJWK(publicKey),
+					},
+				},
+				{ tokenRequestBuilder: builder, requestWalletAttestation },
+			),
+		).rejects.toThrow('returned a Bearer access token for a session with a DPoP key');
+		expect(builder.setDpopHeader).not.toHaveBeenCalled();
+	});
+
+	it.each([true, false])(
+		'rejects missing public key material before refresh (DPoP supported: %s)',
+		async (dpopSupported) => {
+			const builder = tokenRequestBuilder();
+			const keys = await jose.generateKeyPair('ES256', { extractable: true });
+			const requestWia = vi.fn();
+			await expect(
+				refreshAccessToken(
+					{
+						tokenEndpoint: 'https://issuer.example/token',
+						issuer: 'https://issuer.example',
+						clientId: 'wallet',
+						refreshToken: 'refresh',
+						attestationRequired: true,
+						dpopSupported,
+						dpop: { dpopAlg: 'ES256', dpopJti: 'original', dpopPrivateKeyJwk: await jose.exportJWK(keys.privateKey) },
+					},
+					{ tokenRequestBuilder: builder, requestWalletAttestation: requestWia },
+				),
+			).rejects.toThrow('Missing DPoP key material for token refresh');
+			expect(requestWia).not.toHaveBeenCalled();
+			expect(builder.setDpopHeader).not.toHaveBeenCalled();
+			expect(builder.execute).not.toHaveBeenCalled();
+		},
+	);
+
+	it('fails before sending when an attested refresh session has lost its key', async () => {
+		const builder = tokenRequestBuilder();
+		await expect(
+			refreshAccessToken(
+				{
+					tokenEndpoint: 'https://issuer.example/token',
+					issuer: 'https://issuer.example',
+					clientId: 'wallet',
+					refreshToken: 'refresh',
+					attestationRequired: true,
+				},
+				{ tokenRequestBuilder: builder },
+			),
+		).rejects.toThrow('bound key');
+		assert.strictEqual(builder.execute.mock.calls.length, 0);
+	});
+
+	it.each([null, 'failure'])('stops before token exchange when WIA retrieval returns %s', async (failure) => {
+		const builder = tokenRequestBuilder();
+		const keys = await jose.generateKeyPair('ES256', { extractable: true });
+		const requestWia = vi.fn();
+		if (failure === null) {
+			requestWia.mockResolvedValue(null);
+		} else {
+			requestWia.mockRejectedValue(new Error('Provider unavailable'));
+		}
+		await expect(
+			refreshAccessToken(
+				{
+					tokenEndpoint: 'https://issuer.example/token',
+					issuer: 'https://issuer.example',
+					clientId: 'wallet',
+					refreshToken: 'refresh',
+					attestationRequired: true,
+					dpop: {
+						dpopAlg: 'ES256',
+						dpopJti: 'original',
+						dpopPrivateKeyJwk: await jose.exportJWK(keys.privateKey),
+						dpopPublicKeyJwk: await jose.exportJWK(keys.publicKey),
+					},
+				},
+				{ tokenRequestBuilder: builder, requestWalletAttestation: requestWia },
+			),
+		).rejects.toThrow();
+		expect(builder.execute).not.toHaveBeenCalled();
+	});
+
+	it('requires the session public key and client ID before requesting a WIA', async () => {
+		const requestWia = vi.fn();
+		await expect(
+			requestTokenWalletAttestation(requestWia, undefined, 'wallet', 'https://issuer.example'),
+		).rejects.toThrow('session public key and client ID');
+		await expect(requestTokenWalletAttestation(requestWia, {}, null, 'https://issuer.example')).rejects.toThrow(
+			'session public key and client ID',
+		);
+		expect(requestWia).not.toHaveBeenCalled();
+	});
+
+	it('does not contact the provider when client attestation is not required', async () => {
+		const builder = tokenRequestBuilder();
+		const requestWia = vi.fn();
+		await refreshAccessToken(
+			{
+				tokenEndpoint: 'https://issuer.example/token',
+				issuer: 'https://issuer.example',
+				clientId: 'wallet',
+				refreshToken: 'refresh',
+			},
+			{ tokenRequestBuilder: builder, requestWalletAttestation: requestWia },
+		);
+		expect(requestWia).not.toHaveBeenCalled();
+		expect(builder.setWalletAttestation).toHaveBeenCalledWith(null, null);
 	});
 });

@@ -1,5 +1,6 @@
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '@/lib/utils/generateRandomIdentifier';
+import type { useWalletProvider } from '../../WalletProvider';
 import { GrantType, TokenRequestBuilder } from './TokenRequest';
 
 export type OAuthTokenState = {
@@ -17,11 +18,44 @@ export type DpopState = {
 	dpopAlg: string;
 };
 
+export class BearerTokenWithDpopKeyError extends Error {
+	constructor() {
+		super(
+			'The authorization server returned a Bearer access token for a session with a DPoP key. This combination is not supported by the wallet.',
+		);
+	}
+}
+
+export function assertAccessTokenCompatible(tokenType: string, dpop?: DpopState): void {
+	if (dpop && tokenType.toLowerCase() === 'bearer') {
+		throw new BearerTokenWithDpopKeyError();
+	}
+}
+
+export type RequestWalletAttestation = ReturnType<typeof useWalletProvider>['requestWalletAttestation'];
+
+export async function requestTokenWalletAttestation(
+	requestWalletAttestation: RequestWalletAttestation,
+	publicJwk: jose.JWK | null | undefined,
+	clientId: string | null,
+	issuer: string,
+): Promise<string> {
+	if (!publicJwk || !clientId) {
+		throw new Error('Wallet Attestation requires the session public key and client ID');
+	}
+	const response = await requestWalletAttestation({ ...publicJwk, key_ops: ['verify'] }, clientId, issuer);
+	if (!response) {
+		throw new Error('Failed to get Wallet Attestation from wallet-backend-server');
+	}
+	return response.wallet_attestation;
+}
+
 export type OAuthTokenRefreshRequest = {
 	tokenEndpoint: string;
 	issuer: string;
 	clientId: string | null;
 	refreshToken: string;
+	attestationRequired?: boolean;
 	additionalParameters?: Record<string, string>;
 	dpop?: DpopState;
 	dpopSupported?: boolean;
@@ -47,6 +81,7 @@ export async function refreshAccessToken(
 	context: {
 		tokenRequestBuilder: TokenRequestBuilder;
 		now?: number;
+		requestWalletAttestation?: RequestWalletAttestation;
 	},
 ): Promise<OAuthTokenRefreshResult> {
 	let dpop = request.dpop;
@@ -55,7 +90,11 @@ export async function refreshAccessToken(
 	let dpopPublicKeyJwk: jose.JWK | null = null;
 	const jti = generateRandomIdentifier(8);
 
-	if (request.dpopSupported) {
+	if (request.attestationRequired && !dpop) {
+		throw new Error('Wallet Attestation is missing its bound key');
+	}
+
+	if (request.dpopSupported || request.attestationRequired) {
 		if (dpop) {
 			dpopPrivateKeyJwk = dpop.dpopPrivateKeyJwk;
 			dpopPublicKeyJwk = dpop.dpopPublicKeyJwk ?? null;
@@ -76,15 +115,30 @@ export async function refreshAccessToken(
 		if (!dpopPrivateKey || !dpopPrivateKeyJwk || !dpopPublicKeyJwk) {
 			throw new Error('Missing DPoP key material for token refresh');
 		}
-		await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey, dpopPublicKeyJwk, jti);
+		if (request.dpopSupported) {
+			await context.tokenRequestBuilder.setDpopHeader(dpopPrivateKey, dpopPublicKeyJwk, jti);
+		}
 		dpop = {
-			dpopAlg: 'ES256',
+			dpopAlg: dpop?.dpopAlg ?? 'ES256',
 			dpopJti: jti,
 			dpopPrivateKeyJwk,
 			dpopPublicKeyJwk,
 		};
 	}
 
+	let walletAttestation: string | null = null;
+	if (request.attestationRequired) {
+		if (!context.requestWalletAttestation) {
+			throw new Error('Missing Wallet Provider for client attestation');
+		}
+		walletAttestation = await requestTokenWalletAttestation(
+			context.requestWalletAttestation,
+			dpopPublicKeyJwk,
+			request.clientId,
+			request.issuer,
+		);
+	}
+	context.tokenRequestBuilder.setWalletAttestation(walletAttestation, dpopPrivateKey as jose.KeyLike);
 	context.tokenRequestBuilder.setTokenEndpoint(request.tokenEndpoint);
 	context.tokenRequestBuilder.setIssuer(request.issuer);
 	context.tokenRequestBuilder.setGrantType(GrantType.REFRESH);
@@ -101,6 +155,8 @@ export async function refreshAccessToken(
 	if (!access_token) {
 		throw new Error('Missing access_token from refresh response');
 	}
+
+	assertAccessTokenCompatible(result.response.token_type, dpop);
 
 	const now = context.now ?? Math.floor(Date.now() / 1000);
 	return {

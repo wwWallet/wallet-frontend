@@ -2,6 +2,7 @@ import { useCallback, useRef, useMemo } from 'react';
 import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
+import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
 import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
 
@@ -10,6 +11,7 @@ const isDev = MODE === 'development';
 
 export type AccessToken = {
 	access_token: string;
+	token_type: string;
 	c_nonce: string;
 	expires_in: number;
 	c_nonce_expires_in: number;
@@ -32,12 +34,13 @@ export enum TokenRequestError {
 }
 
 export interface TokenRequestBuilder {
+	setWalletAttestation(attestation: string | null, privateKey?: KeyLike): void;
 	setClientId(clientIdValue: string | null): void;
 	setIssuer(issuerValue: string): void;
 	setGrantType(grant: GrantType): void;
 	setAuthorizationCode(authzCode: string): void;
 	setPreAuthorizedCode(c: string): void;
-	setTxCode(c: string): void;
+	setTxCode(c: string | null): void;
 	setAuthorizationResponseUrl(url: string): void;
 	setState(state: string): void;
 	setCodeVerifier(codeVerifierValue: string): void;
@@ -46,6 +49,7 @@ export interface TokenRequestBuilder {
 	setRedirectUri(uri: string): void;
 	setTokenEndpoint(endpoint: string): void;
 	setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string): Promise<void>;
+	clearDpopHeader(): void;
 	execute(): Promise<{ response: AccessToken } | { error: TokenRequestError; response?: any }>;
 }
 
@@ -65,7 +69,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const codeVerifier = useRef<string | null>(null);
 	const redirectUri = useRef<string | null>(null);
 	const clientId = useRef<string | null>(OPENID4VCI_REDIRECT_URI);
-	const retries = useRef<number>(0);
+	const clientAttestation = useRef<{ attestation: string; privateKey: KeyLike } | null>(null);
 	const dpopParams = useRef<{ dpopPrivateKey: KeyLike; dpopPublicKeyJwk: JWK } | null>(null);
 	const dpopHandle = useRef<oauth4webapi.DPoPHandle | null>(null);
 
@@ -125,6 +129,17 @@ export function useTokenRequest(): TokenRequestBuilder {
 		};
 	}, [httpProxy]);
 
+	const setWalletAttestation = useCallback((attestation: string | null, privateKey?: KeyLike) => {
+		if (attestation === null) {
+			clientAttestation.current = null;
+			return;
+		}
+		if (!attestation || !privateKey) {
+			throw new Error('Wallet Attestation requires its bound private key');
+		}
+		clientAttestation.current = { attestation, privateKey };
+	}, []);
+
 	const setClientId = useCallback((clientIdValue: string | null) => {
 		clientId.current = clientIdValue;
 	}, []);
@@ -145,7 +160,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		preAuthorizedCode.current = c;
 	}, []);
 
-	const setTxCode = useCallback((c: string) => {
+	const setTxCode = useCallback((c: string | null) => {
 		txCode.current = c;
 	}, []);
 
@@ -182,6 +197,11 @@ export function useTokenRequest(): TokenRequestBuilder {
 		dpopHandle.current = null;
 	}, []);
 
+	const clearDpopHeader = useCallback(() => {
+		dpopParams.current = null;
+		dpopHandle.current = null;
+	}, []);
+
 	const getDPoPHandle = useCallback(async (client: oauth4webapi.Client) => {
 		if (!dpopParams.current) {
 			return undefined;
@@ -207,8 +227,6 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const execute = useCallback(async (): Promise<
 		{ response: AccessToken } | { error: TokenRequestError; response?: any }
 	> => {
-		retries.current = 0;
-
 		if (!tokenEndpointURL.current) {
 			throw new Error('Token endpoint is not set');
 		}
@@ -219,7 +237,18 @@ export function useTokenRequest(): TokenRequestBuilder {
 		};
 
 		const client: oauth4webapi.Client = { client_id: clientId.current ?? OPENID4VCI_REDIRECT_URI };
-		const clientAuth = oauth4webapi.None();
+		if (clientAttestation.current && !clientId.current) {
+			throw new Error('Attestation-based client authentication requires a client ID');
+		}
+		let attestationChallenge: string | undefined;
+		const getClientAuth = () =>
+			clientAttestation.current
+				? AttestationBasedClientAuth(
+						clientAttestation.current.privateKey as CryptoKey,
+						clientAttestation.current.attestation,
+						{ challenge: attestationChallenge },
+					)
+				: oauth4webapi.None();
 		const DPoP = await getDPoPHandle(client);
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
@@ -232,13 +261,11 @@ export function useTokenRequest(): TokenRequestBuilder {
 			if (!preAuthorizedCode.current) {
 				throw new Error('Pre-Authorized Code not set');
 			}
-			if (!dpopParams.current) {
-				throw new Error('DPoP parameters are not set');
-			}
 			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
 				as,
+				client,
+				clientId.current ? getClientAuth() : () => {},
 				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current ?? undefined },
-				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
 				options,
 			);
 		};
@@ -260,7 +287,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return oauth4webapi.authorizationCodeGrantRequest(
 				as,
 				client,
-				clientAuth,
+				getClientAuth(),
 				callbackParams,
 				redirectUri.current!,
 				codeVerifier.current,
@@ -272,7 +299,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			if (!refreshToken.current) {
 				throw new Error('Refresh Token is not set');
 			}
-			return oauth4webapi.refreshTokenGrantRequest(as, client, clientAuth, refreshToken.current, {
+			return oauth4webapi.refreshTokenGrantRequest(as, client, getClientAuth(), refreshToken.current, {
 				...options,
 				...(additionalParameters.current ? { additionalParameters: additionalParameters.current } : {}),
 			});
@@ -316,20 +343,42 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return null;
 		};
 
-		let response = await tokenRequest();
+		let response: Response | undefined;
 		let result: any;
-		try {
-			result = await processResponse(response);
-		} catch (err) {
-			if (oauth4webapi.isDPoPNonceError(err) && retries.current < 1) {
-				retries.current += 1;
-				response = await tokenRequest();
+		let retriedAttestation = false;
+		let retriedDPoP = false;
+		// Initial request plus one retry for each independent challenge.
+		const maxAttempts = 3;
+		for (let attempt = 0; attempt < maxAttempts; attempt++) {
+			response = await tokenRequest();
+			const challenge = response.headers.get('OAuth-Client-Attestation-Challenge');
+			if (clientAttestation.current && !retriedAttestation && response.status === 400 && challenge) {
+				const body = await response
+					.clone()
+					.json()
+					.catch(() => null);
+				if (body?.error === 'use_attestation_challenge') {
+					attestationChallenge = challenge;
+					retriedAttestation = true;
+					continue;
+				}
+			}
+			try {
 				result = await processResponse(response);
-			} else {
+				break;
+			} catch (err) {
+				if (oauth4webapi.isDPoPNonceError(err) && !retriedDPoP) {
+					retriedDPoP = true;
+					continue;
+				}
 				const normalized = normalizeError(err);
 				if (normalized) return normalized;
 				throw err;
 			}
+		}
+
+		if (!response) {
+			throw new Error('Token request did not produce a response');
 		}
 
 		if (result && typeof result === 'object' && 'error' in result) {
@@ -342,6 +391,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		return {
 			response: {
 				access_token: result?.access_token,
+				token_type: result?.token_type,
 				c_nonce: result?.c_nonce,
 				c_nonce_expires_in: result?.c_nonce_expires_in,
 				expires_in: result?.expires_in,
@@ -355,6 +405,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 	return useMemo(
 		() => ({
+			setWalletAttestation,
 			setClientId,
 			setIssuer,
 			setGrantType,
@@ -369,9 +420,11 @@ export function useTokenRequest(): TokenRequestBuilder {
 			setRedirectUri,
 			setTokenEndpoint,
 			setDpopHeader,
+			clearDpopHeader,
 			execute,
 		}),
 		[
+			setWalletAttestation,
 			setClientId,
 			setIssuer,
 			setGrantType,
@@ -386,6 +439,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			setRedirectUri,
 			setTokenEndpoint,
 			setDpopHeader,
+			clearDpopHeader,
 			execute,
 		],
 	);

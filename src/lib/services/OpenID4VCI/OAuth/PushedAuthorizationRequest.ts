@@ -3,6 +3,10 @@ import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import { useCallback, useMemo } from 'react';
 import { OpenidAuthorizationServerMetadata } from 'wallet-common';
 import { MODE } from '@/config';
+import * as jose from 'jose';
+import { useWalletProvider } from '../../WalletProvider';
+import type { DpopState } from './accessToken';
+import { AttestationBasedClientAuth } from './AttestationBasedClientAuth';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
 const isDev = MODE === 'development';
@@ -19,6 +23,7 @@ function normalizeHeaders(h: any): Record<string, string> {
 
 export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
+	const { requestWalletAttestation } = useWalletProvider();
 
 	const myCustomFetch = useMemo(() => {
 		return async (url: string, options?: RequestInit) => {
@@ -65,7 +70,48 @@ export function usePushedAuthorizationRequest() {
 			if (!endpoint) {
 				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
 			}
+			const authMethods = asMeta.token_endpoint_auth_methods_supported;
+			const supportsStandaloneAttestation = authMethods?.includes('attest_jwt_client_auth');
+			if (!supportsStandaloneAttestation && authMethods?.includes('attest_jwt_client_auth_dpop')) {
+				throw new Error(
+					'The authorization server requires combined DPoP client attestation, which this wallet does not support',
+				);
+			}
+
 			const client: oauth4webapi.Client = { client_id: params.client_id };
+			let dpop: DpopState | undefined;
+			let privateKey: CryptoKey | undefined;
+			let walletAttestation: string | undefined;
+
+			if (supportsStandaloneAttestation) {
+				const alg = 'ES256';
+				const keypair = await jose.generateKeyPair(alg, { extractable: true });
+				privateKey = keypair.privateKey as CryptoKey;
+				const [privateJwk, generatedPublicJwk] = await Promise.all([
+					jose.exportJWK(keypair.privateKey),
+					jose.exportJWK(keypair.publicKey),
+				]);
+				const publicJwk = { ...generatedPublicJwk, key_ops: ['verify'] };
+
+				const requestWalletAttestationResponse = await requestWalletAttestation(
+					publicJwk,
+					params.client_id,
+					asMeta.issuer,
+				);
+				if (!requestWalletAttestationResponse) {
+					throw new Error('Failed to get Wallet Attestation from wallet-backend-server');
+				}
+				walletAttestation = requestWalletAttestationResponse.wallet_attestation;
+				if (asMeta.dpop_signing_alg_values_supported?.includes(alg)) {
+					params.dpop_jkt = await jose.calculateJwkThumbprint(publicJwk);
+				}
+				dpop = {
+					dpopAlg: alg,
+					dpopJti: crypto.randomUUID(),
+					dpopPrivateKeyJwk: privateJwk,
+					dpopPublicKeyJwk: publicJwk,
+				};
+			}
 
 			// Generate PKCE
 			const code_verifier = oauth4webapi.generateRandomCodeVerifier();
@@ -80,21 +126,42 @@ export function usePushedAuthorizationRequest() {
 				pushed_authorization_request_endpoint: endpoint,
 			};
 
-			const response = await oauth4webapi.pushedAuthorizationRequest(as, client, oauth4webapi.None(), body, {
-				[customFetch]: myCustomFetch,
-				[allowInsecureRequests]: isDev,
-			});
+			const sendPar = (challenge?: string) =>
+				oauth4webapi.pushedAuthorizationRequest(
+					as,
+					client,
+					privateKey && walletAttestation
+						? AttestationBasedClientAuth(privateKey, walletAttestation, { challenge })
+						: oauth4webapi.None(),
+					body,
+					{
+						[customFetch]: myCustomFetch,
+						[allowInsecureRequests]: isDev,
+					},
+				);
 
-			const json = await response.json();
+			let response = await sendPar();
+			let json = await response.json();
+			const challenge = response.headers.get('OAuth-Client-Attestation-Challenge');
+			if (
+				privateKey &&
+				walletAttestation &&
+				response.status === 400 &&
+				json?.error === 'use_attestation_challenge' &&
+				challenge
+			) {
+				response = await sendPar(challenge);
+				json = await response.json();
+			}
 			if (json?.error) {
 				throw new Error(`PAR failed: ${json.error} ${json.error_description ?? ''}`.trim());
 			}
 			if (!json?.request_uri) {
 				throw new Error(`PAR failed: missing request_uri. Got: ${JSON.stringify(json)}`);
 			}
-			return { request_uri: json.request_uri, code_verifier, rawResponse: json };
+			return { request_uri: json.request_uri, code_verifier, rawResponse: json, dpop };
 		},
-		[myCustomFetch],
+		[myCustomFetch, requestWalletAttestation],
 	);
 
 	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);
