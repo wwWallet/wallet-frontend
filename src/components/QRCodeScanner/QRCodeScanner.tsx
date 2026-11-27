@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
+import { walletCallbackQuery } from './walletCallbackQuery';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
@@ -27,8 +28,9 @@ interface ScannerDevice {
 const QRScanner = ({ onClose }: QRScannerProps) => {
 	const [devices, setDevices] = useState<ScannerDevice[]>([]);
 	const webcamRef = useRef<Webcam | null>(null);
+	const qrScannerRef = useRef<QrScanner | null>(null);
+	const detectedRef = useRef(false);
 	const [cameraReady, setCameraReady] = useState(false);
-	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [zoomLevel, setZoomLevel] = useState(1);
@@ -66,6 +68,14 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 			});
 	}, []);
 
+	// A scanner left running reopens the camera by itself when the tab becomes visible again.
+	useEffect(() => {
+		return () => {
+			qrScannerRef.current?.destroy();
+			qrScannerRef.current = null;
+		};
+	}, []);
+
 	useEffect(() => {
 		if (hasCameraPermission) {
 			navigator.mediaDevices
@@ -77,7 +87,14 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 					let bestBackCamera: ScannerDevice | null = null;
 
 					for (const device of videoDevices) {
-						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
+						// A camera that can't be opened, for example because another app holds it, is skipped.
+						const stream = await navigator.mediaDevices
+							.getUserMedia({ video: { deviceId: device.deviceId } })
+							.catch((error) => {
+								console.error('Error opening camera:', error);
+								return null;
+							});
+						if (!stream) continue;
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
 						// const isBackCamera = device.label.toLowerCase().includes('back');
@@ -147,50 +164,44 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 			if (webcamRef.current && webcamRef.current.stream) {
 				stopMediaTracks(webcamRef.current.stream);
 			}
+			qrScannerRef.current?.destroy();
+			qrScannerRef.current = null;
 			setCurrentDeviceIndex(newIndex);
 		}
 	};
 
 	const onUserMedia = () => {
-		if (webcamRef.current && webcamRef.current.video) {
-			const videoElement = webcamRef.current.video;
-			const qrScanner = new QrScanner(
-				videoElement,
-				(result) => {
-					console.log('decoded qr code:', result);
-					setQrDetected(true);
-					// Redirect to the URL found in the QR code
-					const scannedUrl = result.data;
-					setTimeout(() => {
-						setLoading(true);
-					}, 3000);
-					setTimeout(() => {
-						const baseUrl = window.location.origin;
-						const params = scannedUrl.split('?');
-						const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-						window.location.href = cvUrl;
-					}, 1000);
-				},
-				{ highlightScanRegion: true, highlightCodeOutline: false },
-			);
+		const video = webcamRef.current?.video;
+		// react-webcam can hand a new stream to the same <video>; the scanner already on it picks that up.
+		if (!video || qrScannerRef.current?.$video === video) return;
+		qrScannerRef.current?.destroy();
+		const qrScanner = new QrScanner(
+			video,
+			(result) => {
+				if (detectedRef.current) return;
+				const query = walletCallbackQuery(result.data);
+				if (query === null) return;
+				detectedRef.current = true;
+				setQrDetected(true);
+				setTimeout(() => {
+					window.location.href = `${window.location.origin}/cb?${query}&wwwallet_camera_was_used=true`;
+				}, 1000);
+			},
+			{ highlightScanRegion: true, highlightCodeOutline: false },
+		);
+		qrScannerRef.current = qrScanner;
 
-			qrScanner.start().catch((err) => {
-				console.error('Error starting QR Scanner: ', err);
-				// Optionally update UI or state to reflect the error
-			});
-
-			return () => {
-				qrScanner.stop();
-				qrScanner.destroy();
-			};
-		}
+		qrScanner.start().catch((err) => {
+			console.error('Error starting QR Scanner: ', err);
+		});
 	};
 
 	return (
 		<PopupLayout
 			isOpen={true}
 			onClose={handleClose}
-			loading={loading || !cameraReady}
+			// Camera setup never runs without permission, so cameraReady can't stand in for loading then.
+			loading={hasCameraPermission !== false && !cameraReady}
 			fullScreen={screenType !== 'desktop'}
 		>
 			{hasCameraPermission === false ? (
@@ -207,8 +218,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 					<p className="text-lm-red dark:text-dm-red">{t('qrCodeScanner.cameraPermissionAllow')}</p>
 				</>
 			) : (
-				cameraReady &&
-				!loading && (
+				cameraReady && (
 					<>
 						<div>
 							{screenType !== 'desktop' ? (
