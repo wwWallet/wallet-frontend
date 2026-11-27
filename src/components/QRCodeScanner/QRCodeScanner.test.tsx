@@ -37,7 +37,7 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 
-it('accepts only the first decoded code and preserves navigation on close', async () => {
+it('keeps scanning after an invalid code and accepts only the first valid code', async () => {
 	const track = {
 		stop: vi.fn(),
 		getCapabilities: () => ({ facingMode: ['environment'], width: { max: 640 }, height: { max: 480 } }),
@@ -52,13 +52,16 @@ it('accepts only the first decoded code and preserves navigation on close', asyn
 	render(<QRScanner onClose={vi.fn()} />);
 	await screen.findByText('Preview');
 	vi.useFakeTimers();
+	act(() => scanner.decode?.({ data: 'https://example.com' }));
+	expect(screen.queryByRole('alert')).toBeNull();
+	expect(vi.getTimerCount()).toBe(0);
 	act(() => {
 		scanner.decode?.({ data: 'openid4vp://?client_id=wallet&request_uri=https://example.com/request?token=abc' });
 		scanner.decode?.({ data: 'openid-credential-offer://?credential_offer_uri=https://example.com/other' });
 	});
 	expect(screen.queryByRole('alert')).toBeNull();
-	expect(vi.getTimerCount()).toBe(2);
+	expect(vi.getTimerCount()).toBe(1);
 	cleanup();
-	expect(vi.getTimerCount()).toBe(2);
+	expect(vi.getTimerCount()).toBe(1);
 	vi.clearAllTimers();
 });

@@ -3,6 +3,7 @@ import type { ChangeEvent } from 'react';
 import Webcam from 'react-webcam';
 import { useTranslation } from 'react-i18next';
 import QrScanner from '../../utils/qr/qr-scanner';
+import { walletCallbackQuery } from './walletCallbackQuery';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
@@ -30,7 +31,6 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 	const qrScannerRef = useRef<QrScanner | null>(null);
 	const detectedRef = useRef(false);
 	const [cameraReady, setCameraReady] = useState(false);
-	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [zoomLevel, setZoomLevel] = useState(1);
@@ -179,19 +179,12 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 			video,
 			(result) => {
 				if (detectedRef.current) return;
+				const query = walletCallbackQuery(result.data);
+				if (query === null) return;
 				detectedRef.current = true;
-				console.log('decoded qr code:', result);
 				setQrDetected(true);
-				// Redirect to the URL found in the QR code
-				const scannedUrl = result.data;
 				setTimeout(() => {
-					setLoading(true);
-				}, 3000);
-				setTimeout(() => {
-					const baseUrl = window.location.origin;
-					const params = scannedUrl.split('?');
-					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-					window.location.href = cvUrl;
+					window.location.href = `${window.location.origin}/cb?${query}&wwwallet_camera_was_used=true`;
 				}, 1000);
 			},
 			{ highlightScanRegion: true, highlightCodeOutline: false },
@@ -208,7 +201,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 			isOpen={true}
 			onClose={handleClose}
 			// Camera setup never runs without permission, so cameraReady can't stand in for loading then.
-			loading={loading || (hasCameraPermission !== false && !cameraReady)}
+			loading={hasCameraPermission !== false && !cameraReady}
 			fullScreen={screenType !== 'desktop'}
 		>
 			{hasCameraPermission === false ? (
@@ -225,8 +218,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 					<p className="text-lm-red dark:text-dm-red">{t('qrCodeScanner.cameraPermissionAllow')}</p>
 				</>
 			) : (
-				cameraReady &&
-				!loading && (
+				cameraReady && (
 					<>
 						<div>
 							{screenType !== 'desktop' ? (
