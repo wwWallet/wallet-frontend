@@ -28,6 +28,7 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 	const [devices, setDevices] = useState<ScannerDevice[]>([]);
 	const webcamRef = useRef<Webcam | null>(null);
 	const qrScannerRef = useRef<QrScanner | null>(null);
+	const detectedRef = useRef(false);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
@@ -177,6 +178,8 @@ const QRScanner = ({ onClose }: QRScannerProps) => {
 		const qrScanner = new QrScanner(
 			video,
 			(result) => {
+				if (detectedRef.current) return;
+				detectedRef.current = true;
 				console.log('decoded qr code:', result);
 				setQrDetected(true);
 				// Redirect to the URL found in the QR code
