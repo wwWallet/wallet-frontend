@@ -113,21 +113,24 @@ const Credential = () => {
 	}, [keystore, setCachedUser]);
 
 	const handleSureDelete = async () => {
-		setLoading(true);
 		if (!cachedUser) {
 			return;
 		}
-		const result = await api.syncPrivateData(cachedUser);
-		if (!result.ok) {
+		setLoading(true);
+		try {
+			const result = await api.syncPrivateData(cachedUser);
+			if (!result.ok) {
+				return;
+			}
+			const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId!));
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+			setShowDeletePopup(false);
+		} catch (err) {
+			console.error('Failed to delete credential', err);
+		} finally {
 			setLoading(false);
-			return;
 		}
-		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId!));
-		await api.updatePrivateData(newPrivateData);
-		await keystoreCommit();
-
-		setLoading(false);
-		setShowDeletePopup(false);
 	};
 
 	const redirectToVerifier = (verifier: Verifier) => {
